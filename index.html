@@ -366,6 +366,13 @@ header h1:hover .logo{transform:none}.rt{animation:none}.tc,.res,.wi,.mki,.rl,.c
 .ccq{display:flex;align-items:center;gap:10px;border:1px solid var(--l);border-radius:12px;padding:8px 12px;margin-bottom:6px;background:#fff}.ccq.ok{background:#f3faf6;border-color:#bfe0cb}.ccq.no{background:#fff5f4;border-color:#f0b4b1}
 .ccq .cn{font-weight:600;color:var(--bd);width:22px}.ccq .ct{flex:1;min-width:0}.ccq .ce{font-size:12.5px;color:var(--m);margin-top:3px}.ccq.no .ce{color:#b23a35}.ccq .cb{display:flex;gap:6px}.ccq .ox{width:44px;height:36px;font-size:16px;font-weight:600;border-radius:10px;border:1.5px solid #cfd7e1;background:#fff;cursor:pointer}.ccq .ox.sel{background:var(--b);color:#fff;border-color:var(--b)}
 .cnote{margin:6px 0 0;padding-left:22px}.cnote li{margin-bottom:4px}.cct h4{font-size:14px}
+.cbwrap{display:grid;grid-template-columns:270px minmax(0,1fr);gap:12px;align-items:start}.cbnav{position:sticky;top:8px;max-height:calc(100vh - 16px);overflow:auto;padding:12px}.cbmain .card{margin-bottom:12px}
+.cbsub{display:flex;align-items:center;justify-content:space-between;margin:12px 0 4px;font-size:13px;color:var(--bd)}.cbi{display:flex;align-items:center;gap:6px;padding:3px 4px;border-radius:8px;font-size:13.5px}.cbi a{flex:1;cursor:pointer;line-height:1.35;padding:3px 2px}.cbi.on{background:var(--bl);color:var(--bd);font-weight:500}.cbi:hover{background:#f3f6fa}.cbi input{flex:none}
+.cbi .wk{font-style:normal;background:#f2b400;color:#fff;border-radius:9px;padding:0 6px;font-size:11px}.cbpr{position:sticky;bottom:-12px;background:#fff;padding:10px 0 2px;margin-top:10px;border-top:1px solid var(--l);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cbtt{display:flex;align-items:center;gap:10px;font-size:21px;margin:14px 0 8px}.cbtt i{font-style:normal;background:#2f9d66;color:#fff;width:32px;height:32px;display:grid;place-items:center;font-size:16px;flex:none}
+.cbbl{border-bottom:1px dotted var(--l);padding:10px 0}.cbbl .cbq{line-height:2}.cbbl .cbq p{margin:0}.cbbl .cbbb{display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap}.bki{font:inherit;border:0;border-bottom:2px solid #8fa3b8;background:#f6f9fc;text-align:center;padding:2px 4px;border-radius:4px 4px 0 0}.bki.okb{border-color:#2e9e6b;background:#eaf7f0}.bki.nob{border-color:#e5484d;background:#fdeeee}
+.cbk h3.cbh{font-size:16px;border-left:5px solid #2f9d66;padding-left:10px;margin:18px 0 6px}
+@media(max-width:900px){.cbwrap{grid-template-columns:1fr}.cbnav{position:static;max-height:300px}}
 </style></head><body>
 <header><h1 id="brand" onclick="openSubjects()" title="과목 선택"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5l11.5 6.5L16 15.5 4.5 9z" fill="#8cc0ff"/><path d="M4.5 9L16 15.5v14L4.5 23z" fill="#2f6fd0"/><path d="M27.5 9L16 15.5v14L27.5 23z" fill="#183a82"/><path d="M19.5 20.2l3 2.6 4-5" transform="translate(-1.5 1)" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bn">Qubic</span><small id="subj">물질과 에너지</small><b>▾</b></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span><span id="saved" title="이 기기에 자동 저장된 마지막 시각"></span><button id="setBtn" onclick="openSettings()" title="설정 · 단축키 · 데이터 관리" aria-label="설정">⚙</button></header>
 <main id="main"></main><aside id="exp"></aside>
@@ -1141,13 +1148,14 @@ function wsq(q,i,rec){let h=q.q||'';const cd=`<span class="qc">${q.code}</span>`
  const inner=h.replace('<div class="q">','').replace(/<\/div>$/,'');
  return `<div class="q"><div class="qh"><b class="qn">${i+1}</b>${qp}${code}</div>${tgs}${inner}${q.set==='ox'?'<p style="text-align:right;margin:2mm 0">(　　　)</p>':''}</div>`}
 async function openWs(rec,pv){
+ try{const fam=((FONTS[rec.font]||FONTS.paper)[1]||'').split(',')[0].replace(/['"]/g,'').trim();await Promise.all([400,500,700].flatMap(w=>[document.fonts.load(w+' 14px Paperozi'),fam?document.fonts.load(w+' 14px "'+fam+'"'):0]));await document.fonts.ready}catch(e){}
  const qs=rec.codes.map(c=>byCode[c]).filter(Boolean);
  const style=STYLE_CSS[rec.style]!==undefined?rec.style:({exam:'naesin',academy:'band',mono:'naesin'}[rec.style||rec.theme])||'basic',color=rec.color||'blue';
  const cols=rec.cols||2,per=(rec.per===undefined||rec.per==='auto')?0:+rec.per;
  const base=(CF.pub||location.href).split('#')[0].split('?')[0];
  const url=base+'#ws='+rec.id;const date=new Date(rec.t).toLocaleDateString('ko-KR');
  const nm=rec.name||(STU.find(s=>s.id===rec.sid)||{}).name||'';
- const fnt=(FONTS[rec.font]||FONTS.paper)[1];const host=pv||$('#wsPaper');mount(host,`<style>${WSCSS}${COVERCSS}${rec.mono?'.pages{filter:grayscale(1)}':''}${palCss(color)}.pages{font-family:${fnt}}.pg *{font-family:inherit}.pg svg text{font-family:Paperozi,sans-serif}${STYLE_CSS[style]||''}${cols==1?'.col:nth-child(2){display:none}.col+.col::before{display:none}':''}</style><div class="pages"></div>`);
+ const fnt=(FONTS[rec.font]||FONTS.paper)[1];const host=pv||$('#wsPaper');mount(host,`<style>${WSCSS}${COVERCSS}.q img,.sb img{width:auto!important;max-width:100%;max-height:62mm}.sb{break-inside:auto}${rec.mono?'.pages{filter:grayscale(1)}':''}${palCss(color)}.pages{font-family:${fnt}}.pg *{font-family:inherit}.pg svg text{font-family:Paperozi,sans-serif}${STYLE_CSS[style]||''}${cols==1?'.col:nth-child(2){display:none}.col+.col::before{display:none}':''}</style><div class="pages"></div>`);
  const root=host.shadowRoot,pages=root.querySelector('.pages');let pn=0;const all=[];
  const mm=px=>px/(96/25.4);
  const goQr=e=>{e.stopPropagation();closeWs();setTimeout(()=>openByNumber(rec.id),50)};
@@ -1175,7 +1183,7 @@ async function openWs(rec,pv){
    if(!sol&&per){const h=mm(col.getBoundingClientRect().height);el.style.minHeight=Math.max(30,(h/cap)-5.5)+'mm'}else if(!sol)el.style.minHeight='70mm';
    col.appendChild(el);
    if(el.getBoundingClientRect().bottom<=col.getBoundingClientRect().bottom+0.5)break;
-   if(col.children.length===1)break;col.removeChild(el);ci++;if(ci>1||(cols==1&&ci>0)){pg=newPage(false,sol);ci=0}}})}
+   if(col.children.length===1){el.style.minHeight='';const eh=el.getBoundingClientRect().height,chh=col.getBoundingClientRect().height;if(eh>chh-14)el.style.zoom=Math.max(.5,(chh-16)/eh).toFixed(3);break}col.removeChild(el);ci++;if(ci>1||(cols==1&&ci>0)){pg=newPage(false,sol);ci=0}}})}
  {let base=null;if(rec.p100&&qs.length){const b=Math.floor(100/qs.length),ex=100-b*qs.length;base=qs.map((q,i)=>b+(i>=qs.length-ex?1:0))}
  const pm=rec.pts||{};const arr=qs.map((q,i)=>pm[q.code]!=null&&pm[q.code]!==''?+pm[q.code]:(base?base[i]:null));rec._pts=arr.some(x=>x!=null)?arr.map((v,i)=>v!=null?v:(defPts(qs[i])===''?null:defPts(qs[i]))):null}
  const secOf=q=>q.set==='essay'?2:(q.set==='blank'||q.set==='ox')?1:0,SECN=['객관식','단답형','서술형'],NUMR=['Ⅰ','Ⅱ','Ⅲ'];
@@ -1320,8 +1328,8 @@ let CONC={},CC={sel:new Set(),n:10,qs:null,pick:{}};
 const cfmt=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/_\{([^}]*)\}/g,'<sub>$1</sub>').replace(/\^\{([^}]*)\}/g,'<sup>$1</sup>');
 const cplain=h=>String(h||'').replace(/<[^>]+>/g,' ').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
 async function conceptLoad(){if(CONC[SUBJ])return;try{const r=await fetch((SUBJ==='cm'?'cm/':'bank/')+'concept.json');CONC[SUBJ]=r.ok?await r.json():{}}catch(e){CONC[SUBJ]={}}}
-function cPairs(o){const c=CONC[SUBJ]||{};return c[o.type]||c['__'+o.sub]||[]}
-function cOwn(o){return !!((CONC[SUBJ]||{})[o.type])}
+function cPairs(o){let c=CONC[SUBJ]||{};if(c.pools)c=c.pools;return c[o.type]||c['__'+o.sub]||[]}
+function cOwn(o){let c=CONC[SUBJ]||{};if(c.pools)c=c.pools;return !!c[o.type]}
 function cBuild(){const rows=typeRows().filter(o=>CC.sel.has(o.k));CC.pick={};
  CC.qs=rows.map(o=>{const pr=cPairs(o);let it=pr.map(p=>Math.random()<.5?{s:p[0],a:'O',e:p[0]}:{s:p[1],a:'X',e:'옳은 설명 → '+p[0]});
   DATA.filter(q=>q.set==='ox'&&q.sub===o.sub&&q.type===o.type).forEach(q=>it.push({s:cplain(q.q),a:String(q.ans).toUpperCase()==='O'?'O':'X',e:cplain(q.exp)}));
@@ -1336,7 +1344,8 @@ function ccPick(ti,i,v){CC.pick[ti+'_'+i]=v;const el=document.getElementById('cc
 function ccScore(){let n=0,r=0;(CC.qs||[]).forEach((t,ti)=>t.items.forEach((q,i)=>{n++;const p=CC.pick[ti+'_'+i];if(p&&p===q.a)r++}));const d=Object.keys(CC.pick).length;return d?`${r} / ${d} 정답 (전체 ${n}문항)`:`전체 ${n}문항`}
 function ccRow(ti,i){const q=CC.qs[ti].items[i],p=CC.pick[ti+'_'+i],ok=p===q.a;
  return `<div class="ccq ${p?(ok?'ok':'no'):''}" id="cc_${ti}_${i}"><span class="cn">${i+1}</span><div class="ct"><div>${cfmt(q.s)}</div>${p?`<div class="ce">${ok?'정답':'오답'} · 답은 ${q.a}${q.a==='X'?` · ${cfmt(q.e)}`:''}</div>`:''}</div><div class="cb"><button class="ox ${p==='O'?'sel':''}" ${p?'disabled':''} onclick="ccPick(${ti},${i},'O')">O</button><button class="ox ${p==='X'?'sel':''}" ${p?'disabled':''} onclick="ccPick(${ti},${i},'X')">X</button></div></div>`}
-async function conceptView(){await conceptLoad();
+async function conceptView(){await conceptLoad();const C=CONC[SUBJ];if(SUBJ==='cm'&&C&&C.secs)return cbView();return conceptPoolView()}
+async function conceptPoolView(){
  const rows=typeRows(),bySub={};rows.forEach(o=>(bySub[o.sub]=bySub[o.sub]||[]).push(o));
  if(!CC.qs&&CC.sel.size)cBuild();
  let h=`<div class="card"><div class="row"><h2 style="margin:0">개념학습 <span class="tag">${esc(SNAME[SUBJ])}</span></h2><span class="m">유형을 고르면 핵심 개념 정리와 기초 O/X 문제가 나와요</span></div>
@@ -1354,6 +1363,95 @@ function ccPrint(){if(!CC.qs||!CC.qs.length)return;const nm=(STINFO&&STINFO.name
  const ans=CC.qs.map(t=>`<p><b>${esc(t.o.type)}</b> : ${t.items.map((q,i)=>`${i+1}.${q.a}`).join(' ')}</p>`).join('');
  const html=`<!doctype html><meta charset="utf-8"><title>개념 학습지</title><style>body{font-family:'Noto Sans KR','Malgun Gothic',sans-serif;color:#1b2430;margin:0;padding:14mm;font-size:10.5pt;line-height:1.6}h1{font-size:18pt;margin:0 0 4px}.h{border-top:3px solid #2f7fd0;padding-top:6px;margin-bottom:12px;display:flex;justify-content:space-between}section{break-inside:auto;margin-bottom:12px}h2{font-size:13pt;border-left:4px solid #2f7fd0;padding-left:8px;margin:14px 0 6px}h3{font-size:10.5pt;margin:8px 0 4px;color:#1d5ca6}ol{margin:0;padding-left:20px}li{margin-bottom:3px}.bx{white-space:nowrap;margin-left:6px}.ans{page-break-before:always}small{font-weight:400;color:#586476}@media print{body{padding:0}}</style><div class="h"><div><h1>개념 학습지</h1><div>${esc(SNAME[SUBJ])}</div></div><div>이름 ${esc(nm)||'______'} · ${new Date().toLocaleDateString('ko-KR')}</div></div>${body}<section class="ans"><h2>정답</h2>${ans}</section>`;
  let f=document.getElementById('ccprint');if(f)f.remove();f=document.createElement('iframe');f.id='ccprint';f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);f.contentDocument.open();f.contentDocument.write(html);f.contentDocument.close();setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print()},300)}
+
+
+/* ---------- 개념학습 (본교재 기반) ---------- */
+let CB={cur:null,print:new Set(),tab:'sec',ox:{},bl:{},extra:{},nav:1};
+const CBCSS=`.cbk{--p:#2f9d66;--pd:#1f7d4e;--pl:#eefcf5;--pl2:#d9f8e8;--line:#b0e3c9;--ink:#17251e;--gr:#485d52;--hl:#fff06b;--wa:#f2b400;--wl:#fff8dc;--y:#ffca2c;line-height:1.7;color:var(--ink);word-break:keep-all;overflow-wrap:break-word}
+.cbk p{margin:0 0 .5em}.cbk b,.cbk strong{font-weight:600}.cbk sub,.cbk sup{font-size:.85em;line-height:0}
+.cbk .hl{background:linear-gradient(transparent 36%,var(--hl) 36%,var(--hl) 94%,transparent 94%);padding:0 .1em;font-weight:600;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.cbk h4{margin:.9em 0 .3em;font-size:1.04em;font-weight:700;color:var(--pd)}.cbk h4::before{content:"";display:inline-block;width:.55em;height:.55em;background:var(--y);margin-right:.45em;border-radius:50%}
+.cbk ul.l{margin:.2em 0 .6em;padding-left:1.2em;list-style:none}.cbk ul.l>li{position:relative;margin:.2em 0}.cbk ul.l>li::before{content:"";position:absolute;left:-1em;top:.7em;width:.38em;height:.38em;background:var(--p)}
+.cbk ul.l ul.l>li::before{background:#fff;border:1px solid var(--p)}
+.cbk table.tb{width:100%;border-collapse:collapse;margin:.5em 0 .9em;font-size:.95em;line-height:1.5;background:#fff;table-layout:auto}
+.cbk table.tb th{background:var(--p);color:#fff;border:1px solid var(--p);padding:.4em .55em;font-weight:500;text-align:center}
+.cbk table.tb td{border:1px solid var(--line);padding:.4em .6em;text-align:center;vertical-align:middle}
+.cbk table.tb td.l,.cbk table.tb th.l{text-align:left}.cbk table.tb td.b{font-weight:600;white-space:nowrap}
+.cbk .nt{margin:1.3em 0 .9em;padding:1em .9em .4em;border:1px solid var(--pl2);border-radius:8px;background:var(--pl);break-inside:avoid;position:relative}
+.cbk .nt>.lb{display:inline-block;font-size:.9em;font-weight:500;color:#fff;background:var(--p);border-radius:4px;padding:0 .6em;margin:-1.75em 0 .35em;line-height:1.55}
+.cbk .nt.wa{border-color:#f3dd8c;background:var(--wl)}.cbk .nt.wa>.lb{color:#4a3600;background:var(--y)}
+.cbk .nt.ds{background:#fff;border-color:var(--p)}.cbk .nt.es{background:#fff;border:1px dashed var(--p)}
+.cbk .eqn{margin:.5em 0 .8em;padding:.5em .8em;text-align:center;font-weight:700;border-top:1px solid var(--p);border-bottom:1px solid var(--p);background:#fff}
+.cbk .fg{margin:.6em 0 .9em;text-align:center;break-inside:avoid}.cbk .fg img,.cbk .fg svg{max-width:100%;height:auto;max-height:70mm}
+.cbk .fg .cap{font-size:.92em;color:var(--gr);margin-top:.25em}
+.cbk .two-c{display:grid;grid-template-columns:1fr 1fr;gap:1.2em;align-items:start}@media(max-width:700px){.cbk .two-c{grid-template-columns:1fr}}
+.cbk .tag{display:inline-block;font-size:.9em;font-weight:700;color:#fff;background:var(--p);padding:0 .45em;margin-right:.35em;line-height:1.5}.cbk .tag.o{background:var(--wa)}.cbk .tag.g{background:var(--gr)}
+.cbk .fr{display:inline-block;vertical-align:middle;text-align:center;line-height:1.15;margin:0 .12em}.cbk .fr>span{display:block;padding:0 .18em}.cbk .fr>span:first-child{border-bottom:1px solid currentColor}
+.cbk .tp{white-space:nowrap}.cbk .sm{font-size:.92em;color:var(--gr)}`;
+async function cbLoad(){await conceptLoad();const C=CONC[SUBJ];if(C&&!CB.cur)CB.cur=C.secs[0].id;return C}
+function cbSec(id){return CONC[SUBJ].secs.find(x=>x.id===id)}
+function cbWeakSecs(){const w=new Set(typeRows().filter(o=>o.n&&['skull','red','yellow'].includes(o.lv)).map(o=>o.type));return CONC[SUBJ].secs.filter(s=>s.types.some(t=>w.has(t)))}
+async function cbGo(id){CB.cur=id;CB.tab='sec';await cbView();scrollTo(0,0)}
+function cbStep(d){const a=CONC[SUBJ].secs,i=a.findIndex(x=>x.id===CB.cur);const j=Math.max(0,Math.min(a.length-1,i+d));cbGo(a[j].id)}
+async function cbTab(t){CB.tab=t;await cbView();scrollTo(0,0)}
+function cbPr(id,on){on?CB.print.add(id):CB.print.delete(id);const n=document.getElementById('cbprn');if(n)n.textContent=CB.print.size}
+function cbPrSub(sub,on){CONC[SUBJ].secs.filter(s=>s.sub===sub).forEach(s=>on?CB.print.add(s.id):CB.print.delete(s.id));cbView()}
+function cbOxItems(sec){const book=sec.ox.map(c=>byCode[c]).filter(Boolean).map(q=>({k:q.code,s:cplain(q.q),a:String(q.ans).toUpperCase()==='O'?'O':'X',e:cplain(q.exp).replace(/^[OX]\s*/,'')}));return book}
+function cbExtra(sec){if(CB.extra[sec.id])return CB.extra[sec.id];const pool=CONC[SUBJ].pools||{};let it=[];sec.types.forEach(t=>(pool[t]||[]).forEach((p,i)=>it.push(Math.random()<.5?{k:'p'+t+i,s:p[0],a:'O',e:p[0]}:{k:'p'+t+i,s:p[1],a:'X',e:'옳은 설명 → '+p[0]})));
+ const O=shuffle(it.filter(i=>i.a==='O')),X=shuffle(it.filter(i=>i.a==='X')),out=[];while(out.length<8&&(O.length||X.length)){if(O.length)out.push(O.pop());if(out.length<8&&X.length)out.push(X.pop())}
+ return CB.extra[sec.id]=shuffle(out)}
+function cbOxRow(q,id){const p=CB.ox[q.k];const ok=p===q.a;return `<div class="ccq ${p?(ok?'ok':'no'):''}" id="cbo_${id}"><div class="ct"><div>${cfmt(q.s)}</div>${p?`<div class="ce">${ok?'정답':'오답'} · 답은 ${q.a}${q.e&&q.a==='X'?` · ${cfmt(q.e)}`:''}</div>`:''}</div><div class="cb"><button class="ox ${p==='O'?'sel':''}" ${p?'disabled':''} onclick="cbOx('${q.k}','O','${id}')">O</button><button class="ox ${p==='X'?'sel':''}" ${p?'disabled':''} onclick="cbOx('${q.k}','X','${id}')">X</button></div></div>`}
+function cbOx(k,v,id){CB.ox[k]=v;const sec=cbSec(CB.cur);const q=[...cbOxItems(sec),...cbExtra(sec)].find(x=>x.k===k);const el=document.getElementById('cbo_'+id);if(q&&el)el.outerHTML=cbOxRow(q,id)}
+const cbNorm=t=>String(t||'').replace(/[\s·\-,.\/]/g,'').toLowerCase();
+function cbBlankHtml(q){const st=CB.bl[q.code]||{};let i=0;const bl=q.blanks||[];const html=String(q.q).replace(/<div class="qh">.*?<\/div>/,'').replace(/<span class="bk">[^<]*<\/span>/g,()=>{const k=i++;const v=(st.v||[])[k]||'';const cls=st.done?(cbNorm(v)===cbNorm(bl[k])?'okb':'nob'):'';return `<input class="bki ${cls}" data-k="${k}" value="${esc(v)}" ${st.done?'disabled':''} style="width:${Math.max(5,(bl[k]||'').length*1.1+2)}em">`});return `<div class="cbbl" id="cbb_${q.code}"><div class="cbq">${html}</div><div class="cbbb">${st.done?`<span class="m">${bl.map((a,k)=>`${'㉠㉡㉢㉣㉤'[k]} ${esc(a)}`).join(' · ')}</span><button class="s sm" onclick="cbBlankReset('${q.code}')">다시</button>`:`<button class="s sm" onclick="cbBlankCheck('${q.code}')">확인</button><button class="s sm" onclick="cbBlankShow('${q.code}')">정답 보기</button>`}</div></div>`}
+function cbBlankRead(code){const el=document.getElementById('cbb_'+code);return [...el.querySelectorAll('.bki')].map(x=>x.value)}
+function cbBlankCheck(code){CB.bl[code]={v:cbBlankRead(code),done:1};document.getElementById('cbb_'+code).outerHTML=cbBlankHtml(byCode[code])}
+function cbBlankShow(code){const q=byCode[code];CB.bl[code]={v:q.blanks.slice(),done:1};document.getElementById('cbb_'+code).outerHTML=cbBlankHtml(q)}
+function cbBlankReset(code){delete CB.bl[code];document.getElementById('cbb_'+code).outerHTML=cbBlankHtml(byCode[code])}
+function cbMore(){delete CB.extra[CB.cur];cbView()}
+function cbPractice(id){const sec=cbSec(id);const rows=typeRows().filter(o=>sec.types.includes(o.type));if(!rows.length){toast('연결된 유형이 없어요');return}
+ W.sel=new Map(rows.map(o=>[o.k,5]));W.title=sec.title+' 개념 확인';saveW();quickPractice()}
+function cbBuild(id){const sec=cbSec(id);const rows=typeRows().filter(o=>sec.types.includes(o.type));W.sel=new Map(rows.map(o=>[o.k,5]));W.title=sec.title+' 학습지';saveW();tab='build';render()}
+async function cbView(){const C=await cbLoad();if(!C)return;
+ const weak=new Set(cbWeakSecs().map(s=>s.id));const sec=cbSec(CB.cur);const idx=C.secs.findIndex(x=>x.id===CB.cur);
+ const navH=['Ⅱ-A','Ⅱ-B','Ⅲ-A','Ⅲ-B','Ⅲ-C'].map(sb=>{const l=C.secs.filter(x=>x.sub===sb);if(!l.length)return'';const allOn=l.every(x=>CB.print.has(x.id));return `<div class="cbsub"><b>${sb} ${esc(C.subs[sb].name)}</b><label class="m" title="이 소단원 전체를 인쇄 대상으로 선택"><input type="checkbox" ${allOn?'checked':''} onchange="cbPrSub('${sb}',this.checked)">인쇄</label></div>${l.map(x=>`<div class="cbi ${CB.cur===x.id&&CB.tab==='sec'?'on':''}"><input type="checkbox" ${CB.print.has(x.id)?'checked':''} onchange="cbPr('${x.id}',this.checked)" title="인쇄 대상"><a onclick="cbGo('${x.id}')">${x.no}. ${esc(x.title)}${weak.has(x.id)?' <em class="wk" title="취약 유형이 연결된 개념">!</em>':''}</a></div>`).join('')}`}).join('');
+ const side=`<aside class="cbnav card"><div class="seg" style="margin-bottom:8px"><label><input type="radio" name="cbt" ${CB.tab==='sec'?'checked':''} onchange="cbTab('sec')"><span>개념</span></label><label><input type="radio" name="cbt" ${CB.tab==='sum'?'checked':''} onchange="cbTab('sum')"><span>요약 노트</span></label></div>
+ <button class="s sm" style="width:100%;margin-bottom:6px" onclick="cbWeakGo()">⚡ 내 취약 유형 관련 개념 (${weak.size})</button>${navH}
+ <div class="cbpr"><b id="cbprn">${CB.print.size}</b>개 선택 <button class="p sm" onclick="cbPrint()">🖨 선택 인쇄</button><button class="s sm" onclick="CB.print=new Set();cbView()">비우기</button></div></aside>`;
+ let main='';
+ if(CB.tab==='sum'){main=`<div class="card"><div class="row"><h2 style="margin:0">시험 10분 전 요약 노트</h2><button class="p sm" style="margin-left:auto" onclick="cbPrintSummary()">🖨 인쇄</button></div><div class="cbk" style="font-size:15px">${C.summary.map(x=>`<h3 class="cbh">${esc(x.title)}</h3>${x.html}`).join('')}</div></div>`}
+ else{const ox=cbOxItems(sec),ex=cbExtra(sec);const bl=sec.blank.map(c=>byCode[c]).filter(Boolean);
+  const rows=typeRows().filter(o=>sec.types.includes(o.type));
+  main=`<div class="card"><div class="row"><span class="tag" style="background:var(--b);color:#fff;border-radius:6px;padding:2px 8px;font-size:12px">${sec.sub} ${esc(C.subs[sec.sub].name)}</span><span class="m">${esc(C.subs[sec.sub].goal||'')}</span><span style="margin-left:auto" class="row"><button class="s sm" onclick="cbStep(-1)" ${idx?'':'disabled'}>← 이전</button><button class="s sm" onclick="cbStep(1)" ${idx<C.secs.length-1?'':'disabled'}>다음 →</button><button class="p sm" onclick="cbPrint('${sec.id}')">🖨 이 개념 인쇄</button></span></div>
+  <h2 class="cbtt"><i>${sec.no}</i>${esc(sec.title)}</h2><div class="cbk" style="font-size:15px">${sec.html}</div></div>
+  <div class="card"><h3 style="margin-top:0">이 개념으로 풀어 볼 유형</h3><div class="chips">${rows.map(o=>`<span class="chip" title="${esc(o.subname)}">${esc(o.type)}</span>`).join('')||'<span class="m">연결된 유형이 없어요</span>'}</div>
+  <div class="row" style="margin-top:10px"><button class="p" onclick="cbPractice('${sec.id}')" ${rows.length?'':'disabled'}>바로 문제 풀기</button>${teacher()?`<button class="s" onclick="cbBuild('${sec.id}')" ${rows.length?'':'disabled'}>학습지로 만들기</button>`:''}</div></div>
+  <div class="card"><h3 style="margin-top:0">OX 확인 <span class="m">교재 ${ox.length}문항${ex.length?` + 추가 ${ex.length}문항`:''}</span></h3>${ox.map((q,i)=>cbOxRow(q,'b'+i)).join('')||'<div class="m">교재 OX가 없어요.</div>'}${ex.length?`<h4 style="margin:14px 0 6px">추가 OX 연습 <button class="s sm" onclick="cbMore()">다른 문제로</button></h4>${ex.map((q,i)=>cbOxRow(q,'e'+i)).join('')}`:''}</div>
+  ${bl.length?`<div class="card"><h3 style="margin-top:0">빈칸 채우기 <span class="m">${bl.length}문항</span></h3>${bl.map(q=>cbBlankHtml(q)).join('')}</div>`:''}`}
+ const y=scrollY;$('#main').innerHTML=`<style>${CBCSS}</style><div class="cbwrap">${side}<div class="cbmain">${main}</div></div>`;scrollTo(0,y)}
+function cbWeakGo(){const w=cbWeakSecs();if(!w.length){toast('아직 취약한 유형이 없어요');return}CB.print=new Set(w.map(s=>s.id));cbGo(w[0].id);toast('취약 유형과 관련된 개념 '+w.length+'개를 인쇄 대상으로 선택했어요')}
+const CBPRCSS=`@page{size:A4;margin:14mm 13mm 15mm}*{box-sizing:border-box}body{margin:0;font-family:Paperozi,'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',sans-serif;font-size:10.3pt;color:#17251e;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.top{border-top:1.2mm solid #2f9d66;padding-top:2mm;margin-bottom:5mm;display:flex;justify-content:space-between;align-items:flex-end}.top h1{font-size:17pt;margin:0}.top div{font-size:9.5pt;color:#485d52}
+h2.sc{display:flex;align-items:center;gap:2.4mm;font-size:13pt;margin:6mm 0 2mm;break-after:avoid;page-break-after:avoid}h2.sc i{font-style:normal;width:7mm;height:7mm;line-height:7mm;text-align:center;background:#2f9d66;color:#fff;font-size:11.5pt}
+.subh{font-size:10pt;font-weight:700;color:#1f7d4e;border-bottom:.3mm solid #2f9d66;margin:5mm 0 1mm;padding-bottom:.6mm;break-after:avoid;page-break-after:avoid}
+.cbk{font-size:10.3pt}.cbk .fg img{max-height:58mm}.cbk table,.cbk .nt,.cbk .fg,.cbk .eqn,.cbk .two-c>div{break-inside:avoid;page-break-inside:avoid}.cbk tr{break-inside:avoid;page-break-inside:avoid}.cbk .two-c{break-inside:auto}
+.oxq,.bq{display:flex;gap:1.4mm;padding:1.3mm 0;border-bottom:.2mm dotted #b0e3c9;line-height:1.6;break-inside:avoid;page-break-inside:avoid}.oxq .n,.bq .n{flex:none;min-width:8mm;font-weight:700;color:#1f7d4e}.oxq .t,.bq .t{flex:1}.oxq .a{flex:none;white-space:nowrap}
+.bl{display:inline-block;min-width:21mm;border-bottom:.3mm solid #17251e;margin:0 .6mm;text-align:center;color:transparent}.ansv .bl{color:#1f7d4e;font-weight:700;background:linear-gradient(transparent 20%,#fff06b 20%,#fff06b 92%,transparent 92%)}
+.ansp{break-before:page;page-break-before:always}.ansp p{margin:0 0 1.4mm;line-height:1.7}.sig{margin-top:6mm;font-size:9pt;color:#485d52}`;
+function cbPrintDoc(secs,withAns,title){const C=CONC[SUBJ];const nm=(STINFO&&STINFO.name)||(STU.find(s=>s.id===CUR_S)||{}).name||'';let n=0;const ans=[];
+ const body=secs.map(sec=>{const ox=cbOxItems(sec),bl=sec.blank.map(c=>byCode[c]).filter(Boolean);ans.push(`<p><b>${esc(sec.no+'. '+sec.title)}</b></p>`);
+  const oxh=ox.length?`<div class="subh">OX 확인 (옳으면 O, 옳지 않으면 X)</div>${ox.map((q,i)=>`<div class="oxq"><span class="n">${i+1}</span><span class="t">${cfmt(q.s)}</span><span class="a">(&nbsp;&nbsp;&nbsp;&nbsp;)</span></div>`).join('')}`:'';
+  if(ox.length)ans.push(`<p>OX : ${ox.map((q,i)=>`${i+1}.${q.a}`).join(' · ')}</p>`);
+  const blh=bl.length?`<div class="subh">빈칸 채우기</div>${bl.map((q,i)=>{let k=0;const t=String(q.q).replace(/<div class="qh">.*?<\/div>/,'').replace(/<div class="q"[^>]*>|<div class="qs">|<\/div>/g,'').replace(/<span class="bk">[^<]*<\/span>/g,()=>`<span class="bl">${'㉠㉡㉢㉣㉤'[k++]}</span>`);return `<div class="bq"><span class="n">${i+1}</span><span class="t">${t}</span></div>`}).join('')}`:'';
+  bl.forEach((q,i)=>ans.push(`<p>빈칸 ${i+1} : ${(q.blanks||[]).map((a,k)=>`${'㉠㉡㉢㉣㉤'[k]} ${esc(a)}`).join(' · ')}</p>`));
+  return `<section><h2 class="sc"><i>${sec.no}</i>${esc(sec.title)}</h2><div class="cbk">${sec.html}</div>${oxh}${blh}</section>`}).join('');
+ return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>@font-face{font-family:Paperozi;font-weight:400;src:url(${location.origin}${location.pathname.replace(/[^/]*$/,'')}fonts/4Regular.woff2) format('woff2')}@font-face{font-family:Paperozi;font-weight:500;src:url(${location.origin}${location.pathname.replace(/[^/]*$/,'')}fonts/5Medium.woff2) format('woff2')}@font-face{font-family:Paperozi;font-weight:700;src:url(${location.origin}${location.pathname.replace(/[^/]*$/,'')}fonts/7Bold.woff2) format('woff2')}${CBCSS}${CBPRCSS}</style></head><body><div class="top"><h1>${esc(title)}</h1><div>${esc(SNAME[SUBJ])} · 이름 ${esc(nm)||'________'} · ${new Date().toLocaleDateString('ko-KR')}</div></div>${body}${withAns&&ans.length?`<section class="ansp"><h2 class="sc"><i>답</i>정답</h2>${ans.join('')}</section>`:''}</body></html>`}
+async function cbPrintHtml(html){let f=document.getElementById('ccprint');if(f)f.remove();f=document.createElement('iframe');f.id='ccprint';f.style.cssText='position:fixed;right:0;bottom:0;width:210mm;height:297mm;border:0;opacity:0;pointer-events:none';document.body.appendChild(f);f.contentDocument.open();f.contentDocument.write(html);f.contentDocument.close();
+ const d=f.contentDocument;await new Promise(r=>{const im=[...d.images].filter(x=>!x.complete);if(!im.length)return r();let n=im.length;const t=setTimeout(r,4000);im.forEach(x=>{const fn=()=>{if(--n<=0){clearTimeout(t);r()}};x.onload=fn;x.onerror=fn})});
+ try{await d.fonts.ready}catch(e){}f.contentWindow.focus();f.contentWindow.print()}
+function cbPrint(id){const C=CONC[SUBJ];const ids=id?[id]:[...CB.print];if(!ids.length){toast('인쇄할 개념을 체크하거나 「이 개념 인쇄」를 눌러 주세요');return}
+ const secs=C.secs.filter(s=>ids.includes(s.id));busyRun('인쇄 문서를 만드는 중…',async()=>{await ensureCodes([...secs.flatMap(s=>[...s.ox,...s.blank])]);cbPrintHtml(cbPrintDoc(secs,true,secs.length===1?secs[0].title+' 개념 학습지':'세포와 물질대사 개념 학습지'))})}
+function cbPrintSummary(){const C=CONC[SUBJ];const nm=(STINFO&&STINFO.name)||'';busyRun('인쇄 문서를 만드는 중…',async()=>{cbPrintHtml(`<!doctype html><html><head><meta charset="utf-8"><title>요약 노트</title><style>${CBCSS}${CBPRCSS}.cbk table{font-size:9.6pt}h3.cbh{font-size:12pt;margin:5mm 0 1.5mm;border-left:1.4mm solid #2f9d66;padding-left:2.4mm;break-after:avoid}</style></head><body><div class="top"><h1>시험 10분 전 요약 노트</h1><div>${esc(SNAME[SUBJ])} · ${new Date().toLocaleDateString('ko-KR')}</div></div><div class="cbk">${C.summary.map(x=>`<h3 class="cbh">${esc(x.title)}</h3>${x.html}`).join('')}</div></body></html>`)})}
 
 /* ---------- 학생 리포트 ---------- */
 function reportCss(){return `.pages{--p:#2f7fd0;--pd:#1d5ca6;--pl:#eaf3fd;--pl2:#cfe2f7}.pg{width:210mm;min-height:297mm;background:#fff;margin:0 auto 7mm;box-shadow:0 2px 12px #0002;padding:14mm 14mm 12mm;position:relative;break-after:page;page-break-after:always;font-size:10pt;line-height:1.55;color:#1b2430}
