@@ -935,7 +935,7 @@ async function makeFromCodes(codes,title){toReview(codes,{...wsOpts(),title:titl
 const _SK=new Map();
 function srcKey(q){if(!q)return'';let k=_SK.get(q.code);if(k!==undefined)return k;
  const c=q.code.indexOf('~s');if(c>0){k=srcKey(byCode[q.code.slice(0,c)]);_SK.set(q.code,k);return k}
- let t=q.q||'';const im=(t.match(/<img[^>]*src="([^"]+)"/g)||[]).join(',');t=t.replace(/<[^>]+>/g,'').replace(/&[a-z#0-9]+;/g,' ');const m=t.search(/<보기>|①|ㄱ\./);if(m>0)t=t.slice(0,m);
+ let t=q.q||'';const im=(t.match(/<img[^>]*src="([^"]+)"/g)||[]).join(',');t=t.replace(/<[^>]+>/g,'').replace(/&[a-z#0-9]+;/g,' ');const f=q.fam||'',whole=!(/^[0-9a-f]{6}$/.test(f)||/^(ENZ|RESP|PIG|CALV|FERM)$/.test(f)||!f);const m=t.search(/①|ㄱ\./);if(!whole&&m>0)t=t.slice(0,m);
  k=(t.match(/[가-힣]/g)||[]).join('')+'|'+im;if(k.length<8)k=q.code;_SK.set(q.code,k);return k}
 function twinOf(w,pool,used){
  const c=pool.filter(q=>!used.has(q.code)&&q.code!==w.code&&q.set==='bank');
