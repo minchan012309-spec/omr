@@ -360,6 +360,12 @@ header h1 i{display:none}
 .res:hover,.mki:hover,.rt:hover{transform:none;box-shadow:0 1px 6px #0001}.q1 .b:hover,.mk:hover,.q1 .b:hover{transform:none}.q1 .b.sel{animation:none}
 header h1:hover .logo{transform:none}.rt{animation:none}.tc,.res,.wi,.mki,.rl,.cell,.rvi,.q1{transition:border-color .12s,background-color .12s}
 .modal.open .box,#qsheet.open .shbox,#qsheet.open,#toast .tt{animation-duration:.12s}
+#busy .bring svg.bsp{animation:bspin 1s linear infinite}@keyframes bspin{from{transform:rotate(-90deg)}to{transform:rotate(270deg)}}
+@media(prefers-reduced-motion:reduce){#busy .bring svg.bsp{animation-duration:1.2s!important;animation-iteration-count:infinite!important}.spin,.spin2{animation-duration:.9s!important;animation-iteration-count:infinite!important}}
+.stl .stbrand i{display:none}.lgwrap{max-width:480px;margin:24px auto}.lgwrap .card.enter{margin:0}
+.ccq{display:flex;align-items:center;gap:10px;border:1px solid var(--l);border-radius:12px;padding:8px 12px;margin-bottom:6px;background:#fff}.ccq.ok{background:#f3faf6;border-color:#bfe0cb}.ccq.no{background:#fff5f4;border-color:#f0b4b1}
+.ccq .cn{font-weight:600;color:var(--bd);width:22px}.ccq .ct{flex:1;min-width:0}.ccq .ce{font-size:12.5px;color:var(--m);margin-top:3px}.ccq.no .ce{color:#b23a35}.ccq .cb{display:flex;gap:6px}.ccq .ox{width:44px;height:36px;font-size:16px;font-weight:600;border-radius:10px;border:1.5px solid #cfd7e1;background:#fff;cursor:pointer}.ccq .ox.sel{background:var(--b);color:#fff;border-color:var(--b)}
+.cnote{margin:6px 0 0;padding-left:22px}.cnote li{margin-bottom:4px}.cct h4{font-size:14px}
 </style></head><body>
 <header><h1 id="brand" onclick="openSubjects()" title="과목 선택"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5l11.5 6.5L16 15.5 4.5 9z" fill="#8cc0ff"/><path d="M4.5 9L16 15.5v14L4.5 23z" fill="#2f6fd0"/><path d="M27.5 9L16 15.5v14L27.5 23z" fill="#183a82"/><path d="M19.5 20.2l3 2.6 4-5" transform="translate(-1.5 1)" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bn">Qubic</span><small id="subj">물질과 에너지</small><b>▾</b></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span><span id="saved" title="이 기기에 자동 저장된 마지막 시각"></span><button id="setBtn" onclick="openSettings()" title="설정 · 단축키 · 데이터 관리" aria-label="설정">⚙</button></header>
 <main id="main"></main><aside id="exp"></aside>
@@ -517,7 +523,7 @@ function stuView(){
  <div class="form"><label>이름<input id="sn" type="text"></label><label>학년·반<input id="sg" type="text" placeholder="예) 고2 3반"></label><label>메모<input id="sm" type="text"></label></div><button class="p" onclick="stuAdd()">등록</button></div></div><div class="card"><div class="row"><h2 style="margin:0">학생 목록</h2><input type="search" placeholder="이름·학년·아이디 검색" value="${esc(SQ)}" oninput="SQ=this.value;clearTimeout(window._sq);window._sq=setTimeout(stuView,250)" style="width:210px"><select onchange="SGR=this.value;stuView()"><option value="">전체 학년·반</option>${[...new Set(STU.map(s=>s.grade||'').filter(Boolean))].sort().map(g=>`<option ${SGR===g?'selected':''}>${esc(g)}</option>`).join('')}</select><button class="s sm" style="margin-left:auto" onclick="exportCsv()" title="모든 채점 기록을 엑셀에서 열 수 있는 CSV 파일로 저장">채점 기록 CSV 저장</button></div>${STU.length?`<div class="tw"><div class="row"><span class="m">선택한 학생 ${STSEL.size}명에게 맞춤 학습지를</span><input id="bk" type="number" value="4" min="2" max="10" style="width:60px"><span class="m">개 취약 유형,</span><input id="bn" type="number" value="20" min="6" max="100" style="width:70px"><span class="m">문항씩</span><button class="p" ${STSEL.size?'':'disabled'} onclick="batchStudents()">일괄 생성</button><span class="m">(디자인은 「학습지 만들기」에서 정한 설정을 씁니다)</span></div><table class="stu"><tr><th></th><th>학생</th><th>푼 문항</th><th>정답률</th><th>해골 유형</th><th>위험 유형</th><th>최근 풀이</th><th>가장 약한 유형</th><th>학생 계정</th><th></th></tr>${rows}</table></div>`:'<div class="empty">등록한 학생이 없습니다.</div>'}</div></div>`}
 /* ---------- 공통 ---------- */
 function decorate(){document.body.classList.toggle('hasfab',!!document.querySelector('.fab'));document.querySelectorAll('button').forEach(b=>{if(!b.title){const t=b.textContent.trim();if(t)b.title=t}})}
-function nav(){const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['smap','내 유형 지도'],['shist','기록']]:teacher()?[['grade','채점'],['weak','취약 유형'],['ws','학습지'],['mock','모의고사'],['wrong','오답노트'],['stu','학생'],['stat','누적 분석'],['search','문항 검색']]:[['enter','번호 채점']];
+function nav(){const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['concept','개념학습'],['smap','내 유형 지도'],['shist','기록']]:teacher()?[['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['ws','학습지'],['mock','모의고사'],['wrong','오답노트'],['stu','학생'],['stat','누적 분석'],['search','문항 검색']]:[['enter','번호 채점']];
  if(!T.find(x=>x[0]===tab)&&!(tab==='grade'&&cur)&&!(tab==='prac'&&PR)&&!((tab==='build'||tab==='bdesign'||tab==='bmake'||tab==='wsedit'||tab==='review')&&teacher())&&!(tab==='prac'&&STUD))tab=T[0][0];$('#nav').innerHTML=T.map(([k,v])=>`<button class="${tab===k||(k==='ws'&&['build','bdesign','review'].includes(tab))||(k==='enter'&&tab==='grade'&&STUD)?'on':''}" onclick="navGo('${k}')">${v}</button>`).join('')}
 let _navKey=null;
 function navGo(k){if((k==='grade'||k==='enter')&&cur&&tab==='grade'){if(!cur.done&&!confirm('채점을 그만둘까요? 입력한 내용은 저장되지 않습니다.'))return;clearInterval(_tm);cur=null}if((k==='weak'||k==='build')&&tab===k)resetW();tab=k;render()}
@@ -526,7 +532,7 @@ function pushNav(){const k=navKey();if(_navKey===null){history.replaceState({k},
 window.addEventListener('popstate',e=>{const k=(e.state&&e.state.k)||'';const p=k.split('|');if(!p[0])return;tab=p[0];if(p[1]!=='1')cur=null;if(p[2]!=='1')PR=null;if(p[3]!=='1')$('#wsView').classList.remove('open');_navKey=k;render(true)});
 function resetW(){FL='';FLS=0;W=JSON.parse(JSON.stringify(WDEF));W.sel=new Map();BQ='';BU=[];BD.codes=null;saveW()}
 const FRESHFROM=['build','bdesign','bmake','review','weak','prac','wsedit'];
-function render(skip){tipHide();if((tab==='build'||tab==='weak')&&window._lt!==tab&&!FRESHFROM.includes(window._lt||'')){try{resetW()}catch(e){}}{const m=document.getElementById('main');if(m){if(window._lt!==tab){m.classList.remove('pgin');void m.offsetWidth;m.classList.add('pgin')}window._lt=tab}}if(teacher()&&tab==='enter'&&!STUD)tab='grade';{const m=$('#qsheet');if(m&&(!cur||cur.done||cur.mark))m.classList.remove('open')}nav();({grade:gradeView,bdesign:bdesignView,mock:mockView,wrong:wrongView,enter:enterView,weak:weakView,ws:wsListView,stu:stuView,stat:statView,search:searchView,prac:pracView,build:buildView,bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();decorate()}
+function render(skip){tipHide();if((tab==='build'||tab==='weak')&&window._lt!==tab&&!FRESHFROM.includes(window._lt||'')){try{resetW()}catch(e){}}{const m=document.getElementById('main');if(m){if(window._lt!==tab){m.classList.remove('pgin');void m.offsetWidth;m.classList.add('pgin')}window._lt=tab}}if(teacher()&&tab==='enter'&&!STUD)tab='grade';{const m=$('#qsheet');if(m&&(!cur||cur.done||cur.mark))m.classList.remove('open')}nav();({grade:gradeView,bdesign:bdesignView,mock:mockView,wrong:wrongView,enter:enterView,weak:weakView,concept:conceptView,ws:wsListView,stu:stuView,stat:statView,search:searchView,prac:pracView,build:buildView,bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();decorate()}
 const lastRes=()=>{const m={};H().forEach(h=>h.items.forEach(x=>{(m[x.c]=m[x.c]||[]).push(x.r)}));return m};
 function statsFrom(hs,keyf,filter){const m={};
  hs.forEach(h=>h.items.forEach(x=>{const q=qMeta(x.c);if(!q||!q.type||(filter&&!filter(q)))return;const k=keyf(q);const o=m[k]=m[k]||{k,n:0,r:0,rec:[],q};o.n++;o.r+=x.r;o.rec.push(x.r)}));
@@ -689,7 +695,9 @@ async function finish(force){
 /* ---------- 번호 · 교재 쪽수 · 소단원 채점 진입 ---------- */
 function bookPages(){const m={};DATA.forEach(q=>{if(q.pg&&['mc','top','ox','blank'].includes(q.set))(m[q.pg]=m[q.pg]||[]).push(q)});Object.values(m).forEach(a=>a.sort((x,y)=>(x.no||0)-(y.no||0)));return m}
 function newCur(qs,extra){cur={qs,ans:{},done:false,t:Date.now(),mark:teacher(),...extra};if(cur.mark)qs.forEach((q,i)=>cur.ans[i]=q.ans);idx=0;tab='grade';render()}
-function guardStu(){if(teacher()&&!CUR_S){alert('학생을 먼저 선택하세요. (오른쪽 위 학생 선택)');return true}return false}
+function needLogin(){return !teacher()&&!STUD}
+function askLogin(code){if(code){try{sessionStorage.setItem('omr_pend',code)}catch(e){}}alert('채점하려면 먼저 로그인하세요.');tab='enter';render()}
+function guardStu(){if(needLogin()){askLogin();return true}if(teacher()&&!CUR_S){alert('학생을 먼저 선택하세요. (오른쪽 위 학생 선택)');return true}return false}
 function openBookPage(pg){if(guardStu())return;const m=bookPages();pg=parseInt(pg);const qs=m[pg];
  if(!Object.keys(m).length){alert('이 과목은 쪽수 정보가 없습니다. “소단원으로”를 이용하세요.');return}
  if(!qs){const ks=Object.keys(m).map(Number).sort((a,b)=>a-b);const near=ks.filter(k=>k>pg)[0];alert('p.'+pg+'에는 채점할 문제가 없습니다.'+(near?' 가까운 쪽: p.'+near+'.':'')+' (채점할 수 있는 쪽: p.'+ks[0]+' ~ p.'+ks[ks.length-1]+')');return}
@@ -722,6 +730,7 @@ function enterView(){
  const t=teacher();
  const stuBanner=t&&!CUR_S?`<div class="hint" style="margin-bottom:12px"><b>학생을 먼저 선택하세요.</b> 오른쪽 위에서 학생을 고르면 그 학생의 채점으로 기록됩니다.</div>`:'';
  const login=(!t&&!STUD&&cloud())?stLoginCard():'';
+ if(needLogin()){$('#main').innerHTML=`<div class="lgwrap">${cloud()?login:'<div class="card"><h2>로그인이 필요해요</h2><div class="m">온라인 저장이 설정되어 있지 않아 학생 로그인을 사용할 수 없어요. 선생님에게 문의하세요.</div></div>'}<div class="m" style="text-align:center;margin-top:10px">채점하려면 선생님께 받은 아이디로 로그인해야 해요.</div></div>`;return}
  $('#main').innerHTML=`${stuBanner}<div class="hub"><div class="hcol">${login}
  <div class="card enter"><h2>학습지 번호로 채점</h2><div class="hd">학습지 QR 옆의 8자리 번호를 입력하거나 QR을 스캔하세요.${t?' 선생님은 정답이 표시된 화면에서 틀린 번호만 누르면 됩니다.':''}</div>
  <input class="big" id="wn" maxlength="9" placeholder="0000-0000" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')goNo()"><div class="btns"><button class="p" onclick="goNo()">채점 시작</button><button class="s" onclick="scanQR()">QR 스캔</button></div></div>
@@ -736,6 +745,7 @@ function enterView(){
  <div class="hcol">${recentCard()}<div class="card"><h2>최근 기록</h2><div style="margin-top:8px">${recent()}</div></div></div></div>`;const w=$('#wn');w&&!/Mobi/.test(navigator.userAgent)&&w.focus()}
 const goNo=()=>openByNumber($('#wn').value);
 async function openByNumber(raw){const code=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length<6){alert('번호를 확인하세요.');return}
+ if(needLogin()){askLogin(code);return}
  if(guardStu_ws())return;
  const w=WSH.find(x=>x.id.toUpperCase().replace(/[^A-Z0-9]/g,'')===code);let info=null;
  if(w)info={title:w.title,codes:w.codes,student:(STU.find(s=>s.id===w.sid)||{}).name,sid:w.sid,resetAt:w.resetAt};
@@ -1291,7 +1301,7 @@ async function doS(v){v=v.trim().toLowerCase();const box=$('#sr');if(!v){box.inn
 let BUSYN=0,BUSYP=0,BUSYT=null,BUSYREAL=false;
 function busyPaint(){const o=document.getElementById('busy');if(!o)return;const p=Math.round(BUSYP);const c=o.querySelector('.bring i');if(c)c.style.strokeDashoffset=String(264*(1-BUSYP/100));const n=document.getElementById('busyp');if(n)n.textContent=p+'%'}
 function busyPct(p){if(!BUSYN)return;BUSYREAL=true;BUSYP=Math.max(BUSYP,Math.min(99,p));busyPaint()}
-function busyShow(label){let o=document.getElementById('busy');if(!o){o=document.createElement('div');o.id='busy';o.innerHTML='<div class="bx"><div class="bring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" class="bg"/><circle cx="50" cy="50" r="42" class="fg" style="stroke-dasharray:264;stroke-dashoffset:264"/></svg><span id="busyp">0%</span></div><b id="busyt"></b><small>잠시만 기다려 주세요</small></div>';document.body.appendChild(o)}
+function busyShow(label){let o=document.getElementById('busy');if(!o){o=document.createElement('div');o.id='busy';o.innerHTML='<div class="bx"><div class="bring"><svg viewBox="0 0 100 100" class="bsp"><circle cx="50" cy="50" r="42" class="bg"/><circle cx="50" cy="50" r="42" class="fg" style="stroke-dasharray:264;stroke-dashoffset:264"/></svg><span id="busyp">0%</span></div><b id="busyt"></b><small>잠시만 기다려 주세요</small></div>';document.body.appendChild(o)}
  document.getElementById('busyt').textContent=label||'처리 중…';BUSYP=0;BUSYREAL=false;busyPaint();o.classList.remove('on');void o.offsetWidth;o.classList.add('on');
  clearInterval(BUSYT);BUSYT=setInterval(()=>{if(!BUSYREAL)BUSYP+=(94-BUSYP)*.07;busyPaint()},120)}
 function busyHide(){clearInterval(BUSYT);BUSYP=100;busyPaint();setTimeout(()=>{if(!BUSYN){const o=document.getElementById('busy');if(o)o.classList.remove('on')}},180)}
@@ -1303,6 +1313,47 @@ Object.entries({setSubject:'과목을 바꾸는 중…',bdesignView:'미리보�
 setInterval(()=>{if(typeof basketBar==='function')basketBar()},1500);
 const _p=location.hash.match(/^#ws=([A-Za-z0-9-]+)/);
 load().then(async()=>{calibAll();if(_p)await openByNumber(_p[1]);else if(!teacher()){tab='enter';render()}});
+
+
+/* ---------- 개념학습 ---------- */
+let CONC={},CC={sel:new Set(),n:10,qs:null,pick:{}};
+const cfmt=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/_\{([^}]*)\}/g,'<sub>$1</sub>').replace(/\^\{([^}]*)\}/g,'<sup>$1</sup>');
+const cplain=h=>String(h||'').replace(/<[^>]+>/g,' ').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
+async function conceptLoad(){if(CONC[SUBJ])return;try{const r=await fetch((SUBJ==='cm'?'cm/':'bank/')+'concept.json');CONC[SUBJ]=r.ok?await r.json():{}}catch(e){CONC[SUBJ]={}}}
+function cPairs(o){const c=CONC[SUBJ]||{};return c[o.type]||c['__'+o.sub]||[]}
+function cOwn(o){return !!((CONC[SUBJ]||{})[o.type])}
+function cBuild(){const rows=typeRows().filter(o=>CC.sel.has(o.k));CC.pick={};
+ CC.qs=rows.map(o=>{const pr=cPairs(o);let it=pr.map(p=>Math.random()<.5?{s:p[0],a:'O',e:p[0]}:{s:p[1],a:'X',e:'옳은 설명 → '+p[0]});
+  DATA.filter(q=>q.set==='ox'&&q.sub===o.sub&&q.type===o.type).forEach(q=>it.push({s:cplain(q.q),a:String(q.ans).toUpperCase()==='O'?'O':'X',e:cplain(q.exp)}));
+  const O=shuffle(it.filter(i=>i.a==='O')),X=shuffle(it.filter(i=>i.a==='X')),out=[];
+  while(out.length<CC.n&&(O.length||X.length)){if(O.length)out.push(O.pop());if(out.length<CC.n&&X.length)out.push(X.pop())}
+  return {o,items:shuffle(out),notes:pr.map(p=>p[0]).slice(0,16),own:cOwn(o)}})}
+function ccTog(k){CC.sel.has(k)?CC.sel.delete(k):CC.sel.add(k);cBuild();conceptView()}
+function ccWeak(){const rows=typeRows().filter(o=>['skull','red','yellow'].includes(o.lv));if(!rows.length){toast('아직 취약한 유형이 없어요');return}CC.sel=new Set(rows.slice(0,8).map(o=>o.k));cBuild();conceptView()}
+function ccClear(){CC.sel=new Set();CC.qs=null;conceptView()}
+function ccN(v){CC.n=+v;cBuild();conceptView()}
+function ccPick(ti,i,v){CC.pick[ti+'_'+i]=v;const el=document.getElementById('cc_'+ti+'_'+i);if(el)el.outerHTML=ccRow(ti,i);const sc=document.getElementById('ccsc');if(sc)sc.textContent=ccScore()}
+function ccScore(){let n=0,r=0;(CC.qs||[]).forEach((t,ti)=>t.items.forEach((q,i)=>{n++;const p=CC.pick[ti+'_'+i];if(p&&p===q.a)r++}));const d=Object.keys(CC.pick).length;return d?`${r} / ${d} 정답 (전체 ${n}문항)`:`전체 ${n}문항`}
+function ccRow(ti,i){const q=CC.qs[ti].items[i],p=CC.pick[ti+'_'+i],ok=p===q.a;
+ return `<div class="ccq ${p?(ok?'ok':'no'):''}" id="cc_${ti}_${i}"><span class="cn">${i+1}</span><div class="ct"><div>${cfmt(q.s)}</div>${p?`<div class="ce">${ok?'정답':'오답'} · 답은 ${q.a}${q.a==='X'?` · ${cfmt(q.e)}`:''}</div>`:''}</div><div class="cb"><button class="ox ${p==='O'?'sel':''}" ${p?'disabled':''} onclick="ccPick(${ti},${i},'O')">O</button><button class="ox ${p==='X'?'sel':''}" ${p?'disabled':''} onclick="ccPick(${ti},${i},'X')">X</button></div></div>`}
+async function conceptView(){await conceptLoad();
+ const rows=typeRows(),bySub={};rows.forEach(o=>(bySub[o.sub]=bySub[o.sub]||[]).push(o));
+ if(!CC.qs&&CC.sel.size)cBuild();
+ let h=`<div class="card"><div class="row"><h2 style="margin:0">개념학습 <span class="tag">${esc(SNAME[SUBJ])}</span></h2><span class="m">유형을 고르면 핵심 개념 정리와 기초 O/X 문제가 나와요</span></div>
+ <div class="row" style="margin-top:10px"><button class="s sm" onclick="ccWeak()">⚡ 내 취약 유형 불러오기</button><button class="s sm" onclick="ccClear()">선택 비우기</button><label class="m">유형당 O/X <select onchange="ccN(this.value)">${[5,8,10,15,20].map(n=>`<option ${CC.n===n?'selected':''}>${n}</option>`).join('')}</select>문항</label>
+ ${CC.qs&&CC.qs.length?`<button class="s sm" onclick="cBuild();conceptView()">O/X 새로 만들기</button><button class="p sm" style="margin-left:auto" onclick="ccPrint()">🖨 인쇄</button>`:''}</div>
+ <div class="legend">${CC.qs&&CC.qs.length?`<span class="m" id="ccsc">${ccScore()}</span>`:''}</div></div>`;
+ h+=`<details class="card" ${CC.open===false?'':'open'} ontoggle="CC.open=this.open"><summary style="cursor:pointer"><b>유형 선택</b> <span class="m">${CC.sel.size}개 선택 · 눌러서 ${CC.sel.size?'펼치기/접기':'고르기'}</span></summary>`+subs.map(([sub,name])=>{const rs=bySub[sub]||[];if(!rs.length)return'';return `<div class="m" style="margin:10px 0 6px"><b>${sub} ${name}</b></div><div class="tcs">${rs.map(o=>`<div class="tc ${CC.sel.has(o.k)?'on':''}" onclick="ccTog(this.dataset.k)" data-k="${esc(o.k)}"><i class="ic">${ICON[o.lv]}</i><span class="tn">${esc(o.type)}</span></div>`).join('')}</div>`}).join('')+`</details>`;
+ if(CC.qs&&CC.qs.length)h+=CC.qs.map((t,ti)=>`<div class="card cct"><h3 style="margin-top:0">${esc(t.o.sub)} ${esc(t.o.type)}</h3>
+  ${t.notes.length?`<details open><summary><b>핵심 개념 정리</b>${t.own?'':' <span class="m">(소단원 공통 개념)</span>'}</summary><ol class="cnote">${t.notes.map(n=>`<li>${cfmt(n)}</li>`).join('')}</ol></details>`:'<div class="m">이 유형은 아직 개념 정리가 없어요. 교재 O/X 문제를 풀어 보세요.</div>'}
+  <h4 style="margin:12px 0 6px">기초 O/X 문제</h4>${t.items.length?t.items.map((q,i)=>ccRow(ti,i)).join(''):'<div class="m">준비된 O/X 문제가 없어요.</div>'}</div>`).join('');
+ else h+='<div class="card empty">위에서 유형을 고르거나 「내 취약 유형 불러오기」를 눌러 보세요.</div>';
+ const y=scrollY;$('#main').innerHTML=h;scrollTo(0,y)}
+function ccPrint(){if(!CC.qs||!CC.qs.length)return;const nm=(STINFO&&STINFO.name)||(STU.find(s=>s.id===CUR_S)||{}).name||'';
+ const body=CC.qs.map(t=>`<section><h2>${esc(t.o.sub)} ${esc(t.o.type)}</h2>${t.notes.length?`<h3>핵심 개념 정리</h3><ol>${t.notes.map(n=>`<li>${cfmt(n)}</li>`).join('')}</ol>`:''}<h3>기초 O/X 문제 <small>(옳으면 O, 옳지 않으면 X)</small></h3><ol class="qs">${t.items.map(q=>`<li>${cfmt(q.s)} <b class="bx">(&nbsp;&nbsp;&nbsp;)</b></li>`).join('')}</ol></section>`).join('');
+ const ans=CC.qs.map(t=>`<p><b>${esc(t.o.type)}</b> : ${t.items.map((q,i)=>`${i+1}.${q.a}`).join(' ')}</p>`).join('');
+ const html=`<!doctype html><meta charset="utf-8"><title>개념 학습지</title><style>body{font-family:'Noto Sans KR','Malgun Gothic',sans-serif;color:#1b2430;margin:0;padding:14mm;font-size:10.5pt;line-height:1.6}h1{font-size:18pt;margin:0 0 4px}.h{border-top:3px solid #2f7fd0;padding-top:6px;margin-bottom:12px;display:flex;justify-content:space-between}section{break-inside:auto;margin-bottom:12px}h2{font-size:13pt;border-left:4px solid #2f7fd0;padding-left:8px;margin:14px 0 6px}h3{font-size:10.5pt;margin:8px 0 4px;color:#1d5ca6}ol{margin:0;padding-left:20px}li{margin-bottom:3px}.bx{white-space:nowrap;margin-left:6px}.ans{page-break-before:always}small{font-weight:400;color:#586476}@media print{body{padding:0}}</style><div class="h"><div><h1>개념 학습지</h1><div>${esc(SNAME[SUBJ])}</div></div><div>이름 ${esc(nm)||'______'} · ${new Date().toLocaleDateString('ko-KR')}</div></div>${body}<section class="ans"><h2>정답</h2>${ans}</section>`;
+ let f=document.getElementById('ccprint');if(f)f.remove();f=document.createElement('iframe');f.id='ccprint';f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);f.contentDocument.open();f.contentDocument.write(html);f.contentDocument.close();setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print()},300)}
 
 /* ---------- 학생 리포트 ---------- */
 function reportCss(){return `.pages{--p:#2f7fd0;--pd:#1d5ca6;--pl:#eaf3fd;--pl2:#cfe2f7}.pg{width:210mm;min-height:297mm;background:#fff;margin:0 auto 7mm;box-shadow:0 2px 12px #0002;padding:14mm 14mm 12mm;position:relative;break-after:page;page-break-after:always;font-size:10pt;line-height:1.55;color:#1b2430}
@@ -1391,7 +1442,7 @@ const LSTUD='omr_stud_v1';
 async function stLogin(){const lg=($('#stid')||{}).value||'',pw=($('#stpw')||{}).value||'';if(!lg||!pw){alert('아이디와 비밀번호를 입력하세요.');return}
  try{const r=await rpc('st_login',{p_login:lg.trim().toLowerCase(),p_pw:pw});const j=r.ok?await r.json():null;
   if(!j){alert('아이디나 비밀번호가 맞지 않습니다.');return}
-  STUD={login:lg.trim().toLowerCase(),pw};jset(LSTUD,STUD);tab='home';await load()}catch(e){alert('로그인하지 못했습니다. 인터넷 연결을 확인하세요.')}}
+  STUD={login:lg.trim().toLowerCase(),pw};jset(LSTUD,STUD);tab='home';await load();try{const pc=sessionStorage.getItem('omr_pend');if(pc){sessionStorage.removeItem('omr_pend');openByNumber(pc)}}catch(e){}}catch(e){alert('로그인하지 못했습니다. 인터넷 연결을 확인하세요.')}}
 function logoutStud(){STUD=null;STINFO=null;ASSIGN=[];localStorage.removeItem(LSTUD);hist=[];cur=null;tab='enter';load()}
 function syncClick(){if(PVSAVE){exitPreview();return}if(STUD){if(confirm('로그아웃할까요?'))logoutStud()}else openCfg()}
 async function loadStud(){
@@ -1403,7 +1454,7 @@ async function stSubmit(rec){const r=await rpc('st_submit',{p_login:STUD.login,p
 async function saveRec(rec){if(STUD&&STUD.preview){hist.push(rec);return}if(STUD){try{await stSubmit(rec)}catch(e){alert('서버에 저장하지 못했습니다. 점수는 이 화면에서 확인할 수 있습니다.')}hist.push(rec);return}await save(rec)}
 function stLoginCard(){return `<div class="card enter stl"><div class="stbrand"><i></i>${SNAME[SUBJ]}</div><h2>학생 로그인</h2><div class="m" style="margin-bottom:12px">선생님께 받은 아이디와 비밀번호를 입력하세요.</div>
  <input id="stid" class="stin" type="text" placeholder="아이디" autocapitalize="off" autocomplete="username"><input id="stpw" class="stin" type="password" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')stLogin()">
- <div class="btns"><button class="p" onclick="stLogin()">로그인</button></div><div class="m" style="margin-top:12px">아이디 없이도 아래에서 학습지 번호로 채점할 수 있습니다.</div></div>`}
+ <div class="btns"><button class="p" onclick="stLogin()">로그인</button></div></div>`}
 /* ---- 학생 홈 ---- */
 function ringSvg(p,label,sub,col){const r=42,C=2*Math.PI*r;return `<div class="ring"><svg viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="#e6ebf1" stroke-width="10"/><circle cx="55" cy="55" r="${r}" fill="none" stroke="${col||'#2f7fd0'}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*p} ${C}" transform="rotate(-90 55 55)"/><text x="55" y="60" text-anchor="middle" font-size="22" font-weight="700" fill="#1f2933">${label}</text></svg><span>${sub}</span></div>`}
 function dayStart(t){const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
