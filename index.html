@@ -325,11 +325,11 @@ header h1 i{display:none}
 .spin{width:30px;height:30px;border-radius:50%;border:3px solid #ffffff44;border-top-color:#fff;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
 .tcn.ck{padding:0;width:22px;height:22px;display:grid;place-items:center;border-radius:50%;font-size:12px}
 
-.mkgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:start}@media(min-width:1000px){.mkgrid{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}}
+.mkgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:start}@media(min-width:1000px){.mkgrid .mkcol{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:start}}
 .mkcol .card{margin-bottom:10px}.mkcol h3{margin-top:0}.mkf label.w2{grid-column:span 2}.mkf input[type=text],.mkf input[type=number],.mkf select{width:100%}
 .mksubs{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px}.mksubs label{display:flex;align-items:center;gap:8px;border:1px solid var(--l);border-radius:10px;padding:6px 10px;font-size:13px}.mksubs label span{flex:1}.mksubs small{display:block;color:var(--m);font-size:11px}.mksubs input{width:62px;text-align:center}
 .mklv{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}.mklv label{display:flex;align-items:center;gap:6px}.mklv b{color:#fff;border-radius:8px;padding:2px 9px;font-weight:500;font-size:13px}.mklv input{width:62px;text-align:center}.bad{color:var(--no);font-size:12px}
-.mkth{grid-template-columns:repeat(auto-fill,minmax(88px,1fr))}.mkgo{position:sticky;bottom:8px;box-shadow:0 -4px 18px #0001}.mksum{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
+.mkfull{margin-top:14px}.mkth{grid-template-columns:repeat(auto-fill,minmax(88px,1fr))}.mkgo{position:sticky;bottom:8px;box-shadow:0 -4px 18px #0001}.mksum{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
 
 .plist{margin-top:8px;max-height:46vh;overflow:auto}.pli{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--l)}.pli span{flex:1;min-width:0}.pli b{display:block;font-weight:500}.pli small{display:block;color:var(--m);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .palin{width:100%;font-size:16px;padding:12px 14px;border-radius:10px}.pall{margin-top:8px;max-height:52vh;overflow:auto}.pit{padding:9px 12px;border-radius:8px;cursor:pointer;font-size:14px}.pit.on,.pit:hover{background:var(--bl);color:var(--bd)}
@@ -958,25 +958,27 @@ function pvLoad(box,on){if(!box)return;let l=box.querySelector('.pvload');if(on)
 function bdPreview(){const host=$('#bdpv'),box=$('#bdps');if(!host||!BD.codes||!BD.codes.length)return;const id=++_rvt;const o=wsOpts();pvLoad(box,true);
  const rec={id:'00000000',t:Date.now(),...o,tags:o.tags,ans:0,codes:BD.codes.slice(),sid:CUR_S||''};
  openWs(rec,host).then(n=>{if(id!==_rvt)return;pvLoad(box,false);const w=box.clientWidth,sc=w/794;host.style.cssText='width:794px;transform-origin:0 0;transform:scale('+sc+')';box.style.height=Math.round(1123*sc)+'px';const m=$('#bdpm');if(m)m.textContent=BD.codes.length+'문항 · 전체 '+n+'쪽'}).catch(()=>{})}
-function perThumb(v){const cols=+W.cols||2;const n=v==='auto'?0:+v;let body='';
+const XW={o:null,n:'W',s:'saveW()',r:'rr()',f:'bdRefreshSoon()'};XW.o=()=>W;
+const XM={o:()=>MKF,n:'MKF',s:'mkSave()',r:'mockView()',f:'',mock:1};
+function perThumb(v,X){X=X||XW;const O=X.o();const cols=+O.cols||2;const n=v==='auto'?0:+v;let body='';
  if(!n){body='<div class="pgm"><div class="pc"><i></i><i></i><i></i></div>'+(cols==2?'<div class="pc"><i></i><i></i><i></i></div>':'')+'</div>'}
  else{const l=cols==1?n:Math.ceil(n/2),r=cols==1?0:Math.floor(n/2);const col=k=>`<div class="pc">${Array.from({length:k},()=>'<i style="flex:1"></i>').join('')}</div>`;body=`<div class="pgm">${col(l)}${cols==2&&r?col(r):''}</div>`}
- return `<div class="per ${String(W.per)===String(v)?'on':''}" onclick="W.per='${v}';W.per=${v==='auto'?"'auto'":v};saveW();rr()">${body}<span>${v==='auto'?'자동':v+'문항'}</span></div>`}
-function designCard(){return `<div class="card lay"><h3 style="margin-top:0">6. 디자인</h3><div class="lrow top"><div class="m">스타일</div><div class="themes">${Object.entries(STYLES).map(([k,v])=>`<div class="theme ${W.style===k?'on':''}" onclick="W.style='${k}';saveW();rr()">${styleThumb(k,W.color)}<span>${v}</span></div>`).join('')}</div></div>
- <div class="lrow top"><div class="m">색상</div><div class="pals">${Object.entries(PAL).map(([k,v])=>`<div class="pal ${W.color===k?'on':''}" title="${v[4]}" onclick="W.color='${k}';saveW();rr()"><i style="background:${v[0]}"></i><span>${v[4]}</span></div>`).join('')}</div></div>
- <div class="lrow top"><div class="m">글꼴</div><div class="fgrid">${Object.entries(FONTS).map(([k,v])=>`<label class="fcard ${W.font===k?'on':''}" style="font-family:${v[1]}"><input type="radio" name="fnt" ${W.font===k?'checked':''} onchange="W.font='${k}';saveW();document.querySelectorAll('.fcard').forEach(e=>e.classList.remove('on'));this.parentNode.classList.add('on');bdRefreshSoon()"><b>가나다 Aa</b><span>${v[0].replace(/ \(.*\)/,'')}</span></label>`).join('')}</div></div>
- <div class="lrow"><div class="m">문제 앞 태그</div><div class="seg">${Object.entries(TAGN).map(([k,v])=>`<label><input type="checkbox" ${W.tags[k]?'checked':''} onchange="W.tags['${k}']=this.checked?1:0;saveW()"><span>${v}</span></label>`).join('')}</div></div></div>`}
-function layoutCard(extra){if(+W.per>8)W.per=8;
- const rad=(nm,cur,opts,fn)=>`<div class="seg">${opts.map(([v,t])=>`<label><input type="radio" name="${nm}" ${String(cur)===String(v)?'checked':''} onchange="${fn}(${typeof v==='number'?v:`'${v}'`})"><span>${t}</span></label>`).join('')}</div>`;
- const chk=(k,t,fn)=>`<label class="opt"><input type="checkbox" ${W[k]?'checked':''} onchange="W.${k}=this.checked?1:0;${fn||''}saveW()"><span>${t}</span></label>`;
- return `<div class="card lay"><h3 style="margin-top:0">7. 배치</h3>
- <div class="lrow"><div class="m">단 구성</div>${rad('lcols',W.cols,[[2,'2단'],[1,'1단']],'setCols')}</div>
- <div class="lrow"><div class="m">한 쪽에 최대 문항 수</div><div class="pers">${['auto',1,2,3,4,5,6,8].map(v=>perThumb(v)).join('')}</div></div>
- <div class="lrow"><div class="m">정답</div>${rad('lans',W.ans,[[1,'정답+해설'],[2,'빠른 정답만'],[0,'없음']],'setAns')}</div>
- ${W.ans==1?`<div class="lrow"><div class="m">해설 위치</div>${rad('lexp',W.expPos==='after'?'after':'end',[['end','맨 뒤에 모아서'],['after','문항 바로 아래']],'setExp')}</div>`:''}
- <div class="lrow"><div class="m">옵션</div><div class="opts">${chk('p100','배점 총 100점 자동 배분')}${chk('qr','쪽마다 채점용 QR·번호')}${chk('mono','흑백 인쇄 (잉크 절약)','rr();')}${chk('sect','객관식·단답형·서술형 구역 나누기')}</div></div>
- ${extra?`<div class="lrow"><div class="m">A·B형 함께 만들기</div>${rad('lab',W.ab?'ab':W.ab2?'ab2':'',[['','사용 안 함'],['ab','다른 문제로'],['ab2','같은 문제·선지 순서만']],'setAB')}</div>`:''}</div>`}
-const setAB=v=>{W.ab=v==='ab'?1:0;W.ab2=v==='ab2'?1:0;saveW();rr()},setCols=v=>{W.cols=v;saveW();rr()},setAns=v=>{W.ans=v;saveW();rr()},setExp=v=>{W.expPos=v;saveW()};
+ return `<div class="per ${String(O.per)===String(v)?'on':''}" onclick="${X.n}.per=${v==='auto'?"'auto'":v};${X.s};${X.r}">${body}<span>${v==='auto'?'자동':v+'문항'}</span></div>`}
+function designCard(X){X=X||XW;const O=X.o(),N=X.n;return `<div class="card lay"><h3 style="margin-top:0">${X.mock?'5':'6'}. 디자인</h3><div class="lrow top"><div class="m">스타일</div><div class="themes">${Object.entries(STYLES).map(([k,v])=>`<div class="theme ${O.style===k?'on':''}" onclick="${N}.style='${k}';${X.s};${X.r}">${styleThumb(k,O.color)}<span>${v}</span></div>`).join('')}</div></div>
+ <div class="lrow top"><div class="m">색상</div><div class="pals">${Object.entries(PAL).map(([k,v])=>`<div class="pal ${O.color===k?'on':''}" title="${v[4]}" onclick="${N}.color='${k}';${X.s};${X.r}"><i style="background:${v[0]}"></i><span>${v[4]}</span></div>`).join('')}</div></div>
+ <div class="lrow top"><div class="m">글꼴</div><div class="fgrid">${Object.entries(FONTS).map(([k,v])=>`<label class="fcard ${O.font===k?'on':''}" style="font-family:${v[1]}"><input type="radio" name="fnt${N}" ${O.font===k?'checked':''} onchange="${N}.font='${k}';${X.s};document.querySelectorAll('.fcard').forEach(e=>e.classList.remove('on'));this.parentNode.classList.add('on');${X.f}"><b>가나다 Aa</b><span>${v[0].replace(/ \(.*\)/,'')}</span></label>`).join('')}</div></div>
+ <div class="lrow"><div class="m">문제 앞 태그</div><div class="seg">${Object.entries(TAGN).map(([k,v])=>`<label><input type="checkbox" ${(O.tags||{})[k]?'checked':''} onchange="${N}.tags=${N}.tags||{};${N}.tags['${k}']=this.checked?1:0;${X.s}"><span>${v}</span></label>`).join('')}</div></div></div>`}
+function layoutCard(extra,X){X=X||XW;const O=X.o(),N=X.n;if(+O.per>8)O.per=8;
+ const rad=(nm,cur,opts,key)=>`<div class="seg">${opts.map(([v,t])=>`<label><input type="radio" name="${nm}${N}" ${String(cur)===String(v)?'checked':''} onchange="${key==='abx'?`setAB('${v}')`:`${N}.${key}=${typeof v==='number'?v:`'${v}'`};${X.s};${X.r}`}"><span>${t}</span></label>`).join('')}</div>`;
+ const chk=(k,t,re)=>`<label class="opt"><input type="checkbox" ${O[k]?'checked':''} onchange="${N}.${k}=this.checked?1:0;${X.s}${re?';'+X.r:''}"><span>${t}</span></label>`;
+ return `<div class="card lay"><h3 style="margin-top:0">${X.mock?'6':'7'}. 배치</h3>
+ <div class="lrow"><div class="m">단 구성</div>${rad('lcols',O.cols,[[2,'2단'],[1,'1단']],'cols')}</div>
+ <div class="lrow"><div class="m">한 쪽에 최대 문항 수</div><div class="pers">${['auto',1,2,3,4,5,6,8].map(v=>perThumb(v,X)).join('')}</div></div>
+ <div class="lrow"><div class="m">정답</div>${rad('lans',O.ans,[[1,'정답+해설'],[2,'빠른 정답만'],[0,'없음']],'ans')}</div>
+ ${O.ans==1?`<div class="lrow"><div class="m">해설 위치</div>${rad('lexp',O.expPos==='after'?'after':'end',[['end','맨 뒤에 모아서'],['after','문항 바로 아래']],'expPos')}</div>`:''}
+ <div class="lrow"><div class="m">옵션</div><div class="opts">${X.mock?'':chk('p100','배점 총 100점 자동 배분')}${chk('qr','쪽마다 채점용 QR·번호')}${chk('mono','흑백 인쇄 (잉크 절약)',1)}${chk('sect','객관식·단답형·서술형 구역 나누기')}</div></div>
+ ${extra?`<div class="lrow"><div class="m">A·B형 함께 만들기</div>${rad('lab',W.ab?'ab':W.ab2?'ab2':'',[['','사용 안 함'],['ab','다른 문제로'],['ab2','같은 문제·선지 순서만']],'abx')}</div>`:''}</div>`}
+const setAB=v=>{W.ab=v==='ab'?1:0;W.ab2=v==='ab2'?1:0;saveW();rr()};
 function toggleSubB(sub,on,weakOnly){bPush();const y=scrollY;typeRows().filter(o=>o.sub===sub).forEach(o=>{if(weakOnly&&!['skull','red','yellow'].includes(o.lv))return;on?(W.sel.has(o.k)||W.sel.set(o.k,W.n)):W.sel.delete(o.k)});saveW();buildView();scrollTo(0,y)}
 const wsOpts=()=>({mono:W.mono,sect:W.sect,expPos:W.expPos,title:W.title||'학습지',subt:W.subt,name:W.name,academy:W.academy,style:W.style,color:W.color,font:W.font,tags:Object.assign({},W.tags),cols:W.cols,per:(+W.per>8?8:W.per),ans:W.ans,qr:W.qr,p100:W.p100});
 async function makeNow(){const plan=planCounts();const codes=(BD.codes&&BD.codes.length)?BD.codes:await pickCodes();BD.codes=null;if(!codes.length){alert('선택한 유형에 출제할 문제가 없습니다. 출제 범위와 난이도를 확인하세요.');return}
@@ -1125,7 +1127,7 @@ const STYLE_CSS={
  naesin:`.ph1{display:block;border:.5mm solid #111;border-top:1.2mm solid #111;padding:2.4mm 3mm 0;position:relative}.ph1 .hd{padding-right:23mm}.ph1 .qrh{position:absolute;right:3mm;top:2mm}.ph1 .tt{font-size:17.5pt}.ph1 .ac{color:#444;min-height:3.4mm}
  .ph1 .nb{margin:3mm -3mm 0;width:calc(100% + 6mm);border-collapse:collapse;font-size:9pt;border-top:.4mm solid #111;table-layout:fixed}.ph1 .nb th{width:15mm;background:#f2f2f2;border-right:.3mm solid #111;font-weight:500;padding:1.5mm 0}.ph1 .nb td{border-right:.3mm solid #111;height:7.4mm;padding:0 2mm}.ph1 .nb td:last-child{border-right:0}
  .q .qn{color:#111!important;font-size:13pt!important;font-weight:500!important}.ph1 .tt{font-weight:500!important}.q .qp{margin-left:auto!important;color:#111!important;font-weight:400}.q .qc{margin-left:3mm!important}.ph2{border-bottom:.4mm solid #111;color:#111}.pf{border-top:.4mm solid #111}.pf .pn{color:#111}.col+.col::before{border-left:.3mm solid #111}`,
- mock:`.ph1{display:block;border-top:1.6mm solid #111;border-bottom:.5mm solid #111;position:relative;min-height:27mm;padding-bottom:2mm}.ph1 .hd{text-align:center;padding:0 22mm}.ph1 .ac{text-align:left;position:absolute;left:0;top:2.4mm;padding:0}.ph1 .tt{font-size:21pt;letter-spacing:.5mm;margin-top:3.4mm}.ph1 .st{margin-top:.6mm}.ph1 .qrh{position:absolute;right:0;top:2mm}
+ mock:`.ph1{display:block;border-top:1.6mm solid #111;border-bottom:.5mm solid #111;position:relative;min-height:33mm;padding-bottom:2mm}.ph1 .hd{text-align:center;padding:0 22mm}.ph1 .ac{text-align:left;position:absolute;left:0;top:2.4mm;padding:0}.ph1 .tt{font-size:21pt;letter-spacing:.5mm;margin-top:3.4mm}.ph1 .st{margin-top:.6mm}.ph1 .qrh{position:absolute;right:0;top:2mm}
  .ph1 .inf{display:flex;justify-content:flex-end;gap:10mm;border:0;margin-top:2mm;padding:0}.ph1 .inf .nm{flex:0 0 auto}.ph1 .inf .nm u{width:36mm;flex:none}.ph1 .inf .sc{margin-left:0}
  .q .qn{color:#111!important;font-size:13.5pt!important;font-weight:500!important}.q .qp{margin-left:auto!important;color:#111!important}.q .qc{margin-left:3mm!important}.ph1 .tt{font-weight:500!important}.ph2{border-bottom:.5mm solid #111;color:#111}.pf{border-top:.5mm solid #111}.pf .pn{color:#111}.col+.col::before{border-left:.3mm solid #111}`,
  kice:`.ph1{display:block;border-top:0;border-bottom:.5mm solid #111;text-align:center;padding:0 22mm 2.4mm;position:relative}.ph1 .qrh{position:absolute;right:0;top:0}.ph1 .kt{font-size:17pt;font-weight:400;letter-spacing:.4mm;line-height:1.35}.ph1 .ks{font-size:12pt;margin-top:1mm}.ph1 .ki{font-size:9.5pt;color:#333;margin-top:1.4mm}.ph1 .inf{display:flex;justify-content:flex-end;gap:8mm;border:0;margin-top:2.4mm;padding:0;font-size:9.5pt}.ph1 .inf .nm u{width:34mm}.ph1 .inf .sc{margin-left:0}
@@ -1204,7 +1206,9 @@ async function openWs(rec,pv){
   pg.innerHTML=head+`<div class="cols"><div class="col"></div><div class="col"></div></div>
   <div class="pf"><span><span class="pn">${pn}</span> / <span class="tot"></span>${exam?'':'　'+esc(rec.title)}</span>${rec.qr&&!sol&&!first?`<div class="qr" title="누르면 채점 화면으로 이동합니다"><span>채점하려면 스캔하거나<br>번호를 입력하세요<br><span class="no">${fmtNo(rec.id)}</span></span>${qrSvg(url)}</div>`:''}</div>`;
   pg.querySelectorAll('.qrh,.pf .qr').forEach(e=>e.addEventListener('click',goQr));
-  pages.appendChild(pg);all.push(pg);return pg}
+  pages.appendChild(pg);all.push(pg);
+  {const ph=pg.querySelector('.ph1'),q=ph&&ph.querySelector('.qrh');if(q&&getComputedStyle(q).position==='absolute'){const ex=ph.querySelector('.inf,.nb');const b=ex?Math.max(0,ph.offsetHeight-ex.offsetTop):0;q.style.cssText+=';top:0;bottom:'+b+'px;display:flex;flex-direction:column;justify-content:center'}}
+  return pg}
  const caps=()=>{if(!per)return[999,999];if(cols==1)return[per,0];return[Math.ceil(per/2),Math.floor(per/2)]};
  function flow(items,first,sol){let pg=newPage(first,sol),ci=0;const cp=caps();
   items.forEach(el=>{if(el.dataset&&el.dataset.brk&&!el._bd){el._bd=1;if(pg.querySelector('.wq,.wsec')){pg=newPage(false,sol);ci=0}}for(;;){
@@ -1758,8 +1762,8 @@ async function rvFinal(print){const o={...RV.opts};
 /* =================== 모의고사 =================== */
 const MK='omr_mock_v1';
 const MKLVR={basic:[.25,.45,.25,.05],std:[.2,.4,.3,.1],kice:[.2,.45,.25,.1],hard:[.1,.3,.4,.2],top:[.05,.2,.45,.3]},MKLVN={basic:'기초',std:'표준',kice:'수능형',hard:'심화',top:'최상위'};
-const MKSTY=[['kice','평가원형'],['naesin','내신형'],['mock','학원 모의형'],['clean','미니멀'],['band','컬러 밴드']];
 let MKF=jget('omr_mkf_v1',null)||{round:0,title:'',org:'',area:'과학탐구 영역',period:'',n:20,min:30,total:50,scope:'all',subs:[],perSub:{},lvc:null,preset:'kice',order:'lv',pts:'kice',essay:0,dup:1,style:'kice',color:'navy',font:'myeong',cover:1,cvs:'kice'};
+MKF=Object.assign({tags:{},cols:2,per:'auto',ans:1,expPos:'end',qr:1,mono:0,sect:0},MKF);if(!STYLE_CSS[MKF.style])MKF.style='kice';
 const mkSave=()=>jset('omr_mkf_v1',MKF);
 function mkLv(n,pre){const r=MKLVR[pre]||MKLVR.std;let c=r.map(x=>Math.floor(n*x)),rem=n-c.reduce((a,b)=>a+b,0),ord=r.map((x,i)=>[i,n*x-c[i]]).sort((a,b)=>b[1]-a[1]),k=0;while(rem>0){c[ord[k%4][0]]++;rem--;k++}return c}
 function mkObjN(){return Math.max(1,MKF.n-(MKF.essay||0))}
@@ -1792,11 +1796,10 @@ function mockView(){
  <label class="m"><input type="checkbox" ${MKF.dup?'checked':''} onchange="MKF.dup=this.checked?1:0;mkSave()"> 이전 회차와 같은 문제 빼기</label></div></div>
  <div class="card"><h3>4. 배점 · 구성</h3><div class="row"><label class="m">배점 방식<select onchange="MKF.pts=this.value;mkSave()"><option value="kice" ${MKF.pts==='kice'?'selected':''}>수능형 (어려운 문항일수록 높은 배점, 총점 맞춤)</option><option value="even" ${MKF.pts==='even'?'selected':''}>모두 같은 배점 (총점 맞춤)</option><option value="orig" ${MKF.pts==='orig'?'selected':''}>문항 원본 배점 그대로</option></select></label>
  ${hasEssay?`<label class="m">서술형<select onchange="MKF.essay=+this.value;MKF.lvc=null;MKF.perSub={};mkSave();mockView()">${[0,1,2,3,4,5].map(n=>`<option value="${n}" ${MKF.essay===n?'selected':''}>${n?n+'문항 포함':'없음'}</option>`).join('')}</select></label>`:''}</div></div></div>
- <div class="mkcol"><div class="card"><h3>5. 시험지 디자인</h3><div class="themes mkth">${MKSTY.map(([k,v])=>`<div class="theme ${MKF.style===k?'on':''}" onclick="MKF.style='${k}';mkSave();mockView()">${styleThumb(k,MKF.color)}<span>${v}</span></div>`).join('')}</div>
- <div class="m" style="margin-top:10px">색상</div><div class="pals">${['navy','blue','black','green','wine','slate','teal','gray'].map(k=>`<div class="pal ${MKF.color===k?'on':''}" title="${PAL[k][4]}" onclick="MKF.color='${k}';mkSave();mockView()"><i style="background:${PAL[k][0]}"></i><span>${PAL[k][4]}</span></div>`).join('')}</div>
- <div class="m" style="margin-top:10px">글꼴</div><div class="seg">${[['myeong','명조 (시험지)'],['paper','고딕'],['batang','바탕'],['noto','노토 산스']].map(([k,v])=>`<label style="font-family:${FONTS[k][1]}"><input type="radio" name="mkfn" ${MKF.font===k?'checked':''} onchange="MKF.font='${k}';mkSave()"><span>${v}</span></label>`).join('')}</div>
- <div class="row" style="margin-top:12px"><label class="m"><input type="checkbox" ${MKF.cover?'checked':''} onchange="MKF.cover=this.checked?1:0;mkSave();mockView()"> 앞표지 넣기 (성명·수험 번호·유의 사항)</label>${MKF.cover?`<label class="m">표지<select onchange="MKF.cvs=this.value;mkSave()"><option value="kice" ${MKF.cvs==='kice'?'selected':''}>테두리 있는 평가원형</option><option value="plain" ${MKF.cvs==='plain'?'selected':''}>테두리 없는 간결형</option></select></label>`:''}</div></div>
- <div class="card mkgo"><div class="mksum"><b>${MKF.title||SNAME[SUBJ]+' 모의고사 '+MKF.round+'회'}</b><span class="m">${MKF.n}문항 · ${MKF.total}점 · ${MKF.min}분 · ${MKF.scope==='all'?'전범위':sc.join('·')} · ${MKLVN[MKF.preset]}${MKF.essay?' · 서술형 '+MKF.essay:''}</span></div><button class="p" style="width:100%;padding:12px" onclick="mockCreate()">제${MKF.round}회 모의고사 만들기</button></div></div></div>`;
+ </div>
+ <div class="mkfull"><div class="card lay"><h3 style="margin-top:0">앞표지</h3><div class="lrow"><div class="m">표지</div><div class="opts"><label class="opt"><input type="checkbox" ${MKF.cover?'checked':''} onchange="MKF.cover=this.checked?1:0;mkSave();mockView()"><span>앞표지 넣기 (성명·수험 번호·유의 사항)</span></label>${MKF.cover?`<div class="seg"><label><input type="radio" name="mkcv" ${MKF.cvs!=='plain'?'checked':''} onchange="MKF.cvs='kice';mkSave()"><span>테두리 있는 평가원형</span></label><label><input type="radio" name="mkcv" ${MKF.cvs==='plain'?'checked':''} onchange="MKF.cvs='plain';mkSave()"><span>테두리 없는 간결형</span></label></div>`:''}</div></div></div>
+ ${designCard(XM)}${layoutCard(0,XM)}</div>
+ <div class="card mkgo"><div class="mksum"><b>${MKF.title||SNAME[SUBJ]+' 모의고사 '+MKF.round+'회'}</b><span class="m">${MKF.n}문항 · ${MKF.total}점 · ${MKF.min}분 · ${MKF.scope==='all'?'전범위':sc.join('·')} · ${MKLVN[MKF.preset]}${MKF.essay?' · 서술형 '+MKF.essay:''}</span></div><button class="p" style="width:100%;padding:12px" onclick="mockCreate()">제${MKF.round}회 모의고사 만들기</button></div>`;
  h+=`<div class="card"><h2>만든 모의고사 <span class="tag">${list.length}회</span></h2>`;
  if(!list.length)h+='<div class="empty">아직 만든 모의고사가 없어요.</div>';
  else h+=`<div class="mklist">${list.map(m=>{const w=WSH.find(x=>x.id===m.wid);const a=hist.filter(x=>x.set==='ws'&&x.sub===m.wid&&(!CUR_S||x.sid===CUR_S)),l=a[a.length-1];
@@ -1845,7 +1848,7 @@ async function mockCreate(){
  if(MKF.order==='lv')picked.sort((a,b)=>(LVI[a.lv]??1)-(LVI[b.lv]??1)||sOrd(a)-sOrd(b));else if(MKF.order==='sub')picked.sort((a,b)=>sOrd(a)-sOrd(b)||(LVI[a.lv]??1)-(LVI[b.lv]??1));else picked=shuffle(picked);
  const codes=[...picked,...ess].map(q=>q.code);const pts=mkPoints(codes);
  const title=MKF.title||`${SNAME[SUBJ]} 모의고사 ${MKF.round}회`;const scopeText=MKF.scope==='all'?'전범위':sc.join('·');
- const rec=mkWs(codes,{title,subt:scopeText,style:MKF.style,color:MKF.color,font:MKF.font,tags:{},cols:2,per:'auto',ans:1,qr:1,p100:0,academy:MKF.org,minutes:MKF.min,mock:1,sect:ess.length?1:0,expPos:'end',pts,cover:MKF.cover?{on:1,org:MKF.org,title,area:MKF.area,period:MKF.period,round:String(MKF.round),subject:SNAME[SUBJ],style:MKF.cvs}:null});
+ const rec=mkWs(codes,{title,subt:scopeText,style:MKF.style,color:MKF.color,font:MKF.font,tags:Object.assign({},MKF.tags),cols:MKF.cols,per:(+MKF.per>8?8:MKF.per),ans:MKF.ans,qr:MKF.qr?1:0,mono:MKF.mono?1:0,p100:0,academy:MKF.org,minutes:MKF.min,mock:1,sect:(MKF.sect||ess.length)?1:0,expPos:MKF.expPos,pts,cover:MKF.cover?{on:1,org:MKF.org,title,area:MKF.area,period:MKF.period,round:String(MKF.round),subject:SNAME[SUBJ],style:MKF.cvs}:null});
  if(!rec)return;
  all.push({id:'m'+Date.now().toString(36),subj:SUBJ,round:MKF.round,scopeText,n:codes.length,total:MKF.total,minutes:MKF.min,lv:MKF.preset,wid:rec.id,t:Date.now()});jset(MK,all);
  MKF.round=0;MKF.title='';mkSave();toast('제 '+(all[all.length-1].round)+'회 모의고사를 만들었어요');
