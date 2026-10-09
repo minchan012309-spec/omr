@@ -192,7 +192,10 @@ const $=s=>document.querySelector(s),LS='omr_hist_v1',LC='omr_cfg_v1',LSS='omr_s
 const SETS={mc:'5지선다',top:'최상위',ox:'OX',blank:'빈칸',bank:'문제 은행'};
 const byCode=Object.fromEntries(DATA.map(q=>[q.code,q]));
 let STUD=null,STINFO=null,ASSIGN=[],hist=[],STU=[],WSH=[],srv=false,tab='grade',cfg={sub:'',set:'mc',type:''},cur=null,idx=0,sess=null,CF={},CUR_S='',BIDX={},BLOADED={},PR=null;
-const subs=[...new Map(DATA.filter(q=>q.sub).map(q=>[q.sub,q.subname])).entries()];
+const subs=[];
+const SUB_ORDER=['Ⅱ-A','Ⅱ-B','Ⅲ-A','Ⅲ-B','Ⅲ-C','종합'];
+function calcSubs(){const m=new Map(DATA.filter(q=>q.sub).map(q=>[q.sub,q.subname]));Object.values(BIDX).forEach(b=>{if(b.sub&&!m.has(b.sub))m.set(b.sub,b.subname)});
+ let a=[...m.entries()];if(SUBJ==='cm')a.sort((x,y)=>SUB_ORDER.indexOf(x[0])-SUB_ORDER.indexOf(y[0]));subs.length=0;a.forEach(x=>subs.push(x))}
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function fmt(h){return String(h).replace(/_\{([^}]*)\}/g,'<sub>$1</sub>').replace(/\^\{([^}]*)\}/g,'<sup>$1</sup>')}
 const jget=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||d}catch(e){return d}};
@@ -203,12 +206,24 @@ function mount(el,html){const r=el.shadowRoot||el.attachShadow({mode:'open'});
  .wrap{font-family:Paperozi,sans-serif;font-size:10.5pt;line-height:1.62;color:#1b2430;word-break:keep-all}
  .q{min-height:0!important;padding-bottom:1mm!important;break-inside:auto}img{max-width:100%}.fg{max-width:460px}</style><div class="wrap">${html}</div>`}
 /* ---------- 문제 은행(지연 로딩) ---------- */
-async function loadBankIndex(){try{const r=await fetch('bank/index.json');if(r.ok)BIDX=await r.json()}catch(e){}}
+/* 과목별 자료: me=물질과 에너지(bank/), cm=세포와 물질대사(cm/) */
+const SNAME={me:'물질과 에너지',cm:'세포와 물질대사'},DIRS={me:'bank/',cm:'cm/'},POOL={me:DATA.slice(),cm:[]},BIDXS={me:{},cm:{}},TAGSUBJ={};
+let SUBJ='me',BIDXALL={};
+try{const v=localStorage.getItem('omr_subj_v1');if(v&&SNAME[v])SUBJ=v}catch(e){}
+function applySubject(){if(typeof CK!=='undefined'&&!ckind()[CK.k])CK.k=SUBJ==='cm'?'C':'Q';DATA.length=0;POOL[SUBJ].forEach(q=>DATA.push(q));BIDX=BIDXS[SUBJ]||{};calcSubs();const e=$('#subj');if(e)e.textContent=SNAME[SUBJ]}
+async function loadBankIndex(){
+ for(const k of ['me','cm']){try{const r=await fetch(DIRS[k]+'index.json');if(r.ok){BIDXS[k]=await r.json();for(const t in BIDXS[k])TAGSUBJ[t]=k;Object.assign(BIDXALL,BIDXS[k])}}catch(e){}}
+ try{const r=await fetch('cm/data.json');if(r.ok){const a=await r.json();a.forEach(q=>{if(!byCode[q.code]){byCode[q.code]=q;POOL.cm.push(q)}})}}catch(e){}
+ applySubject()}
+async function setSubject(k){if(!SNAME[k]||k===SUBJ){closeCfg();return}
+ SUBJ=k;try{localStorage.setItem('omr_subj_v1',k)}catch(e){}
+ applySubject();cfg={sub:'',set:'mc',type:''};SP={sub:'',type:'',src:'',lv:'',pg:0,p1:'',p2:''};CK={k:SUBJ==='cm'?'C':'Q',a:'',b:'',g:''};
+ W.sel=new Map();saveW();closeCfg();tab='grade';cur=null;PR=null;render()}
 const tagOf=c=>{const m=String(c).match(/^G-([a-z0-9]+)-/);return m&&m[1]};
-async function ensureTags(tags){for(const t of tags){if(!t||BLOADED[t]||!BIDX[t])continue;
- try{const r=await fetch('bank/'+t+'.json');if(!r.ok)continue;const a=await r.json();a.forEach(q=>{if(!byCode[q.code]){byCode[q.code]=q;DATA.push(q)}});BLOADED[t]=1}catch(e){}}}
+async function ensureTags(tags){for(const t of tags){if(!t||BLOADED[t]||!BIDXALL[t])continue;const sj=TAGSUBJ[t];
+ try{const r=await fetch(DIRS[sj]+t+'.json');if(!r.ok)continue;const a=await r.json();a.forEach(q=>{if(!byCode[q.code]){byCode[q.code]=q;POOL[sj].push(q);if(sj===SUBJ)DATA.push(q)}});BLOADED[t]=1}catch(e){}}}
 const ensureCodes=codes=>ensureTags([...new Set(codes.map(tagOf).filter(Boolean))]);
-function qMeta(c){const q=byCode[c];if(q)return q;const t=tagOf(c);if(t&&BIDX[t])return{code:c,set:'bank',sub:BIDX[t].sub,subname:BIDX[t].subname,type:BIDX[t].label};return null}
+function qMeta(c){const q=byCode[c];if(q)return q;const t=tagOf(c);if(t&&BIDXALL[t])return{code:c,set:'bank',sub:BIDXALL[t].sub,subname:BIDXALL[t].subname,type:BIDXALL[t].label};return null}
 /* ---------- 저장소 · 클라우드 ---------- */
 function loadCfg(){CF={url:'https://airejqudbqfsfhadvwqp.supabase.co',key:'sb_publishable_YPbHe6NNnV5eQT0u1SZiCg_JLvrM7IV',pub:'https://minchan012309-spec.github.io/omr/'};sess=jget(LSS,null)}
 const cloud=()=>!!(CF.url&&CF.key);
@@ -432,6 +447,7 @@ function bookPages(){const m={};DATA.forEach(q=>{if(q.pg&&['mc','top','ox','blan
 function newCur(qs,extra){cur={qs,ans:{},done:false,t:Date.now(),mark:teacher(),...extra};if(cur.mark)qs.forEach((q,i)=>cur.ans[i]=q.ans);idx=0;tab='grade';render()}
 function guardStu(){if(teacher()&&!CUR_S){alert('학생을 먼저 선택하세요. (오른쪽 위 학생 선택)');return true}return false}
 function openBookPage(pg){if(guardStu())return;const m=bookPages();pg=parseInt(pg);const qs=m[pg];
+ if(!Object.keys(m).length){alert('이 과목은 쪽수 정보가 없습니다. “소단원으로”를 이용하세요.');return}
  if(!qs){const ks=Object.keys(m).map(Number).sort((a,b)=>a-b);const near=ks.filter(k=>k>pg)[0];alert('p.'+pg+'에는 채점할 문제가 없습니다.'+(near?' 가까운 쪽: p.'+near+'.':'')+' (채점할 수 있는 쪽: p.'+ks[0]+' ~ p.'+ks[ks.length-1]+')');return}
  newCur(qs,{book:{page:pg}})}
 function openUnit(){if(guardStu())return;const sub=$('#us').value,set=$('#ut').value,a=parseInt($('#uf').value)||0,b=parseInt($('#uto').value)||9999;
@@ -447,10 +463,10 @@ function enterView(){
  <div class="card enter"><h2>학습지 번호로 채점</h2><div class="m" style="margin-bottom:12px">학습지 QR 옆의 숫자 8자리를 입력하거나, 오른쪽 위 QR 단추로 찍으세요.${t?' 선생님은 정답이 모두 표시된 화면에서 틀린 번호만 누르면 됩니다.':''}</div>
  <input class="big" id="wn" maxlength="9" placeholder="0000-0000" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')goNo()"><div class="btns"><button class="p" onclick="goNo()">채점 시작</button><button class="s" onclick="scanQR()">QR 스캔</button></div></div>
  <div class="card"><h2>교재로 채점</h2>
- <div class="seg" style="margin-bottom:10px"><label><input type="radio" name="bm" checked onchange="$('#bmp').style.display='';$('#bmu').style.display='none'"><span>쪽수로</span></label><label><input type="radio" name="bm" onchange="$('#bmp').style.display='none';$('#bmu').style.display=''"><span>소단원으로</span></label></div>
- <div id="bmp"><div class="m" style="margin-bottom:8px">교재에 인쇄된 쪽 번호를 입력하세요. 끝나면 다음 쪽도 이어서 할지 물어봅니다.</div>
+ <div class="seg" style="margin-bottom:10px"><label><input type="radio" name="bm" ${SUBJ==='cm'?'':'checked'} onchange="$('#bmp').style.display='';$('#bmu').style.display='none'"><span>쪽수로</span></label><label><input type="radio" name="bm" ${SUBJ==='cm'?'checked':''} onchange="$('#bmp').style.display='none';$('#bmu').style.display=''"><span>소단원으로</span></label></div>
+ <div id="bmp" ${SUBJ==='cm'?'style="display:none"':''}><div class="m" style="margin-bottom:8px">교재에 인쇄된 쪽 번호를 입력하세요. 끝나면 다음 쪽도 이어서 할지 물어봅니다.</div>
  <div class="row"><input id="bp" type="number" min="1" placeholder="예) 78" style="width:130px;font-size:18px;text-align:center" onkeydown="if(event.key==='Enter')openBookPage(this.value)"><button class="p" onclick="openBookPage($('#bp').value)">이 쪽 채점</button></div></div>
- <div id="bmu" style="display:none"><div class="m" style="margin-bottom:8px">소단원과 문제 종류를 고르고, 필요하면 번호 범위(몇 번부터 몇 번까지)를 적으세요.</div>
+ <div id="bmu" ${SUBJ==='cm'?'':'style="display:none"'}><div class="m" style="margin-bottom:8px">소단원과 문제 종류를 고르고, 필요하면 번호 범위(몇 번부터 몇 번까지)를 적으세요.</div>
  <div class="row"><select id="us"><option value="">소단원</option>${subs.map(([a,b])=>`<option value="${a}">${a} ${b}</option>`).join('')}</select><select id="ut">${['mc','top','ox','blank'].map(k=>`<option value="${k}">${SETS[k]}</option>`).join('')}</select></div>
  <div class="row"><input id="uf" type="number" min="1" placeholder="시작 번호" style="width:110px"><span class="m">~</span><input id="uto" type="number" min="1" placeholder="끝 번호" style="width:110px"><button class="p" onclick="openUnit()">채점 시작</button></div></div>
  ${!t&&!STUD?'<div class="m" style="margin-top:14px">로그인하지 않으면 점수만 확인되고 기록은 저장되지 않습니다.</div>':''}</div></div>
@@ -773,8 +789,8 @@ async function openWs(rec,pv){
   const ac=rec.academy?`<div class="ac">${esc(rec.academy)}</div>`:'';
   let head;
   if(!first)head=`<div class="ph2"><span>${esc(rec.title)}${rec.academy?' · '+esc(rec.academy):''}</span><span>${sol?'정답 및 해설':''}</span></div>`;
-  else if(style==='naesin')head=`<div class="ph1">${qrFirst}<div class="hd"><div class="ac">${esc(rec.academy||'')}</div><div class="tt">${year}학년도 ${esc(rec.title)}</div><div class="st">${esc(rec.subt||'물질과 에너지')}</div></div><table class="nb"><tr><th>학년·반</th><td></td><th>번호</th><td></td><th>이름</th><td>${esc(nm)}</td><th>점수</th><td>/ ${n}</td></tr></table></div>`;
-  else if(style==='mock')head=`<div class="ph1">${qrFirst}<div class="ac">${esc(rec.academy||'물질과 에너지')}</div><div class="hd"><div class="tt">${esc(rec.title)}</div><div class="st">${esc(rec.subt||'')}</div></div><div class="inf"><span class="nm"><em>성명</em><u>${esc(nm)}</u></span><span class="sc"><em>점수</em><u></u>/ ${n}</span></div></div>`;
+  else if(style==='naesin')head=`<div class="ph1">${qrFirst}<div class="hd"><div class="ac">${esc(rec.academy||'')}</div><div class="tt">${year}학년도 ${esc(rec.title)}</div><div class="st">${esc(rec.subt||SNAME[SUBJ])}</div></div><table class="nb"><tr><th>학년·반</th><td></td><th>번호</th><td></td><th>이름</th><td>${esc(nm)}</td><th>점수</th><td>/ ${n}</td></tr></table></div>`;
+  else if(style==='mock')head=`<div class="ph1">${qrFirst}<div class="ac">${esc(rec.academy||SNAME[SUBJ])}</div><div class="hd"><div class="tt">${esc(rec.title)}</div><div class="st">${esc(rec.subt||'')}</div></div><div class="inf"><span class="nm"><em>성명</em><u>${esc(nm)}</u></span><span class="sc"><em>점수</em><u></u>/ ${n}</span></div></div>`;
   else head=`<div class="ph1"><div class="hd">${ac}<div class="tt">${esc(rec.title)}</div><div class="st">${esc(rec.subt||'')}</div></div>${qrFirst}<div class="inf"><span class="nm"><em>이름</em><u>${esc(nm)}</u></span><span><em>날짜</em>${date}</span><span><em>문항</em>${n}문항</span><span class="sc"><em>점수</em><u></u>/ ${n}</span></div></div>`;
   pg.innerHTML=head+`<div class="cols"><div class="col"></div><div class="col"></div></div>
   <div class="pf"><span><span class="pn">${pn}</span> / <span class="tot"></span>${exam?'':'　'+esc(rec.title)}</span>${rec.qr&&!sol&&!first?`<div class="qr" title="누르면 채점 화면으로 이동합니다"><span>채점하려면 스캔하거나<br>번호를 입력하세요<br><span class="no">${fmtNo(rec.id)}</span></span>${qrSvg(url)}</div>`:''}</div>`;
@@ -838,11 +854,13 @@ let SP={sub:'',type:'',src:'',lv:'',pg:0,p1:'',p2:''};
 const SRCOPT={'':'전체 출처',mc:'교재 5지선다',top:'교재 최상위',ox:'OX',blank:'빈칸',bank:'문제 은행(변형)'};
 const typesOf=sub=>[...new Set([...DATA.filter(q=>q.sub===sub&&q.type).map(q=>q.type),...Object.values(BIDX).filter(b=>b.sub===sub).map(b=>b.label)])];
 const CKIND={Q:['Q','5지선다'],T:['T','최상위'],O:['O','OX'],B:['B','빈칸'],E:['E','서술형'],N:['N','부교재 OX'],G:['G','문제 은행']};
+const CKCM={C:['C','5지선다'],H:['H','최상위'],X:['X','OX'],F:['F','빈칸'],W:['W','서술형'],G:['G','문제 은행']};
+const ckind=()=>SUBJ==='cm'?CKCM:CKIND;
 let CK={k:'Q',a:'',b:'',g:''};
 function ckSet(k){CK.k=k;searchView()}
 function ckNum(el,f){el.value=el.value.replace(/\D/g,'');CK[f]=el.value;ckGo()}
 function ckGo(){let s='';const k=CK.k;
- if(k==='Q')s='Q'+CK.a+(CK.b?'-'+CK.b.padStart(CK.b.length<3?3:CK.b.length,'0'):'');
+ if(k==='Q'||k==='C')s=k+CK.a+(CK.b?'-'+CK.b.padStart(CK.b.length<3?3:CK.b.length,'0'):'');
  else if(k==='G')s='G-'+(CK.g||'')+(CK.b?'-'+CK.b.padStart(4,'0'):'');
  else s=k+(CK.b?'-'+CK.b.padStart(3,'0'):'-');
  const q=$('#sq');if(q){q.value=s;}doS(s)}
@@ -850,8 +868,8 @@ function searchView(){
  const ty=SP.sub?typesOf(SP.sub):[];const k=CK.k;
  $('#main').innerHTML=`<div class="card sbar"><input id="sq" type="search" placeholder="🔍 코드 · 유형 · 소단원 · 문제 본문으로 검색 (여러 단어는 띄어쓰기)" oninput="doS(this.value)"></div>
  <div class="g2s"><div class="sidecol"><div class="card"><h3 style="margin-top:0">코드로 찾기</h3>
- <div class="ckb">${Object.entries(CKIND).map(([x,[l,n]])=>`<button class="ck ${k===x?'on':''}" onclick="ckSet('${x}')" title="${n}"><b>${l}</b><small>${n}</small></button>`).join('')}</div>
- <div class="ckn">${k==='Q'?`<label>묶음<input inputmode="numeric" maxlength="3" placeholder="31" value="${esc(CK.a)}" oninput="ckNum(this,'a')"></label><span>-</span>`:''}${k==='G'?`<label>유형<select onchange="CK.g=this.value;ckGo()"><option value="">전체</option>${Object.entries(BIDX).map(([t,b])=>`<option value="${t}" ${CK.g===t?'selected':''}>${esc(b.label)}</option>`).join('')}</select></label><span>-</span>`:''}<label>번호<input inputmode="numeric" maxlength="4" placeholder="001" value="${esc(CK.b)}" oninput="ckNum(this,'b')"></label></div>
+ <div class="ckb">${Object.entries(ckind()).map(([x,[l,n]])=>`<button class="ck ${k===x?'on':''}" onclick="ckSet('${x}')" title="${n}"><b>${l}</b><small>${n}</small></button>`).join('')}</div>
+ <div class="ckn">${k==='Q'||k==='C'?`<label>묶음<input inputmode="numeric" maxlength="3" placeholder="${k==='C'?'21':'31'}" value="${esc(CK.a)}" oninput="ckNum(this,'a')"></label><span>-</span>`:''}${k==='G'?`<label>유형<select onchange="CK.g=this.value;ckGo()"><option value="">전체</option>${Object.entries(BIDX).map(([t,b])=>`<option value="${t}" ${CK.g===t?'selected':''}>${esc(b.label)}</option>`).join('')}</select></label><span>-</span>`:''}<label>번호<input inputmode="numeric" maxlength="4" placeholder="001" value="${esc(CK.b)}" oninput="ckNum(this,'b')"></label></div>
  <div class="m">종류 버튼을 고르고 숫자만 입력하면 바로 찾습니다.</div></div>
  <div class="card"><h3 style="margin-top:0">경로로 찾기</h3><div class="form1">
  <select onchange="SP.sub=this.value;SP.type='';SP.pg=0;searchView()"><option value="">소단원 선택</option>${subs.map(([a,b])=>`<option value="${a}" ${SP.sub===a?'selected':''}>${a} ${b}</option>`).join('')}</select>
@@ -996,7 +1014,7 @@ async function loadStud(){
  catch(e){}}
 async function stSubmit(rec){const r=await rpc('st_submit',{p_login:STUD.login,p_pw:STUD.pw,p_t:rec.t,p_set:rec.set,p_sub:rec.sub,p_items:rec.items});if(!r.ok)throw new Error('submit')}
 async function saveRec(rec){if(STUD&&STUD.preview){hist.push(rec);return}if(STUD){try{await stSubmit(rec)}catch(e){alert('서버에 저장하지 못했습니다. 점수는 이 화면에서 확인할 수 있습니다.')}hist.push(rec);return}await save(rec)}
-function stLoginCard(){return `<div class="card enter stl"><div class="stbrand"><i></i>물질과 에너지</div><h2>학생 로그인</h2><div class="m" style="margin-bottom:12px">선생님께 받은 아이디와 비밀번호를 입력하세요.</div>
+function stLoginCard(){return `<div class="card enter stl"><div class="stbrand"><i></i>${SNAME[SUBJ]}</div><h2>학생 로그인</h2><div class="m" style="margin-bottom:12px">선생님께 받은 아이디와 비밀번호를 입력하세요.</div>
  <input id="stid" class="stin" type="text" placeholder="아이디" autocapitalize="off" autocomplete="username"><input id="stpw" class="stin" type="password" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')stLogin()">
  <div class="btns"><button class="p" onclick="stLogin()">로그인</button></div><div class="m" style="margin-top:12px">아이디 없이도 아래에서 학습지 번호로 채점할 수 있습니다.</div></div>`}
 /* ---- 학생 홈 ---- */
@@ -1046,7 +1064,7 @@ async function issueLogin(id){const s=STU.find(x=>x.id===id);if(!s)return;
   s.login=lg.trim().toLowerCase();jset(LST,STU);showCard(s,pw);stuView()}catch(e){alert('발급하지 못했습니다.')}}
 async function revokeLogin(id){if(!confirm('이 학생의 로그인 계정을 해제할까요?'))return;await rpc('revoke_login',{p_student:id});const s=STU.find(x=>x.id===id);if(s){s.login=null;jset(LST,STU)}stuView()}
 function showCard(s,pw){const base=(CF.pub||location.href).split('#')[0].split('?')[0];
- const html=`<style>.pg{width:210mm;min-height:297mm;background:#fff;margin:0 auto;padding:22mm 20mm;box-shadow:0 2px 12px #0002;font-family:Paperozi,sans-serif;color:#1b2430}.c{border:.4mm solid #2f7fd0;border-radius:4mm;padding:9mm 10mm;max-width:130mm;margin:0 auto 10mm;position:relative}.c h1{margin:0 0 3mm;font-size:18pt;color:#1d5ca6}.c .r{display:flex;gap:4mm;font-size:12pt;margin:2.4mm 0}.c .r b{width:22mm;color:#586476;font-weight:500}.c .r span{font-family:ui-monospace,Menlo,monospace;font-size:14pt;letter-spacing:.08em}.q svg{width:30mm;height:30mm}.n{font-size:9pt;color:#7b8794;margin-top:4mm;line-height:1.6}@media print{.pg{box-shadow:none;margin:0}}</style><div class="pg"><div class="c"><h1>물질과 에너지 · 학생 로그인 안내</h1><div class="r"><b>이름</b>${esc(s.name)}</div><div class="r"><b>주소</b><div style="word-break:break-all;font-size:10.5pt">${esc(base)}</div></div><div class="r"><b>아이디</b><span>${esc(s.login)}</span></div><div class="r"><b>비밀번호</b><span>${esc(pw)}</span></div><div class="q" style="position:absolute;right:9mm;top:9mm">${qrSvg(base)}</div><div class="n">사이트 주소로 들어가 「학생 로그인」에 위 아이디와 비밀번호를 입력하세요. 비밀번호는 선생님에게 말해서 바꿀 수 있습니다.</div></div></div>`;
+ const html=`<style>.pg{width:210mm;min-height:297mm;background:#fff;margin:0 auto;padding:22mm 20mm;box-shadow:0 2px 12px #0002;font-family:Paperozi,sans-serif;color:#1b2430}.c{border:.4mm solid #2f7fd0;border-radius:4mm;padding:9mm 10mm;max-width:130mm;margin:0 auto 10mm;position:relative}.c h1{margin:0 0 3mm;font-size:18pt;color:#1d5ca6}.c .r{display:flex;gap:4mm;font-size:12pt;margin:2.4mm 0}.c .r b{width:22mm;color:#586476;font-weight:500}.c .r span{font-family:ui-monospace,Menlo,monospace;font-size:14pt;letter-spacing:.08em}.q svg{width:30mm;height:30mm}.n{font-size:9pt;color:#7b8794;margin-top:4mm;line-height:1.6}@media print{.pg{box-shadow:none;margin:0}}</style><div class="pg"><div class="c"><h1>${SNAME[SUBJ]} · 학생 로그인 안내</h1><div class="r"><b>이름</b>${esc(s.name)}</div><div class="r"><b>주소</b><div style="word-break:break-all;font-size:10.5pt">${esc(base)}</div></div><div class="r"><b>아이디</b><span>${esc(s.login)}</span></div><div class="r"><b>비밀번호</b><span>${esc(pw)}</span></div><div class="q" style="position:absolute;right:9mm;top:9mm">${qrSvg(base)}</div><div class="n">사이트 주소로 들어가 「학생 로그인」에 위 아이디와 비밀번호를 입력하세요. 비밀번호는 선생님에게 말해서 바꿀 수 있습니다.</div></div></div>`;
  mount($('#wsPaper'),html);$('#wsBar').innerHTML='<button class="p" onclick="window.print()">인쇄</button><button class="s" onclick="closeWs()">닫기</button><span class="m">비밀번호는 이 화면에서만 확인할 수 있으니 인쇄하거나 적어 두세요.</span>';
  let ps=document.getElementById('wsPrintStyle');if(!ps){ps=document.createElement('style');ps.id='wsPrintStyle';document.head.appendChild(ps)}ps.textContent='@page{size:A4;margin:0}';$('#wsView').classList.add('open');pushNav()}
 async function asSync(){try{const r=await sb('/rest/v1/assignments?select=id,student_id,wid,title,due,note,t&order=t.desc&limit=5000');if(r.ok)ASSIGN=await r.json()}catch(e){}}
@@ -1127,8 +1145,8 @@ async function rvFinal(){const o={...RV.opts,space:Object.keys(RV.space).length?
  if(B&&B.length){mkWs(B,{...o,title:o.title+' B형',space:null});createWs(codes,{...o,title:o.title+' A형'})}else createWs(codes,o)}
 
 /* =================== 과목 선택 =================== */
-const SUBJECTS=[{n:'물질과 에너지',ok:1,d:'교재 · 문제 은행 13,900문항'},{n:'세포와 물질대사',ok:0,d:'준비 중'},{n:'역학과 에너지',ok:0,d:'준비 중'}];
-function openSubjects(){const m=$('#cfg');$('#cfgBox').innerHTML=`<h2 style="margin-top:0">과목 선택</h2><div class="subj">${SUBJECTS.map(s=>`<button class="sj ${s.ok?'':'off'} ${s.n===$('#subj').textContent?'on':''}" ${s.ok?'onclick="closeCfg()"':'disabled'}><b>${s.n}</b><small>${s.d}</small></button>`).join('')}</div><div class="m" style="margin-top:10px">다른 과목 문제집이 완성되면 이곳에 추가됩니다.</div><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="s" onclick="closeCfg()">닫기</button></div>`;m.classList.add('open')}
+const SUBJECTS=[{id:'me',n:'물질과 에너지',ok:1,d:'교재 · 문제 은행 13,900문항'},{id:'cm',n:'세포와 물질대사',ok:1,d:'교재 283문항 · 문제 은행 10,000문항'},{n:'역학과 에너지',ok:0,d:'준비 중'}];
+function openSubjects(){const m=$('#cfg');$('#cfgBox').innerHTML=`<h2 style="margin-top:0">과목 선택</h2><div class="subj">${SUBJECTS.map(s=>`<button class="sj ${s.ok?'':'off'} ${s.n===$('#subj').textContent?'on':''}" ${s.ok?`onclick="setSubject('${s.id}')"`:'disabled'}><b>${s.n}</b><small>${s.d}</small></button>`).join('')}</div><div class="m" style="margin-top:10px">다른 과목 문제집이 완성되면 이곳에 추가됩니다.</div><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="s" onclick="closeCfg()">닫기</button></div>`;m.classList.add('open')}
 /* =================== 학생 화면 보기 (미리보기) =================== */
 let PVSAVE=null;
 function previewStudent(id){const s=STU.find(x=>x.id===id);if(!s)return;
