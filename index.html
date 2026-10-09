@@ -710,7 +710,7 @@ async function finish(force){
  const rec={t:Date.now(),set:ws?'ws':cur.book?'book':cur.unit?cur.unit.set:cfg.set,sub:ws?ws.id:cur.book?String(cur.book.page):cur.unit?cur.unit.sub:cfg.sub,items:cur.qs.map((q,i)=>({c:q.code,a:cur.ans[i]||'',r:ok(q,cur.ans[i])?1:0})),sid};
  if(cur.unit&&cur.unit.rng)rec.rng=cur.unit.rng;
  let done=false;
- if(STUD){await saveRec(rec);done=true}
+ if(STUD){const rr=await saveRec(rec);if(rr==='locked'){cur=null;tab='enter';render();return}done=true}
  if(!done&&ws&&cloud()&&(srv==='cloud'||!teacher())){try{const r=await rpc('ws_submit',{p_wid:ws.id,p_t:rec.t,p_items:rec.items});done=r.ok}catch(e){}
   if(done){hist.push(rec);jset(LS,hist)}else if(!teacher()){hist.push(rec);jset(LS,hist);alert('서버에 저장하지 못했습니다. 점수는 이 화면에서 확인할 수 있습니다.');done=true}}
  if(!done){if(!teacher()){hist.push(rec);jset(LS,hist)}else await save(rec);calibAll()}
@@ -1564,10 +1564,12 @@ function syncClick(){if(PVSAVE){exitPreview();return}if(STUD){if(confirm('로그
 async function loadStud(){
  try{const r=await rpc('st_data',{p_login:STUD.login,p_pw:STUD.pw});const j=r.ok?await r.json():null;
   if(!j){STUD=null;localStorage.removeItem(LSTUD);return}
-  STINFO=j.student;hist=(j.attempts||[]).map(x=>({t:x.t,set:x.set,sub:x.sub,items:x.items,sid:''})).sort((a,b)=>a.t-b.t);ASSIGN=j.assignments||[];WSH=[];STU=[];CUR_S=''}
+  STINFO=j.student;hist=(j.attempts||[]).map(x=>({t:x.t,set:x.set,sub:x.sub,items:x.items,rng:x.rng||undefined,sid:''})).sort((a,b)=>a.t-b.t);ASSIGN=j.assignments||[];WSH=[];STU=[];CUR_S=''}
  catch(e){}}
-async function stSubmit(rec){const r=await rpc('st_submit',{p_login:STUD.login,p_pw:STUD.pw,p_t:rec.t,p_set:rec.set,p_sub:rec.sub,p_items:rec.items});if(!r.ok)throw new Error('submit')}
-async function saveRec(rec){if(STUD&&STUD.preview){hist.push(rec);return}if(STUD){try{await stSubmit(rec)}catch(e){alert('서버에 저장하지 못했습니다. 점수는 이 화면에서 확인할 수 있습니다.')}hist.push(rec);return}await save(rec)}
+async function stSubmit(rec){const body={p_login:STUD.login,p_pw:STUD.pw,p_t:rec.t,p_set:rec.set,p_sub:rec.sub,p_items:rec.items};if(rec.rng)body.p_rng=rec.rng;
+ let r=await rpc('st_submit',body);if(r.status===404&&body.p_rng){delete body.p_rng;r=await rpc('st_submit',body)}
+ if(!r.ok){let m='';try{m=await r.text()}catch(e){}const er=new Error(m.includes('already submitted')?'locked':'submit');er.locked=m.includes('already submitted');throw er}}
+async function saveRec(rec){if(STUD&&STUD.preview){hist.push(rec);return}if(STUD){try{await stSubmit(rec)}catch(e){if(e.locked){alert('이미 제출한 채점이에요. 선생님이 초기화해야 다시 제출할 수 있어요.');await loadStud();return 'locked'}alert('서버에 저장하지 못했습니다. 점수는 이 화면에서 확인할 수 있습니다.')}hist.push(rec);return}await save(rec)}
 function stLoginCard(){return `<div class="card enter stl"><div class="stbrand"><i></i>${SNAME[SUBJ]}</div><h2>학생 로그인</h2><div class="m" style="margin-bottom:12px">선생님께 받은 아이디와 비밀번호를 입력하세요.</div>
  <input id="stid" class="stin" type="text" placeholder="아이디" autocapitalize="off" autocomplete="username"><input id="stpw" class="stin" type="password" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')stLogin()">
  <div class="btns"><button class="p" onclick="stLogin()">로그인</button></div></div>`}

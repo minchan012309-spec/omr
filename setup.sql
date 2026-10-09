@@ -172,3 +172,36 @@ revoke all on function _st_auth(text, text) from public, anon, authenticated;
 grant execute on function st_login(text, text) to anon, authenticated;
 grant execute on function st_data(text, text) to anon, authenticated;
 grant execute on function st_submit(text, text, bigint, text, text, jsonb) to anon, authenticated;
+
+-- 9) 채점 결과 고정: 한 번 제출한 채점은 선생님이 초기화하기 전까지 다시 제출할 수 없습니다 (서버에서도 막습니다)
+alter table attempts add column if not exists rng text;
+drop function if exists st_submit(text, text, bigint, text, text, jsonb);
+create or replace function st_submit(p_login text, p_pw text, p_t bigint, p_set text, p_sub text, p_items jsonb, p_rng text default null) returns void
+language plpgsql security definer set search_path = public, extensions as $$
+declare s students%rowtype; ra bigint := 0;
+begin
+  s := _st_auth(p_login, p_pw);
+  if s.id is null then raise exception 'login failed'; end if;
+  if p_set = 'ws' then
+    select coalesce((meta->>'resetAt')::bigint, 0) into ra from worksheets where wid = upper(p_sub) limit 1;
+  end if;
+  if exists (select 1 from attempts a where a.student_id = s.id and a."set" = p_set and a.sub = p_sub
+             and a.t > ra and coalesce(a.rng, '') = coalesce(p_rng, '')) then
+    raise exception 'already submitted';
+  end if;
+  insert into attempts (user_id, student_id, t, "set", sub, items, rng) values (s.user_id, s.id, p_t, p_set, p_sub, p_items, p_rng);
+end $$;
+grant execute on function st_submit(text, text, bigint, text, text, jsonb, text) to anon, authenticated;
+create or replace function st_data(p_login text, p_pw text) returns json
+language plpgsql security definer set search_path = public, extensions as $$
+declare s students%rowtype;
+begin
+  s := _st_auth(p_login, p_pw);
+  if s.id is null then return null; end if;
+  return json_build_object(
+    'student', json_build_object('id', s.id, 'name', s.name, 'grade', s.grade),
+    'attempts', (select coalesce(json_agg(json_build_object('t', a.t, 'set', a."set", 'sub', a.sub, 'items', a.items, 'rng', a.rng) order by a.t), '[]'::json)
+                 from (select * from attempts where student_id = s.id order by t desc limit 400) a),
+    'assignments', (select coalesce(json_agg(json_build_object('wid', x.wid, 'title', x.title, 'due', x.due, 'note', x.note, 't', x.t) order by x.t desc), '[]'::json)
+                    from assignments x where x.student_id = s.id));
+end $$;
