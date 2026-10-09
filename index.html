@@ -356,6 +356,10 @@ header h1 i{display:none}
 .bsn b{font-size:26px}.bsum .bsn{display:flex;align-items:baseline;gap:6px}
 .rvps,#bdps{position:relative}.pvload{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#ffffffd9;z-index:3;color:var(--bd);font-size:14px}.spin2{width:42px;height:42px;border-radius:50%;border:4px solid var(--bl);border-top-color:var(--b);animation:spin .8s linear infinite}
 .lockb{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fff7e0;border-radius:12px;padding:12px 16px;margin-bottom:12px;font-size:14px}.lockb b{background:#f2b400;color:#fff;border-radius:8px;padding:2px 10px;font-weight:500}
+/* v7 차분하게 */
+.res:hover,.mki:hover,.rt:hover{transform:none;box-shadow:0 1px 6px #0001}.q1 .b:hover,.mk:hover,.q1 .b:hover{transform:none}.q1 .b.sel{animation:none}
+header h1:hover .logo{transform:none}.rt{animation:none}.tc,.res,.wi,.mki,.rl,.cell,.rvi,.q1{transition:border-color .12s,background-color .12s}
+.modal.open .box,#qsheet.open .shbox,#qsheet.open,#toast .tt{animation-duration:.12s}
 </style></head><body>
 <header><h1 id="brand" onclick="openSubjects()" title="과목 선택"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5l11.5 6.5L16 15.5 4.5 9z" fill="#8cc0ff"/><path d="M4.5 9L16 15.5v14L4.5 23z" fill="#2f6fd0"/><path d="M27.5 9L16 15.5v14L27.5 23z" fill="#183a82"/><path d="M19.5 20.2l3 2.6 4-5" transform="translate(-1.5 1)" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bn">Qubic</span><small id="subj">물질과 에너지</small><b>▾</b></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span><span id="saved" title="이 기기에 자동 저장된 마지막 시각"></span><button id="setBtn" onclick="openSettings()" title="설정 · 단축키 · 데이터 관리" aria-label="설정">⚙</button></header>
 <main id="main"></main><aside id="exp"></aside>
@@ -560,7 +564,7 @@ function resultHtml(){const n=cur.qs.length;const oks=cur.qs.map((q,i)=>ok(q,cur
  const t=aggItems(cur.qs.map((q,i)=>({q,r:oks[i]})),q=>q.sub+' '+q.subname+'|'+q.type).sort((a,b)=>a.p-b.p);
  const wrong=cur.qs.filter((q,i)=>!oks[i]);const mins=cur.t?Math.max(1,Math.round((Date.now()-cur.t)/60000)):0;
  const tiles=cur.qs.map((q,i)=>`<div class="rt ${oks[i]?'ok':'no'}" style="--d:${Math.min(i,40)*22}ms" onclick="numClick(${i})"><b>${cur.ws?i+1:q.no}</b><i>${oks[i]?'○':'✕'}</i><span>${oks[i]?esc(String(cur.ans[i]||'').slice(0,12)):`${esc(String(cur.ans[i]||'—').slice(0,8))} → <u>${esc(String(q.ans).slice(0,8))}</u>`}</span></div>`).join('');
- return bookNext()+(cur.locked?`<div class="lockb"><b>제출 완료</b><span>${new Date(cur.locked).toLocaleString('ko-KR')}에 제출한 결과예요. 다시 풀려면 선생님께 초기화를 요청하세요.</span></div>`:'')+`<div class="rhero"><div class="ring" id="ring" style="--p:0" data-p="${p}"><b id="ringn">0</b><small>점</small></div>
+ return bookNext()+(cur.locked?`<div class="lockb"><b>채점 완료</b><span>${new Date(cur.locked).toLocaleString('ko-KR')}에 채점한 결과예요. ${teacher()?'':'다시 풀려면 선생님께 초기화를 요청하세요.'}</span>${teacher()&&cur.lockRec?`<button class="s sm" onclick="recDel(${cur.lockRec.t},'${cur.lockRec.sid||''}')">초기화하고 다시 채점</button>`:''}</div>`:'')+`<div class="rhero"><div class="ring" id="ring" style="--p:0" data-p="${p}"><b id="ringn">0</b><small>점</small></div>
  <div class="rst"><div><em>맞음</em><b class="g">${r}</b></div><div><em>틀림</em><b class="r">${w}</b></div><div><em>정답률</em><b>${p}%</b></div>${mins&&cur.ws&&cur.ws.minutes?`<div><em>소요</em><b>${mins}분</b></div>`:''}</div>
  <div class="ract">${wrong.length?`<button class="p" onclick="redoCodes('${wrong.map(q=>q.code).join(',')}')">틀린 ${wrong.length}문항 다시 풀기</button>${teacher()?`<button class="s" onclick="makeWs(['${wrong.map(q=>q.code).join("','")}'])">틀린 문항 학습지</button>`:''}`:'<span class="perfect">🎉 모두 맞혔어요!</span>'}</div></div>
  <h3 class="sh2">유형별 정답률</h3><div class="tbars">${t.map(x=>`<div class="tb2"><span title="${esc(x.k.replace('|',' · '))}">${esc(x.k.split('|')[1])}</span><div class="gbar"><i class="${x.p<.5?'bad':x.p<.75?'mid':''}" style="width:${Math.round(x.p*100)}%"></i></div><em>${x.r}/${x.n}</em></div>`).join('')}</div>
@@ -576,7 +580,7 @@ function result(){const n=cur.qs.length,r=cur.qs.filter((q,i)=>ok(q,cur.ans[i]))
 function aggItems(items,kf){const m={};items.forEach(({q,r})=>{const k=kf(q);const o=m[k]=m[k]||{k,n:0,r:0};o.n++;o.r+=r?1:0});return Object.values(m).map(o=>({...o,p:o.r/o.n})).sort((a,b)=>a.p-b.p||b.n-a.n)}
 function redoCodes(s){const qs=s.split(',').map(c=>byCode[c]).filter(Boolean);practice(qs.map(q=>q.code),'틀린 문제 다시 풀기')}
 function recent(){const hs=H();if(!hs.length)return '<div class="empty">아직 기록이 없습니다.</div>';
- return `<div class="tw"><table><tr><th>일시</th><th>범위</th><th>학생</th><th>점수</th></tr>${hs.slice(-8).reverse().map(h=>`<tr><td>${new Date(h.t).toLocaleString('ko-KR')}</td><td>${h.set==='ws'?'학습지 · '+esc((WSH.find(w=>w.id===h.sub)||{}).title||fmtNo(h.sub)):h.set==='book'?'교재 p.'+esc(h.sub):h.set==='practice'?'유형 반복 학습':esc(SETS[h.set]||h.set)+' '+esc(h.sub||'전체')}</td><td>${esc((STU.find(s=>s.id===h.sid)||{}).name||'')}</td><td>${h.items.filter(x=>x.r).length}/${h.items.length}</td></tr>`).join('')}</table></div>`}
+ return `<div class="tw"><table><tr><th>일시</th><th>범위</th><th>학생</th><th>점수</th>${teacher()?'<th></th>':''}</tr>${hs.slice(-8).reverse().map(h=>`<tr><td>${new Date(h.t).toLocaleString('ko-KR')}</td><td>${h.set==='ws'?'학습지 · '+esc((WSH.find(w=>w.id===h.sub)||{}).title||fmtNo(h.sub)):h.set==='book'?'교재 p.'+esc(h.sub):h.set==='practice'?'유형 반복 학습':esc(SETS[h.set]||h.set)+' '+esc(h.sub||'전체')}</td><td>${esc((STU.find(s=>s.id===h.sid)||{}).name||'')}</td><td>${h.items.filter(x=>x.r).length}/${h.items.length}</td>${teacher()?`<td><button class="s sm" onclick="recDel(${h.t},'${h.sid||''}')">초기화</button></td>`:''}</tr>`).join('')}</table></div>`}
 /* ---------- 번호 채점 · QR 스캔 ---------- */
 let _stream=null,_scanOn=false;
 function loadJsQR(){return new Promise((res,rej)=>{if(window.jsQR)return res();const s=document.createElement('script');s.src='lib/jsqr.js';s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
@@ -669,12 +673,13 @@ function row(q,i){const a=cur.ans[i]||'',g=cur.done,w=g&&!ok(q,a);let body;
  else{const opts=q.set==='ox'?['O','X']:['1','2','3','4','5'];body=opts.map(o=>`<span class="b ${a===o?'sel':''} ${g&&q.ans===o?'ans':''}" onclick="${cur.mark&&!g?'':`pick(${i},'${o}')`}">${o}</span>`).join('')+(q.set==='ox'?'':`<span class="b dk ${a==='?'?'sel':''}" onclick="${cur.mark&&!g?'':`pick(${i},'?')`}" title="모르겠으면 누르세요 (오답 처리)">모름</span>`)}
  return `<div class="q1 ${i===idx&&!g?'cur':''} ${a&&!g?'got':''} ${g?'g':''} ${w?'w':''}"><span class="n ${cur.sel===i?'cs':''}" onclick="numClick(${i})" onmouseenter="popQ('${q.code}',this)" onmouseleave="popHide()">${cur.ws?i+1:q.no}</span>${body}<span class="mk"></span></div>`}
 async function finish(force){
- if(cur.ws&&!teacher()&&wsLocked(cur.ws.id,cur.ws.resetAt,0)){toast('이미 제출한 학습지예요');return}
+ if(cur.ws&&wsLocked(cur.ws.id,cur.ws.resetAt,0,cur.ws.sid)||!cur.ws&&cur.book&&recLock('book',String(cur.book.page))||!cur.ws&&cur.unit&&recLock(cur.unit.set,cur.unit.sub,0,cur.unit.rng)){toast('이미 채점한 기록이에요');return}
  if(!cur.mark&&!force){const un=cur.qs.filter((q,i)=>!cur.ans[i]).length;if(un&&!confirm(un+'문항이 비어 있습니다. 비어 있는 문항은 오답으로 채점합니다. 계속할까요?'))return}
  const ws=cur.ws;const sid=ws?(ws.sid||CUR_S||''):CUR_S;
  if(teacher()&&!sid){alert('학생을 먼저 선택하세요.');return}
  cur.done=true;popHide();
  const rec={t:Date.now(),set:ws?'ws':cur.book?'book':cur.unit?cur.unit.set:cfg.set,sub:ws?ws.id:cur.book?String(cur.book.page):cur.unit?cur.unit.sub:cfg.sub,items:cur.qs.map((q,i)=>({c:q.code,a:cur.ans[i]||'',r:ok(q,cur.ans[i])?1:0})),sid};
+ if(cur.unit&&cur.unit.rng)rec.rng=cur.unit.rng;
  let done=false;
  if(STUD){await saveRec(rec);done=true}
  if(!done&&ws&&cloud()&&(srv==='cloud'||!teacher())){try{const r=await rpc('ws_submit',{p_wid:ws.id,p_t:rec.t,p_items:rec.items});done=r.ok}catch(e){}
@@ -688,11 +693,12 @@ function guardStu(){if(teacher()&&!CUR_S){alert('학생을 먼저 선택하세�
 function openBookPage(pg){if(guardStu())return;const m=bookPages();pg=parseInt(pg);const qs=m[pg];
  if(!Object.keys(m).length){alert('이 과목은 쪽수 정보가 없습니다. “소단원으로”를 이용하세요.');return}
  if(!qs){const ks=Object.keys(m).map(Number).sort((a,b)=>a-b);const near=ks.filter(k=>k>pg)[0];alert('p.'+pg+'에는 채점할 문제가 없습니다.'+(near?' 가까운 쪽: p.'+near+'.':'')+' (채점할 수 있는 쪽: p.'+ks[0]+' ~ p.'+ks[ks.length-1]+')');return}
+ {const lk=recLock('book',String(pg));if(lk&&lk.items){showLockedRec(lk,{book:{page:pg}});return}}
  newCur(qs,{book:{page:pg}})}
 function openUnit(){if(guardStu())return;const sub=$('#us').value,set=$('#ut').value,a=parseInt($('#uf').value)||0,b=parseInt($('#uto').value)||9999;
  if(!sub){alert('소단원을 고르세요.');return}let qs=DATA.filter(q=>q.sub===sub&&q.set===set).sort((x,y)=>(x.no||0)-(y.no||0));
  if(set==='mc'||set==='top'){}qs=qs.filter((q,i)=>(i+1)>=(a||1)&&(i+1)<=b);
- if(!qs.length){alert('해당 범위에 채점할 문제가 없습니다.');return}newCur(qs,{unit:{sub,set}})}
+ if(!qs.length){alert('해당 범위에 채점할 문제가 없습니다.');return}const rng=(a||1)+'-'+(b===9999?'':b);{const lk=recLock(set,sub,0,rng);if(lk&&lk.items){showLockedRec(lk,{unit:{sub,set,rng}});return}}newCur(qs,{unit:{sub,set,rng}})}
 function nextBookPage(pg){const ks=Object.keys(bookPages()).map(Number).sort((a,b)=>a-b);return ks.find(k=>k>pg)}
 async function wrongView(){
  $('#main').innerHTML='<div class="card"><div class="m">불러오는 중…</div></div>';
@@ -736,13 +742,18 @@ async function openByNumber(raw){const code=String(raw||'').toUpperCase().replac
  else if(cloud()){try{const r=await rpc('ws_get',{p_wid:code});if(r.ok){const j=await r.json();if(j&&j.meta)info={title:j.title,codes:j.meta.codes,student:j.student,sid:null,resetAt:j.meta.resetAt,submitted:!!j.submitted}}}catch(e){}}
  if(!info){alert('이 번호의 학습지를 찾을 수 없습니다.');return}
  if(teacher()&&!info.sid&&!CUR_S){alert('학생을 먼저 선택하세요. (오른쪽 위 학생 선택)');return}
- await ensureCodes(info.codes);const wid=w?w.id:code;const lk=wsLocked(wid,info.resetAt,info.submitted);
+ await ensureCodes(info.codes);const wid=w?w.id:code;const lk=wsLocked(wid,info.resetAt,info.submitted,info.sid);
  if(lk){if(lk.items){showLocked(info,wid,lk);return}alert('이미 제출한 학습지예요. 다시 풀려면 선생님께 초기화를 요청하세요.');return}
  startWs(wid,info)}
 function guardStu_ws(){return false}
-function wsLocked(wid,resetAt,srvSub){if(teacher())return null;const a=hist.filter(h=>h.set==='ws'&&h.sub===wid&&h.t>(resetAt||0));return a.length?a[a.length-1]:(srvSub?{srv:1}:null)}
-function showLocked(info,id,lk){const cs=info.codes.filter(c=>byCode[c]);const m={};(lk.items||[]).forEach(x=>m[x.c]=x.a);
- cur={qs:cs.map(c=>byCode[c]),ans:{},done:true,t:lk.t,mark:false,locked:lk.t,ws:{id,title:info.title,student:info.student,sid:info.sid,resetAt:info.resetAt}};cur.qs.forEach((q,i)=>cur.ans[i]=m[q.code]||'');idx=0;tab='grade';render()}
+function recLock(set,sub,resetAt,rng,srvSub,sid){const tsid=teacher()?(sid||CUR_S||''):null;const a=hist.filter(h=>h.set===set&&String(h.sub)===String(sub)&&h.t>(resetAt||0)&&(tsid===null||(h.sid||'')===tsid)&&(!rng||!h.rng||h.rng===rng));return a.length?a[a.length-1]:(srvSub&&!teacher()?{srv:1}:null)}
+function wsLocked(wid,resetAt,srvSub,sid){return recLock('ws',wid,resetAt,'',srvSub,sid)}
+function showLockedRec(lk,extra){const m={};(lk.items||[]).forEach(x=>m[x.c]=x.a);const qs=(lk.items||[]).map(x=>byCode[x.c]).filter(Boolean);if(!qs.length){alert('이미 채점한 기록이에요.');return}
+ cur={qs,ans:{},done:true,t:lk.t,mark:false,locked:lk.t,lockRec:lk,...extra};qs.forEach((q,i)=>cur.ans[i]=m[q.code]||'');idx=0;tab='grade';render()}
+function showLocked(info,id,lk){showLockedRec(lk,{ws:{id,title:info.title,student:info.student,sid:info.sid,resetAt:info.resetAt}})}
+async function recDel(t,sid){if(!confirm('이 채점 기록을 지우고 다시 채점할 수 있게 할까요?'))return;
+ await busyRun('초기화하는 중…',async()=>{hist=hist.filter(h=>!(h.t===t&&(h.sid||'')===(sid||'')));jset(LS,hist);if(cloud()&&sess){try{await sb('/rest/v1/attempts?t=eq.'+t+(sid?'&student_id=eq.'+sid:''),{method:'DELETE'})}catch(e){}}calibAll()});
+ toast('초기화했어요');cur=null;tab='grade';render()}
 function startWs(id,info){const cs=info.codes.filter(c=>byCode[c]);if(!cs.length){alert('문항을 찾을 수 없습니다.');return}
  newCur(cs.map(c=>byCode[c]),{ws:{id,title:info.title,student:info.student,sid:info.sid,resetAt:info.resetAt,minutes:(WSH.find(x=>x.id===id)||{}).minutes||0}})}
 
@@ -1230,7 +1241,7 @@ function searchView(){
  $('#main').innerHTML=`<div class="card sbar"><input id="sq" type="search" placeholder="🔍 코드 · 유형 · 소단원 · 문제 본문으로 검색 (여러 단어는 띄어쓰기)" oninput="doS(this.value)"><div class="row sbtn"><button class="s sm" onclick="myQForm()">＋ 내 문제 추가</button><button class="s sm" onclick="SP.src='fav';SP.sub='';searchView()">★ 즐겨찾기</button>${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length?`<button class="s sm" onclick="myQList()">내 문제 ${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length}개 관리</button>`:''}</div></div>
  <div class="g2s"><div class="sidecol"><div class="card"><h3 style="margin-top:0">코드로 찾기</h3>
  <div class="ckb">${Object.entries(ckind()).map(([x,[l,n]])=>`<button class="ck ${k===x?'on':''}" onclick="ckSet('${x}')" title="${n}"><b>${l}</b><small>${n}</small></button>`).join('')}</div>
- <div class="ckn">${k==='Q'||k==='C'?`<label>묶음<input inputmode="numeric" maxlength="3" placeholder="${k==='C'?'21':'31'}" value="${esc(CK.a)}" oninput="ckNum(this,'a')"></label><span>-</span>`:''}${k==='G'?`<label>유형<select onchange="CK.g=this.value;ckGo()"><option value="">전체</option>${(()=>{const m=new Map();Object.entries(BIDX).forEach(([t,b])=>{const k=SUBJ==='cm'?t.replace(/\d+$/,''):t;if(!m.has(k))m.set(k,b.label)});return [...m].map(([t,l])=>`<option value="${t}" ${CK.g===t?'selected':''}>${esc(l)}</option>`).join('')})()}</select></label><span>-</span>`:''}<label>번호<input inputmode="numeric" maxlength="4" placeholder="001" value="${esc(CK.b)}" oninput="ckNum(this,'b')"></label></div>
+ <div class="ckn">${k==='Q'||k==='C'?`<label>묶음<input inputmode="numeric" maxlength="3" placeholder="${k==='C'?'21':'31'}" value="${esc(CK.a)}" oninput="ckNum(this,'a')"></label><span>-</span>`:''}${k==='G'?`<label>유형<select onchange="CK.g=this.value;ckGo()"><option value="">전체</option>${(()=>{const m=new Map();Object.entries(BIDX).forEach(([t,b])=>{const k=SUBJ==='cm'?t.replace(/^(cm\d\d)[a-z]$/,'$1').replace(/^(cm[a-z]+)\d+$/,'$1'):t;if(!m.has(k))m.set(k,b.label)});return [...m].map(([t,l])=>`<option value="${t}" ${CK.g===t?'selected':''}>${esc(l)}</option>`).join('')})()}</select></label><span>-</span>`:''}<label>번호<input inputmode="numeric" maxlength="4" placeholder="001" value="${esc(CK.b)}" oninput="ckNum(this,'b')"></label></div>
  <div class="m">종류 버튼을 고르고 숫자만 입력하면 바로 찾습니다.</div></div>
  <div class="card"><h3 style="margin-top:0">경로로 찾기</h3><div class="form1">
  <select onchange="SP.sub=this.value;SP.type='';SP.pg=0;searchView()"><option value="">소단원 선택</option>${subs.map(([a,b])=>`<option value="${a}" ${SP.sub===a?'selected':''}>${a} ${b}</option>`).join('')}</select>
