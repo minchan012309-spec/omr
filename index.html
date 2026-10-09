@@ -189,8 +189,7 @@ header h1 b{color:var(--b);font-size:12px}
 mark.hl{background:#ffe27a;color:inherit;border-radius:2px;padding:0 1px}
 .res .top b mark,.res .top span mark{background:#ffe27a}
 .chps{display:flex;gap:4px;flex-wrap:wrap}.chp{border:1px solid #cfd7e1;background:#fff;border-radius:16px;padding:4px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--m)}.chp.on{background:var(--b);border-color:var(--b);color:#fff;font-weight:500}
-.wgh{display:flex;align-items:center;gap:8px;margin:12px 0 2px;padding:6px 10px;border-left:4px solid var(--b);background:var(--bl);border-radius:6px;font-size:14px}.wgh em{font-style:normal;color:var(--m);font-size:12px}
-.wgh.sj_cm{border-color:#1b9a5a;background:#e5f6ec}.wgh.sj_me{border-color:#2f7fd0;background:#eaf3fd}
+.wgh{display:flex;align-items:baseline;gap:6px;margin:14px 2px 4px;font-size:15px;color:var(--bd)}.wgh em{font-style:normal;color:var(--m);font-size:12px}
 .bld{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:start}
 @media(min-width:1000px){.bld{grid-template-columns:minmax(0,1fr) 380px}.bside{position:sticky;top:66px;max-height:calc(100vh - 78px);overflow:auto;padding-right:2px}}
 .bhead .row{margin-bottom:8px}.btitle{flex:1;min-width:180px;font-weight:500}.bsearch{width:200px}
@@ -232,6 +231,18 @@ mark.hl{background:#ffe27a;color:inherit;border-radius:2px;padding:0 1px}
 @media(max-width:420px){.tcs{grid-template-columns:1fr}}
 @media(max-width:900px){.g2s .resc{order:-1}}
 @media(max-width:720px){nav{overflow-x:auto;justify-content:flex-start}nav button{flex:1 0 auto;padding:12px 13px 14px;white-space:nowrap}}
+
+#bkbar{max-width:calc(100vw - 16px)}
+@media(max-width:720px){#bkbar{left:8px;right:8px;transform:none;flex-wrap:wrap;justify-content:space-between;padding:8px 10px;gap:6px}#bkbar span{flex:1 0 100%;font-size:14px}#bkbar button{flex:1;white-space:nowrap;padding:8px 6px;font-size:14px}}
+.rlist{display:flex;flex-direction:column;gap:6px}.rl{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--l)}.rl:last-child{border:0}.rl span{flex:1;min-width:0}.rl b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rl small{color:var(--m);font-size:12px}
+.wn{border-bottom:1px solid var(--l)}.wnh{display:flex;align-items:center;gap:8px;padding:9px 2px;cursor:pointer}.wnx{margin-left:auto;color:var(--b);font-size:13px}.wnb{padding:0 0 12px}.wa{margin:6px 0;color:var(--bd)}
+#qsheet{position:fixed;inset:0;background:#0007;z-index:40;display:none;align-items:flex-end;justify-content:center}#qsheet.open{display:flex}
+.shbox{background:#fff;width:min(720px,100%);max-height:88vh;overflow:auto;border-radius:16px 16px 0 0;padding:12px 14px calc(14px + env(safe-area-inset-bottom))}
+@media(min-width:721px){#qsheet{align-items:center}.shbox{border-radius:14px;max-height:90vh}}
+.shh{display:flex;align-items:center;gap:10px;margin-bottom:6px;position:sticky;top:-12px;background:#fff;padding:6px 0;z-index:1}.shh b{font-size:18px}.shh .m{flex:1}
+.shopts{display:flex;gap:8px;margin:10px 0}.shopts button{flex:1;height:52px;border:1.5px solid #b8c3d0;border-radius:12px;background:#fff;font:inherit;font-size:20px;cursor:pointer}.shopts button.sel{background:var(--b);border-color:var(--b);color:#fff}.shopts .dk{flex:1.4;font-size:14px;color:var(--m)}.shopts .dk.sel{color:#fff}
+.shn{display:flex;gap:8px}.shn button{flex:1;padding:12px 0}
+#qsheet .txt{width:100%;margin:10px 0;font-size:16px}
 </style></head><body>
 <header><h1 id="brand" onclick="openSubjects()" title="과목 선택"><i></i>OMR 채점기<small id="subj">물질과 에너지</small><b>▾</b></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span></header>
 <main id="main"></main><aside id="exp"></aside>
@@ -363,13 +374,13 @@ function stuView(){
  <div class="form"><label>이름<input id="sn" type="text"></label><label>학년·반<input id="sg" type="text" placeholder="예) 고2 3반"></label><label>메모<input id="sm" type="text"></label></div><button class="p" onclick="stuAdd()">등록</button></div></div><div class="card"><div class="row"><h2 style="margin:0">학생 목록</h2><input type="search" placeholder="이름·학년·아이디 검색" value="${esc(SQ)}" oninput="SQ=this.value;clearTimeout(window._sq);window._sq=setTimeout(stuView,250)" style="width:210px"><select onchange="SGR=this.value;stuView()"><option value="">전체 학년·반</option>${[...new Set(STU.map(s=>s.grade||'').filter(Boolean))].sort().map(g=>`<option ${SGR===g?'selected':''}>${esc(g)}</option>`).join('')}</select><button class="s sm" style="margin-left:auto" onclick="exportCsv()" title="모든 채점 기록을 엑셀에서 열 수 있는 CSV 파일로 저장">채점 기록 CSV 저장</button></div>${STU.length?`<div class="tw"><div class="row"><span class="m">선택한 학생 ${STSEL.size}명에게 맞춤 학습지를</span><input id="bk" type="number" value="4" min="2" max="10" style="width:60px"><span class="m">개 취약 유형,</span><input id="bn" type="number" value="20" min="6" max="100" style="width:70px"><span class="m">문항씩</span><button class="p" ${STSEL.size?'':'disabled'} onclick="batchStudents()">일괄 생성</button><span class="m">(디자인은 「학습지 만들기」에서 정한 설정을 씁니다)</span></div><table class="stu"><tr><th></th><th>학생</th><th>푼 문항</th><th>정답률</th><th>해골 유형</th><th>위험 유형</th><th>최근 풀이</th><th>가장 약한 유형</th><th>학생 계정</th><th></th></tr>${rows}</table></div>`:'<div class="empty">등록한 학생이 없습니다.</div>'}</div></div>`}
 /* ---------- 공통 ---------- */
 function decorate(){document.body.classList.toggle('hasfab',!!document.querySelector('.fab'));document.querySelectorAll('button').forEach(b=>{if(!b.title){const t=b.textContent.trim();if(t)b.title=t}})}
-function nav(){const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['smap','내 유형 지도'],['shist','기록']]:teacher()?[['grade','채점'],['enter','번호 채점'],['weak','취약 유형'],['ws','학습지'],['stu','학생'],['stat','누적 분석'],['search','문항 검색']]:[['enter','번호 채점']];
+function nav(){const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['smap','내 유형 지도'],['shist','기록']]:teacher()?[['grade','채점'],['weak','취약 유형'],['ws','학습지'],['wrong','오답노트'],['stu','학생'],['stat','누적 분석'],['search','문항 검색']]:[['enter','번호 채점']];
  if(!T.find(x=>x[0]===tab)&&!(tab==='grade'&&cur)&&!(tab==='prac'&&PR)&&!((tab==='build'||tab==='bmake'||tab==='wsedit'||tab==='review')&&teacher())&&!(tab==='prac'&&STUD))tab=T[0][0];$('#nav').innerHTML=T.map(([k,v])=>`<button class="${tab===k||(k==='ws'&&tab==='build')?'on':''}" onclick="tab='${k}';render()">${v}</button>`).join('')}
 let _navKey=null;
 function navKey(){return tab+'|'+(cur?1:0)+'|'+(PR?1:0)+'|'+($('#wsView').classList.contains('open')?1:0)}
 function pushNav(){const k=navKey();if(_navKey===null){history.replaceState({k},'');_navKey=k;return}if(k!==_navKey){history.pushState({k},'');_navKey=k}}
 window.addEventListener('popstate',e=>{const k=(e.state&&e.state.k)||'';const p=k.split('|');if(!p[0])return;tab=p[0];if(p[1]!=='1')cur=null;if(p[2]!=='1')PR=null;if(p[3]!=='1')$('#wsView').classList.remove('open');_navKey=k;render(true)});
-function render(skip){tipHide();nav();({grade:gradeView,enter:enterView,weak:weakView,ws:wsListView,stu:stuView,stat:statView,search:searchView,prac:pracView,build:buildView,bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();decorate()}
+function render(skip){tipHide();if(teacher()&&tab==='enter'&&!STUD)tab='grade';{const m=$('#qsheet');if(m&&(!cur||cur.done||cur.mark))m.classList.remove('open')}nav();({grade:gradeView,wrong:wrongView,enter:enterView,weak:weakView,ws:wsListView,stu:stuView,stat:statView,search:searchView,prac:pracView,build:buildView,bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();decorate()}
 const lastRes=()=>{const m={};H().forEach(h=>h.items.forEach(x=>{(m[x.c]=m[x.c]||[]).push(x.r)}));return m};
 function statsFrom(hs,keyf,filter){const m={};
  hs.forEach(h=>h.items.forEach(x=>{const q=qMeta(x.c);if(!q||!q.type||(filter&&!filter(q)))return;const k=keyf(q);const o=m[k]=m[k]||{k,n:0,r:0,rec:[],q};o.n++;o.r+=x.r;o.rec.push(x.r)}));
@@ -456,8 +467,20 @@ function gradeView(){
  if(cur.mark){markView(head);return}
  const done=cur.qs.filter((q,i)=>cur.ans[i]).length,n=cur.qs.length;
  const kind=cur.qs[0].set==='ox'?'O/X 또는 1/2 키':cur.qs[0].set==='blank'?'정답을 직접 입력 (Enter로 다음 문항, 여러 빈칸은 / 로 구분)':'숫자 1~5 키 또는 동그라미를 눌러 답 입력, 0 키는 모름';
- $('#main').innerHTML=`<div class="card gcard">${head}<div class="gprog"><div class="gbar"><i style="width:${Math.round(done/n*100)}%"></i></div><span><b>${done}</b> / ${n} 입력</span></div><div class="hint">${kind} · 방향키/Enter 이동 · 번호를 누르면 아래에 문제가 나옵니다</div><div class="omr">${cur.qs.map((q,i)=>row(q,i)).join('')}</div></div>${detCard()}${fab(done,0)}`;fillDet();
+ $('#main').innerHTML=`<div class="card gcard">${head}<div class="gprog"><div class="gbar"><i style="width:${Math.round(done/n*100)}%"></i></div><span><b>${done}</b> / ${n} 입력</span></div><div class="hint">${kind} · 방향키/Enter 이동 · 번호를 누르면 문제가 열립니다</div><div class="row"><button class="p" onclick="openSheet(Math.max(0,cur.qs.findIndex((q,i)=>!cur.ans[i])))">📖 문제 보며 풀기</button></div><div class="omr">${cur.qs.map((q,i)=>row(q,i)).join('')}</div></div>${detCard()}${fab(done,0)}`;fillDet();
  if(cur.qs[0].set==='blank'){const e=document.getElementById('t'+idx);e&&e.focus()}}
+let SH=null;
+function openSheet(i){SH=i;cur.sel=i;idx=i;let m=$('#qsheet');if(!m){m=document.createElement('div');m.id='qsheet';document.body.appendChild(m)}m.classList.add('open');sheetDraw()}
+function closeSheet(){SH=null;const m=$('#qsheet');if(m)m.classList.remove('open');render()}
+function sheetDraw(){const m=$('#qsheet'),q=cur.qs[SH],n=cur.qs.length,a=cur.ans[SH]||'',dn=cur.qs.filter((x,i)=>cur.ans[i]).length;
+ const opts=q.set==='ox'?['O','X']:['1','2','3','4','5'];
+ const ans=q.set==='blank'?`<input id="sht" class="txt" type="text" value="${esc(a)}" placeholder="정답 입력 (여러 빈칸은 / 로 구분)" oninput="cur.ans[SH]=this.value" onkeydown="if(event.key==='Enter')sheetGo(1)">`:`<div class="shopts">${opts.map(o=>`<button class="${a===o?'sel':''}" onclick="sheetPick('${o}')">${o}</button>`).join('')}${q.set==='ox'?'':`<button class="dk ${a==='?'?'sel':''}" onclick="sheetPick('?')">모름</button>`}</div>`;
+ m.innerHTML=`<div class="shbox"><div class="shh"><b>${cur.ws?SH+1:q.no}번</b><span class="m">${SH+1} / ${n} · 입력 ${dn}</span><button class="s sm" onclick="closeSheet()">닫기</button></div><div class="shq" id="shq"></div>${ans}<div class="shn"><button class="s" ${SH?'':'disabled'} onclick="sheetGo(-1)">← 이전</button><button class="s" onclick="closeSheet()">번호판</button><button class="p" onclick="${SH<n-1?'sheetGo(1)':'closeSheet()'}">${SH<n-1?'다음 →':'완료'}</button></div></div>`;
+ mount($('#shq'),q.q||'')}
+function sheetPick(o){cur.ans[SH]=cur.ans[SH]===o?'':o;sheetDraw();if(cur.ans[SH]&&SH<cur.qs.length-1)setTimeout(()=>{if(SH!==null)sheetGo(1)},280)}
+function sheetGo(d){SH=Math.max(0,Math.min(cur.qs.length-1,SH+d));cur.sel=SH;idx=SH;sheetDraw();const b=$('#qsheet .shbox');if(b)b.scrollTop=0}
+document.addEventListener('keydown',e=>{if(SH===null||!cur||e.target.tagName==='INPUT')return;const q=cur.qs[SH];if(e.key==='Escape')return closeSheet();if(e.key==='ArrowRight')return sheetGo(1);if(e.key==='ArrowLeft')return sheetGo(-1);
+ if(q.set==='ox'){const k=e.key.toLowerCase();if(k==='o'||k==='1')sheetPick('O');else if(k==='x'||k==='2')sheetPick('X')}else if(q.set!=='blank'&&'12345'.includes(e.key)&&e.key.length===1)sheetPick(e.key);else if(e.key==='0')sheetPick('?')});
 function leaveGrade(){if(!cur.done&&!confirm('채점을 그만둘까요? 입력한 내용은 저장되지 않습니다.'))return;cur=null;render()}
 function fab(done,wrong){const n=cur.qs.length,r=n-wrong,p=n?Math.round(r/n*100):0;
  return `<div class="fab"><div class="fn">${cur.mark?`<div class="fs"><b>${p}</b><em>점</em></div><b>${r}</b><span>맞음</span> <b class="red">${wrong}</b><span>틀림</span>`:`<b>${done}</b><span>/ ${n} 입력</span>`}</div><button class="p" onclick="finish()">${cur.mark?'채점 완료':'제출하기'}</button></div>`}
@@ -479,11 +502,11 @@ function markTog(i){cur.ans[i]=cur.ans[i]?'':cur.qs[i].ans;cur.sel=i;const y=scr
 function markAll(v){cur.qs.forEach((q,i)=>cur.ans[i]=v?q.ans:'');const y=scrollY;render();scrollTo(0,y)}
 /* ---- 문제 미리보기 팝업 (채점 전에는 정답을 보여주지 않음) ---- */
 let _pt=null;
-function popQ(code,el){clearTimeout(_pt);_pt=setTimeout(()=>{const q=byCode[code];if(!q)return;let p=$('#pop');if(!p){p=document.createElement('div');p.id='pop';document.body.appendChild(p)}
+function popQ(code,el){clearTimeout(_pt);if(!HOVER)return;_pt=setTimeout(()=>{const q=byCode[code];if(!q)return;let p=$('#pop');if(!p){p=document.createElement('div');p.id='pop';document.body.appendChild(p)}
  p.innerHTML='<div class="pq"></div>';mount(p.querySelector('.pq'),q.q||'');p.style.display='block';
  const r=el.getBoundingClientRect(),w=Math.min(460,innerWidth-16);p.style.width=w+'px';let x=Math.min(Math.max(8,r.left),innerWidth-w-8);let y=r.bottom+8;if(y+360>innerHeight)y=Math.max(8,r.top-8-Math.min(360,p.offsetHeight));p.style.left=x+'px';p.style.top=y+'px'},220)}
 function popHide(){clearTimeout(_pt);const p=$('#pop');if(p)p.style.display='none'}
-function numClick(i){const q=cur.qs[i];if(!q)return;if(cur.done)showCode(q.code,cur.ans[i]||'');else{cur.sel=i;idx=i;const y=scrollY;render();scrollTo(0,y);const d=$('#qdet');d&&d.scrollIntoView({block:'nearest',behavior:'smooth'})}}
+function numClick(i){const q=cur.qs[i];if(!q)return;if(cur.done)showCode(q.code,cur.ans[i]||'');else if(!cur.mark)openSheet(i);else{cur.sel=i;idx=i;const y=scrollY;render();scrollTo(0,y);const d=$('#qdet');d&&d.scrollIntoView({block:'nearest',behavior:'smooth'})}}
 function showQuestion(code){const q=byCode[code];if(!q)return;$('#exp').innerHTML=`<button class="x" onclick="$('#exp').classList.remove('open')">×</button><div class="m">${q.code} · ${q.sub} ${q.subname}</div><h2><span class="tag">${esc(q.type||'')}</span></h2><div id="pq"></div>`;mount($('#pq'),q.q||'');$('#exp').classList.add('open');$('#exp').scrollTop=0}
 function row(q,i){const a=cur.ans[i]||'',g=cur.done,w=g&&!ok(q,a);let body;
  if(q.set==='blank')body=`<input id="t${i}" class="txt" type="text" value="${esc(a)}" ${g?'disabled':''} onfocus="idx=${i};" oninput="cur.ans[${i}]=this.value" onkeydown="bk(event,${i})">`;
@@ -514,6 +537,24 @@ function openUnit(){if(guardStu())return;const sub=$('#us').value,set=$('#ut').v
  if(set==='mc'||set==='top'){}qs=qs.filter((q,i)=>(i+1)>=(a||1)&&(i+1)<=b);
  if(!qs.length){alert('해당 범위에 채점할 문제가 없습니다.');return}newCur(qs,{unit:{sub,set}})}
 function nextBookPage(pg){const ks=Object.keys(bookPages()).map(Number).sort((a,b)=>a-b);return ks.find(k=>k>pg)}
+async function wrongView(){
+ $('#main').innerHTML='<div class="card"><div class="m">불러오는 중…</div></div>';
+ const L=lastRes();const all=Object.keys(L).filter(c=>L[c][L[c].length-1]===0);await ensureCodes(all);
+ const qs=all.map(c=>byCode[c]).filter(q=>q&&subjOf(q.code)===SUBJ);
+ const g={};qs.forEach(q=>(g[q.sub+' '+q.subname+' · '+q.type]=g[q.sub+' '+q.subname+' · '+q.type]||[]).push(q));
+ const codes=qs.map(q=>q.code);
+ let h=`<div class="card"><div class="row"><h2 style="margin:0">오답노트</h2><span class="sjpill">${esc(SNAME[SUBJ])}</span><span class="m">가장 최근에 틀린 문제 ${qs.length}개</span><span style="margin-left:auto;display:flex;gap:6px">${qs.length?`<button class="p sm" onclick="redoCodes('${codes.join(',')}')">전부 다시 풀기</button>${teacher()?`<button class="s sm" onclick="makeWs(['${codes.join("','")}'])">오답 학습지</button>`:''}`:''}</span></div></div>`;
+ if(!qs.length)h+='<div class="card empty">틀린 문제가 없어요. 채점을 하면 여기에 모입니다.</div>';
+ Object.entries(g).forEach(([k,l])=>{h+=`<div class="card"><h3 style="margin-top:0">${esc(k)} <em class="m" style="font-style:normal">${l.length}개</em></h3>${l.map(q=>`<div class="wn" id="wn_${esc(q.code)}"><div class="wnh" onclick="wnTog('${q.code}')"><b>${q.code}</b><span class="tag">${q.lv||''}</span><span class="m">${(L[q.code]||[]).length}회 풀이</span><span class="wnx">보기 ▾</span></div></div>`).join('')}</div>`});
+ $('#main').innerHTML=h}
+function wnTog(code){const el=document.getElementById('wn_'+code);if(!el)return;const o=el.querySelector('.wnb');if(o){o.remove();el.querySelector('.wnx').textContent='보기 ▾';return}
+ const q=byCode[code];const d=document.createElement('div');d.className='wnb';d.innerHTML='<div class="wq"></div><div class="wa"><b>정답 '+esc(q.ans)+'</b></div><div class="we"></div>';el.appendChild(d);
+ mount(d.querySelector('.wq'),q.q||'');if(q.exp)mount(d.querySelector('.we'),q.exp);el.querySelector('.wnx').textContent='접기 ▴'}
+function recentCard(){let it=[];
+ if(STUD)it=ASSIGN.filter(a=>!hist.some(h=>h.set==='ws'&&h.sub===a.wid)).slice(0,5).map(a=>({id:a.wid,t:a.title||'학습지',m:a.due?'마감 '+a.due:'미제출'}));
+ else if(teacher())it=WSH.filter(w=>!CUR_S||w.sid===CUR_S).sort((a,b)=>b.t-a.t).slice(0,6).map(w=>({id:w.id,t:w.title,m:w.codes.length+'문항 · '+new Date(w.t).toLocaleDateString('ko-KR')}));
+ if(!it.length)return'';
+ return `<div class="card"><h2>${STUD?'풀어야 할 과제':'최근 학습지'}</h2><div class="rlist">${it.map(x=>`<div class="rl"><span><b>${esc(x.t)}</b><small>${fmtNo(x.id)} · ${esc(x.m)}</small></span><button class="p sm" onclick="openByNumber('${x.id}')">채점</button></div>`).join('')}</div></div>`}
 function enterView(){
  const t=teacher();
  const stuBanner=t&&!CUR_S?`<div class="hint" style="margin-bottom:12px"><b>학생을 먼저 선택하세요.</b> 오른쪽 위에서 학생을 고르면 그 학생의 채점으로 기록됩니다.</div>`:'';
@@ -521,7 +562,7 @@ function enterView(){
  <div class="grid2 ${(!t&&!STUD&&cloud())?'g3':''}">${(!t&&!STUD&&cloud())?stLoginCard():''}
  <div class="card enter"><h2>학습지 번호로 채점</h2><div class="m" style="margin-bottom:12px">학습지 QR 옆의 숫자 8자리를 입력하거나, 오른쪽 위 QR 단추로 찍으세요.${t?' 선생님은 정답이 모두 표시된 화면에서 틀린 번호만 누르면 됩니다.':''}</div>
  <input class="big" id="wn" maxlength="9" placeholder="0000-0000" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')goNo()"><div class="btns"><button class="p" onclick="goNo()">채점 시작</button><button class="s" onclick="scanQR()">QR 스캔</button></div></div>
- <div class="card"><h2>교재로 채점</h2>
+ ${recentCard()}<div class="card"><h2>교재로 채점</h2>
  <div class="seg" style="margin-bottom:10px"><label><input type="radio" name="bm" ${SUBJ==='cm'?'':'checked'} onchange="$('#bmp').style.display='';$('#bmu').style.display='none'"><span>쪽수로</span></label><label><input type="radio" name="bm" ${SUBJ==='cm'?'checked':''} onchange="$('#bmp').style.display='none';$('#bmu').style.display=''"><span>소단원으로</span></label></div>
  <div id="bmp" ${SUBJ==='cm'?'style="display:none"':''}><div class="m" style="margin-bottom:8px">교재에 인쇄된 쪽 번호를 입력하세요. 끝나면 다음 쪽도 이어서 할지 물어봅니다.</div>
  <div class="row"><input id="bp" type="number" min="1" placeholder="예) 78" style="width:130px;font-size:18px;text-align:center" onkeydown="if(event.key==='Enter')openBookPage(this.value)"><button class="p" onclick="openBookPage($('#bp').value)">이 쪽 채점</button></div></div>
@@ -595,7 +636,8 @@ function weakView(){
  $('#main').innerHTML=h}
 function togSel(k){W.sel.has(k)?W.sel.delete(k):W.sel.set(k,W.n);saveW();const y=scrollY;(tab==='build'?buildView:weakView)();scrollTo(0,y)}
 function toggleSub(sub,on,weakOnly){const y=scrollY;typeRows().filter(o=>o.sub===sub).forEach(o=>{if(weakOnly&&!['skull','red','yellow'].includes(o.lv))return;on?(W.sel.has(o.k)||W.sel.set(o.k,W.n)):W.sel.delete(o.k)});saveW();weakView();scrollTo(0,y)}
-let _tip;function tip(e,el){if(!_tip){_tip=document.createElement('div');_tip.id='tip';document.body.appendChild(_tip)}
+const HOVER=matchMedia('(hover:hover) and (pointer:fine)').matches;
+let _tip;function tip(e,el){if(!HOVER)return;if(!_tip){_tip=document.createElement('div');_tip.id='tip';document.body.appendChild(_tip)}
  const o=typeRows().find(x=>x.k===el.dataset.k);if(!o)return;
  _tip.innerHTML=`<b>${esc(o.type)}</b><div class="m2">${esc(o.sub+' '+o.subname)}</div><div>${LV[o.lv]}${o.n?` · 정답률 ${Math.round(o.p*100)}% (${o.r}/${o.n}) · 최근 6회 ${Math.round(o.rp*100)}%`:''}</div><div class="m2">출제 가능 ${o.pool.toLocaleString()}문항 (${LVS.map(l=>l+' '+(lvCounts(o.sub,o.type)[l]||0)).join(' · ')})</div>`;
  _tip.style.display='block';const x=Math.min(e.clientX+14,innerWidth-_tip.offsetWidth-8),y=e.clientY+16+_tip.offsetHeight>innerHeight?e.clientY-_tip.offsetHeight-12:e.clientY+16;_tip.style.left=x+'px';_tip.style.top=y+'px'}
@@ -749,6 +791,7 @@ async function wsDel(id){if(!confirm('이 학습지 기록을 지울까요? (채
 async function wsRegen(id){const w=WSH.find(x=>x.id===id);if(!w||!w.plan){alert('이 학습지는 유형 구성 정보가 없어 재출제할 수 없습니다. 새 학습지로 만들 때부터 저장됩니다.');return}
  const sv={sel:W.sel,mode:W.mode};W.sel=new Map(Object.entries(w.plan));W.mode='per';
  try{const codes=await pickCodes();if(!codes.length){alert('출제할 문제가 없습니다.');return}createWs(codes,{title:w.title+' (재출제)',subt:w.subt,name:w.name,academy:w.academy,style:w.style,color:w.color,font:w.font,tags:w.tags,cols:w.cols,per:w.per,ans:w.ans,qr:w.qr,p100:w.p100,plan:w.plan})}finally{W.sel=sv.sel;W.mode=sv.mode}}
+function wsDup(id){const w=WSH.find(x=>x.id===id);if(!w)return;const r={...w,id:newNo(),t:Date.now(),title:w.title+' (복사)',codes:w.codes.slice()};WSH.push(r);wsStore();if(srv==='cloud')wsPost(r).catch(()=>{});render()}
 async function wsReprint(id){const w=WSH.find(x=>x.id===id);await ensureCodes(w.codes);openWs(w)}
 const WSSEL=new Set();
 function wsSelTog(id){WSSEL.has(id)?WSSEL.delete(id):WSSEL.add(id);wsListView()}
@@ -760,7 +803,7 @@ let WQ='',WFAV=0,WOPEN=null,WSUB='';
 const wsSubj=w=>subjOf((w.codes||[])[0]);
 function wsRowTog(id,ev){if(ev&&ev.target.closest('button,input,a,.wmenu'))return;if(WSSEL.has(id))WSSEL.delete(id);else WSSEL.add(id);WOPEN=null;keepScroll(wsListView)}
 function wsOpts2(w,short){const b=(f,t,cls)=>`<button class="s sm ${cls||''}" onclick="event.stopPropagation();${f}">${t}</button>`;
- return b(`openByNumber('${w.id}')`,'채점','pp')+b(`wsReprint('${w.id}')`,'다시 출력')+b(`wsEdit('${w.id}')`,'문항 편집')+b(`openAssign('${w.id}')`,'학생 배정')+b(`omrCard('${w.id}')`,'OMR 답안지')+b(`wsRegen('${w.id}')`,'재출제')+b(`wsRename('${w.id}')`,'이름 변경')+b(`wsDel('${w.id}')`,'삭제')}
+ return b(`openByNumber('${w.id}')`,'채점','pp')+b(`wsReprint('${w.id}')`,'다시 출력')+b(`wsEdit('${w.id}')`,'문항 편집')+b(`openAssign('${w.id}')`,'학생 배정')+b(`omrCard('${w.id}')`,'OMR 답안지')+b(`wsRegen('${w.id}')`,'재출제')+b(`wsDup('${w.id}')`,'복제')+b(`wsRename('${w.id}')`,'이름 변경')+b(`wsDel('${w.id}')`,'삭제')}
 function wsMenu(id,ev){ev.stopPropagation();WOPEN=WOPEN===id?null:id;keepScroll(wsListView)}
 function wsListView(){
  const att={};hist.filter(h=>h.set==='ws').forEach(h=>{(att[h.sub]=att[h.sub]||[]).push(h)});
