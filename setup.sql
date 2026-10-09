@@ -64,7 +64,8 @@ create policy "ws delete" on worksheets for delete using (auth.uid() = user_id);
 --    번호를 아는 사람만 해당 학습지의 문항 목록을 보고, 그 학습지에 한해 결과를 올릴 수 있습니다.
 create or replace function ws_get(p_wid text) returns json
 language sql security definer set search_path = public as $$
-  select json_build_object('title', w.title, 'meta', w.meta, 'student', s.name)
+  select json_build_object('title', w.title, 'meta', w.meta, 'student', s.name,
+    'submitted', (w.student_id is not null and exists (select 1 from attempts a where a.student_id = w.student_id and a."set" = 'ws' and a.sub = w.wid and a.t > coalesce((w.meta->>'resetAt')::bigint, 0))))
   from worksheets w left join students s on s.id = w.student_id
   where w.wid = upper(p_wid) limit 1
 $$;
@@ -74,6 +75,9 @@ declare w worksheets%rowtype;
 begin
   select * into w from worksheets where wid = upper(p_wid) limit 1;
   if not found then raise exception 'worksheet not found'; end if;
+  if w.student_id is not null and exists (select 1 from attempts a where a.student_id = w.student_id and a."set" = 'ws' and a.sub = w.wid and a.t > coalesce((w.meta->>'resetAt')::bigint, 0)) then
+    raise exception 'already submitted';
+  end if;
   insert into attempts (user_id, student_id, t, "set", sub, items)
   values (w.user_id, w.student_id, p_t, 'ws', w.wid, p_items);
 end $$;
