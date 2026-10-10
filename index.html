@@ -1,6 +1,6 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Qubic · 문제 은행 · 학습지 · 채점 · 분석</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cpath d=%22M16 2.5l11.5 6.5L16 15.5 4.5 9z%22 fill=%22%238cc0ff%22/%3E%3Cpath d=%22M4.5 9L16 15.5v14L4.5 23z%22 fill=%22%232f6fd0%22/%3E%3Cpath d=%22M27.5 9L16 15.5v14L27.5 23z%22 fill=%22%23183a82%22/%3E%3Cpath d=%22M19.5 20.2l3 2.6 4-5%22 transform=%22translate%28-1.5 1%29%22 fill=%22none%22 stroke=%22%23fff%22 stroke-width=%221.8%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
+<title>Solvi · 문제 은행 · 학습지 · 채점 · 분석</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%233b82f6%22/%3E%3Cstop offset=%221%22 stop-color=%22%231d4ed8%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2232%22 height=%2232%22 rx=%229%22 fill=%22url%28%23g%29%22/%3E%3Cpath d=%22M22.5 9.6A9 9 0 1 0 25 16%22 fill=%22none%22 stroke=%22%23fff%22 stroke-width=%222.6%22 stroke-linecap=%22round%22 opacity=%22.55%22/%3E%3Cpath d=%22M11.4 16.4l3.6 3.6 7-8.2%22 fill=%22none%22 stroke=%22%23fff%22 stroke-width=%223%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Gothic+A1:wght@400;500;700&family=Hahmlet:wght@400;600;700&family=Sunflower:wght@300;500;700&family=Song+Myung&family=Jua&family=Do+Hyeon&display=swap" rel="stylesheet"><link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
@@ -82,6 +82,14 @@ button.sm{padding:2px 10px;font-size:12px;margin-left:8px}td.act{white-space:now
 
 table.lt td{padding:5px 8px}table.lt .ic.sm{width:22px;height:22px}table.lt .cnt{display:inline-flex;gap:4px;align-items:center}table.lt .cnt button{width:22px;height:22px;border-radius:50%;border:1px solid #b8c3d0;background:#fff;cursor:pointer;padding:0}table.lt .cnt input{width:46px;text-align:center;padding:2px}
 .pals{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:6px}@media(max-width:900px){.pals{grid-template-columns:repeat(10,minmax(0,1fr))}}@media(max-width:520px){.pals{grid-template-columns:repeat(6,minmax(0,1fr))}}.pal{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11.5px;cursor:pointer;padding:6px 2px;border:2px solid transparent;border-radius:10px;min-width:0;white-space:nowrap}.pal i{width:26px;height:26px;border-radius:50%;display:block}.pal.on{border-color:var(--b);background:var(--bl)}
+.gv{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:16px;align-items:start}.gmain,.gside{display:flex;flex-direction:column;gap:16px;min-width:0}.gv .card{margin:0}
+.gbox{padding:0!important;overflow:hidden}.gtabs{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--l);background:#f8fafc}.gtabs button{border:0;background:none;padding:15px 8px;font-size:15px;color:var(--m);cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1px;font-family:inherit}.gtabs button.on{color:var(--bd);font-weight:600;background:#fff;border-bottom-color:var(--b)}
+.gpan{padding:24px 26px 26px}.gpan[hidden]{display:none}.glab{font-size:14px;font-weight:600;color:#2b3a4f;margin-bottom:10px}.glab small{font-weight:400;color:var(--m)}
+.gin{display:grid;grid-template-columns:1fr auto;gap:10px}.gin:has(.sm){grid-template-columns:1fr}.gpan .big{font-size:26px;letter-spacing:.28em;text-align:center;height:60px;padding:0 10px;border:1.5px solid #cfd7e1;border-radius:12px;box-sizing:border-box;width:100%;margin:0}.gpan .big.sm{letter-spacing:.05em}
+.gqr{width:60px;height:60px;padding:0;display:grid;place-items:center;border-radius:12px}.ghint{color:var(--m);font-size:13px;line-height:1.55;margin:12px 0 18px}.gbtn{width:100%;height:50px;font-size:16px;border-radius:12px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g3{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:18px}.g3 span{color:var(--m)}.g2 select,.g3 input{width:100%;height:48px;padding:0 12px;font-size:15px;border:1.5px solid #cfd7e1;border-radius:10px;background:#fff;box-sizing:border-box;text-align:center}.g2 select{text-align:left}
+.gbox .ghint[style]{padding:0 26px 22px;margin:0!important}.gcard2 h2,.gside .card h2{margin:0 0 10px;font-size:17px}.gside .rlist .rl{padding:12px 0}
+@media(max-width:900px){.gv{grid-template-columns:1fr}.gpan{padding:20px 18px 22px}}
 #bkbar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:#1f2933;color:#fff;border-radius:14px;padding:10px 14px;gap:10px;align-items:center;z-index:25;box-shadow:0 8px 24px #0004;display:none}#bkbar .s{padding:6px 12px}
 button.bkbtn.on{background:var(--bl);border-color:#9cc3ee;color:var(--bd)}
 
@@ -318,7 +326,7 @@ nav button{transition:color .2s,border-color .2s}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0ms!important;transition-duration:.01ms!important}}
 
 header h1 .logo{width:30px;height:30px;flex:none;margin-right:2px;filter:drop-shadow(0 2px 4px #0002);transition:transform .25s}header h1:hover .logo{transform:rotate(-8deg) scale(1.06)}
-header h1 .bn{font-family:'Pretendard','Helvetica Neue',Arial,sans-serif;font-size:21px;font-weight:800;letter-spacing:-.04em;margin:0 8px 0 3px;color:#14213d}header h1 .logo{filter:none}
+header h1 .bn{font-family:'Pretendard','Helvetica Neue',Arial,sans-serif;font-size:21px;font-weight:800;letter-spacing:-.04em;margin:0 8px 0 3px;color:#14213d}header h1 .logo{filter:none;border-radius:9px}
 header h1 i{display:none}
 @media(max-width:720px){header h1 .logo{width:26px;height:26px}header h1 .bn{font-size:16px;margin-right:2px}}
 #busy{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:#fff0;cursor:progress}
@@ -381,7 +389,7 @@ header h1:hover .logo{transform:none}.rt{animation:none}.tc,.res,.wi,.mki,.rl,.c
 .nxg{display:inline-flex;align-items:center;gap:3px;margin-right:10px}.nxg i{font-style:normal;font-size:12px;color:var(--m)}.mtag{font-size:11px;background:#fff3cf;color:#8a6500;border-radius:8px;padding:1px 7px;margin-right:6px}.shopts.nx{flex-wrap:wrap;gap:10px}.shopts.nx .nxg .b{width:44px;height:44px;display:grid;place-items:center}
 .q1.nxrow{grid-column:1/-1;flex-wrap:wrap;row-gap:6px}
 </style></head><body>
-<header><h1 id="brand" onclick="openSubjects()" title="과목 선택"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5l11.5 6.5L16 15.5 4.5 9z" fill="#8cc0ff"/><path d="M4.5 9L16 15.5v14L4.5 23z" fill="#2f6fd0"/><path d="M27.5 9L16 15.5v14L27.5 23z" fill="#183a82"/><path d="M19.5 20.2l3 2.6 4-5" transform="translate(-1.5 1)" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bn">Qubic</span><small id="subj">물질과 에너지</small><b>▾</b></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span><span id="saved" title="이 기기에 자동 저장된 마지막 시각"></span><button id="setBtn" onclick="openSettings()" title="설정 · 단축키 · 데이터 관리" aria-label="설정">⚙</button></header>
+<header><h1 id="brand" onclick="openSubjects()" title="과목 선택"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lgx" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--b,#3b82f6)"/><stop offset="1" style="stop-color:var(--bd,#1d4ed8)"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lgx)"/><path d="M22.5 9.6A9 9 0 1 0 25 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M11.4 16.4l3.6 3.6 7-8.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bn">Solvi</span><small id="subj">물질과 에너지</small><b>▾</b></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span><span id="saved" title="이 기기에 자동 저장된 마지막 시각"></span><button id="setBtn" onclick="openSettings()" title="설정 · 단축키 · 데이터 관리" aria-label="설정">⚙</button></header>
 <main id="main"></main><aside id="exp"></aside>
 <div class="modal" id="cfg"><div class="box" id="cfgBox"></div></div>
 <div id="scan"><video id="scanV" playsinline muted></video><div id="scanMsg">QR 코드를 화면 가운데에 맞춰 주세요</div><button class="s" onclick="stopScan()">닫기</button></div>
@@ -437,7 +445,7 @@ function mount(el,html,css){const r=el.shadowRoot||el.attachShadow({mode:'open'}
 const SNAME={me:'물질과 에너지',cm:'세포와 물질대사'},CMSET=new Set(),DIRS={me:'bank/',cm:'cm/'},POOL={me:DATA.slice(),cm:[]},BIDXS={me:{},cm:{}},TAGSUBJ={};
 let SUBJ='me',BIDXALL={};
 try{const v=localStorage.getItem('omr_subj_v1');if(v&&SNAME[v])SUBJ=v}catch(e){}
-function applySubject(){document.body.dataset.subj=SUBJ;document.title=SNAME[SUBJ]+' · Qubic';if(typeof CK!=='undefined'&&!ckind()[CK.k])CK.k=SUBJ==='cm'?'C':'Q';DATA.length=0;POOL[SUBJ].forEach(q=>DATA.push(q));BIDX=BIDXS[SUBJ]||{};calcSubs();const e=$('#subj');if(e)e.textContent=SNAME[SUBJ]}
+function applySubject(){document.body.dataset.subj=SUBJ;document.title=SNAME[SUBJ]+' · Solvi';if(typeof CK!=='undefined'&&!ckind()[CK.k])CK.k=SUBJ==='cm'?'C':'Q';DATA.length=0;POOL[SUBJ].forEach(q=>DATA.push(q));BIDX=BIDXS[SUBJ]||{};calcSubs();const e=$('#subj');if(e)e.textContent=SNAME[SUBJ]}
 async function loadBankIndex(){
  for(const k of ['me','cm']){try{const r=await fetch(DIRS[k]+'index.json');if(r.ok){BIDXS[k]=await r.json();for(const t in BIDXS[k])TAGSUBJ[t]=k;Object.assign(BIDXALL,BIDXS[k])}}catch(e){}}
  try{const r=await fetch('cm/data.json');if(r.ok){const a=await r.json();a.forEach(q=>{if(!byCode[q.code]){byCode[q.code]=q;POOL.cm.push(q)}CMSET.add(q.code)})}}catch(e){}
@@ -753,23 +761,24 @@ function recentCard(){let it=[];
  else if(teacher())it=WSH.filter(w=>!CUR_S||w.sid===CUR_S).sort((a,b)=>b.t-a.t).slice(0,6).map(w=>({id:w.id,t:w.title,m:w.codes.length+'문항 · '+new Date(w.t).toLocaleDateString('ko-KR')}));
  if(!it.length)return'';
  return `<div class="card"><h2>${STUD?'풀어야 할 과제':'최근 학습지'}</h2><div class="rlist">${it.map(x=>`<div class="rl"><span><b>${esc(x.t)}</b><small>${fmtNo(x.id)} · ${esc(x.m)}</small></span><button class="p sm" onclick="openByNumber('${x.id}')">채점</button></div>`).join('')}</div></div>`}
+let GM='no';
+function setGM(m){GM=m;document.querySelectorAll('.gtabs button').forEach((b,i)=>b.classList.toggle('on',['no','page','unit'][i]===m));['no','page','unit'].forEach(k=>{const e=document.getElementById('gp_'+k);if(e)e.hidden=k!==m});const f=document.querySelector('#gp_'+m+' input');if(f&&!/Mobi/.test(navigator.userAgent))f.focus()}
 function enterView(){
  const t=teacher();
  const stuBanner=t&&!CUR_S?`<div class="hint" style="margin-bottom:12px"><b>학생을 먼저 선택하세요.</b> 오른쪽 위에서 학생을 고르면 그 학생의 채점으로 기록됩니다.</div>`:'';
  const login=(!t&&!STUD&&cloud())?stLoginCard():'';
  if(needLogin()){$('#main').innerHTML=`<div class="lgwrap">${cloud()?login:'<div class="card"><h2>로그인이 필요해요</h2><div class="m">온라인 저장이 설정되어 있지 않아 학생 로그인을 사용할 수 없어요. 선생님에게 문의하세요.</div></div>'}<div class="m" style="text-align:center;margin-top:10px">채점하려면 선생님께 받은 아이디로 로그인해야 해요.</div></div>`;return}
- $('#main').innerHTML=`${stuBanner}<div class="hub"><div class="hcol">${login}
- <div class="card enter"><h2>학습지 번호로 채점</h2><div class="hd">학습지 QR 옆의 8자리 번호를 입력하거나 QR을 스캔하세요.${t?' 선생님은 정답이 표시된 화면에서 틀린 번호만 누르면 됩니다.':''}</div>
- <input class="big" id="wn" maxlength="9" placeholder="0000-0000" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')goNo()"><div class="btns"><button class="p" onclick="goNo()">채점 시작</button><button class="s" onclick="scanQR()">QR 스캔</button></div></div>
- <div class="card"><h2>교재로 채점</h2><div class="hd">교재 쪽수나 소단원을 골라 바로 채점해요.</div>
- <div class="seg" style="margin-bottom:12px"><label><input type="radio" name="bm" checked onchange="$('#bmp').style.display='';$('#bmu').style.display='none'"><span>쪽수로</span></label><label><input type="radio" name="bm" onchange="$('#bmp').style.display='none';$('#bmu').style.display=''"><span>소단원으로</span></label></div>
- <div id="bmp"><div class="hd" style="margin-bottom:8px">교재에 인쇄된 쪽 번호를 입력하세요. 끝나면 다음 쪽도 이어서 할지 물어봅니다.</div>
- <div class="fr"><input id="bp" type="number" min="1" placeholder="예) 78" style="text-align:center" onkeydown="if(event.key==='Enter')openBookPage(this.value)"><button class="p" onclick="openBookPage($('#bp').value)">이 쪽 채점</button></div></div>
- <div id="bmu" style="display:none"><div class="hd" style="margin-bottom:8px">소단원과 문제 종류를 고르고, 필요하면 번호 범위를 적으세요.</div>
- <div class="fr2"><select id="us"><option value="">소단원</option>${subs.map(([a,b])=>`<option value="${a}">${a} ${b}</option>`).join('')}</select><select id="ut">${['mc','top','ox','blank'].map(k=>`<option value="${k}">${SETS[k]}</option>`).join('')}</select></div>
- <div class="fr3"><input id="uf" type="number" min="1" placeholder="시작 번호"><span class="m">~</span><input id="uto" type="number" min="1" placeholder="끝 번호"><button class="p" onclick="openUnit()">채점 시작</button></div></div>
- ${!t&&!STUD?'<div class="m" style="margin-top:14px">로그인하지 않으면 점수만 확인되고 기록은 저장되지 않습니다.</div>':''}</div></div>
- <div class="hcol">${recentCard()}<div class="card"><h2>최근 기록</h2><div style="margin-top:8px">${recent()}</div></div></div></div>`;const w=$('#wn');w&&!/Mobi/.test(navigator.userAgent)&&w.focus()}
+ $('#main').innerHTML=`${stuBanner}<div class="gv"><div class="gmain">${login}
+ <div class="card gbox"><div class="gtabs">${[['no','학습지 번호'],['page','교재 쪽수'],['unit','교재 소단원']].map(([k,v])=>`<button class="${GM===k?'on':''}" onclick="setGM('${k}')">${v}</button>`).join('')}</div>
+ <div class="gpan" id="gp_no" ${GM==='no'?'':'hidden'}><div class="glab">학습지 번호</div><div class="gin"><input class="big" id="wn" maxlength="9" placeholder="0000-0000" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')goNo()"><button class="s gqr" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M7 12h10"/></svg></button></div>
+  <div class="ghint">학습지 QR 옆의 8자리 번호를 입력하거나, 오른쪽 버튼으로 QR을 스캔하세요.${t?' 정답이 표시된 화면에서 틀린 번호만 눌러도 돼요.':''}</div><button class="p gbtn" onclick="goNo()">채점 시작</button></div>
+ <div class="gpan" id="gp_page" ${GM==='page'?'':'hidden'}><div class="glab">교재 쪽 번호</div><div class="gin"><input class="big sm" id="bp" type="number" min="1" placeholder="예) 78" onkeydown="if(event.key==='Enter')openBookPage(this.value)"></div>
+  <div class="ghint">교재에 인쇄된 쪽 번호를 입력하세요. 끝나면 다음 쪽도 이어서 할지 물어봐요.</div><button class="p gbtn" onclick="openBookPage($('#bp').value)">이 쪽 채점</button></div>
+ <div class="gpan" id="gp_unit" ${GM==='unit'?'':'hidden'}><div class="glab">소단원 · 문제 종류</div><div class="g2"><select id="us"><option value="">소단원</option>${subs.map(([a,b])=>`<option value="${a}">${a} ${b}</option>`).join('')}</select><select id="ut">${['mc','top','ox','blank'].map(k=>`<option value="${k}">${SETS[k]}</option>`).join('')}</select></div>
+  <div class="glab" style="margin-top:16px">번호 범위 <small>(비우면 전체)</small></div><div class="g3"><input id="uf" type="number" min="1" placeholder="시작"><span>~</span><input id="uto" type="number" min="1" placeholder="끝"></div>
+  <button class="p gbtn" onclick="openUnit()">채점 시작</button></div>
+ ${!t&&!STUD?'<div class="ghint" style="margin-top:12px">로그인하지 않으면 점수만 확인되고 기록은 저장되지 않아요.</div>':''}</div></div>
+ <div class="gside">${recentCard()}<div class="card gcard2"><h2>최근 기록</h2><div>${recent()}</div></div></div></div>`;const w=$('#wn');w&&!/Mobi/.test(navigator.userAgent)&&w.focus()}
 const goNo=()=>openByNumber($('#wn').value);
 async function openByNumber(raw){const code=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length<6){alert('번호를 확인하세요.');return}
  if(needLogin()){askLogin(code);return}
