@@ -90,6 +90,7 @@ table.lt td{padding:5px 8px}table.lt .ic.sm{width:22px;height:22px}table.lt .cnt
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g3{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:18px}.g3 span{color:var(--m)}.g2 select,.g3 input{width:100%;height:48px;padding:0 12px;font-size:15px;border:1.5px solid #cfd7e1;border-radius:10px;background:#fff;box-sizing:border-box;text-align:center}.g2 select{text-align:left}
 .gbox .ghint[style]{padding:0 26px 22px;margin:0!important}.gcard2 h2,.gside .card h2{margin:0 0 10px;font-size:17px}.gside .rlist .rl{padding:12px 0}
 @media(max-width:900px){.gv{grid-template-columns:1fr}.gpan{padding:20px 18px 22px}}
+@media(pointer:coarse),(max-width:720px){button.sm,.s.sm,.p.sm{min-height:36px;padding:7px 12px}.cbi a{padding:9px 2px}.cnt button{width:34px!important;height:34px!important}input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important;min-height:42px}.ckn input,.pgr input{min-height:42px;height:auto}.ssg .s.sm{min-height:32px}.tc{min-height:48px}.seg label{padding:8px 14px}}
 #bkbar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:#1f2933;color:#fff;border-radius:14px;padding:10px 14px;gap:10px;align-items:center;z-index:25;box-shadow:0 8px 24px #0004;display:none}#bkbar .s{padding:6px 12px}
 button.bkbtn.on{background:var(--bl);border-color:#9cc3ee;color:var(--bd)}
 
@@ -153,6 +154,7 @@ tr:has(input[type=checkbox]){cursor:pointer}tr:has(input[type=checkbox]):hover t
 .dots{font-weight:700;letter-spacing:1px}.wopt{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px 10px 44px;border-top:1px dashed #cfe0f4}
 .wtool{gap:12px}.wtool input[type=search]{width:240px;max-width:100%}.chk{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#586476;cursor:pointer}
 @media(max-width:760px){.wm{display:none}.wr{padding:10px}.wopt{padding-left:12px}}
+.ssg{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px}.ssg .s.sm{padding:3px 10px;border-radius:14px;font-size:12.5px}.sfcs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.sfc{display:inline-flex;gap:6px;align-items:center;background:var(--bl);color:var(--bd);border:1px solid #bcd7f5;border-radius:16px;padding:3px 10px;font-size:13px;cursor:pointer}.sfc b{font-weight:400;opacity:.6}.sfc:hover{background:#dcebfb}
 .sbar input{width:100%;font-size:16px;padding:12px 14px}.g2s{display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:14px;align-items:start}.sidecol{position:sticky;top:70px;display:flex;flex-direction:column;gap:14px}.sidecol .card,.g2s .card{margin:0}
 .ckb{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}.ck{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 2px;border:1px solid var(--l);border-radius:10px;background:#fff;cursor:pointer}.ck b{font-size:17px}.ck small{font-size:10.5px;color:#7b8794}.ck:hover{border-color:var(--b);background:#f2f7fd}.ck.on{background:var(--b);border-color:var(--b);color:#fff}.ck.on small{color:#e6f0fb}
 .ckn{display:flex;align-items:flex-end;gap:6px;margin-bottom:8px}.ckn label{display:flex;flex-direction:column;font-size:12px;color:#586476;gap:2px;flex:1}.ckn input,.ckn select{width:100%;font-size:16px;text-align:center}.ckn span{padding-bottom:9px}
@@ -1339,7 +1341,7 @@ function ckGo(){let s='';const k=CK.k;
  const q=$('#sq');if(q){q.value=s;}doS(s)}
 function searchView(){
  const ty=SP.sub?typesOf(SP.sub):[];const k=CK.k;
- $('#main').innerHTML=`<div class="card sbar"><input id="sq" type="search" placeholder="🔍 코드 · 유형 · 소단원 · 문제 본문으로 검색 (여러 단어는 띄어쓰기)" oninput="doS(this.value)"><div class="row sbtn"><button class="s sm" onclick="myQForm()">＋ 내 문제 추가</button><button class="s sm" onclick="SP.src='fav';SP.sub='';searchView()">★ 즐겨찾기</button>${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length?`<button class="s sm" onclick="myQList()">내 문제 ${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length}개 관리</button>`:''}</div></div>
+ $('#main').innerHTML=`<div class="card sbar"><input id="sq" type="search" placeholder="🔍 자연어로 검색  예) 엔탈피 어려운 계산 · #상 #OX · 78쪽" oninput="doS(this.value)" autocomplete="off">${srSugg()}<div class="row sbtn"><button class="s sm" onclick="myQForm()">＋ 내 문제 추가</button><button class="s sm" onclick="SP.src='fav';SP.sub='';searchView()">★ 즐겨찾기</button>${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length?`<button class="s sm" onclick="myQList()">내 문제 ${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length}개 관리</button>`:''}</div></div>
  <div class="g2s"><div class="sidecol"><div class="card"><h3 style="margin-top:0">코드로 찾기</h3>
  <div class="ckb">${Object.entries(ckind()).map(([x,[l,n]])=>`<button class="ck ${k===x?'on':''}" onclick="ckSet('${x}')" title="${n}"><b>${l}</b><small>${n}</small></button>`).join('')}</div>
  <div class="ckn">${k==='Q'||k==='C'?`<label>묶음<input inputmode="numeric" maxlength="3" placeholder="${k==='C'?'21':'31'}" value="${esc(CK.a)}" oninput="ckNum(this,'a')"></label><span>-</span>`:''}${k==='G'?`<label>유형<select onchange="CK.g=this.value;ckGo()"><option value="">전체</option>${(()=>{const m=new Map();Object.entries(BIDX).forEach(([t,b])=>{const k=SUBJ==='cm'?t.replace(/^(cm\d\d)[a-z]$/,'$1').replace(/^(cm[a-z]+)\d+$/,'$1'):t;if(!m.has(k))m.set(k,b.label)});return [...m].map(([t,l])=>`<option value="${t}" ${CK.g===t?'selected':''}>${esc(l)}</option>`).join('')})()}</select></label><span>-</span>`:''}<label>번호<input inputmode="numeric" maxlength="4" placeholder="001" value="${esc(CK.b)}" oninput="ckNum(this,'b')"></label></div>
@@ -1369,24 +1371,59 @@ let _allLoading=false;
 async function loadAllBank(){if(_allLoading)return;_allLoading=true;const ts=Object.keys(BIDX).filter(t=>!BLOADED[t]);let i=0;
  for(const t of ts){i++;busyPct(i/ts.length*100);const b=$('#sr .ldall');if(b)b.textContent='문제 은행 불러오는 중… '+i+' / '+ts.length;await ensureTags([t])}
  _allLoading=false;const v=$('#sq');if(v)doS(v.value)}
-async function doS(v){v=v.trim().toLowerCase();const box=$('#sr');if(!v){box.innerHTML='';return}
- const g=v.match(/^g-?([a-z0-9]*)/);let tags=[];
- if(g){tags=Object.keys(BIDX).filter(t=>t.startsWith(g[1]||'~~'))}
- else if(v.length>=2)tags=Object.entries(BIDX).filter(([t,b])=>b.label.toLowerCase().includes(v)||b.subname.toLowerCase().includes(v)||b.sub.toLowerCase().includes(v)).map(([t])=>t);
- tags=tags.slice(0,4);if(tags.length)box.innerHTML='<div class="m">문제 은행을 불러오는 중…</div>';
+/* ---- 스마트 검색: 자연어 + #해시태그 ---- */
+const SLV={'하':['쉬운','쉬움','쉽','기초','기본','초급','낮은'],'중':['보통','표준','중간','중급'],'상':['어려운','어려움','심화','고난도','상급'],'최':['최상','킬러','최고난도','초고난도']};
+const SSET={mc:['5지선다','오지선다','객관식','선택지','5지'],top:['최상위'],ox:['ox','o/x','참거짓','옳고그름'],blank:['빈칸','단답','빈칸채우기'],essay:['서술형','서술','논술'],bank:['문제은행','은행'],book:['교재','본책','책']};
+const SSTOP=new Set(['문제','문항','찾아줘','찾아','보여줘','보여','알려줘','주세요','좀','에서','관련','관한','대한','위한','있는','풀이','난이도','단원','줘','것','거','모든','전부','중에서','중에']);
+const nz=t=>String(t||'').toLowerCase().replace(/[\s·\-_(),.:;\/\[\]<>"'=+~!?]+/g,'');
+const SLVN={'하':'쉬움(하)','중':'보통(중)','상':'어려움(상)','최':'최상'};
+function parseQ(raw){const f={lv:[],set:[],pg:null,terms:[],tokens:{}};const toks=raw.trim().split(/\s+/).filter(Boolean);let prev='';
+ const addTok=(k,t)=>{(f.tokens[k]=f.tokens[k]||[]).push(t)};
+ toks.forEach(tok=>{const low=tok.toLowerCase();let t=low.startsWith('#')?low.slice(1):low;const hash=low.startsWith('#');if(!t){prev='';return}
+  let m;
+  if((m=t.match(/^(?:p|pg)(\d{1,3})$/)||t.match(/^(\d{1,3})(?:쪽|페이지|p)$/))){f.pg=+m[1];addTok('pg:'+m[1],tok);prev=t;return}
+  if(t==='최'||t==='상'||t==='중'||t==='하'){if(hash||prev==='난이도'){f.lv.push(t);addTok('lv:'+t,tok);prev=t;return}}
+  let hit=false;for(const [lv,ws] of Object.entries(SLV)){if(ws.some(w=>t===w||(w.length>=3&&t.startsWith(w)))||(lv==='최'&&t==='최상위'&&false)){f.lv.push(lv);addTok('lv:'+lv,tok);hit=true;break}}
+  if(hit){prev=t;return}
+  for(const [k,ws] of Object.entries(SSET)){if(ws.some(w=>t===w||(w.length>=3&&t.startsWith(w)&&k!=='top')||(k==='top'&&t==='최상위'))){f.set.push(k);addTok('set:'+k,tok);hit=true;break}}
+  if(hit){prev=t;return}
+  if(!hash&&SSTOP.has(t)){prev=t;return}
+  f.terms.push({t,n:nz(t),hash,tok,o:tok.replace(/^#/,'')});prev=t});
+ return f}
+function srFilterChips(f,raw){const ch=[];f.lv.forEach(l=>ch.push(['난이도 '+SLVN[l],'lv:'+l]));f.set.forEach(k=>ch.push([({book:'교재 문항만',bank:'문제 은행만'})[k]||SETS[k]||k,'set:'+k]));if(f.pg)ch.push([f.pg+'쪽','pg:'+f.pg]);f.terms.forEach(x=>ch.push([(x.hash?'#':'')+x.o,'term:'+x.tok]));
+ return ch.map(([l,k])=>`<span class="sfc" onclick="srDrop('${esc(k).replace(/'/g,"\\'")}')">${esc(l)} <b>×</b></span>`).join('')}
+function srDrop(k){const inp=$('#sq');if(!inp)return;const f=parseQ(inp.value);let drop=[];if(k.startsWith('term:'))drop=[k.slice(5)];else drop=f.tokens[k]||[];inp.value=inp.value.split(/\s+/).filter(t=>t&&!drop.includes(t.toLowerCase())&&!drop.includes(t)).join(' ');doS(inp.value);inp.focus()}
+function srAddTag(t){const inp=$('#sq');if(!inp)return;inp.value=(inp.value.trim()+' #'+t).trim()+' ';doS(inp.value);inp.focus()}
+function srSugg(){const lv=['하','중','상','최'].map(l=>['#'+l,l]),st=[['5지선다','5지선다'],['최상위','최상위'],['OX','OX'],['빈칸','빈칸'],['서술형','서술형'],['교재','교재'],['문제은행','문제은행']];
+ return `<div class="ssg"><span class="m">해시태그</span>${[...lv,...st.map(([a,b])=>['#'+a,b])].map(([l,t])=>`<button class="s sm" onclick="srAddTag('${t}')">${l}</button>`).join('')}${subs.map(([a,b])=>`<button class="s sm" title="${esc(b)}" onclick="srAddTag('${a}')">#${a}</button>`).join('')}<span class="m">· 예) <b>엔탈피 어려운 계산</b> · <b>#상 #OX 헤스</b> · <b>78쪽</b></span></div>`}
+async function doS(v){v=v.trim();const box=$('#sr');if(!v){box.innerHTML='';return}
+ const f=parseQ(v);const g=v.toLowerCase().match(/^g-?([a-z0-9]*)$/);
+ let tags=[];
+ if(g)tags=Object.keys(BIDX).filter(t=>t.startsWith(g[1]||'~~'));
+ else{f.terms.forEach(x=>{if(x.n.length>=2)Object.entries(BIDX).forEach(([t,b])=>{if(nz(b.label+b.subname+b.sub).includes(x.n)&&!tags.includes(t))tags.push(t)})});
+  f.terms.forEach(x=>{const sb=subs.find(([a,b])=>nz(a)===x.n);if(sb)Object.entries(BIDX).forEach(([t,b])=>{if(b.sub===sb[0]&&!tags.includes(t))tags.push(t)})})}
+ tags=tags.slice(0,6);if(tags.length)box.innerHTML='<div class="m">문제 은행을 불러오는 중…</div>';
  await ensureTags(tags);
- if($('#sq')&&$('#sq').value.trim().toLowerCase()!==v)return;
- const terms=v.split(/\s+/).filter(Boolean);
- const hit=q=>{const meta=(q.code+' '+(q.type||'')+' '+(q.subname||'')+' '+(q.sub||'')+' '+(QN[q.code]||'')).toLowerCase();const body=qText(q);return terms.every(t=>meta.includes(t)||body.includes(t))};
- const r=DATA.filter(hit);
- const book=r.filter(q=>q.set!=='bank').slice(0,20),bank=r.filter(q=>q.set==='bank').slice(0,25);window._srCur=[...book,...bank];
+ if($('#sq')&&$('#sq').value.trim()!==v)return;
+ const sbq=f.terms.map(x=>subs.find(([a])=>nz(a)===x.n)).map(x=>x&&x[0]);
+ const score=(q,mode)=>{if(f.lv.length&&!f.lv.includes(q.lv||'중'))return -1;
+  if(f.set.length){const ok=f.set.some(k=>k==='book'?q.set!=='bank':k==='bank'?q.set==='bank':q.set===k);if(!ok)return -1}
+  if(f.pg&&q.pg!==f.pg)return -1;
+  const meta=nz(q.code+' '+(q.type||'')+' '+(q.subname||'')+' '+(q.sub||'')+' '+(QN[q.code]||'')),body=nz(qText(q)),ex=nz(String(q.exp||'').replace(/<[^>]+>/g,' '));
+  let sc=0,miss=0;f.terms.forEach((x,i)=>{if(sbq[i]){if(q.sub===sbq[i])sc+=4;else miss++;return}
+   if(meta.includes(x.n))sc+=3;else if(!x.hash&&body.includes(x.n))sc+=1;else if(!x.hash&&ex.includes(x.n))sc+=.5;else miss++});
+  if(miss&&(mode==='and'||!f.terms.length||miss===f.terms.length))return -1;return sc+1-miss*.2};
+ const rank=mode=>DATA.map(q=>[q,score(q,mode)]).filter(x=>x[1]>=0).sort((a,b)=>b[1]-a[1]||(a[0].set==='bank')-(b[0].set==='bank')||String(a[0].code).localeCompare(String(b[0].code),'ko',{numeric:true})).map(x=>x[0]);
+ let r=rank('and'),loose=false;if(!r.length&&f.terms.length>1){r=rank('or');loose=r.length>0}
+ const rawTerms=f.terms.map(x=>x.t);
+ const book=r.filter(q=>q.set!=='bank').slice(0,30),bank=r.filter(q=>q.set==='bank').slice(0,30);window._srCur=[...book,...bank];
  const nLoaded=Object.keys(BLOADED).length,nAll=Object.keys(BIDX).length;
  box.innerHTML='';
- const note=document.createElement('div');note.className='m';note.style.margin='6px 0';
- note.innerHTML=`띄어쓰기로 여러 단어를 넣으면 모두 포함한 문제를 찾습니다. (코드, 유형, 소단원, 문제 본문 검색) ${nLoaded<nAll?`<button class="s sm ldall" onclick="loadAllBank()">문제 은행 ${nAll-nLoaded}개 유형 더 불러와서 검색</button>`:''}${teacher()&&r.length?` <button class="s sm" onclick="srAddAll()">표시된 ${window._srCur.length}문항 모두 담기</button>`:''}`;box.appendChild(note);
- if(!r.length){const e=document.createElement('div');e.className='empty';e.textContent='일치하는 문항이 없습니다.';box.appendChild(e);return}
- if(book.length){const h=document.createElement('div');h.className='m';h.textContent='교재 문항 '+r.filter(q=>q.set!=='bank').length+'개 중 '+book.length+'개 표시';box.appendChild(h);book.forEach(q=>resultCard(box,q,terms))}
- if(bank.length){const h=document.createElement('div');h.className='m';h.style.marginTop='10px';h.textContent='문제 은행 '+r.filter(q=>q.set==='bank').length+'개 중 '+bank.length+'개 표시';box.appendChild(h);bank.forEach(q=>resultCard(box,q,terms))}}
+ const chips=srFilterChips(f,v);const note=document.createElement('div');note.className='m';note.style.margin='6px 0';
+ note.innerHTML=`${chips?`<div class="sfcs">${chips}</div>`:''}${loose?'<div class="hint" style="margin:6px 0">모든 단어가 들어간 문제가 없어서, 일부 단어만 맞는 문제를 먼저 보여드려요.</div>':''} ${nLoaded<nAll?`<button class="s sm ldall" onclick="loadAllBank()">문제 은행 ${nAll-nLoaded}개 유형 더 불러와서 검색</button>`:''}${teacher()&&r.length?` <button class="s sm" onclick="srAddAll()">표시된 ${window._srCur.length}문항 모두 담기</button>`:''}`;box.appendChild(note);
+ if(!r.length){const e=document.createElement('div');e.className='empty';e.textContent='일치하는 문항이 없습니다. 단어를 줄이거나 위의 필터 칩을 눌러 빼 보세요.';box.appendChild(e);return}
+ if(book.length){const h=document.createElement('div');h.className='m';h.textContent='교재 문항 '+r.filter(q=>q.set!=='bank').length+'개 중 '+book.length+'개 표시';box.appendChild(h);book.forEach(q=>resultCard(box,q,rawTerms))}
+ if(bank.length){const h=document.createElement('div');h.className='m';h.style.marginTop='10px';h.textContent='문제 은행 '+r.filter(q=>q.set==='bank').length+'개 중 '+bank.length+'개 표시';box.appendChild(h);bank.forEach(q=>resultCard(box,q,rawTerms))}}
 (()=>{const b=document.createElement('button');b.id='totop';b.textContent='↑';b.title='맨 위로';b.onclick=()=>scrollTo({top:0,behavior:'smooth'});document.body.appendChild(b);addEventListener('scroll',()=>b.classList.toggle('on',scrollY>700),{passive:true})})();
 /* ---------- 처리 중 표시 (중복 클릭 방지) ---------- */
 let BUSYN=0,BUSYP=0,BUSYT=null,BUSYREAL=false;
