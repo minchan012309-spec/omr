@@ -96,7 +96,7 @@ table.lt td{padding:5px 8px}table.lt .ic.sm{width:22px;height:22px}table.lt .cnt
 .exs h3{font-size:18px}.mixb{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px 18px;margin:12px 0}.mx{display:grid;grid-template-columns:minmax(0,1fr) 90px 26px;gap:8px;align-items:center;font-size:13px}.mx span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mx i{display:block;height:8px;border-radius:4px;background:var(--b);opacity:.75}.mx b{font-weight:500;text-align:right}
 .exl{display:flex;flex-direction:column;border-top:1px solid var(--l)}.exi{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--l);flex-wrap:wrap}.exi b{min-width:110px}.exi em{font-style:normal;color:var(--m);font-size:13px}.exi .exb{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}@supports(height:100dvh){.shbox{max-height:88dvh}.cbnav{max-height:calc(100dvh - 16px)}}
 @media(max-width:720px){nav{padding-bottom:env(safe-area-inset-bottom)}body{padding-bottom:env(safe-area-inset-bottom)}#instb{bottom:calc(70px + env(safe-area-inset-bottom))}}
-.sfhint{font-size:12.5px;color:#8a6500;background:#fff8dc;border-radius:8px;padding:4px 10px}
+.sfhint{font-size:12.5px;color:#8a6500;background:#fff8dc;border-radius:8px;padding:4px 10px}.ldg{display:flex;align-items:center;justify-content:center;gap:12px;padding:34px 10px;color:var(--m);font-size:14px}.ldg i{width:22px;height:22px;border-radius:50%;border:3px solid #dbe5f0;border-top-color:var(--b);animation:spin .8s linear infinite;flex:none}
 #bkbar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:#1f2933;color:#fff;border-radius:14px;padding:10px 14px;gap:10px;align-items:center;z-index:25;box-shadow:0 8px 24px #0004;display:none}#bkbar .s{padding:6px 12px}
 button.bkbtn.on{background:var(--bl);border-color:#9cc3ee;color:var(--bd)}
 
@@ -696,7 +696,7 @@ function fab(done,wrong){const n=cur.qs.length,r=n-wrong,p=n?Math.round(r/n*100)
 function markView(head){
  const n=cur.qs.length,wrong=cur.qs.filter((q,i)=>!cur.ans[i]).length;
  $('#main').innerHTML=`<div class="card gcard">${head}<div class="hint">정답이 모두 표시되어 있습니다. <b>틀린 문제의 번호만 눌러</b> 주세요(다시 누르면 취소). 누른 문제는 아래에 문제와 해설이 나옵니다.</div>
- <div class="row"><button class="s sm" onclick="markAll(1)">모두 맞음</button><button class="s sm" onclick="markAll(0)">모두 틀림</button></div>
+ <div class="row"><button class="s sm" onclick="markAll(1)">모두 맞음</button><button class="s sm" onclick="markAll(0)">모두 틀림</button>${cur.ws?'<button class="p sm" style="margin-left:auto" onclick="omrOpen()">📷 OMR 사진으로 채점</button>':''}</div>
  <div class="mk-grid">${cur.qs.map((q,i)=>{const w=!cur.ans[i];return `<div class="mk ${w?'w':''} ${cur.sel===i?'cs':''}" onclick="markTog(${i})" onmouseenter="popQ('${q.code}',this)" onmouseleave="popHide()"><b>${cur.ws?i+1:(q.bno||q.no)}</b><span class="ca">${q.set==='blank'?'정답 ↗':esc(q.ans)}</span>${w?'<i>✕</i>':''}</div>`}).join('')}</div></div>
  ${detCard()}${fab(0,wrong)}`;fillDet()}
 function scoreCard(n,wrong){const r=n-wrong,p=n?Math.round(r/n*100):0;
@@ -753,7 +753,7 @@ function openUnit(){if(guardStu())return;const sub=$('#us').value,set=$('#ut').v
  if(!qs.length){alert('해당 범위에 채점할 문제가 없습니다.');return}const rng=(a||1)+'-'+(b===9999?'':b);{const lk=recLock(set,sub,0,rng);if(lk&&lk.items){showLockedRec(lk,{unit:{sub,set,rng}});return}}newCur(qs,{unit:{sub,set,rng}})}
 function nextBookPage(pg){const ks=Object.keys(bookPages()).map(Number).sort((a,b)=>a-b);return ks.find(k=>k>pg)}
 async function wrongView(){
- $('#main').innerHTML='<div class="card"><div class="m">불러오는 중…</div></div>';
+ $('#main').innerHTML='<div class="card">'+ldg('불러오는 중…')+'</div>';
  const L=lastRes();const all=Object.keys(L).filter(c=>L[c][L[c].length-1]===0);await ensureCodes(all);
  const qs=all.map(c=>byCode[c]).filter(q=>q&&subjOf(q.code)===SUBJ);
  const g={};qs.forEach(q=>(g[q.sub+' '+q.subname+' · '+q.type]=g[q.sub+' '+q.subname+' · '+q.type]||[]).push(q));
@@ -1375,7 +1375,7 @@ function basketMake(){tab='bmake';render()}
 function basketPractice(){const codes=BASKET.slice();BASKET=[];saveBasket();basketBar();practice(codes,'선택 문제 풀기')}
 function resultCard(box,q,terms){const d=document.createElement('div');d.className='res';const inb=BASKET.includes(q.code);const H=t=>hlHtml(esc(t),terms);
  d.innerHTML=`<div class="top">${favBtn(q.code)}<b>${H(q.code)}</b>${teacher()?`<button class="s sm bkbtn ${inb?'on':''}" style="margin-left:0" onclick="event.stopPropagation();basketTog('${q.code}',this)">${inb?'담음 ✓':'＋ 담기'}</button>`:''}<span class="tag">${H((q.sub||'')+' '+(q.subname||''))}</span><span class="m">${H(q.type||'')}</span><span class="tag">${q.lv||''}</span><span class="tag y">정답 ${fmt(String(q.ans).slice(0,30))}</span>${QN[q.code]?`<span class="tag y" title="${esc(QN[q.code])}">📝 메모</span>`:''}</div><div class="pvq"></div>`;
- d.onclick=()=>showCode(q.code);box.appendChild(d);mount(d.querySelector('.pvq'),hlHtml(q.q||'',terms),PLAINQ)}
+ d.onclick=()=>showCode(q.code);box.appendChild(d);const pv=d.querySelector('.pvq');pv.style.minHeight='48px';const go=()=>mount(pv,hlHtml(q.q||'',terms),PLAINQ);if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();go()}},{rootMargin:'400px'});io.observe(pv)}else go()}
 let SP={sub:'',type:'',src:'',lv:'',pg:0,p1:'',p2:''};
 const SRCOPT={'':'전체 출처',fav:'★ 즐겨찾기',mc:'교재 5지선다',top:'교재 최상위',ox:'OX',blank:'빈칸',bank:'문제 은행(변형)'};
 const typesOf=sub=>[...new Set([...DATA.filter(q=>q.sub===sub&&q.type).map(q=>q.type),...Object.values(BIDX).filter(b=>b.sub===sub).map(b=>b.label)])];
@@ -1392,7 +1392,7 @@ function ckGo(){let s='';const k=CK.k;
  const q=$('#sq');if(q){q.value=s;}doS(s)}
 function searchView(){
  const ty=SP.sub?typesOf(SP.sub):[];const k=CK.k;
- $('#main').innerHTML=`<div class="card sbar"><input id="sq" type="search" placeholder="🔍 자연어로 검색  예) 엔탈피 어려운 계산 · #상 #OX · 78쪽" oninput="doS(this.value)" autocomplete="off">${srSugg()}<div class="row sbtn"><button class="s sm" onclick="myQForm()">＋ 내 문제 추가</button><button class="s sm" onclick="SP.src='fav';SP.sub='';searchView()">★ 즐겨찾기</button>${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length?`<button class="s sm" onclick="myQList()">내 문제 ${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length}개 관리</button>`:''}</div></div>
+ $('#main').innerHTML=`<div class="card sbar"><input id="sq" type="search" placeholder="🔍 자연어로 검색  예) 엔탈피 어려운 계산 · #상 #OX · 78쪽" oninput="doSD(this.value)" autocomplete="off">${srSugg()}<div class="row sbtn"><button class="s sm" onclick="myQForm()">＋ 내 문제 추가</button><button class="s sm" onclick="SP.src='fav';SP.sub='';searchView()">★ 즐겨찾기</button>${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length?`<button class="s sm" onclick="myQList()">내 문제 ${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length}개 관리</button>`:''}</div></div>
  <div class="g2s"><div class="sidecol"><div class="card"><h3 style="margin-top:0">코드로 찾기</h3>
  <div class="ckb">${Object.entries(ckind()).map(([x,[l,n]])=>`<button class="ck ${k===x?'on':''}" onclick="ckSet('${x}')" title="${n}"><b>${l}</b><small>${n}</small></button>`).join('')}</div>
  <div class="ckn">${k==='Q'||k==='C'?`<label>묶음<input inputmode="numeric" maxlength="3" placeholder="${k==='C'?'21':'31'}" value="${esc(CK.a)}" oninput="ckNum(this,'a')"></label><span>-</span>`:''}${k==='G'?`<label>유형<select onchange="CK.g=this.value;ckGo()"><option value="">전체</option>${(()=>{const m=new Map();Object.entries(BIDX).forEach(([t,b])=>{const k=SUBJ==='cm'?t.replace(/^(cm\d\d)[a-z]$/,'$1').replace(/^(cm[a-z]+)\d+$/,'$1'):t;if(!m.has(k))m.set(k,b.label)});return [...m].map(([t,l])=>`<option value="${t}" ${CK.g===t?'selected':''}>${esc(l)}</option>`).join('')})()}</select></label><span>-</span>`:''}<label>번호<input inputmode="numeric" maxlength="4" placeholder="001" value="${esc(CK.b)}" oninput="ckNum(this,'b')"></label></div>
@@ -1406,7 +1406,7 @@ function searchView(){
  <div class="card resc"><div id="sr"></div><div id="pl"></div></div></div>`;
  pathList()}
 async function pathList(){const box=$('#pl');if(!box)return;const pr=!!(SP.p1||SP.p2);if(!SP.sub&&!pr){box.innerHTML='<div class="empty">소단원을 고르면 문제 목록이 나옵니다.</div>';return}
- box.innerHTML='<div class="m">불러오는 중…</div>';
+ box.innerHTML=ldg('문제를 불러오는 중…');
  const tags=pr?[]:Object.entries(BIDX).filter(([t,b])=>b.sub===SP.sub&&(!SP.type||b.label===SP.type)).map(([t])=>t);
  if(!SP.src||SP.src==='bank')await ensureTags(SP.type?tags:tags.slice(0,3));
  if(SP.src==='fav')await ensureCodes(FAV);
@@ -1417,6 +1417,7 @@ async function pathList(){const box=$('#pl');if(!box)return;const pr=!!(SP.p1||S
  window._pathCur=all.slice(SP.pg*PG,SP.pg*PG+PG);const l=$('#pll');window._pathCur.forEach(q=>resultCard(l,q))}
 function srAddAll(){(window._srCur||[]).forEach(q=>{if(!BASKET.includes(q.code))BASKET.push(q.code)});saveBasket();basketBar();const v=$('#sq');if(v)doS(v.value)}
 function pathAddAll(){(window._pathCur||[]).forEach(q=>{if(!BASKET.includes(q.code))BASKET.push(q.code)});saveBasket();basketBar();pathList()}
+const ldg=m=>`<div class="ldg"><i></i><span>${m||'불러오는 중…'}</span></div>`;
 const qText=q=>(q.q||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').toLowerCase();
 let _allLoading=false;
 async function loadAllBank(){if(_allLoading)return;_allLoading=true;const ts=Object.keys(BIDX).filter(t=>!BLOADED[t]);let i=0;
@@ -1447,13 +1448,16 @@ function srDrop(k){const inp=$('#sq');if(!inp)return;const f=parseQ(inp.value);l
 function srAddTag(t){const inp=$('#sq');if(!inp)return;inp.value=(inp.value.trim()+' #'+t).trim()+' ';doS(inp.value);inp.focus()}
 function srSugg(){const lv=['하','중','상','최'].map(l=>['#'+l,l]),st=[['5지선다','5지선다'],['최상위','최상위'],['OX','OX'],['빈칸','빈칸'],['서술형','서술형'],['교재','교재'],['문제은행','문제은행']];
  return `<div class="ssg"><span class="m">해시태그</span>${[...lv,...st.map(([a,b])=>['#'+a,b])].map(([l,t])=>`<button class="s sm" onclick="srAddTag('${t}')">${l}</button>`).join('')}${subs.map(([a,b])=>`<button class="s sm" title="${esc(b)}" onclick="srAddTag('${a}')">#${a}</button>`).join('')}<span class="m">· 예) <b>엔탈피 어려운 계산</b> · <b>#상 #OX 헤스</b> · <b>78쪽</b></span></div>`}
-async function doS(v){v=v.trim();const box=$('#sr');if(!v){box.innerHTML='';return}
+let _sdt=null,_sq='',SRLIM={book:12,bank:12};
+function doSD(v){clearTimeout(_sdt);const b=$('#sr');if(v.trim()&&b)b.innerHTML=ldg('검색하는 중…');else if(b)b.innerHTML='';_sdt=setTimeout(()=>doS(v),320)}
+function srMore(k){SRLIM[k]+=20;const v=$('#sq');if(v)doS(v.value)}
+async function doS(v){v=v.trim();const box=$('#sr');if(!v){box.innerHTML='';return}if(v!==_sq){_sq=v;SRLIM={book:12,bank:12}}
  const f=parseQ(v);const g=v.toLowerCase().match(/^g-?([a-z0-9]*)$/);
  let tags=[];
  if(g)tags=Object.keys(BIDX).filter(t=>t.startsWith(g[1]||'~~'));
  else{f.terms.forEach(x=>{if(x.n.length>=2)Object.entries(BIDX).forEach(([t,b])=>{if(nz(b.label+b.subname+b.sub).includes(x.n)&&!tags.includes(t))tags.push(t)})});
   f.terms.forEach(x=>{const sb=subs.find(([a,b])=>nz(a)===x.n);if(sb)Object.entries(BIDX).forEach(([t,b])=>{if(b.sub===sb[0]&&!tags.includes(t))tags.push(t)})})}
- tags=tags.slice(0,6);if(tags.length)box.innerHTML='<div class="m">문제 은행을 불러오는 중…</div>';
+ tags=tags.slice(0,6);if(tags.length)box.innerHTML=ldg('문제 은행을 불러오는 중…');
  await ensureTags(tags);
  if($('#sq')&&$('#sq').value.trim()!==v)return;
  const sbq=f.terms.map(x=>subs.find(([a])=>nz(a)===x.n)).map(x=>x&&x[0]);
@@ -1467,14 +1471,14 @@ async function doS(v){v=v.trim();const box=$('#sr');if(!v){box.innerHTML='';retu
  const rank=mode=>DATA.map(q=>[q,score(q,mode)]).filter(x=>x[1]>=0).sort((a,b)=>b[1]-a[1]||(a[0].set==='bank')-(b[0].set==='bank')||String(a[0].code).localeCompare(String(b[0].code),'ko',{numeric:true})).map(x=>x[0]);
  let r=rank('and'),loose=false;if(!r.length&&f.terms.length>1){r=rank('or');loose=r.length>0}
  const rawTerms=f.terms.map(x=>x.t);
- const book=r.filter(q=>q.set!=='bank').slice(0,30),bank=r.filter(q=>q.set==='bank').slice(0,30);window._srCur=[...book,...bank];
+ const book=r.filter(q=>q.set!=='bank').slice(0,SRLIM.book),bank=r.filter(q=>q.set==='bank').slice(0,SRLIM.bank);window._srCur=[...book,...bank];
  const nLoaded=Object.keys(BLOADED).length,nAll=Object.keys(BIDX).length;
  box.innerHTML='';
  const chips=srFilterChips(f,v);const note=document.createElement('div');note.className='m';note.style.margin='6px 0';
  note.innerHTML=`${chips?`<div class="sfcs">${chips}</div>`:''}${loose?'<div class="hint" style="margin:6px 0">모든 단어가 들어간 문제가 없어서, 일부 단어만 맞는 문제를 먼저 보여드려요.</div>':''} ${nLoaded<nAll?`<button class="s sm ldall" onclick="loadAllBank()">문제 은행 ${nAll-nLoaded}개 유형 더 불러와서 검색</button>`:''}${teacher()&&r.length?` <button class="s sm" onclick="srAddAll()">표시된 ${window._srCur.length}문항 모두 담기</button>`:''}`;box.appendChild(note);
  if(!r.length){const e=document.createElement('div');e.className='empty';e.textContent='일치하는 문항이 없습니다. 단어를 줄이거나 위의 필터 칩을 눌러 빼 보세요.';box.appendChild(e);return}
- if(book.length){const h=document.createElement('div');h.className='m';h.textContent='교재 문항 '+r.filter(q=>q.set!=='bank').length+'개 중 '+book.length+'개 표시';box.appendChild(h);book.forEach(q=>resultCard(box,q,rawTerms))}
- if(bank.length){const h=document.createElement('div');h.className='m';h.style.marginTop='10px';h.textContent='문제 은행 '+r.filter(q=>q.set==='bank').length+'개 중 '+bank.length+'개 표시';box.appendChild(h);bank.forEach(q=>resultCard(box,q,rawTerms))}}
+ if(book.length){const h=document.createElement('div');h.className='m';h.textContent='교재 문항 '+r.filter(q=>q.set!=='bank').length+'개 중 '+book.length+'개 표시';box.appendChild(h);book.forEach(q=>resultCard(box,q,rawTerms));const nb=r.filter(q=>q.set!=='bank').length;if(nb>book.length){const m=document.createElement('button');m.className='s';m.style.margin='8px 0';m.textContent='교재 문항 더 보기 ('+(nb-book.length)+'개 남음)';m.onclick=()=>srMore('book');box.appendChild(m)}}
+ if(bank.length){const h=document.createElement('div');h.className='m';h.style.marginTop='10px';h.textContent='문제 은행 '+r.filter(q=>q.set==='bank').length+'개 중 '+bank.length+'개 표시';box.appendChild(h);bank.forEach(q=>resultCard(box,q,rawTerms));const nk=r.filter(q=>q.set==='bank').length;if(nk>bank.length){const m=document.createElement('button');m.className='s';m.style.margin='8px 0';m.textContent='문제 은행 더 보기 ('+(nk-bank.length)+'개 남음)';m.onclick=()=>srMore('bank');box.appendChild(m)}}}
 (()=>{const b=document.createElement('button');b.id='totop';b.textContent='↑';b.title='맨 위로';b.onclick=()=>scrollTo({top:0,behavior:'smooth'});document.body.appendChild(b);addEventListener('scroll',()=>b.classList.toggle('on',scrollY>700),{passive:true})})();
 
 /* ---------- 오프라인 임시 저장(학생 제출 대기열) · 앱 설치 ---------- */
@@ -1832,17 +1836,38 @@ async function weSave(print){const w=WSH.find(x=>x.id===WE.id);w.codes=WE.codes.
  WE=null;if(print){tab='ws';render();await ensureCodes(w.codes);openWs(w)}else{tab='ws';render()}}
 /* ---------- OMR 답안지 (사진으로 읽을 수 있게 기준점·고정 좌표) ---------- */
 const OMRMK=[[12,12],[198,12],[12,285],[198,285]],OMRMS=8;
-function omrGeom(qs){const n=qs.length,per=n>50?30:25,cols=Math.min(3,Math.ceil(n/per)||1);const colW=cols===1?120:cols===2?88:60,xs0=cols===1?45:cols===2?17:15;
- const mo=Math.max(5,...qs.map(q=>(q.set==='ox'?2:nOpts(q))));const optP=Math.min(10.5,(colW-14)/(mo+.2));const rowH=per===25?8:6.7,y0=70,d=Math.min(6.2,rowH-1.6);const b=[];
+const OMRSUBJ={me:'01',cm:'02'};
+function omrInfoGeom(mock){const g=[];const d=3.8,pitch=4.4,y0=46;const digits=[...Array(10).keys()].map(String);
+ if(mock){for(let i=0;i<8;i++)g.push({k:'수험번호',i,x:112+i*6.4,y0,pitch,d,lab:digits,grp:'수험번호'});for(let i=0;i<2;i++)g.push({k:'과목번호',i,x:166+i*6.4,y0,pitch,d,lab:digits,grp:'과목번호'});g.push({k:'홀짝',i:0,x:184,y0,pitch,d,lab:['홀','짝'],grp:'형'})}
+ else{g.push({k:'학년',i:0,x:112,y0,pitch,d,lab:digits,grp:'학년'});for(let i=0;i<2;i++)g.push({k:'반',i,x:130+i*6.4,y0,pitch,d,lab:digits,grp:'반'});for(let i=0;i<2;i++)g.push({k:'번호',i,x:154+i*6.4,y0,pitch,d,lab:digits,grp:'번호'})}
+ return g}
+function omrGeom(qs,mock){const n=qs.length,per=n>50?30:25,cols=Math.min(3,Math.ceil(n/per)||1);const colW=cols===1?120:cols===2?88:60,xs0=cols===1?45:cols===2?17:15;
+ const mo=Math.max(5,...qs.map(q=>(q.set==='ox'?2:nOpts(q))));const optP=Math.min(10.5,(colW-14)/(mo+.2));const y0=96,rowH=Math.min(7.3,(274-y0)/per),d=Math.min(5.6,rowH-1.4);const b=[];
  qs.forEach((q,i)=>{if(i>=per*3)return;const c=Math.floor(i/per),r=i%per;const k=q.set==='blank'||q.set==='noxq'||q.set==='essay'?0:(q.set==='ox'?2:nOpts(q));
   for(let o=0;o<k;o++)b.push({q:i,o,x:xs0+c*colW+12+o*optP+optP/2,y:y0+r*rowH+rowH/2});});
- return {b,per,cols,colW,xs0,optP,rowH,y0,d,mo,cap:per*3}}
-function omrCard(id){const w=WSH.find(x=>x.id===id);if(!w)return;const qs=w.codes.map(c=>byCode[c]).filter(Boolean);const n=qs.length;const G=omrGeom(qs);
- const lab=[];for(let c=0;c<G.cols;c++){const xs=G.xs0+c*G.colW;for(let o=0;o<G.mo;o++)lab.push(`<em style="left:${xs+12+o*G.optP+G.optP/2}mm;top:${G.y0-5}mm">${o+1}</em>`)}
+ const info=omrInfoGeom(!!mock).map(g=>({...g,pts:g.lab.map((l,r)=>({r,x:g.x,y:g.y0+r*g.pitch}))}));
+ return {b,per,cols,colW,xs0,optP,rowH,y0,d,mo,cap:per*3,info,mock:!!mock}}
+function omrCard(id){const w=WSH.find(x=>x.id===id);if(!w)return;const qs=w.codes.map(c=>byCode[c]).filter(Boolean);const n=qs.length;const mock=!!w.mock;const G=omrGeom(qs,mock);
+ const base=(CF.pub||location.href).split('#')[0].split('?')[0],url=base+'#ws='+w.id;const cv=w.cover||{};const subjN=cv.subject||SNAME[(qs[0]&&subjOf(qs[0].code))||SUBJ]||'';const sc=OMRSUBJ[(qs[0]&&subjOf(qs[0].code))||SUBJ]||'';
+ const lab=[];for(let c=0;c<G.cols;c++){const xs=G.xs0+c*G.colW;for(let o=0;o<G.mo;o++)lab.push(`<em style="left:${xs+12+o*G.optP+G.optP/2}mm;top:${G.y0-3.4}mm">${o+1}</em>`)}
  const nums=qs.slice(0,G.cap).map((q,i)=>{const c=Math.floor(i/G.per),r=i%G.per;return `<b style="left:${G.xs0+c*G.colW+7}mm;top:${G.y0+r*G.rowH+G.rowH/2}mm">${i+1}</b>${q.set==='blank'||q.set==='essay'?`<span class="bl" style="left:${G.xs0+c*G.colW+12}mm;top:${G.y0+r*G.rowH+G.rowH/2}mm">직접 풀이·입력</span>`:''}`}).join('');
  const bub=G.b.map(p=>`<i style="left:${p.x}mm;top:${p.y}mm;width:${G.d}mm;height:${G.d}mm"></i>`).join('');
+ const ib=G.info.map(g=>g.pts.map(p=>`<i class="n" style="left:${p.x}mm;top:${p.y}mm"></i>`).join('')).join('');
+ const grpPos={};G.info.forEach(g=>{(grpPos[g.grp]=grpPos[g.grp]||[]).push(g.x)});
+ const grpLab=Object.entries(grpPos).map(([k,xs])=>`<u class="gl" style="left:${(Math.min(...xs)+Math.max(...xs))/2}mm;top:37.4mm">${k}</u>${xs.map(x=>`<span class="gx" style="left:${x}mm;top:41.8mm"></span>`).join('')}`).join('');
+ const dlab=(mock?[...Array(10).keys()].map(r=>`<em class="dl" style="left:107.4mm;top:${46+r*4.4}mm">${r}</em>`):[...Array(10).keys()].map(r=>`<em class="dl" style="left:107.4mm;top:${46+r*4.4}mm">${r}</em>`)).join('')+(mock?`<em class="dl" style="left:179.4mm;top:46mm">홀</em><em class="dl" style="left:179.4mm;top:50.4mm">짝</em>`:'');
  const mk=OMRMK.map(([x,y])=>`<s style="left:${x}mm;top:${y}mm"></s>`).join('');
- const html=`<style>.pg{width:210mm;height:297mm;background:#fff;margin:0 auto 6mm;box-shadow:0 2px 12px #0002;font-family:Paperozi,sans-serif;color:#1b2430;position:relative;overflow:hidden;break-after:page}.pg *{box-sizing:border-box}.pg s{position:absolute;width:${OMRMS}mm;height:${OMRMS}mm;background:#000;transform:translate(-50%,-50%);text-decoration:none}.pg i{position:absolute;border:.35mm solid #222;border-radius:50%;transform:translate(-50%,-50%);background:#fff}.pg em{position:absolute;font-style:normal;transform:translate(-50%,-50%);font-size:8.5pt;color:#555}.pg b{position:absolute;transform:translate(-100%,-50%);font-size:10pt;font-weight:500}.pg .bl{position:absolute;transform:translate(0,-50%);font-size:8pt;color:#8794a3}.h{position:absolute;left:24mm;right:24mm;top:9mm;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:.5mm solid #2f7fd0;padding-bottom:2mm}.h strong{font-size:15pt}.h span{font-size:9.5pt;color:#586476}.f{position:absolute;left:24mm;right:24mm;top:28mm;display:flex;gap:12mm;font-size:10.5pt}.f u{display:inline-block;width:46mm;border-bottom:.3mm solid #333;text-decoration:none;height:1.2em;vertical-align:bottom}.note{position:absolute;left:24mm;right:24mm;top:42mm;font-size:8.8pt;color:#586476;line-height:1.5}.note b{position:static;transform:none;font-weight:700;font-size:inherit;color:#1b2430}.ft{position:absolute;left:24mm;right:24mm;bottom:8mm;font-size:8pt;color:#8794a3;text-align:center}@media print{.pg{box-shadow:none;margin:0}}</style><div class="pg" data-n="${n}">${mk}<div class="h"><strong>${esc(w.title)} · OMR 답안지</strong><span>${new Date(w.t).toLocaleDateString('ko-KR')} · ${n}문항 · ${fmtNo(w.id)}</span></div><div class="f"><span>이름 <u></u></span><span>점수 <u style="width:24mm"></u></span></div><div class="note"><b>표시 방법</b> 정답 칸을 <b>진하게 칠하세요</b>(✓ 표시는 인식이 어려워요). 여러 정답이면 모두 칠합니다. 네 모서리의 검은 네모는 지우거나 가리지 마세요. 사진은 종이 전체가 보이게 찍으면 채점 화면에서 읽을 수 있어요.</div>${lab.join('')}${nums}${bub}<div class="ft">번호 ${fmtNo(w.id)} · 번호 채점에서 입력하거나 채점 화면의 「OMR 사진으로 입력」을 사용하세요${n>G.cap?` · ${G.cap}번까지만 인쇄돼요`:''}</div></div>`;
+ const html=`<style>.pg{width:210mm;height:297mm;background:#fff;margin:0 auto 6mm;box-shadow:0 2px 12px #0002;font-family:Paperozi,sans-serif;color:#1b2430;position:relative;overflow:hidden;break-after:page}.pg *{box-sizing:border-box}.pg s{position:absolute;width:${OMRMS}mm;height:${OMRMS}mm;background:#000;transform:translate(-50%,-50%);text-decoration:none}.pg i{position:absolute;border:.35mm solid #222;border-radius:50%;transform:translate(-50%,-50%);background:#fff}.pg i.n{width:3.8mm;height:3.8mm}.pg em{position:absolute;font-style:normal;transform:translate(-50%,-50%);font-size:8.5pt;color:#555}.pg em.dl{font-size:7pt;color:#777}.pg b{position:absolute;transform:translate(-100%,-50%);font-size:9.5pt;font-weight:500}.pg .bl{position:absolute;transform:translate(0,-50%);font-size:7.5pt;color:#8794a3}.pg .gl{position:absolute;transform:translate(-50%,-50%);text-decoration:none;font-size:8.5pt;font-weight:700}.pg .gx{position:absolute;transform:translate(-50%,-50%);width:4.6mm;height:4.6mm;border:.35mm solid #222}.pg .box{position:absolute;border:.35mm solid #222}.pg .bt{position:absolute;font-size:8.5pt;color:#444;transform:translate(0,-50%)}.pg .fx{position:absolute;font-size:10.5pt}.h{position:absolute;left:24mm;width:130mm;top:9mm}.h strong{display:block;font-size:${mock?'17':'15'}pt;line-height:1.25}.h span{display:block;font-size:9pt;color:#586476;margin-top:1mm}.hl{position:absolute;left:24mm;right:24mm;top:34mm;border-top:.5mm solid #111}.qrb{position:absolute;left:165mm;top:8mm;width:22mm;text-align:center}.qrb svg{width:22mm;height:22mm;display:block}.qrb b{position:static;transform:none;display:block;font-family:ui-monospace,Menlo,monospace;font-size:7pt;letter-spacing:.1em;font-weight:400;margin-top:.5mm}.note{position:absolute;left:24mm;right:24mm;bottom:17mm;font-size:7.4pt;color:#586476;line-height:1.45;text-align:center}.note b{position:static;transform:none;font-weight:700;font-size:inherit;color:#1b2430}.ft{position:absolute;left:24mm;right:24mm;bottom:8mm;font-size:7.5pt;color:#8794a3;text-align:center}@media print{.pg{box-shadow:none;margin:0}}</style>
+ <div class="pg" data-n="${n}">${mk}<div class="h"><strong>${esc(w.title)}${mock?' · 답안지':' · OMR 답안지'}</strong><span>${esc(subjN)}${mock&&cv.area?' · '+esc(cv.area):''} · ${n}문항 · ${new Date(w.t).toLocaleDateString('ko-KR')}</span></div>
+ <div class="qrb">${qrSvg(url)}<b>${fmtNo(w.id)}</b></div><div class="hl"></div>
+ <span class="bt" style="left:24mm;top:41mm">성 명</span><div class="box" style="left:38mm;top:37.5mm;width:54mm;height:7.5mm"></div>
+ <span class="bt" style="left:24mm;top:53mm">${mock?'선택과목':'학교·학원'}</span><div class="box" style="left:38mm;top:49.5mm;width:54mm;height:7.5mm">${mock?`<span class="fx" style="left:2mm;top:1mm;position:absolute">${esc(subjN)} (${sc})</span>`:`<span class="fx" style="left:2mm;top:1mm;position:absolute;font-size:9pt">${esc(w.academy||'')}</span>`}</div>
+ <span class="bt" style="left:24mm;top:65mm">${mock?'응시일':'응시일'}</span><div class="box" style="left:38mm;top:61.5mm;width:54mm;height:7.5mm"></div>
+ <span class="bt" style="left:24mm;top:82mm">감독 확인</span><div class="box" style="left:38mm;top:73.5mm;width:25mm;height:14mm"></div><span class="bt" style="left:66mm;top:82mm">점 수</span><div class="box" style="left:76mm;top:73.5mm;width:16mm;height:14mm"></div>
+ ${grpLab}${dlab}${ib}
+ ${lab.join('')}${nums}${bub}
+ <div class="note"><b>표시 방법</b> 정답 칸을 <b>진하게 칠하세요</b>(✓ 표시는 인식이 어려워요). 복수 정답은 모두 칠합니다. ${mock?'수험번호·과목번호·형도 해당 숫자를 칠하세요. ':'학년·반·번호도 해당 숫자를 칠하세요. '}네 모서리의 검은 네모는 가리지 마세요.</div>
+ <div class="ft">${esc(w.title)} · 번호 ${fmtNo(w.id)} · 채점 화면의 「OMR 사진으로 입력」으로 읽어요${n>G.cap?` · ${G.cap}번까지만 인쇄돼요`:''}</div></div>`;
  mount($('#wsPaper'),html);$('#wsBar').innerHTML='<button class="p" onclick="window.print()">인쇄</button><button class="wsx" onclick="closeWs()" title="닫기" aria-label="닫기">✕</button><span class="m">OMR 답안지 · A4 · 100% 크기로 인쇄하세요</span>';
  let ps=document.getElementById('wsPrintStyle');if(!ps){ps=document.createElement('style');ps.id='wsPrintStyle';document.head.appendChild(ps)}ps.textContent='@page{size:A4;margin:0}';$('#wsView').classList.add('open');pushNav()}
 /* ---- 사진 읽기 ---- */
@@ -1861,21 +1886,24 @@ function omrMarkers(bin,w,h){const lab=new Int32Array(w*h),comps=[];let id=0;con
  for(let s=0;s<w*h;s++){if(!bin[s]||lab[s])continue;id++;let a=0,sx=0,sy=0,x0=w,x1=0,y0=h,y1=0;st.push(s);lab[s]=id;
   while(st.length){const p=st.pop(),x=p%w,y=(p-x)/w;a++;sx+=x;sy+=y;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;
    if(x>0&&bin[p-1]&&!lab[p-1]){lab[p-1]=id;st.push(p-1)}if(x<w-1&&bin[p+1]&&!lab[p+1]){lab[p+1]=id;st.push(p+1)}if(y>0&&bin[p-w]&&!lab[p-w]){lab[p-w]=id;st.push(p-w)}if(y<h-1&&bin[p+w]&&!lab[p+w]){lab[p+w]=id;st.push(p+w)}}
-  const bw=x1-x0+1,bh=y1-y0+1;if(a<120||bw<8||bh<8||bw>.14*Math.max(w,h)||bh>.14*Math.max(w,h))continue;const asp=bw/bh,fill=a/(bw*bh);if(asp<.55||asp>1.8||fill<.5)continue;comps.push({a,cx:sx/a,cy:sy/a,bw,bh})}
+  const bw=x1-x0+1,bh=y1-y0+1;if(a<120||bw<8||bh<8||bw>.14*Math.max(w,h)||bh>.14*Math.max(w,h))continue;const asp=bw/bh,fill=a/(bw*bh);if(asp<.55||asp>1.6||fill<.66)continue;comps.push({a,cx:sx/a,cy:sy/a,bw,bh})}
  if(comps.length<4)return null;const amax=Math.max(...comps.map(c=>c.a));const big=comps.filter(c=>c.a>=amax*.45);
  const cs=[[0,0],[w,0],[0,h],[w,h]];const pick=cs.map(([qx,qy])=>{let best=null,bd=1e18;big.forEach(c=>{if((c.cx<w/2)!==(qx===0)||(c.cy<h/2)!==(qy===0))return;const dd=(c.cx-qx)**2+(c.cy-qy)**2;if(dd<bd){bd=dd;best=c}});return best});
  return pick.every(Boolean)?pick:null}
 async function omrRead(file,qs){const im=await omrLoadImg(file);const bin=omrBinary(im.cx,im.w,im.h);const mk=omrMarkers(bin,im.w,im.h);
  if(!mk)throw new Error('markers');
- const H=omrHomography(OMRMK,mk.map(c=>[c.cx,c.cy]));const G=omrGeom(qs);const s=Math.hypot(mk[1].cx-mk[0].cx,mk[1].cy-mk[0].cy)/(OMRMK[1][0]-OMRMK[0][0]);
+ const H=omrHomography(OMRMK,mk.map(c=>[c.cx,c.cy]));const G=omrGeom(qs,!!(cur&&cur.ws&&cur.ws.mock));const s=Math.hypot(mk[1].cx-mk[0].cx,mk[1].cy-mk[0].cy)/(OMRMK[1][0]-OMRMK[0][0]);
  const rr=Math.max(2,G.d*.36*s),fills=qs.map(()=>[]);
  G.b.forEach(p=>{const [u,v]=omrMap(H,p.x,p.y);let t=0,dk=0;const R=Math.ceil(rr);for(let y=-R;y<=R;y++)for(let x=-R;x<=R;x++){if(x*x+y*y>rr*rr)continue;const px=Math.round(u+x),py=Math.round(v+y);if(px<0||py<0||px>=im.w||py>=im.h)continue;t++;dk+=bin[py*im.w+px]}
   fills[p.q][p.o]=t?dk/t:0;p.u=u;p.v=v});
  const res=qs.map((q,i)=>{const f=fills[i];if(!f.length)return {skip:true,f:[]};const mx=Math.max(...f);const marked=f.map((x,k)=>x>=.32&&x>=mx*.55?k:-1).filter(k=>k>=0);const multi=isMulti(q);
   return {f,marked,flag:!marked.length?'none':(!multi&&marked.length>1?'multi':'')}});
- return {res,G,H,im,mk,s,rr}}
+ const fillAt=(x,y,r)=>{const [u,v]=omrMap(H,x,y);let t=0,dk=0;const R=Math.ceil(r);for(let yy=-R;yy<=R;yy++)for(let xx=-R;xx<=R;xx++){if(xx*xx+yy*yy>r*r)continue;const px=Math.round(u+xx),py=Math.round(v+yy);if(px<0||py<0||px>=im.w||py>=im.h)continue;t++;dk+=bin[py*im.w+px]}return {f:t?dk/t:0,u,v}};
+ const info={};G.info.forEach(g=>{const rr2=Math.max(1.6,g.d*.36*s);const f=g.pts.map(p=>{const o=fillAt(p.x,p.y,rr2);p.u=o.u;p.v=o.v;return o.f});const mx=Math.max(...f);const on=f.map((x,r)=>x>=.32&&x>=mx*.6?r:-1).filter(r=>r>=0);const ch=on.length===0?'-':on.length>1?'?':g.lab[on[0]];(info[g.grp]=info[g.grp]||[]).push(ch);g.on=on});
+ return {res,G,H,im,mk,s,rr,info}}
 function omrOverlay(R){const cv=document.createElement('canvas');const im=R.im;cv.width=im.w;cv.height=im.h;const cx=cv.getContext('2d');cx.drawImage(im.cv,0,0);cx.lineWidth=Math.max(2,R.rr*.35);
  R.mk.forEach(c=>{cx.strokeStyle='#2f7fd0';cx.strokeRect(c.cx-c.bw/2-3,c.cy-c.bh/2-3,c.bw+6,c.bh+6)});
+ R.G.info.forEach(g=>g.pts.forEach(p=>{if(g.on&&g.on.includes(p.r)){cx.beginPath();cx.arc(p.u,p.v,R.rr*.8,0,7);cx.strokeStyle='#7048e8';cx.fillStyle='#7048e855';cx.fill();cx.stroke()}}));
  R.G.b.forEach(p=>{const r=R.res[p.q];if(!r||r.skip)return;const on=r.marked.includes(p.o);cx.beginPath();cx.arc(p.u,p.v,R.rr*(on?1.25:.5),0,7);cx.strokeStyle=on?(r.flag?'#e8590c':'#2b9a5b'):'#9aa7b6';cx.fillStyle=on?(r.flag?'#e8590c55':'#2b9a5b55'):'transparent';if(on)cx.fill();cx.stroke()});return cv}
 let OMRS=null;
 function omrOpen(){if(!cur||!cur.ws){alert('OMR 사진 읽기는 학습지 번호로 채점할 때 쓸 수 있어요.');return}
@@ -1884,7 +1912,8 @@ function omrOpen(){if(!cur||!cur.ws){alert('OMR 사진 읽기는 학습지 번�
 async function omrPick(file){if(!file)return;const out=$('#omrout');out.innerHTML='<div class="m">읽는 중…</div>';
  try{const R=await omrRead(file,cur.qs);OMRS.R=R;omrShow()}catch(e){out.innerHTML=`<div class="hint">${e.message==='markers'?'종이 네 모서리의 검은 네모를 찾지 못했어요. 종이 전체가 화면에 들어오게, 그림자 없이 다시 찍어 주세요.':'사진을 읽지 못했어요. 다른 사진으로 다시 시도해 주세요.'}</div>`}}
 function omrShow(){const R=OMRS.R,out=$('#omrout');const flags=R.res.filter(r=>r.flag).length,read=R.res.filter(r=>!r.skip).length;
- out.innerHTML=`<div class="m" style="margin-bottom:8px"><b>${read}</b>문항 읽음 · 확인이 필요한 문항 <b style="color:${flags?'#e8590c':'#2b9a5b'}">${flags}</b>개 (주황색) · 초록 표시가 읽은 답이에요.</div><div id="omrcv" style="max-height:46vh;overflow:auto;border:1px solid var(--l);border-radius:8px"></div>
+ const infoTxt=Object.entries(R.info).map(([k,v])=>k+' <b>'+v.join('')+'</b>').join(' · ');
+ out.innerHTML=`<div class="m" style="margin-bottom:6px">인적사항(보라색): ${infoTxt}</div><div class="m" style="margin-bottom:8px"><b>${read}</b>문항 읽음 · 확인이 필요한 문항 <b style="color:${flags?'#e8590c':'#2b9a5b'}">${flags}</b>개 (주황색) · 초록 표시가 읽은 답이에요.</div><div id="omrcv" style="max-height:46vh;overflow:auto;border:1px solid var(--l);border-radius:8px"></div>
  <div class="omrg">${R.res.map((r,i)=>{if(r.skip)return `<div class="omrq"><b>${i+1}</b><span class="m">직접 입력</span></div>`;const q=cur.qs[i];const o=optsOf(q);return `<div class="omrq ${r.flag?'fl':''}"><b>${i+1}</b>${o.map((lb,k)=>`<button class="${r.marked.includes(k)?'on':''}" onclick="omrTog(${i},${k})">${lb}</button>`).join('')}</div>`}).join('')}</div>
  <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="s" onclick="$('#omrf').click()">다시 찍기</button><button class="p" onclick="omrApply()">이 답으로 입력</button></div>`;
  const box=$('#omrcv');box.appendChild(omrOverlay(R));const c=box.firstChild;c.style.width='100%';c.style.display='block'}
@@ -2018,7 +2047,7 @@ function mockView(){
  if(!list.length)h+='<div class="empty">아직 만든 모의고사가 없어요.</div>';
  else h+=`<div class="mklist">${list.map(m=>{const w=WSH.find(x=>x.id===m.wid);const a=hist.filter(x=>x.set==='ws'&&x.sub===m.wid&&(!CUR_S||x.sid===CUR_S)),l=a[a.length-1];
   return `<div class="mki"><div class="mkh"><b>제${m.round}회</b><span class="m">${esc(m.scopeText)} · ${m.n}문항 · ${m.total||''}점 · ${m.minutes}분 · ${MKLVN[m.lv]||''} · ${new Date(m.t).toLocaleDateString('ko-KR')}</span>${l?`<span class="tag">최근 ${l.items.filter(x=>x.r).length}/${l.items.length}</span>`:''}</div>
-  <div class="mkb">${w?`<button class="s sm" onclick="wsReprint('${m.wid}')">표지·시험지 출력</button><button class="s sm" onclick="wsEdit('${m.wid}')">편집</button><button class="s sm" onclick="openByNumber('${m.wid}')">채점</button><button class="p sm" onclick="mockExam('${m.wid}')">⏱ 화면에서 시험</button>`:'<span class="m">학습지가 삭제되었습니다</span>'}<button class="s sm" onclick="mockDel('${m.id}')">삭제</button></div></div>`}).join('')}</div>`;
+  <div class="mkb">${w?`<button class="s sm" onclick="wsReprint('${m.wid}')">표지·시험지 출력</button><button class="s sm" onclick="omrCard('${m.wid}')">OMR 답안지</button><button class="s sm" onclick="wsEdit('${m.wid}')">편집</button><button class="s sm" onclick="openByNumber('${m.wid}')">채점</button><button class="p sm" onclick="mockExam('${m.wid}')">⏱ 화면에서 시험</button>`:'<span class="m">학습지가 삭제되었습니다</span>'}<button class="s sm" onclick="mockDel('${m.id}')">삭제</button></div></div>`}).join('')}</div>`;
  const sy=scrollY,had=!!document.querySelector('#main .mkgrid');$('#main').innerHTML=h+'</div>';if(had)scrollTo(0,sy)}
 const stepperMk=()=>'';
 function mkSub(a,on){MKF.subs=on?[...new Set([...MKF.subs,a])]:MKF.subs.filter(x=>x!==a);MKF.perSub={};mkSave();mockView()}
