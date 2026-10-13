@@ -243,7 +243,7 @@ tr:has(input[type=checkbox]){cursor:pointer}tr:has(input[type=checkbox]):hover t
 input[type=search]{font:inherit;padding:8px 10px;border:1px solid var(--l2);border-radius:8px;background:var(--surface);max-width:100%}input[type=search]:focus{outline:2px solid var(--b);outline-offset:-1px}
 /* ===== v4: 과목 구분 · 촘촘한 레이아웃 · 학습지 만들기 · 모바일 ===== */
 body[data-subj=cm]{--b:#15804c;--bd:#13744a;--bl:#e5f6ec;--bg:#f2f8f4}
-header{border-top:4px solid var(--b)}
+header{border-top:0}
 header h1{display:flex;align-items:center;gap:6px;cursor:pointer}
 header h1 small{display:inline-block;background:var(--b);color:#fff;font-size:14px;font-weight:700;padding:3px 12px;border-radius:14px;letter-spacing:-.2px}
 header h1 b{color:var(--b);font-size:12px}
@@ -281,7 +281,7 @@ mark.hl{background:#ffe27a;color:inherit;border-radius:2px;padding:0 1px}
  header{padding:0 14px;gap:14px}nav button{padding:15px 10px}
 }
 @media(max-width:720px){
- header{flex-wrap:nowrap;gap:6px;padding:0 10px;border-top-width:5px}
+ header{flex-wrap:nowrap;gap:6px;padding:0 10px;border-top-width:0}
  header h1{font-size:14px;min-width:0}header h1 i{margin-right:4px}header h1 small{display:inline-block!important;font-size:13px;padding:2px 9px;max-width:46vw;overflow:hidden;text-overflow:ellipsis}
  #sync{display:none}
  main{padding:0 8px 96px;margin:8px auto}.card{padding:12px;margin-bottom:8px}
@@ -1512,7 +1512,7 @@ function teacherHome(){
  const recW=WSH.slice().sort((a,b)=>b.t-a.t).slice(0,5);const act=hist.slice().sort((a,b)=>b.t-a.t).slice(0,8);
  const tile=(ic,t,d,f)=>`<button class="qa" onclick="${f}"><i>${ic}</i><div><b>${t}</b><span>${d}</span></div></button>`;
  const tname=teacherName();const lbk=+(localStorage.getItem('omr_lastbk')||0);const bkOld=!lbk||now-lbk>14*864e5;const bkBanner=bkOld&&(WSH.length||hist.length)?`<div class="hint" style="margin-bottom:12px">${lbk?Math.floor((now-lbk)/864e5)+'일 전에':'아직'} 백업하지 않았어요. 학생 기록과 학습지는 이 기기에 저장돼 있어서, 파일로 한 번 받아 두면 안전해요. <button class="p sm" onclick="backupAll();teacherHome()">백업 내려받기</button></div>`:'';
- $('#main').innerHTML=`${gdraftBanner()}${bkBanner}<div class="th-hero"><div><div class="hi">${gr}, ${tname?`<span>${esc(tname)}님</span>`:'선생님'} <button class="tne" onclick="tnEdit()" title="이름 바꾸기">${tname?'✎':'이름 입력'}</button></div><div class="sub">${new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})} · 오늘 채점 <b>${todayH.length}건</b> · 이번 주 <b>${weekH.length}건</b>${pend.length?` · 미제출 과제 <b>${pend.length}건</b>`:''}</div></div><button class="p" onclick="tab='build';render()">＋ 새 학습지</button></div>
+ $('#main').innerHTML=`${gdraftBanner()}${bkBanner}<div class="th-hero"><div><div class="hi">${gr}, ${tname?`<span>${esc(tname)}님</span>`:'선생님'}</div><div class="sub">${new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})} · 오늘 채점 <b>${todayH.length}건</b> · 이번 주 <b>${weekH.length}건</b>${pend.length?` · 미제출 과제 <b>${pend.length}건</b>`:''}</div></div><button class="p" onclick="tab='build';render()">＋ 새 학습지</button></div>
  ${startList()}<div class="qas">${tile('📝','새 학습지','유형을 골라 만들기',"tab='build';render()")}${tile('🎯','전범위 모의고사','회차별 시험지·OMR',"goFull()")}${tile('✅','채점하기','번호·QR·교재 쪽수',"tab='grade';render()")}${tile('🩺','오답 진단','왜 틀렸는지 분석',"tab='diag';render()")}${tile('👥','학생 관리','계정·과제 배정',"tab='stu';render()")}${tile('🔎','문항 검색','자연어·해시태그',"tab='search';render()")}</div>
  <div class="thg2"><div class="thc"><div class="card"><h2>최근 학습지</h2>${recW.length?`<div class="rlist">${recW.map(w=>`<div class="rl"><span><b>${esc(w.title)}</b><small>${fmtNo(w.id)} · ${w.codes.length}문항 · ${new Date(w.t).toLocaleDateString('ko-KR')}</small></span><span class="row"><button class="s sm" onclick="wsReport('${w.id}')">결과</button><button class="p sm" onclick="openByNumber('${w.id}')">채점</button></span></div>`).join('')}</div>`:'<div class="empty">아직 만든 학습지가 없어요.</div>'}</div> <div class="card"><h2>최근 채점</h2>${act.length?act.map(h=>`<div class="rl"><span><b>${esc(nm(h.sid))}</b><small>${esc(h.set==='ws'?(WSH.find(w=>w.id===h.sub)||{}).title||fmtNo(h.sub):h.set==='book'?esc(bookLbl(h.sub)):h.set==='practice'?'연습':SETS[h.set]||h.set)} · ${new Date(h.t).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small></span><b>${Math.round(sc(h)*100)}%</b></div>`).join(''):'<div class="empty">아직 채점 기록이 없어요.</div>'}</div></div><div class="thc"> <div class="card"><h2>도움이 필요한 학생 <small class="m">최근 7일 정답률 낮은 순</small></h2>${need.length?need.map(x=>`<div class="rl"><span><b>${esc(nm(x.id))}</b><small>${x.n}문항 풀이</small></span><span class="row"><b class="${x.p<.5?'red':''}">${Math.round(x.p*100)}%</b><button class="s sm" onclick="CUR_S='${x.id}';tab='diag';render()">진단</button></span></div>`).join(''):'<div class="empty">채점 기록이 쌓이면 보여드려요.</div>'}${idle.length?`<div class="m" style="margin-top:10px">7일간 기록이 없는 학생: ${idle.map(s=>esc(s.name)).join(', ')}${STU.length>idle.length?' …':''}</div>`:''}</div> <div class="card"><h2>미제출 과제</h2>${pend.length?pend.slice(0,6).map(a=>`<div class="rl"><span><b>${esc(nm(a.student_id))}</b><small>${esc(a.title||fmtNo(a.wid))}${a.due?' · 마감 '+esc(a.due):''}</small></span></div>`).join(''):'<div class="empty">모든 과제가 제출됐어요.</div>'}</div></div></div>`}
 let WVIEW='mine';
