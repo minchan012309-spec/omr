@@ -1,10 +1,12 @@
 /* Solvi 교재 — 개념서 · 유형서 · 실전 모의고사
    index.html 의 전역(DATA, CONC, byCode, SUBJ …)을 그대로 사용하는 보조 스크립트입니다. 교재 탭을 처음 열 때 불러옵니다.
    쪽 나눔은 books/heights.json 에 저장된 문항 높이로 계산하므로 어느 기기에서나 같은 쪽 번호가 나옵니다(QR 쪽 채점용). */
-const BK_MM=96/25.4,BK_BODY=236,BK_COLW=89,BK_FULLW=186;
+const BK_MM=96/25.4,BK_BODY=240,BK_COLW=89,BK_FULLW=186;
 const BKP={},BKSELC={},BKH={};let BKHT=null,BKM=null,BKREADY=null;
 const BKCIR='①②③④⑤⑥⑦⑧⑨⑩';
 const bkLv=q=>q.lv0||q.lv||'';
+const BKPAL={cm:{p:'#2f9d66',pd:'#1f7d4e',pl:'#eefcf5',pl2:'#d9f8e8',line:'#b0e3c9'},me:{p:'#2f7fd0',pd:'#1d5ca6',pl:'#eef5fc',pl2:'#d9e8f8',line:'#b9cfe6'}};
+const bkVars=()=>{const c=BKPAL[SUBJ]||BKPAL.cm;return '--p:'+c.p+';--pd:'+c.pd+';--pl:'+c.pl+';--pl2:'+c.pl2+';--line:'+c.line+';--y:#ffca2c'};
 const bkCir=a=>String(a).split(',').map(x=>BKCIR[(+x)-1]||x).join(', ');
 
 /* ---------- 스타일 ---------- */
@@ -32,16 +34,6 @@ const BKCSS=`
 .bkdoc .ft .qq{width:15mm;height:15mm;display:flex;align-items:center;justify-content:center;border:.6px solid #111;padding:.8mm;background:#fff}
 .bkdoc .ft .qq svg{width:100%;height:100%;display:block}
 .bkdoc .ft .fn{font-size:9.5px;color:#444;text-align:right}
-/* 공통 부품 */
-.bkdoc .ct{background:#111;color:#fff;font-weight:800;font-size:13px;padding:1.2mm 3mm;letter-spacing:-.2px;margin:0 0 2mm;display:flex;gap:2.4mm;align-items:baseline}
-.bkdoc .ct small{font-weight:500;font-size:10px;opacity:.85;margin-left:auto}
-.bkdoc .ct.sm{font-size:11.5px;padding:.8mm 2.6mm}
-.bkdoc .sbn{margin:0 0 4mm;padding:3.2mm 4mm 3mm;border:.6mm solid #111;border-left-width:2.4mm}
-.bkdoc .sbn b{display:block;font-size:17px;font-weight:800;letter-spacing:-.4px;line-height:1.3}.bkdoc .sbn b i{font-family:inherit;font-style:normal;margin-right:2.5mm}
-.bkdoc .sbn span{display:block;margin-top:1.4mm;font-size:11px;color:#333;line-height:1.5}
-.bkdoc .th{margin:2mm 0 2.4mm;padding:0 0 1mm;border-bottom:.6mm solid #111;font-size:12.5px;font-weight:800;display:flex;gap:2.2mm;align-items:baseline;line-height:1.35}
-.bkdoc .th b{background:#111;color:#fff;font-size:10.5px;padding:0 2mm;font-weight:700;border-radius:1px;white-space:nowrap}
-.bkdoc .th small{margin-left:auto;font-weight:600;font-size:10.5px;color:#444;white-space:nowrap;letter-spacing:.5px}
 /* 문항 */
 .bkdoc .u.q{margin:0 0 4.6mm;font-size:12.2px;line-height:1.52}
 .bkdoc .u.q .qs p{margin:0 0 1.6mm;text-align:justify}
@@ -68,75 +60,106 @@ const BKCSS=`
 .bkdoc .u.q .ptn{text-align:right;font-size:10.5px;color:#444}
 .bkdoc .u.q .gi{border:.6px solid #111;padding:1.4mm 2mm;margin:1.6mm 0}
 .bkdoc .u.q .ans{margin-top:1.6mm;border:.6px solid #111;padding:.8mm 2.4mm}.bkdoc .u.q .ans div{height:6.4mm;border-bottom:.6px dotted #888}.bkdoc .u.q .ans div:last-child{border-bottom:0}
-.bkdoc .u.o{margin:0 0 2.4mm;display:flex;gap:1.4mm;font-size:12px;line-height:1.5;align-items:flex-start}
-.bkdoc .u.o .no{flex:none;width:6.4mm;font-weight:800;font-size:12.5px}
+/* ---- 교재(개념서·유형서) : 포인트 색을 절제해서 쓴 서식 ---- */
+.bkdoc .hd2{position:absolute;left:12mm;right:12mm;top:8mm;height:7mm;border-bottom:.3mm solid var(--line);display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:1.4mm;font-size:9.5px;color:#555;line-height:1}
+.bkdoc .hd2 b{color:#111;font-weight:600}.bkdoc .hd2 .lb2{color:var(--pd);font-weight:600}
+.bkdoc .hd2 .lb2:before,.bkdoc .fb .lab:before{content:"";display:inline-block;width:1.6mm;height:1.6mm;border-radius:50%;background:var(--y);margin-right:1.6mm;vertical-align:.05mm}
+.bkdoc .fb{position:absolute;left:12mm;right:12mm;bottom:7mm;height:18mm;border-top:.25mm solid var(--line);display:flex;align-items:center;justify-content:space-between;font-size:9.5px;color:#555;line-height:1}
+.bkdoc .fb .pn{color:var(--p);font-weight:700;font-size:13.5px;min-width:12mm}.bkdoc .fb .pn.r{text-align:right}
+.bkdoc .fb .qrb{display:flex;align-items:center;gap:2.8mm}
+.bkdoc .fb .qt{font-size:9.2px;line-height:1.45;color:#444}
+.bkdoc .fb .qq{width:14mm;height:14mm;border:.3mm solid var(--line);padding:.8mm;background:#fff;display:flex;align-items:center;justify-content:center}.bkdoc .fb .qq svg{width:100%;height:100%;display:block}
+.bkdoc .bk .bd{top:21mm;height:${BK_BODY}mm}
+.bkdoc .bk .cols:before{border-left:.3mm solid var(--line)}
+.bkdoc .ct{background:var(--pl);color:var(--pd);font-weight:800;font-size:12.5px;padding:1.5mm 3mm;border-radius:1.6mm;margin:0 0 3.6mm;display:flex;gap:2.4mm;align-items:baseline}
+.bkdoc .ct small{margin-left:auto;font-weight:600;font-size:10px;color:var(--p)}
+.bkdoc .ct.sm{font-size:11.5px;padding:1mm 2.6mm;margin-bottom:1.8mm}
+.bkdoc .sbn{margin:0 0 6mm;padding:4.6mm 5.2mm 4.2mm;background:var(--pl);border-radius:3mm}
+.bkdoc .sbn b{display:block;position:relative;font-size:19px;font-weight:800;letter-spacing:-.5px;line-height:1.3;padding-bottom:2.4mm}
+.bkdoc .sbn b:after{content:"";position:absolute;left:0;bottom:0;width:14mm;height:1.2mm;background:var(--y);border-radius:1mm}
+.bkdoc .sbn b i{font-style:normal;font-family:inherit;color:var(--p);margin-right:2.6mm}
+.bkdoc .sbn .g{display:block;margin-top:2.8mm;font-size:11px;color:#444;line-height:1.55}
+.bkdoc .sbn .rf{display:flex;gap:1.6mm;flex-wrap:wrap;margin-top:3mm}.bkdoc .sbn .rf em{font-style:normal;font-size:9.5px;background:#fff;color:var(--pd);border:.25mm solid var(--line);border-radius:2mm;padding:.3mm 2.4mm;font-weight:600}
+.bkdoc .th{display:flex;gap:2.4mm;align-items:baseline;margin:1mm 0 4.2mm;padding-bottom:1.3mm;border-bottom:.3mm solid var(--line);font-size:12.6px;font-weight:800}
+.bkdoc .th b{color:var(--p);font-size:10.5px;letter-spacing:.4px;white-space:nowrap}
+.bkdoc .th small{margin-left:auto;color:#d9a300;letter-spacing:1px;font-weight:600;font-size:10.5px;white-space:nowrap}
+.bkdoc .sh2{display:flex;gap:2.6mm;align-items:center;margin:2.4mm 0 3.2mm;padding-bottom:1.6mm;border-bottom:.3mm solid var(--line);font-size:14px;font-weight:800;line-height:1.3}
+.bkdoc .sh2 i{flex:none;width:6.6mm;height:6.6mm;line-height:6.6mm;border-radius:50%;background:var(--p);color:#fff;text-align:center;font-style:normal;font-family:inherit;font-size:11.5px}
+.bkdoc .bk .u.q{margin:0 0 9mm;font-size:12.4px;line-height:1.64}
+.bkdoc .bk .u.q .qs p{margin:0 0 2.2mm}
+.bkdoc .bk .u.q .no{color:var(--pd);font-size:15px}
+.bkdoc .bk .u.q .qh2{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 1.8mm;padding-bottom:1mm;border-bottom:.25mm solid var(--line)}.bkdoc .bk .u.q .cd{font-size:9px;color:#8a8f98;font-weight:500;letter-spacing:.2px}
+.bkdoc .bk .u.q .fg{margin:2.2mm 0}
+.bkdoc .bk .u.q .bogi,.bkdoc .bk .u.q .bxx{margin:2.6mm 0}
+.bkdoc .bk .u.q .chs{margin-top:1.8mm}
+.bkdoc .u.o{display:flex;gap:2mm;margin:0 0 4.6mm;font-size:12.2px;line-height:1.62;align-items:flex-start}
+.bkdoc .u.o .nc{flex:none;width:11.5mm}.bkdoc .u.o .nc b{display:block;font-size:13.5px;color:var(--pd);font-weight:800;line-height:1.3}
+.bkdoc .u.o .nc small{display:block;font-size:7.6px;color:#999;line-height:1.2;letter-spacing:.1px}
 .bkdoc .u.o .tx{flex:1;text-align:justify}
-.bkdoc .u.o .bx{flex:none;width:9mm;height:6mm;border:.6px solid #111;margin-left:1.2mm;align-self:center;text-align:center;line-height:5.4mm;font-size:10px;color:#888}
-.bkdoc .u.o .tx .bk{display:inline-block;min-width:13mm;text-align:center;border-bottom:.6px solid #111;font-weight:700;color:#555;line-height:1.1;margin:0 .6mm}
-.bkdoc .u.b .tx{line-height:1.7}
-/* 해설 */
-.bkdoc .u.x{margin:0 0 3.4mm;font-size:10.8px;line-height:1.5;border:.6px solid #111}
-.bkdoc .u.x .xh{display:flex;gap:2mm;align-items:baseline;padding:.7mm 2mm;background:#eceff3;border-bottom:.6px solid #111}
-.bkdoc .u.x .xn{font-size:12.5px;font-weight:800}.bkdoc .u.x .xa{font-weight:800;border:.6px solid #111;background:#fff;padding:0 1.6mm;font-size:10.8px}
-.bkdoc .u.x .xm{margin-left:auto;font-size:9px;color:#555}
-.bkdoc .u.x .xb{padding:1.2mm 2mm 1.4mm}.bkdoc .u.x .xb p{margin:.9mm 0}
-.bkdoc .u.x .lb{display:inline-block;font-size:9px;font-weight:700;border:.5px solid #111;border-radius:2px;padding:0 1.2mm;margin-right:1mm;line-height:3.4mm;vertical-align:1px}
-.bkdoc .u.x .ss{font-size:9px;color:#666;margin-bottom:.6mm}
-.bkdoc .u.x .o{color:#111;font-weight:800}.bkdoc .u.x .x{color:#111;font-weight:800;text-decoration:line-through}
-.bkdoc .u.k{margin:0 0 3.4mm}
-.bkdoc .u.k .kg{display:grid;grid-template-columns:repeat(5,1fr);border-top:.6px solid #111;border-left:.6px solid #111}
-.bkdoc .u.k .kg div{border-right:.6px solid #111;border-bottom:.6px solid #111;padding:.7mm 1.4mm;font-size:10.6px;line-height:1.35;display:flex;justify-content:space-between;gap:1mm}
-.bkdoc .u.k .kg div b{font-weight:800}.bkdoc .u.k .kg.w3{grid-template-columns:repeat(3,1fr)}.bkdoc .u.k .kg.w2{grid-template-columns:repeat(2,1fr)}
-.bkdoc .u.k .kg div span{text-align:right}
-/* 개념 본문 (직전노트풍: 검정 제목 막대 · 얇은 선 · 절제된 강조) */
-.bkdoc .cbk{font-size:12.4px;line-height:1.62;color:#111}
-.bkdoc .cbk p{margin:0 0 1.4mm}
-.bkdoc .cbk b,.bkdoc .cbk strong{font-weight:700}
-.bkdoc .cbk .hl{background:linear-gradient(transparent 56%,#e6e6e6 56%);font-weight:700}
-.bkdoc .cbk h4{margin:2.6mm 0 1.2mm;font-size:12.4px;font-weight:800;border-left:1.2mm solid #111;padding-left:2mm;line-height:1.35}
-.bkdoc .cbk ul.l{margin:0 0 1.6mm;padding-left:4.4mm;list-style:none}.bkdoc .cbk ul.l>li{position:relative;margin:.5mm 0}
-.bkdoc .cbk ul.l>li:before{content:"";position:absolute;left:-3.4mm;top:.62em;width:1.3mm;height:1.3mm;background:#111}
-.bkdoc .cbk ul.l ul.l>li:before{background:#fff;border:.5px solid #111}
-.bkdoc .cbk table.tb{width:100%;border-collapse:collapse;margin:1.8mm 0 2.4mm;font-size:11px;line-height:1.42}
-.bkdoc .cbk table.tb th{background:#eceff3;border:.6px solid #111;padding:.7mm 1.8mm;font-weight:700;text-align:center}
-.bkdoc .cbk table.tb td{border:.6px solid #111;padding:.7mm 1.8mm;text-align:center;vertical-align:middle}
+.bkdoc .u.o .bx{flex:none;width:10mm;height:6.2mm;border:.3mm solid var(--p);border-radius:1mm;margin-left:1.2mm;align-self:center;text-align:center;line-height:5.6mm;font-size:9.5px;color:#aaa}
+.bkdoc .u.o .bk{display:inline-block;min-width:14mm;text-align:center;border-bottom:.3mm solid #333;font-weight:700;color:#777;line-height:1.1;margin:0 .6mm}
+.bkdoc .u.b .tx{line-height:1.8}
+.bkdoc .u.x{margin:0 0 5.4mm;font-size:10.9px;line-height:1.58}
+.bkdoc .u.x .xh{display:flex;gap:2.2mm;align-items:baseline;border-bottom:.3mm solid var(--line);padding-bottom:.9mm;margin-bottom:1.4mm}
+.bkdoc .u.x .xn{font-size:14px;font-weight:800;color:var(--pd)}
+.bkdoc .u.x .xa{font-weight:700;background:var(--pl2);color:var(--pd);padding:0 1.8mm;border-radius:1mm;font-size:10.8px}
+.bkdoc .u.x .xm{margin-left:auto;font-size:8.6px;color:#999;text-align:right;line-height:1.3}
+.bkdoc .u.x .xb p{margin:1mm 0}
+.bkdoc .u.x .lb{display:inline-block;font-size:9px;font-weight:700;background:var(--pl2);color:var(--pd);border-radius:1mm;padding:0 1.4mm;margin-right:1.2mm;line-height:3.6mm;vertical-align:1px}
+.bkdoc .u.x .ss{display:none}
+.bkdoc .u.x .o{color:var(--pd);font-weight:800}.bkdoc .u.x .x{color:#c0392b;font-weight:800}
+.bkdoc .u.k{margin:0 0 5mm}
+.bkdoc .u.k .kg{display:grid;grid-template-columns:repeat(5,1fr);border-top:.25mm solid var(--line);border-left:.25mm solid var(--line)}
+.bkdoc .u.k .kg div{border-right:.25mm solid var(--line);border-bottom:.25mm solid var(--line);padding:.9mm 1.6mm;font-size:10.8px;line-height:1.4;display:flex;justify-content:space-between;gap:1mm}
+.bkdoc .u.k .kg div b{font-weight:800;color:var(--pd)}.bkdoc .u.k .kg.w2{grid-template-columns:repeat(2,1fr)}.bkdoc .u.k .kg div span{text-align:right}
+/* 개념 본문 */
+.bkdoc .cbk{font-size:12.8px;line-height:1.72;color:#17251e}
+.bkdoc .cbk p{margin:0 0 1.8mm}.bkdoc .cbk b,.bkdoc .cbk strong{font-weight:700}
+.bkdoc .cbk .hl{background:linear-gradient(transparent 38%,#fff06b 38%,#fff06b 94%,transparent 94%);padding:0 .3mm;font-weight:700;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.bkdoc .cbk h4{margin:3.2mm 0 1.6mm;font-size:13px;font-weight:700;color:var(--pd)}.bkdoc .cbk h4:before{content:"";display:inline-block;width:2.2mm;height:2.2mm;background:var(--y);border-radius:50%;margin-right:1.8mm;vertical-align:.1mm}
+.bkdoc .cbk ul.l{margin:.6mm 0 2.2mm;padding-left:4.6mm;list-style:none}.bkdoc .cbk ul.l>li{position:relative;margin:.7mm 0}
+.bkdoc .cbk ul.l>li:before{content:"";position:absolute;left:-4mm;top:.68em;width:1.5mm;height:1.5mm;background:var(--p)}
+.bkdoc .cbk ul.l ul.l>li:before{background:#fff;border:.3mm solid var(--p)}
+.bkdoc .cbk table.tb{width:100%;border-collapse:collapse;margin:2mm 0 3.4mm;font-size:11.5px;line-height:1.5;background:#fff}
+.bkdoc .cbk table.tb th{background:var(--p);color:#fff;border:.25mm solid var(--p);padding:1.2mm 1.8mm;font-weight:600;text-align:center}
+.bkdoc .cbk table.tb td{border:.25mm solid var(--line);padding:1.2mm 1.8mm;text-align:center;vertical-align:middle}
 .bkdoc .cbk table.tb td.l,.bkdoc .cbk table.tb th.l{text-align:left}.bkdoc .cbk table.tb td.b{font-weight:700;white-space:nowrap}
-.bkdoc .cbk .nt{margin:3.6mm 0 2mm;padding:2.8mm 2.6mm 1mm;border:.6px solid #111;position:relative;break-inside:avoid}
-.bkdoc .cbk .nt>.lb{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:#111;padding:0 2mm;margin:-5.6mm 0 1mm;line-height:4mm}
-.bkdoc .cbk .nt.wa{border-left:1.4mm solid #111;background:#f5f5f5}.bkdoc .cbk .nt.wa>.lb{background:#fff;color:#111;border:.6px solid #111}
-.bkdoc .cbk .nt.ds,.bkdoc .cbk .nt.es{background:#fff}.bkdoc .cbk .nt.es{border-style:dashed}
-.bkdoc .cbk .eqn{margin:1.6mm 0 2.4mm;padding:1.4mm 2mm;text-align:center;font-weight:700;border-top:.6px solid #111;border-bottom:.6px solid #111;background:#f7f7f7}
-.bkdoc .cbk .eqn small{display:block;font-weight:400;font-size:.9em;color:#444}
-.bkdoc .cbk .fg{margin:1.6mm 0 2.4mm;text-align:center;break-inside:avoid}.bkdoc .cbk .fg img,.bkdoc .cbk .fg svg{max-width:100%;height:auto;max-height:64mm}
-.bkdoc .cbk .fg .cap{font-size:10.4px;color:#444;margin-top:.8mm}
+.bkdoc .cbk .nt{margin:5mm 0 3.4mm;padding:3.6mm 3.6mm 1.6mm;border:.3mm solid var(--pl2);border-radius:2mm;background:var(--pl);position:relative;break-inside:avoid}
+.bkdoc .cbk .nt>.lb{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:var(--p);border-radius:1.2mm;padding:0 2.2mm;margin:-6.8mm 0 1.4mm;line-height:4.4mm}
+.bkdoc .cbk .nt.wa{border-color:#f3dd8c;background:#fff8dc}.bkdoc .cbk .nt.wa>.lb{color:#4a3600;background:var(--y)}
+.bkdoc .cbk .nt.ds{background:#fff;border-color:var(--p)}.bkdoc .cbk .nt.es{background:#fff;border:.3mm dashed var(--p)}
+.bkdoc .cbk .eqn{margin:2mm 0 3mm;padding:1.6mm 2.4mm;text-align:center;font-weight:700;border-top:.3mm solid var(--p);border-bottom:.3mm solid var(--p);background:#fff}
+.bkdoc .cbk .eqn small{display:block;font-weight:400;font-size:.88em;color:#555}
+.bkdoc .cbk .fg{margin:2mm 0 3mm;text-align:center;break-inside:avoid}.bkdoc .cbk .fg img,.bkdoc .cbk .fg svg{max-width:100%;height:auto;max-height:66mm}
+.bkdoc .cbk .fg .cap{font-size:10.6px;color:#555;margin-top:1mm}
 .bkdoc .cbk .two-c{display:grid;grid-template-columns:1fr 1fr;gap:5mm;align-items:start}
-.bkdoc .cbk .tag{display:inline-block;font-size:.9em;font-weight:700;border:.5px solid #111;padding:0 1.2mm;margin-right:1mm}
-.bkdoc .cbk .tp{white-space:nowrap}.bkdoc .cbk .sm{font-size:.92em;color:#444}
-.bkdoc .cbk .fr{display:inline-block;vertical-align:middle;text-align:center;line-height:1.12;margin:0 .6mm}
-.bkdoc .cbk img{max-width:100%}
+.bkdoc .cbk .tag{display:inline-block;font-size:.9em;font-weight:700;color:#fff;background:var(--p);padding:0 1.2mm;margin-right:1mm}
+.bkdoc .cbk .tp{white-space:nowrap}.bkdoc .cbk .sm{font-size:.92em;color:#555}
+.bkdoc .cbk .fr{display:inline-block;vertical-align:middle;text-align:center;line-height:1.12;margin:0 .6mm}.bkdoc .cbk img{max-width:100%}
 /* 표지 */
-.bkdoc .cv{position:absolute;inset:12mm 14mm 12mm 14mm;border:.35mm solid #111;padding:0}
-.bkdoc .cv .c1{display:flex;justify-content:space-between;align-items:center;height:11mm;border-bottom:.35mm solid #111;padding:0 5mm;font-size:11px;font-weight:600;letter-spacing:.5px}
-.bkdoc .cv .c1 b{font-weight:800;letter-spacing:3px}
-.bkdoc .cv .c2{position:absolute;left:12mm;right:12mm;top:62mm}
-.bkdoc .cv .bar{width:16mm;height:2.2mm;background:#111;margin-bottom:9mm}
-.bkdoc .cv .c2 .kd{font-size:15px;font-weight:600;letter-spacing:6px;color:#444}
-.bkdoc .cv .c2 h1{margin:5mm 0 0;font-size:50px;line-height:1.12;font-weight:800;letter-spacing:-1.8px}
-.bkdoc .cv .c2 h2{margin:3mm 0 0;font-size:30px;font-weight:300;letter-spacing:1px;color:#222}
-.bkdoc .cv .c2 .ln{margin:12mm 0 0;border-top:.9mm solid #111;border-bottom:.25mm solid #111;height:1.5mm;width:100%}
-.bkdoc .cv .c2 ul{list-style:none;margin:8mm 0 0;padding:0;font-size:13px;line-height:2}
-.bkdoc .cv .c2 li{display:flex;gap:4mm;border-bottom:.2mm solid #bbb;padding:.4mm 0}.bkdoc .cv .c2 li b{width:25mm;flex:none;font-weight:700}
-.bkdoc .cv .c3{position:absolute;left:12mm;right:12mm;bottom:22mm;border-collapse:collapse;width:calc(100% - 24mm);font-size:13px}
-.bkdoc .cv .c3 td{border:.35mm solid #111;height:13mm;text-align:center}.bkdoc .cv .c3 td.k{width:21mm;font-weight:800;letter-spacing:3px;background:#f2f2f2}
-.bkdoc .cv .c4{position:absolute;left:0;right:0;bottom:6mm;text-align:center;font-size:10.5px;color:#444;letter-spacing:.3px}
+.bkdoc .cv{position:absolute;inset:0;overflow:hidden}
+.bkdoc .cv .c1{position:absolute;left:16mm;right:16mm;top:14mm;display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:2px;color:#444;font-weight:600;padding-bottom:3mm;border-bottom:.3mm solid var(--line)}
+.bkdoc .cv .c1 span:first-child:before{content:"";display:inline-block;width:1.8mm;height:1.8mm;border-radius:50%;background:var(--y);margin-right:2mm;vertical-align:.1mm}
+.bkdoc .cv .c2{position:absolute;left:16mm;right:16mm;top:56mm}
+.bkdoc .cv .bar{width:16mm;height:1.8mm;background:var(--y);border-radius:1mm;margin-bottom:8mm}
+.bkdoc .cv .kd{font-size:13px;font-weight:700;letter-spacing:5px;color:var(--p)}
+.bkdoc .cv h1{margin:5mm 0 0;font-size:52px;line-height:1.12;font-weight:800;letter-spacing:-1.8px;color:#17251e}
+.bkdoc .cv h2{margin:3mm 0 0;font-size:30px;font-weight:300;letter-spacing:1px;color:#333}
+.bkdoc .cv .ln{margin:11mm 0 0;border-top:.6mm solid var(--p);width:100%}
+.bkdoc .cv ul{list-style:none;margin:8mm 0 0;padding:0;font-size:12.5px;line-height:2;width:60%}
+.bkdoc .cv li{display:flex;gap:4mm;border-bottom:.2mm solid var(--line);padding:.4mm 0}.bkdoc .cv li b{width:24mm;flex:none;font-weight:700;color:var(--pd)}
+.bkdoc .cv .deco{position:absolute;right:8mm;bottom:50mm;width:96mm;height:96mm}
+.bkdoc .cv .c3{position:absolute;left:16mm;right:16mm;bottom:22mm;border-collapse:collapse;width:calc(100% - 32mm);font-size:13px}
+.bkdoc .cv .c3 td{border:.3mm solid var(--line);height:13mm;text-align:center}.bkdoc .cv .c3 td.k{width:21mm;font-weight:800;letter-spacing:3px;background:var(--pl);color:var(--pd)}
+.bkdoc .cv .c4{position:absolute;left:0;right:0;bottom:9mm;text-align:center;font-size:10px;color:#666;letter-spacing:.3px}
 /* 차례 */
-.bkdoc .toc h3{margin:0 0 5mm;font-size:21px;font-weight:800;letter-spacing:6px;text-align:center;border-bottom:.6mm solid #111;padding-bottom:3mm}
-.bkdoc .toc table{width:100%;border-collapse:collapse;font-size:12.4px;line-height:1.5;margin-bottom:6mm}
-.bkdoc .toc th{background:#111;color:#fff;font-weight:700;padding:1.2mm 2mm;font-size:11.5px}
-.bkdoc .toc td{border-bottom:.3mm solid #999;padding:1.5mm 2mm;vertical-align:top}.bkdoc .toc td.n{text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+.bkdoc .toc h3{margin:0 0 6mm;padding-bottom:3mm;font-size:22px;font-weight:800;letter-spacing:3px;border-bottom:.6mm solid var(--p)}
+.bkdoc .toc table{width:100%;border-collapse:collapse;font-size:12.6px;line-height:1.5;margin-bottom:7mm}
+.bkdoc .toc th{background:var(--p);color:#fff;font-weight:600;padding:1.4mm 2mm;font-size:11.5px}
+.bkdoc .toc td{border-bottom:.25mm solid var(--line);padding:1.8mm 2mm;vertical-align:top}.bkdoc .toc td.n{text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--pd);font-weight:600}
 .bkdoc .toc td.s{font-weight:700}
-.bkdoc .toc .how{border:.35mm solid #111;padding:3.4mm 4.4mm;font-size:12px;line-height:1.75}.bkdoc .toc .how b{font-weight:800}
-.bkdoc .toc .how h4{margin:0 0 1.6mm;font-size:13px;font-weight:800;letter-spacing:4px;text-align:center}
+.bkdoc .toc .how{border-radius:2.4mm;background:var(--pl);padding:4mm 5mm;font-size:12px;line-height:1.85}.bkdoc .toc .how b{font-weight:800;color:var(--pd)}
+.bkdoc .toc .how h4{margin:0 0 2mm;font-size:13.5px;font-weight:800;color:var(--pd)}
 /* 실전 모의고사(출제 파일 서식) */
 .bkdoc .mk .hd .t2 b{background:#111}
 .bkdoc .mk .info{position:absolute;left:12mm;right:12mm;top:26mm;height:15mm;border:1px solid #111;display:grid;grid-template-columns:1fr 26mm;font-size:11px}
@@ -180,7 +203,7 @@ const BKSCR=`
 #bkpages{display:flex;flex-direction:column;overflow-x:auto;-webkit-overflow-scrolling:touch}#bkpages>*{flex:none;margin-left:auto;margin-right:auto}
 .bkbar{display:flex;gap:10px;align-items:center;flex-direction:row-reverse;justify-content:flex-end;margin:0 auto 14px;padding:6px 10px;font-size:12.5px;color:var(--m)}
 .bkbar b{color:var(--t)}.bkbar button{padding:6px 14px;border-radius:8px;font:inherit;font-size:13px}
-.bkrd{position:sticky;top:0;z-index:20;background:#fff;border:1px solid var(--l);border-radius:12px;padding:8px 10px;margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bkrd{position:sticky;top:62px;z-index:4;background:#fff;border:1px solid var(--l);border-radius:12px;padding:8px 10px;margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .bkrd select{max-width:100%;flex:1 1 170px;min-width:0}
 .bkshelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
 .bkcard{border:1px solid var(--l);border-radius:12px;background:#fff;padding:14px;display:flex;gap:14px}
@@ -212,30 +235,30 @@ function bkInit(){
 const BKSH=':host{all:initial;display:block}.bkdoc.scr .bp{position:absolute;left:0;top:0;transform-origin:0 0;transform:scale(var(--bks,1))}';
 function bkShadow(host,html){const r=host.shadowRoot||host.attachShadow({mode:'open'});r.innerHTML='<style>'+BKSH+BKCSS+'</style>'+html;return r}
 function bkProbe(){let p=document.getElementById('bkprobe');if(!p){p=document.createElement('div');p.id='bkprobe';p.style.cssText='position:absolute;left:-9999px;top:0;visibility:hidden;pointer-events:none;width:300mm';document.body.appendChild(p);bkShadow(p,'<div class="bkdoc"><div id="bkpm"></div></div>')}return p.shadowRoot.getElementById('bkpm')}
-function bkMeasure(html,w){const p=bkProbe();p.innerHTML='<div style="width:'+w+'mm;display:flow-root;font-size:12px;line-height:1.5">'+html+'</div>';return Math.ceil(p.firstChild.getBoundingClientRect().height/BK_MM*10)/10}
-function bkH(u){const k=u.key;if(BKREC)BKREC.push(u);if(BKHT&&BKHT[k]!=null)return BKHT[k];if(BKH[k]==null)BKH[k]=bkMeasure(u.html,u.w||BK_COLW);return BKH[k]}
+function bkMeasure(html,w,cls){const p=bkProbe();p.innerHTML='<div class="'+(cls||'bk')+'" style="'+bkVars()+';width:'+w+'mm;display:flow-root;font-size:12px;line-height:1.5">'+html+'</div>';return Math.ceil(p.firstChild.getBoundingClientRect().height/BK_MM*10)/10}
+function bkH(u){const k=u.key;if(BKREC)BKREC.push(u);if(BKHT&&BKHT[k]!=null)return BKHT[k];if(BKH[k]==null)BKH[k]=bkMeasure(u.html,u.w||BK_COLW,u.cls);return BKH[k]}
 
 /* ---------- 문항 → HTML ---------- */
 function bkDoc(h){return new DOMParser().parseFromString('<body>'+h+'</body>','text/html').body}
 function bkChoices(root){const c=root.querySelector('.chs');if(!c)return;const t=[...c.querySelectorAll(':scope>div')].map(d=>(d.querySelector('span')||d).textContent.trim());const m=Math.max(0,...t.map(x=>x.length));c.classList.add(m<=10?'sh':m<=20?'md':'lg')}
 function bkQHtml(q,no,o){o=o||{};
  const r=bkDoc(q.q);const qs=r.querySelector('.qs');if(!qs)return '<div class="u q">'+q.q+'</div>';
- const qp=r.querySelector('.qp');let pt=o.pt!=null?'['+o.pt+'점]':qp?qp.textContent:'';
+ const pt=o.pt!=null?'['+o.pt+'점]':'';
  bkChoices(qs);
  const first=qs.firstElementChild;const numH='<b class="no">'+no+'</b>';
- if(first&&first.tagName==='P')first.insertAdjacentHTML('afterbegin',numH);else qs.insertAdjacentHTML('afterbegin','<p>'+numH+'</p>');
+ if(o.code)qs.insertAdjacentHTML('afterbegin','<div class="qh2">'+numH+'<span class="cd">'+(o.lv?'난이도 '+o.lv+' · ':'')+q.code+'</span></div>');
+ else if(first&&first.tagName==='P')first.insertAdjacentHTML('afterbegin',numH);else qs.insertAdjacentHTML('afterbegin','<p>'+numH+'</p>');
  if(pt){const kids=[...qs.children];let tgt=null;for(const k of kids){if(k.classList.contains('chs')||k.classList.contains('bogi'))break;if(k.tagName==='P')tgt=k}
   if(!tgt)tgt=kids.filter(k=>k.tagName==='P').pop();if(tgt)tgt.insertAdjacentHTML('beforeend',' <span class="pt">'+pt+'</span>')}
- if(o.lv){const f=qs.querySelector('p');if(f)f.insertAdjacentHTML('beforeend','<span class="lv'+(o.lv==='최'||o.lv==='상'?' h':'')+'">'+o.lv+'</span>')}
  if(o.ans){qs.insertAdjacentHTML('beforeend','<div class="ans"><div></div><div></div><div></div></div>')}
  return '<div class="u q" data-c="'+q.code+'">'+qs.innerHTML.replace(/ id="[^"]*"/g,'')+'</div>'}
 function bkOxHtml(q,no,kind){const r=bkDoc(q.q);const qs=r.querySelector('.qs')||r;let h=qs.innerHTML.replace(/^<p>/,'').replace(/<\/p>$/,'');
- return '<div class="u o '+(kind==='bl'?'b':'')+'" data-c="'+q.code+'"><span class="no">'+no+'</span><span class="tx">'+h+'</span>'+(kind==='ox'?'<span class="bx">O / X</span>':'')+'</div>'}
+ return '<div class="u o '+(kind==='bl'?'b':'')+'" data-c="'+q.code+'"><span class="nc"><b>'+no+'</b><small>'+q.code+'</small></span><span class="tx">'+h+'</span>'+(kind==='ox'?'<span class="bx">O / X</span>':'')+'</div>'}
 function bkAnsOf(q){if(q.set==='ox')return String(q.ans).toUpperCase()==='O'?'○':'×';if(q.set==='blank')return (q.blanks||[]).map((a,k)=>'㉠㉡㉢㉣㉤'[k]+' '+a).join(' · ');if(q.set==='essay')return '';return bkCir(q.ans)}
 function bkXHtml(q,no){const r=bkDoc(q.exp||'');const sol=r.querySelector('.sol')||r;sol.querySelectorAll('.sh').forEach(e=>e.remove());
  let body=sol.innerHTML;if(!r.querySelector('.sol'))body=r.innerHTML;
  const a=q.set==='essay'?'모범 답안':'정답 '+bkAnsOf(q);
- return '<div class="u x"><div class="xh"><span class="xn">'+no+'</span><span class="xa">'+a+'</span><span class="xm">'+(bkLv(q)?'난이도 '+bkLv(q):'')+'</span></div><div class="xb">'+body+'</div></div>'}
+ return '<div class="u x"><div class="xh"><span class="xn">'+no+'</span><span class="xa">'+a+'</span><span class="xm">'+(bkLv(q)&&q.set!=='ox'&&q.set!=='blank'?'난이도 '+bkLv(q)+' · ':'')+q.code+'</span></div><div class="xb">'+body+'</div></div>'}
 
 /* ---------- 구성 선택 ---------- */
 function bkSubs(){const C=CONC[SUBJ]||{};const o=C.subs||{};const keys=Object.keys(o);if(keys.length)return keys.map(k=>({k,name:o[k].name,goal:o[k].goal||''}));
@@ -299,31 +322,30 @@ async function bkPlan(id){
 function bkPageObjs(pg,extra){return pg.cols.map(c=>c.map(u=>u.html))}
 function bkQrPg(pages,k,kind,sub,label,pgs,extra){pgs.forEach(p=>{pages.push({k,kind,sub,label,cols:p.cols.map(c=>c.map(u=>u.html)),codes:p.cols.flat().map(u=>u.code).filter(Boolean),...extra})})}
 
+function bkSbn(s,extra){return '<div class="u sbn"><b><i>'+esc(s.k)+'</i>'+esc(s.name)+'</b>'+(s.goal?'<span class="g">'+esc(s.goal)+'</span>':'')+(extra||'')+'</div>'}
 function bkPlanConcept(id){
  const S=bkSel(),C=CONC[SUBJ]||{secs:[]};const pages=[{k:'cover'},{k:'toc'}];const toc=[];
  S.subs.forEach(s=>{
   const row={sub:s,c:null,ox:null,bl:null,mc:null};
   const secs=(C.secs||[]).filter(x=>x.sub===s.k);
-  // 개념 정리 (한 단)
-  const cu=[bkU('sb:'+SUBJ+':'+s.k+':c','<div class="u sbn"><b><i>'+esc(s.k)+'</i>'+esc(s.name)+'</b>'+(s.goal?'<span>'+esc(s.goal)+'</span>':'')+'</div>',{w:BK_FULLW,brk:true,keep:true})];
+  const cu=[bkU('sb:'+s.k+':c',bkSbn(s,'<div class="rf">[[REF:'+s.k+']]</div>'),{w:BK_FULLW,brk:true,keep:true})];
   secs.forEach(sec=>{
-   cu.push(bkU('ch:'+sec.id,'<div class="u ct"><span>'+esc(sec.no)+'. '+esc(sec.title)+'</span></div>',{w:BK_FULLW,keep:true}));
+   cu.push(bkU('ch:'+sec.id,'<div class="u sh2"><i>'+esc(sec.no)+'</i><span>'+esc(sec.title)+'</span></div>',{w:BK_FULLW,keep:true}));
    const d=bkDoc('<div class="cbk">'+sec.html+'</div>').firstElementChild;
    [...d.children].forEach((el,i)=>cu.push(bkU('cb:'+sec.id+':'+i,'<div class="u cbk">'+el.outerHTML+'</div>',{w:BK_FULLW})))});
   const cp=bkPack(cu,1,BK_BODY);row.c=pages.length+1;
   cp.forEach(p=>pages.push({k:'cn',kind:'c',sub:s,label:'개념 정리',cols:[p.cols[0].map(u=>u.html)]}));
-  // OX · 빈칸 · 기초 5지선다
   [['ox','OX 확인',S.ox[s.k],'o'],['bl','빈칸 채우기',S.bl[s.k],'o'],['mc','기초 5지선다',S.basic[s.k],'q']].forEach(([kd,nm,arr,t])=>{
    if(!arr||!arr.length)return;
-   const hu=bkU('h:'+kd,'<div class="u ct"><span>'+nm+'</span><small>'+esc(s.k)+' · '+arr.length+'문항</small></div>',{keep:true,brk:true});
-   const us=arr.map((q,i)=>bkU(t==='q'?'q:'+q.code:'o:'+q.code+':'+kd,t==='q'?bkQHtml(q,i+1):bkOxHtml(q,i+1,kd),{code:q.code}));
+   const hu=bkU('h:'+kd+':'+s.k,'<div class="u ct"><span>'+nm+'</span><small>'+esc(s.k)+' · '+arr.length+'문항</small></div>',{keep:true,brk:true});
+   const us=arr.map((q,i)=>bkU(t==='q'?'q:'+q.code:'o:'+q.code+':'+kd,t==='q'?bkQHtml(q,i+1,{code:1}):bkOxHtml(q,i+1,kd),{code:q.code}));
    row[kd]=pages.length+1;
    bkPack([hu,...us],2,BK_BODY).forEach(p=>pages.push({k:'pr',kind:kd,sub:s,label:nm,cols:p.cols.map(c=>c.map(u=>u.html)),codes:p.cols.flat().map(u=>u.code).filter(Boolean)}))});
   toc.push(row)});
  // 정답
  const au=[];
  S.subs.forEach(s=>{
-  au.push(bkU('as:'+s.k,'<div class="u sbn" style="margin-bottom:2mm"><b><i>'+esc(s.k)+'</i>'+esc(s.name)+'</b></div>',{keep:true}));
+  au.push(bkU('as:'+s.k,'<div class="u ct"><span>'+esc(s.k)+' '+esc(s.name)+'</span></div>',{keep:true}));
   [['ox','OX 정답',S.ox[s.k]],['bl','빈칸 정답',S.bl[s.k]]].forEach(([kd,nm,arr])=>{if(!arr||!arr.length)return;
    const cells=arr.map((q,i)=>'<div><b>'+(i+1)+'</b><span>'+(kd==='ox'?bkAnsOf(q):esc((q.blanks||[]).join(' / ')))+'</span></div>').join('');
    au.push(bkU('ak:'+kd+':'+s.k,'<div class="u k"><div class="ct sm"><span>'+nm+'</span></div><div class="kg '+(kd==='ox'?'':'w2')+'">'+cells+'</div></div>',{}))});
@@ -332,31 +354,34 @@ function bkPlanConcept(id){
    b.forEach((q,i)=>au.push(bkU('x:'+q.code,bkXHtml(q,i+1),{})))}});
  const ap=bkPack(au,2,BK_BODY);const aStart=pages.length+1;
  ap.forEach(p=>pages.push({k:'ak',kind:'a',label:'정답 · 해설',cols:p.cols.map(c=>c.map(u=>u.html))}));
+ // 소단원 머리글의 「확인 문제」 쪽 안내
+ const ref=r=>[r.ox?'OX p.'+r.ox:'',r.bl?'빈칸 p.'+r.bl:'',r.mc?'기초 5지선다 p.'+r.mc:''].filter(Boolean).map(t=>'<em>'+t+'</em>').join('');
+ toc.forEach(r=>pages.forEach(pg=>{if(pg.cols)pg.cols=pg.cols.map(c=>c.map(h=>h.replace('[[REF:'+r.sub.k+']]',ref(r))))}));
  return {kind:'c',title:SNAME[SUBJ]+' 개념서',short:'개념서',pages,toc,aStart,sel:S}}
 
 function bkPlanType(id){
  const S=bkSel();const pages=[{k:'cover'},{k:'toc'}];const toc=[];let no=0;const nums=new Map();
  S.subs.forEach(s=>{
   const qs=S.type.filter(q=>q.sub===s.k);if(!qs.length)return;
-  const units=[bkU('sb:'+SUBJ+':'+s.k+':t','<div class="u sbn"><b><i>'+esc(s.k)+'</i>'+esc(s.name)+'</b><span>'+qs.length+'문항 · 유형별로 묶고 난이도 순으로 배열</span></div>',{brk:true,keep:true})];
+  const units=[bkU('sb:'+s.k+':t',bkSbn({k:s.k,name:s.name,goal:''},'<span class="g">'+qs.length+'문항 · 유형별로 묶고, 유형 안에서는 쉬운 문제부터 어려운 문제 순으로 배열했습니다.</span>'),{brk:true,keep:true})];
   let cur=null,ti=0;
-  qs.forEach(q=>{if(q.type!==cur){cur=q.type;ti++;const grp=qs.filter(x=>x.type===cur);const av=grp.reduce((a,x)=>a+LVI[bkLv(x)],0)/grp.length;const st='★'.repeat(Math.max(1,Math.round(av)+1))+'☆'.repeat(4-Math.max(1,Math.round(av)+1));
+  qs.forEach(q=>{if(q.type!==cur){cur=q.type;ti++;const grp=qs.filter(x=>x.type===cur);const av=grp.reduce((a,x)=>a+LVI[bkLv(x)],0)/grp.length;const n=Math.max(1,Math.min(4,Math.round(av)+1));const st='★'.repeat(n)+'☆'.repeat(4-n);
     units.push(bkU('th:'+s.k+':'+ti+':'+cur,'<div class="th"><b>유형 '+String(ti).padStart(2,'0')+'</b><span>'+esc(cur)+'</span><small>'+st+'</small></div>',{keep:true}))}
-   no++;nums.set(q.code,no);units.push(bkU('q:'+q.code,bkQHtml(q,no,{lv:bkLv(q)}),{code:q.code}))});
+   no++;nums.set(q.code,no);units.push(bkU('q:'+q.code+':t',bkQHtml(q,no,{lv:bkLv(q),code:1}),{code:q.code}))});
   const row={sub:s,n:qs.length,p:pages.length+1};toc.push(row);
   bkPack(units,2,BK_BODY).forEach(p=>pages.push({k:'pr',kind:'t',sub:s,label:'유형 문제',cols:p.cols.map(c=>c.map(u=>u.html)),codes:p.cols.flat().map(u=>u.code).filter(Boolean)}))});
  // 서술형
- if(S.essay.length){const eu=[bkU('sb:es','<div class="u sbn"><b><i>서술형</i>서술형 · 최상위 도전</b><span>풀이 과정을 서술하시오 (자기 채점)</span></div>',{brk:true,keep:true})];
-  S.essay.forEach((q,i)=>{no++;nums.set(q.code,no);eu.push(bkU('q:'+q.code+':e',bkQHtml(q,no,{ans:1}),{code:q.code}))});
+ if(S.essay.length){const eu=[bkU('sb:es',bkSbn({k:'서술형',name:'서술형 · 최상위 도전',goal:''},'<span class="g">풀이 과정을 서술해 보세요. 맨 뒤 모범 답안과 비교해 스스로 채점합니다.</span>'),{brk:true,keep:true})];
+  S.essay.forEach((q,i)=>{no++;nums.set(q.code,no);eu.push(bkU('q:'+q.code+':e',bkQHtml(q,no,{ans:1,code:1,lv:bkLv(q)}),{code:q.code}))});
   toc.es={n:S.essay.length,p:pages.length+1};
   bkPack(eu,2,BK_BODY).forEach(p=>pages.push({k:'es',kind:'e',label:'서술형',cols:p.cols.map(c=>c.map(u=>u.html))}))}
  // 정답·해설
  const au=[];
  S.subs.forEach(s=>{const qs=S.type.filter(q=>q.sub===s.k);if(!qs.length)return;
-  au.push(bkU('as:'+s.k,'<div class="u sbn" style="margin-bottom:2mm"><b><i>'+esc(s.k)+'</i>'+esc(s.name)+'</b></div>',{keep:true}));
+  au.push(bkU('as:'+s.k,'<div class="u ct"><span>'+esc(s.k)+' '+esc(s.name)+'</span></div>',{keep:true}));
   au.push(bkU('akt:'+s.k,'<div class="u k"><div class="ct sm"><span>빠른 정답</span></div><div class="kg">'+qs.map(q=>'<div><b>'+nums.get(q.code)+'</b><span>'+bkCir(q.ans)+'</span></div>').join('')+'</div></div>',{}));
   qs.forEach(q=>au.push(bkU('x:'+q.code,bkXHtml(q,nums.get(q.code)),{})))});
- if(S.essay.length){au.push(bkU('as:es','<div class="u sbn" style="margin-bottom:2mm"><b><i>서술형</i>모범 답안</b></div>',{keep:true}));S.essay.forEach(q=>au.push(bkU('x:'+q.code,bkXHtml(q,nums.get(q.code)),{})))}
+ if(S.essay.length){au.push(bkU('as:es','<div class="u ct"><span>서술형 모범 답안</span></div>',{keep:true}));S.essay.forEach(q=>au.push(bkU('x:'+q.code,bkXHtml(q,nums.get(q.code)),{})))}
  const aStart=pages.length+1;
  bkPack(au,2,BK_BODY).forEach(p=>pages.push({k:'ak',kind:'a',label:'정답 · 해설',cols:p.cols.map(c=>c.map(u=>u.html))}));
  return {kind:'t',title:SNAME[SUBJ]+' 유형서',short:'유형서',pages,toc,aStart,sel:S,total:no}}
@@ -364,13 +389,13 @@ function bkPlanType(id){
 function bkPlanMock(id,rd){
  const M=BKM&&BKM[rd];if(!M)return {kind:'m',title:'모의고사',short:'모의고사',pages:[{k:'cover'}],toc:[]};
  const qs=M.codes.map(c=>byCode[c]).filter(Boolean);const pages=[{k:'mcv'}];
- const us=qs.map((q,i)=>bkU('mq:'+q.code,bkQHtml(q,i+1,{pt:M.pts[q.code]}),{code:q.code}));
+ const us=qs.map((q,i)=>bkU('mq:'+q.code,bkQHtml(q,i+1,{pt:M.pts[q.code]}),{code:q.code,cls:'mk'}));
  const pp=bkPack(us,2,BK_BODY,BK_BODY-19);const nq=pp.length;
  pp.forEach((p,i)=>pages.push({k:'mq',kind:'q',label:'문제지',idx:i+1,of:nq,first:i===0,cols:p.cols.map(c=>c.map(u=>u.html)),codes:p.cols.flat().map(u=>u.code).filter(Boolean)}));
  // 정답·해설 : 새 레이아웃
  const exu=qs.map((q,i)=>{const e=M.ex[q.code]||{};const lines=(e.core&&!/^<b>/.test(e.core)?[e.core]:[]).concat(e.ch||[]);const items=lines.map(t=>{const m=t.match(/<span class="(o|x)">/);if(!m)return '<li class="sm"><i style="visibility:hidden">·</i><span>'+t+'</span></li>';const ok=m[1]==='o';return '<li><i class="'+(ok?'':'x')+'">'+(ok?'○':'×')+'</i><span>'+t.replace(/<span class="[ox]">[^<]*<\/span>\s*/,'')+'</span></li>'}).join('');
   const html='<div class="u ex"><div class="rl"><b>'+(i+1)+'</b><span>'+bkCir(q.ans)+'</span></div><div class="rb">'+(e.core&&/^<b>/.test(e.core)?'<div class="core">'+e.core.replace(/<b>([^<]*)<\/b>\s*:\s*/,'<b>$1</b> ')+'</div>':'')+(items?'<ul>'+items+'</ul>':'')+'<div class="ft2"><b>개념</b> '+esc(e.need||'')+' <br><b>복습</b> '+esc(e.rv||'')+'</div></div></div>';
-  return bkU('mx:'+q.code,html,{})});
+  return bkU('mx:'+q.code,html,{cls:'mk ma'})});
  // 요약(정답표)용 높이: 1쪽에 고정 블록
  const sumH=118;const xp=bkPack(exu,2,BK_BODY,BK_BODY-sumH);
  xp.forEach((p,i)=>pages.push({k:'ma',kind:'a',label:'정답 및 해설',idx:i+1,of:xp.length,first:i===0,cols:p.cols.map(c=>c.map(u=>u.html))}));
@@ -380,16 +405,26 @@ function bkPlanMock(id,rd){
 const BKCAP=BK_BODY;
 function bkBase(){if(window.BKBASE)return window.BKBASE;return ((typeof CF!=='undefined'&&CF&&CF.pub)||location.href).split('#')[0].split('?')[0]}
 function bkUrl(plan,p){return bkBase()+'#bk='+plan.id+':'+p.n}
+function bkHd2(plan,p){const even=p.n%2===0;const L=esc(SNAME[SUBJ])+' · <b>'+esc(plan.short)+'</b>';const R='<span class="lb2">'+(p.sub&&p.sub.k?esc(p.sub.k)+' · ':'')+esc(p.label||'')+'</span>';
+ return '<div class="hd2">'+(even?R+L:L+R)+'</div>'}
+function bkFb(plan,p){const even=p.n%2===0,qr=p.codes&&p.codes.length;
+ const pn='<span class="pn'+(even?' r':'')+'">'+p.n+'</span>',lab='<span class="lab">'+esc(p.label||plan.short)+'</span>';
+ const q=qr?'<div class="qrb"><div class="qq">'+qrSvg(bkUrl(plan,p))+'</div><div class="qt">이 페이지를 채점하려면<br><b>스캔하세요</b></div></div>':'<span></span>';
+ // 쪽 번호: 홀수쪽은 왼쪽, 짝수쪽은 오른쪽
+ return '<div class="fb">'+(even?lab+q+pn:pn+q+lab)+'</div>'}
 function bkHd(l,r,b){return '<div class="hd"><span class="t1">'+l+'</span><span class="t2">'+r+'<b>'+b+'</b></span></div>'}
 function bkFt(plan,p,o){o=o||{};const qr=p.codes&&p.codes.length;
  return '<div class="ft"><span class="fl">'+(o.left||'Solvi · '+esc(plan.title))+'</span><span class="pn">'+(o.pn!=null?o.pn:p.n)+'</span>'+
   (qr?'<div class="fr2"><div class="qt"><b>이 쪽 채점</b>QR을 스캔하세요</div><div class="qq">'+qrSvg(bkUrl(plan,p))+'</div></div>':o.right?'<div class="fr2"><span class="fn">'+o.right+'</span></div>':'<div></div>')+'</div>'}
+function bkDeco(){const c=BKPAL[SUBJ]||BKPAL.cm;
+ if(SUBJ==='me')return '<svg class="deco" viewBox="0 0 200 200"><polygon points="100,22 168,61 168,139 100,178 32,139 32,61" fill="'+c.pl+'" stroke="'+c.p+'" stroke-width="3"/><polygon points="100,52 142,76 142,124 100,148 58,124 58,76" fill="none" stroke="'+c.line+'" stroke-width="2.5" stroke-dasharray="5 5"/>'+[[100,22],[168,61],[168,139],[100,178],[32,139],[32,61]].map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(i%2?9:13)+'" fill="'+(i%2?'#fff':c.p)+'" stroke="'+c.p+'" stroke-width="3"/>').join('')+'<circle cx="100" cy="100" r="14" fill="'+c.pl2+'"/><circle cx="178" cy="22" r="8" fill="#ffca2c"/><circle cx="20" cy="176" r="10" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2"/></svg>';
+ return '<svg class="deco" viewBox="0 0 200 200"><circle cx="100" cy="104" r="78" fill="'+c.pl+'" stroke="'+c.p+'" stroke-width="3"/><circle cx="92" cy="96" r="26" fill="'+c.p+'"/><ellipse cx="124" cy="128" rx="20" ry="11" transform="rotate(-28 124 128)" fill="none" stroke="'+c.p+'" stroke-width="3"/><circle cx="46" cy="38" r="22" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2.5"/><circle cx="46" cy="38" r="8" fill="'+c.p+'"/><circle cx="168" cy="40" r="9" fill="#ffca2c"/><circle cx="170" cy="168" r="15" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2"/></svg>'}
 function bkCover(plan){
- const kd=plan.kind==='c'?'개념서':'유형서';const S=plan.sel;
- const rows=plan.kind==='c'?[['개념','단원별 핵심 개념 정리'],['OX · 빈칸','개념을 바로 확인'],['기초 5지선다','기본 문항으로 마무리'],['정답·해설','맨 뒤 정답과 해설']]
-  :[['구성','소단원 → 유형 → 난이도 순'],['문항 수','총 '+(plan.total||0)+'문항 (서술형 포함)'],['채점','쪽마다 QR로 바로 채점'],['정답·해설','맨 뒤 정답과 해설']];
- return '<div class="cv"><div class="c1"><span>Solvi · 과학</span><b>SERIES</b><span>'+esc(SNAME[SUBJ])+'</span></div><div class="c2"><div class="bar"></div><div class="kd">'+(plan.kind==='c'?'CONCEPT BOOK':'TYPE BOOK')+'</div><h1>'+esc(SNAME[SUBJ])+'</h1><h2>'+kd+'</h2><div class="ln"></div><ul>'+rows.map(r=>'<li><b>'+r[0]+'</b><span>'+r[1]+'</span></li>').join('')+'</ul></div>'+
-  '<table class="c3"><tr><td class="k">학 년</td><td></td><td class="k">반</td><td></td><td class="k">번 호</td><td></td><td class="k">이 름</td><td style="width:36mm"></td></tr></table><div class="c4">문제 쪽 아래 QR을 스캔하면 그 쪽을 바로 채점할 수 있습니다</div></div>'}
+ const kd=plan.kind==='c'?'개념서':'유형서';
+ const rows=plan.kind==='c'?[['개념','단원별 핵심 개념 정리'],['OX · 빈칸','개념을 바로 확인'],['기초 5지선다','기본 문항으로 마무리'],['정답 · 해설','맨 뒤에 정리']]
+  :[['구성','소단원 → 유형 → 난이도 순'],['문항 수','총 '+(plan.total||0)+'문항 (서술형 포함)'],['채점','쪽마다 QR로 바로 채점'],['정답 · 해설','맨 뒤에 정리']];
+ return '<div class="cv"><div class="c1"><span>Solvi · 과학</span><span>'+esc(SNAME[SUBJ])+' '+kd+'</span></div>'+bkDeco()+'<div class="c2"><div class="bar"></div><div class="kd">'+(plan.kind==='c'?'CONCEPT BOOK':'TYPE BOOK')+'</div><h1>'+esc(SNAME[SUBJ])+'</h1><h2>'+kd+'</h2><div class="ln"></div><ul>'+rows.map(r=>'<li><b>'+r[0]+'</b><span>'+r[1]+'</span></li>').join('')+'</ul></div>'+
+  '<table class="c3"><tr><td class="k">학 년</td><td></td><td class="k">반</td><td></td><td class="k">번 호</td><td></td><td class="k">이 름</td><td style="width:36mm"></td></tr></table><div class="c4">문제 쪽 아래 QR을 스캔하면 그 페이지를 바로 채점할 수 있습니다</div></div>'}
 function bkToc(plan){
  let h='<div class="toc"><h3>차 례</h3>';
  if(plan.kind==='c'){
@@ -411,11 +446,10 @@ function bkMockSum(plan){const M=plan.M,cs=M.codes;
  t+='<tr><th colspan="2">합계</th><th>'+cs.reduce((s,c)=>s+(parseFloat(M.pts[c])||0),0).toFixed(1)+'</th><th></th></tr></table>';
  return '<div class="sc"><h5>정답표</h5>'+row(0,Math.ceil(cs.length/2))+row(Math.ceil(cs.length/2),cs.length)+'</div><div class="sc"><h5>영역별 분석 · 자기 채점</h5>'+t+'</div>'}
 function bkPageHtml(plan,i){
- const p=plan.pages[i],S=esc(SNAME[SUBJ]);
- if(p.k==='cover')return '<div class="bp">'+bkCover(plan)+'</div>';
- if(p.k==='toc')return '<div class="bp">'+bkHd(S+'<em>'+plan.short+'</em>','','차례')+'<div class="bd one">'+bkToc(plan)+'</div>'+bkFt(plan,p)+'</div>';
- const hd=bkHd(S+'<em>'+esc(plan.short)+'</em>',(p.sub?esc(p.sub.k)+' · ':'')+esc(p.label||''),p.n);
- if(p.k==='cn')return '<div class="bp">'+hd+'<div class="bd one">'+p.cols[0].join('')+'</div>'+bkFt(plan,p)+'</div>';
+ const p=plan.pages[i];const V=' style="'+bkVars()+'"';
+ if(p.k==='cover')return '<div class="bp bk"'+V+'>'+bkCover(plan)+'</div>';
+ if(p.k==='toc')return '<div class="bp bk"'+V+'>'+bkHd2(plan,p)+'<div class="bd one">'+bkToc(plan)+'</div>'+bkFb(plan,p)+'</div>';
+ if(p.k==='cn')return '<div class="bp bk"'+V+'>'+bkHd2(plan,p)+'<div class="bd one">'+p.cols[0].join('')+'</div>'+bkFb(plan,p)+'</div>';
  if(p.k==='mcv')return '<div class="bp mk">'+bkMockCover(plan)+'</div>';
  if(p.k==='mq'||p.k==='ma'){const M=plan.M,mq=p.k==='mq';
   const t1=mq?esc(M.head)+'<em>'+esc(M.grade.replace('제 ','')+' '+M.sname+' · 실전 동형 모의고사 '+M.round+'회')+'</em>':'정답 및 해설<em>'+esc(M.sname)+' · 실전 동형 모의고사 '+M.round+'회 ('+esc(M.kind)+')</em>';
@@ -427,7 +461,7 @@ function bkPageHtml(plan,i){
   return '<div class="'+cls+'">'+h2+info+sum+'<div class="'+bdc+'"'+st+'><div class="cols">'+p.cols.map(c=>'<div class="col">'+c.join('')+'</div>').join('')+'</div></div>'+
    (mq?bkFt(plan,{...p,n:p.idx},{left:'Solvi · 실전 동형 모의고사',pn:p.idx,right:'※ 제시된 시간 안에 풀고 답을 점검하시오.'}):bkFt(plan,{...p,codes:[]},{left:'Solvi · 정답 및 해설',pn:p.idx,right:'※ 틀린 문항은 「필요한 개념」을 다시 확인하시오.'}))+'</div>'}
  // pr, es, ak
- return '<div class="bp">'+hd+'<div class="bd"><div class="cols">'+p.cols.map(c=>'<div class="col">'+c.join('')+'</div>').join('')+'</div></div>'+bkFt(plan,p,p.k==='es'?{right:'서술형은 모범 답안과 비교해 스스로 채점'}:{})+'</div>'}
+ return '<div class="bp bk"'+V+'>'+bkHd2(plan,p)+'<div class="bd"><div class="cols">'+p.cols.map(c=>'<div class="col">'+c.join('')+'</div>').join('')+'</div></div>'+bkFb(plan,p)+'</div>'}
 
 /* ---------- 채점 · 경로 ---------- */
 async function bkGradePage(id,n){
@@ -435,7 +469,7 @@ async function bkGradePage(id,n){
  await bkInit();const P=bkParts(id);if(!P)return;
  if(P.subj!==SUBJ)await setSubject(P.subj);
  await conceptLoad();const plan=await bkPlan(id);const p=plan&&plan.pages.find(x=>x.n===+n);
- if(!p||!p.codes||!p.codes.length){toast('이 쪽에는 채점할 문제가 없어요');return}
+ if(!p||!p.codes||!p.codes.length){const ks=plan?plan.pages.filter(x=>x.codes&&x.codes.length).map(x=>x.n):[];toast('p.'+n+'에는 채점할 문제가 없어요'+(ks.length?' (문제가 있는 쪽: p.'+ks[0]+' ~ p.'+ks[ks.length-1]+')':''));return}
  if(guardStu())return;
   const qs=p.codes.map(c=>byCode[c]).filter(Boolean);if(!qs.length){toast('문항을 불러오지 못했어요');return}
  const key=id+':'+p.n,bk={page:key,bk:id,n:p.n,label:plan.short+' p.'+p.n};
@@ -496,7 +530,7 @@ async function bkReader(id){
  else{jumps.push(['문제지',2],['정답 및 해설',plan.aStart])}
  jumps.push(['정답 · 해설',plan.aStart]);const seen=new Set();const J=jumps.filter(j=>j[1]&&!seen.has(j[0]+j[1]) && seen.add(j[0]+j[1]));
  m.innerHTML=`<div class="bkrd"><button onclick="bkClose()">‹ 교재함</button><b style="font-size:14px">${esc(plan.title)}</b><select id="bkj" onchange="bkJump(this.value)"><option value="">이동…</option><option value="1">표지</option>${J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}</select>${plan.kind==='m'?`<button class="p" onclick="bkGradeAll('${id}')">시험 전체 채점</button>`:''}<span class="bkzm"><button onclick="bkZoom(-1)" aria-label="작게">－</button><b id="bkzl">${Math.round((BKV.z||1)*100)}%</b><button onclick="bkZoom(1)" aria-label="크게">＋</button></span><button onclick="bkPrint('${id}',0)">문제만 인쇄</button><button class="p" onclick="bkPrint('${id}',1)">전체 인쇄 · PDF</button></div><div id="bkpages"></div>`;
- const box=$('#bkpages');bkScale();
+ const hdr=document.querySelector('header');const rd=document.querySelector('.bkrd');if(rd&&hdr)rd.style.top=(hdr.getBoundingClientRect().height+6)+'px';const box=$('#bkpages');bkScale();
  box.innerHTML=plan.pages.map((p,i)=>`<div class="bkw" id="bkpg${p.n}" data-i="${i}" style="width:var(--bkw);height:var(--bkh)"></div>`+(p.codes&&p.codes.length?`<div class="bkbar" style="width:var(--bkw)"><span><b>p.${p.n}</b> · ${p.codes.length}문항</span><button class="p" onclick="bkGradePage('${id}',${p.n})">이 쪽 채점하기</button></div>`:'<div style="height:10px"></div>')).join('');
  const fill=el=>{if(el.dataset.f)return;el.dataset.f=1;bkShadow(el,'<div class="bkdoc scr">'+bkPageHtml(plan,+el.dataset.i)+'</div>')};
  if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){fill(e.target);io.unobserve(e.target)}}),{rootMargin:'900px 0px'});box.querySelectorAll('.bkw').forEach(e=>io.observe(e))}
@@ -521,14 +555,14 @@ function bkStandalone(plan){
  return '<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(plan.title)+'</title><style>'+cdn+'@page{size:A4;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#d9dde3}'+BKCSS+'.bkdoc .bp{margin:8mm auto;box-shadow:0 1px 8px rgba(0,0,0,.25)}@media print{html,body{background:#fff}.bkdoc .bp{margin:0;box-shadow:none;page-break-after:always;break-after:page}.bkdoc .bp:last-child{page-break-after:auto;break-after:auto}}</style></head><body class="bkdoc">'+pg+'<script>(function(){function f(){var s=Math.min(1,innerWidth/(210*96/25.4+16));document.body.style.zoom=s<1?s:""}f();addEventListener("resize",f);addEventListener("beforeprint",function(){document.body.style.zoom=""});addEventListener("afterprint",f)})()</script></body></html>'}
 /* ---------- 높이표 만들기(개발용) : 콘솔/자동화에서 await bkMeasureAll() ---------- */
 let BKREC=null;
-async function bkMeasureAsync(html,w){const p=bkProbe();p.innerHTML='<div style="width:'+w+'mm;display:flow-root;font-size:12px;line-height:1.5">'+html+'</div>';
+async function bkMeasureAsync(html,w,cls){const p=bkProbe();p.innerHTML='<div class="'+(cls||'bk')+'" style="'+bkVars()+';width:'+w+'mm;display:flow-root;font-size:12px;line-height:1.5">'+html+'</div>';
  await Promise.all([...p.querySelectorAll('img')].map(i=>i.complete&&i.naturalWidth?1:new Promise(r=>{i.onload=i.onerror=()=>r();setTimeout(r,30000)})));
  return Math.ceil(p.firstChild.getBoundingClientRect().height/BK_MM*10)/10}
 async function bkMeasureAll(){
  await bkInit();BKHT={};const subj=SUBJ;const ids=[subj+'-c',subj+'-t',...(BKM&&subj==='cm'?Object.keys(BKM).map(k=>'cm-m'+k):[])];
  BKREC=[];for(const id of ids){delete BKP[id];await bkPlan(id)}
  const rec=BKREC;BKREC=null;
- for(const u of rec){BKH[u.key]=await bkMeasureAsync(u.html,u.w||BK_COLW)}
+ for(const u of rec){BKH[u.key]=await bkMeasureAsync(u.html,u.w||BK_COLW,u.cls)}
  for(const id of ids)delete BKP[id];
  for(const id of ids)await bkPlan(id);
  return BKH}
