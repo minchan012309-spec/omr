@@ -50,7 +50,7 @@ tr.sel td{background:#f3f8ff}
 .modal{position:fixed;inset:0;background:#0006;z-index:20;display:none;align-items:center;justify-content:center;padding:16px}.modal.open{display:flex}
 .modal .box{background:#fff;border-radius:14px;padding:22px;width:min(460px,100%);max-height:90vh;overflow:auto}
 .modal label{display:block;font-size:13px;color:var(--m);margin:10px 0 3px}.modal input{width:100%}.modal input[type=checkbox]{width:auto;margin:0}.modal label.cb{display:inline-flex;align-items:center;gap:6px;color:var(--t);font-size:14px;margin:4px 14px 4px 0}.modal label.cb b{font-weight:500}
-#wsView{position:fixed;inset:0;background:#e9eef5;z-index:30;overflow:auto;display:none}#wsView.open{display:block}
+#wsView{position:fixed;inset:0;background:#e9eef5;z-index:30;overflow:auto;display:none}#wsView.open{display:block}#wsView.wsm{display:block;left:-30000px;right:auto;width:1200px;visibility:hidden;pointer-events:none}
 #wsBar .wsx{order:99;margin-left:auto;width:38px;height:38px;border-radius:50%;border:1px solid var(--l);background:#fff;font-size:18px;line-height:1;cursor:pointer;color:#333;padding:0;display:grid;place-items:center}#wsBar .wsx:hover{background:#f1f4f8}
 #wsBar{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--l);padding:10px 16px;display:flex;gap:10px;align-items:center;z-index:2;flex-wrap:wrap}
 #wsPaper{width:210mm;margin:14px auto;padding:0;background:none}
@@ -1599,6 +1599,7 @@ async function openWs(rec,pv,opt){
  await Promise.all([...stage.querySelectorAll('img')].map(i=>i.complete&&i.naturalWidth?1:new Promise(r=>{i.onload=i.onerror=r;setTimeout(r,6000)})));
  stage.remove();
  if(!pv&&!win){$('#wsView').classList.add('open');$('#wsView').scrollTop=0;pushNav()}
+ if(!pv&&win)$('#wsView').classList.add('wsm');
  if(rec.cover&&rec.cover.on&&!pv){const cv=document.createElement('div');cv.className='pg mcover';cv.innerHTML=coverHtml(rec,qs,rec._pts&&rec._pts.some(x=>x)?rec._pts.reduce((a,b)=>a+(+b||0),0):qs.length,nm,url);pages.appendChild(cv)}
  if(rec.pkg&&rec.pkg.pre&&rec.pkg.pre.length){const pe=rec.pkg.pre.map(h=>{const d=document.createElement('div');d.className='sb pk';d.dataset.nomin='1';d.innerHTML=h.replace(/^<div class="sb pk">|<\/div>$/g,'');return d});stage.append(...pe);flow(pe,true,false);flow(qEls,false,false)}else flow(qEls,true,false);
  if(rec.ans&&!pv){const key=document.createElement('div');key.innerHTML=`<div class="sb"><div class="h" style="font-size:13pt">정답</div></div><div class="key">${qs.map((q,i)=>`<span>${i+1}. <b>${q.set==='essay'?'(서술형)':fmt(String(q.ans).slice(0,18))}</b></span>`).join('')}</div>`;flow([key,...sols],false,true)}
@@ -1606,7 +1607,7 @@ async function openWs(rec,pv,opt){
  if(pv){all.slice(1).forEach(p=>p.remove());return pn}
  let ps=document.getElementById('wsPrintStyle');if(!ps){ps=document.createElement('style');ps.id='wsPrintStyle';document.head.appendChild(ps)}ps.textContent='@page{size:A4;margin:0}';
  const warn=/localhost|127\.0\.0\.1|^file:/.test(base)&&rec.qr;
- if(win){wsPopFill(win,rec);return pn}
+ if(win){$('#wsView').classList.remove('wsm');wsPopFill(win,rec);return pn}
  $('#wsBar').innerHTML=`<button class="p" onclick="window.print()">인쇄 / PDF 저장</button><button class="wsx" onclick="closeWs()" title="닫기" aria-label="닫기">✕</button><span class="m">${qs.length}문항 · ${pn}쪽 · 번호 <b class="wsno">${fmtNo(rec.id)}</b> · QR을 누르면 채점 화면으로 이동합니다</span>${SAFARI?'<span class="sfhint">Safari: 인쇄창에서 용지 A4 · 배율 100% · 여백 없음 · 「배경 그래픽」 켜기</span>':''}${warn?'<span class="tag y">QR 주소가 이 컴퓨터(localhost)입니다.</span>':''}`}
 function closeWs(){if(history.state&&history.state.k&&history.state.k.endsWith('|1')){history.back();return}$('#wsView').classList.remove('open');const ps=document.getElementById('wsPrintStyle');if(ps)ps.textContent='';if(tab==='ws')render()}
 /* ---------- 누적 분석 ---------- */
