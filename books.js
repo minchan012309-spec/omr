@@ -6,7 +6,12 @@ const BKP={},BKSELC={},BKH={};let BKHT=null,BKREADY=null;
 const BKCIR='①②③④⑤⑥⑦⑧⑨⑩';
 const bkLv=q=>q.lv0||q.lv||'';
 const BKPAL={cm:{p:'#2f9d66',pd:'#1f7d4e',pl:'#eefcf5',pl2:'#d9f8e8',line:'#b0e3c9'},me:{p:'#2f7fd0',pd:'#1d5ca6',pl:'#eef5fc',pl2:'#d9e8f8',line:'#b9cfe6'}};
-const bkVars=()=>{const c=BKPAL[SUBJ]||BKPAL.cm;return '--p:'+c.p+';--pd:'+c.pd+';--pl:'+c.pl+';--pl2:'+c.pl2+';--line:'+c.line+';--y:#ffca2c'};
+const BKPADS=[2.8,4.5,6.5,9];
+let BKO=(()=>{try{return JSON.parse(localStorage.getItem('omr_bko')||'{}')}catch(e){return {}}})();
+const bkOsig=()=>(BKO.gap||0)+'|'+(BKO.color||'')+'|'+(BKO.font||'')+'|'+(BKO.design||'');
+function bkOset(o){Object.assign(BKO,o);try{localStorage.setItem('omr_bko',JSON.stringify(BKO))}catch(e){}}
+const bkPal=()=>{if(BKO.color&&typeof PAL!=='undefined'&&PAL[BKO.color]){const v=PAL[BKO.color];return {p:v[0],pd:v[1],pl:v[2],pl2:v[3],line:v[3]}}return BKPAL[SUBJ]||BKPAL.cm};
+const bkVars=()=>{const c=bkPal();return '--p:'+c.p+';--pd:'+c.pd+';--pl:'+c.pl+';--pl2:'+c.pl2+';--line:'+c.line+';--y:#ffca2c'};
 const bkCir=a=>String(a).split(',').map(x=>BKCIR[(+x)-1]||x).join(', ');
 
 /* ---------- 스타일 ---------- */
@@ -164,6 +169,7 @@ const BKCSS=`
 .bkdoc .toc .how h4{margin:0 0 2mm;font-size:13.5px;font-weight:800;color:var(--pd)}
 /* 실전 모의고사(출제 파일 서식) */
 .bkdoc .mk .hd .t2 b{background:#111}
+.bkdoc .mk.cl .hd .t2 b{background:var(--pd)}.bkdoc .mk.cl *{border-color:var(--pd)!important}.bkdoc .mk.cl .cv2 .ttl .a,.bkdoc .mk.cl .info .r{color:var(--pd)}.bkdoc .mk.cl .cv2 .ln{border-color:var(--pd)!important}
 .bkdoc .mk .info{position:absolute;left:12mm;right:12mm;top:26mm;height:15mm;border:1px solid #111;display:grid;grid-template-columns:1fr 26mm;font-size:11px}
 .bkdoc .mk .info .l{padding:1.6mm 3mm;font-weight:700;font-size:12.5px;border-right:1px solid #111;display:flex;flex-direction:column;justify-content:space-between}
 .bkdoc .mk .info .l div{display:flex;font-weight:600;font-size:11px;border-top:1px solid #111;margin:0 -3mm -1.6mm}.bkdoc .mk .info .l div span{flex:1;padding:.6mm 3mm;border-right:1px solid #111}.bkdoc .mk .info .l div span:last-child{border-right:0}
@@ -307,23 +313,23 @@ function bkPack(units,ncol,cap,firstCap){
  const np=()=>{pg={cols:Array.from({length:ncol},()=>[])};pages.push(pg);ci=0;used=0};
  for(let i=0;i<units.length;i++){const u=units[i];
   if(!pg||(u.brk&&pg.cols.some(c=>c.length)))np();
-  let need=u.h;if(u.keep&&units[i+1])need+=units[i+1].h;
+  let need=u.h+(u.pad||0);if(u.keep&&units[i+1])need+=units[i+1].h+(units[i+1].pad||0);
   if(used+need>capOf()&&used>0){ci++;used=0;if(ci>=ncol)np()}
-  pg.cols[ci].push(u);used+=u.h}
+  pg.cols[ci].push(u);used+=u.h+(u.pad||0)}
  return pages}
-function bkGap(c){const n=c.length;if(n<2)return 0;const used=c.reduce((a,u)=>a+u.h,0);if(used<BK_BODY*.55)return 0;return Math.max(0,Math.min(14,Math.round((BK_BODY-used-8)/(n-1)*10)/10))}
+function bkGap(c){const n=c.length;if(n<2)return 0;const pad=c.reduce((m,u)=>Math.max(m,u.pad||0),0);const used=c.reduce((a,u)=>a+u.h,0);if(used<BK_BODY*.55)return pad;return Math.max(pad,Math.min(14,Math.round((BK_BODY-used-8)/(n-1)*10)/10))}
 function bkCI(p){return {cols:p.cols.map(c=>c.map(u=>u.html)),gaps:p.cols.map(bkGap)}}
-const bkU=(key,html,o)=>{const u={key:SUBJ+'|'+key,html,w:(o&&o.w)||BK_COLW,...(o||{})};u.h=bkH(u);return u};
+const bkU=(key,html,o)=>{const u={key:SUBJ+'|'+key,html,w:(o&&o.w)||BK_COLW,...(o||{})};u.h=bkH(u);u.pad=/^<div class="u q"/.test(html)?BKPADS[BKO.gap||0]:0;return u};
 
 /* ---------- 쪽 계획 ---------- */
 async function bkPlan(id){
- if(BKP[id]&&BKP[id].subj===SUBJ)return BKP[id];
+ if(BKP[id]&&BKP[id].subj===SUBJ&&BKP[id].sig===bkOsig())return BKP[id];
  await bkInit();await conceptLoad();
  const P=bkParts(id);if(!P)return null;
  const mk=()=>P.kind==='c'?bkPlanConcept(id):P.kind==='t'?bkPlanType(id):P.def.kind==='full'?(P.def.round?bkPlanFull(id,P.def,P.def.round):null):bkPlanCustom(id,P.def);
  const plan=BKREC?mk():await bkSettle(mk);if(!plan)return null;
  plan.pages.forEach((p,i)=>p.n=i+1);
- plan.id=id;plan.subj=SUBJ;return BKP[id]=plan}
+ plan.id=id;plan.subj=SUBJ;plan.sig=bkOsig();return BKP[id]=plan}
 function bkPageObjs(pg,extra){return pg.cols.map(c=>c.map(u=>u.html))}
 function bkQrPg(pages,k,kind,sub,label,pgs,extra){pgs.forEach(p=>{pages.push({k,kind,sub,label,...bkCI(p),codes:p.cols.flat().map(u=>u.code).filter(Boolean),...extra})})}
 
@@ -442,7 +448,7 @@ function bkPlanFull(id,d,rd){
  const pages=[{k:'mcv'}];
  const us=qs.map((q,i)=>bkU('mq:'+q.code,bkQHtml(q,i+1,{pt:pts[q.code]}),{code:q.code,cls:'mk'}));
  const pp=bkPack(us,2,BK_BODY,BK_BODY-19);const nq=pp.length;
- pp.forEach((p,i)=>pages.push({k:'mq',kind:'q',label:'문제지',idx:i+1,of:nq,first:i===0,...bkCI(p),codes:p.cols.flat().map(u=>u.code).filter(Boolean)}));
+ pp.forEach((p,i)=>pages.push({k:'mq',kind:'q',label:'문제지',idx:i+1,of:nq,first:i===0,...bkCI(p),gaps:p.cols.map(c=>c.reduce((m,u)=>Math.max(m,u.pad||0),0)),codes:p.cols.flat().map(u=>u.code).filter(Boolean)}));
  const au=[bkU('fa:'+rd,'<div class="u ct"><span>정답표</span><small>'+d.count+'문항 · 100점</small></div>',{keep:true}),
   bkU('fk:'+qs.map(q=>q.code).join(','),'<div class="u k"><div class="kg">'+qs.map((q,i)=>'<div><b>'+(i+1)+'</b><span>'+bkCir(q.ans)+'</span></div>').join('')+'</div></div>',{}),
   ...qs.map((q,i)=>bkU('x:'+q.code,bkXHtml(q,i+1),{}))];
@@ -529,7 +535,7 @@ function bkHd(l,r,b){return '<div class="hd"><span class="t1">'+l+'</span><span 
 function bkFt(plan,p,o){o=o||{};const qr=p.codes&&p.codes.length;
  return '<div class="ft"><span class="fl">'+(o.left||'Solvi · '+esc(plan.title))+'</span><span class="pn">'+(o.pn!=null?o.pn:p.n)+'</span>'+
   (qr?'<div class="fr2"><div class="qq">'+qrSvg(bkUrl(plan,p))+'</div></div>':o.right?'<div class="fr2"><span class="fn">'+o.right+'</span></div>':'<div></div>')+'</div>'}
-function bkDeco(){const c=BKPAL[SUBJ]||BKPAL.cm;
+function bkDeco(){const c=bkPal();
  if(SUBJ==='me')return '<svg class="deco" viewBox="0 0 200 200"><polygon points="100,22 168,61 168,139 100,178 32,139 32,61" fill="'+c.pl+'" stroke="'+c.p+'" stroke-width="3"/><polygon points="100,52 142,76 142,124 100,148 58,124 58,76" fill="none" stroke="'+c.line+'" stroke-width="2.5" stroke-dasharray="5 5"/>'+[[100,22],[168,61],[168,139],[100,178],[32,139],[32,61]].map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(i%2?9:13)+'" fill="'+(i%2?'#fff':c.p)+'" stroke="'+c.p+'" stroke-width="3"/>').join('')+'<circle cx="100" cy="100" r="14" fill="'+c.pl2+'"/><circle cx="178" cy="22" r="8" fill="#ffca2c"/><circle cx="20" cy="176" r="10" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2"/></svg>';
  return '<svg class="deco" viewBox="0 0 200 200"><circle cx="100" cy="104" r="78" fill="'+c.pl+'" stroke="'+c.p+'" stroke-width="3"/><circle cx="92" cy="96" r="26" fill="'+c.p+'"/><ellipse cx="124" cy="128" rx="20" ry="11" transform="rotate(-28 124 128)" fill="none" stroke="'+c.p+'" stroke-width="3"/><circle cx="46" cy="38" r="22" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2.5"/><circle cx="46" cy="38" r="8" fill="'+c.p+'"/><circle cx="168" cy="40" r="9" fill="#ffca2c"/><circle cx="170" cy="168" r="15" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2"/></svg>'}
 function bkCover(plan){
@@ -565,12 +571,12 @@ function bkPageHtml(plan,i){
  if(p.k==='cover')return '<div class="bp bk"'+V+'>'+bkCover(plan)+'</div>';
  if(p.k==='toc')return '<div class="bp bk"'+V+'>'+bkHd2(plan,p)+'<div class="bd one">'+bkToc(plan)+'</div>'+bkFb(plan,p)+'</div>';
  if(p.k==='cn')return '<div class="bp bk"'+V+'>'+bkHd2(plan,p)+'<div class="bd one">'+p.cols[0].join('')+'</div>'+bkFb(plan,p)+'</div>';
- if(p.k==='mcv')return '<div class="bp mk">'+bkMockCover(plan)+'</div>';
+ if(p.k==='mcv')return '<div class="bp mk'+(BKO.design==='color'?' cl':'')+'"'+V+'>'+bkMockCover(plan)+'</div>';
  if(p.k==='mq'){const M=plan.M;
   const t1="Solvi 전범위<em>"+esc(M.sname+' · '+M.title+' '+M.round+'회')+"</em>";
   const h2='<div class="hd"><span class="t1">'+t1+'</span><span class="t2">문제지<b>'+p.idx+' / '+p.of+'</b></span></div>';
   const info=p.first?'<div class="info"><div class="l">'+esc(M.sname)+' · 제 '+M.round+'회<div><span>학년</span><span>반</span><span>번호</span><span>이름</span></div></div><div class="r">점 수<small>/ '+M.tot+'</small></div></div>':'';
-  return '<div class="bp mk">'+h2+info+'<div class="'+(p.first?'bd wi':'bd')+'"><div class="cols">'+p.cols.map(c=>'<div class="col">'+c.join('')+'</div>').join('')+'</div></div>'+
+  return '<div class="bp mk'+(BKO.design==='color'?' cl':'')+'"'+V+'>'+h2+info+'<div class="'+(p.first?'bd wi':'bd')+'"><div class="cols">'+p.cols.map((c,ci)=>'<div class="col"'+(p.gaps&&p.gaps[ci]?' style="--g:'+p.gaps[ci]+'mm"':'')+'>'+c.join('')+'</div>').join('')+'</div></div>'+
    bkFt(plan,p,{left:'Solvi · '+plan.title,pn:p.idx,right:'※ 제시된 시간 안에 풀고 답을 점검하시오.'})+'</div>'}
  // pr, es, ak
  return '<div class="bp bk"'+V+'>'+bkHd2(plan,p)+'<div class="bd"><div class="cols">'+p.cols.map((c,ci)=>'<div class="col"'+(p.gaps&&p.gaps[ci]?' style="--g:'+p.gaps[ci]+'mm"':'')+'>'+c.join('')+'</div>').join('')+'</div></div>'+bkFb(plan,p)+'</div>'}
@@ -658,15 +664,30 @@ async function bkReader(id){
 function bkJump(n){const e=document.getElementById('bkpg'+n);if(e){const y=e.getBoundingClientRect().top+scrollY-64;scrollTo({top:y,behavior:'smooth'})}const s=$('#bkj');if(s)s.value=''}
 
 /* ---------- 인쇄 ---------- */
+function bkFontCssRule(){const f=BKO.font&&typeof FONTS!=='undefined'&&FONTS[BKO.font];return f&&BKO.font!=='paper'?'.bkdoc,.bkdoc *{font-family:'+f[1]+'!important}':''}
 function bkDocHtml(plan,all){
  const abs=location.origin+location.pathname.replace(/[^/]*$/,'');
  const n=all?plan.pages.length:Math.max(1,(plan.aStart||plan.pages.length+1)-1);
  let pg='';for(let i=0;i<n;i++)pg+=bkPageHtml(plan,i);
- return '<!doctype html><html><head><meta charset="utf-8"><title>'+esc(plan.title)+'</title><link rel="stylesheet" href="'+BKCDN+'"><style>'+bkFontCss(abs)+'@page{size:A4;margin:0}html,body{margin:0;padding:0;background:#d9dde3}'+BKCSS+'.bkdoc .bp{margin:8mm auto;box-shadow:0 1px 8px rgba(0,0,0,.25);page-break-after:always;break-after:page}.bkdoc .bp:last-child{page-break-after:auto;break-after:auto}@media print{html,body{background:#fff}.bkdoc .bp{margin:0;box-shadow:none}}</style></head><body class="bkdoc">'+pg+'</body></html>'}
+ return '<!doctype html><html><head><meta charset="utf-8"><title>'+esc(plan.title)+'</title><link rel="stylesheet" href="'+BKCDN+'"><style>'+bkFontCss(abs)+'@page{size:A4;margin:0}html,body{margin:0;padding:0;background:#d9dde3}'+BKCSS+'.bkdoc .bp{margin:8mm auto;box-shadow:0 1px 8px rgba(0,0,0,.25);page-break-after:always;break-after:page}.bkdoc .bp:last-child{page-break-after:auto;break-after:auto}@media print{html,body{background:#fff}.bkdoc .bp{margin:0;box-shadow:none}}'+bkFontCssRule()+'</style></head><body class="bkdoc">'+pg+'</body></html>'}
+let BKPOP=null;
+function bkBarHtml(plan){
+ const o=(a,sel)=>a.map(([v,t])=>`<option value="${v}" ${String(sel)===String(v)?'selected':''}>${t}</option>`).join('');
+ const gap=o([[0,'기본'],[1,'조금 넓게'],[2,'넓게'],[3,'아주 넓게']],BKO.gap||0);
+ const col=Object.entries(PAL).map(([k,v])=>`<option value="${k}" style="color:${v[0]}" ${(BKO.color||'')===k?'selected':''}>● ${v[4]}</option>`).join('');
+ const cur=(BKO.color&&PAL[BKO.color])||null;const dot=cur?cur[0]:bkPal().p;
+ const fnt=Object.entries(FONTS).map(([k,v])=>`<option value="${k}" ${(BKO.font||'paper')===k?'selected':''}>${v[0]}</option>`).join('');
+ const des=plan.kind==='m'?`<label>디자인<select id="pdes">${o([['exam','시험지 (흑백)'],['color','컬러 포인트']],BKO.design||'exam')}</select></label>`:'';
+ return `<label>문제 간격<select id="pgap">${gap}</select></label>${des}<label>색상<span style="width:16px;height:16px;border-radius:50%;background:${dot};display:inline-block;border:1px solid rgba(0,0,0,.15)"></span><select id="pcol"><option value="" ${BKO.color?'':'selected'}>● 과목색</option>${col}</select></label><label>글꼴<select id="pfnt">${fnt}</select></label>`}
+async function bkRepop(o){if(!BKPOP||!BKPOP.win||BKPOP.win.closed)return;bkOset(o);if(BKPOP.subj!==SUBJ)await setSubject(BKPOP.subj);
+ const plan=await bkPlan(BKPOP.id);if(!plan)return;await bkShowIn(BKPOP.win,plan,BKPOP.all)}
+async function bkShowIn(w,plan,all){window._popExtra=bkBarHtml(plan);try{await cbPrintHtml(bkDocHtml(plan,all),w)}finally{window._popExtra=''}
+ popWire(w,d=>{d.getElementById('pgap').onchange=e=>bkRepop({gap:+e.target.value});const des=d.getElementById('pdes');if(des)des.onchange=e=>bkRepop({design:e.target.value});d.getElementById('pcol').onchange=e=>bkRepop({color:e.target.value});d.getElementById('pfnt').onchange=e=>bkRepop({font:e.target.value})})}
 async function bkPrint(id,all){
  const pw=typeof popOpen==='function'?popOpen('인쇄할 책을 만드는 중…'):null;
  await bkInit();const P=bkParts(id);if(P&&P.subj!==SUBJ)await setSubject(P.subj);
- busyRun('인쇄할 책을 만드는 중…',async()=>{await conceptLoad();const plan=await bkPlan(id);if(!plan){if(pw)pw.close();return}await cbPrintHtml(bkDocHtml(plan,all),pw)})}
+ busyRun('인쇄할 책을 만드는 중…',async()=>{await conceptLoad();const plan=await bkPlan(id);if(!plan){if(pw)pw.close();return}
+  if(pw){BKPOP={win:pw,id,all,subj:SUBJ};await bkShowIn(pw,plan,all)}else await cbPrintHtml(bkDocHtml(plan,all),pw)})}
 
 /* ---------- 단독 HTML 파일(내려받아 열어보는 교재) ---------- */
 function bkStandalone(plan){
