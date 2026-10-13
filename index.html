@@ -504,6 +504,39 @@ html[data-theme=dark] .p,html[data-theme=dark] button.p{color:#0d1722}
 .th-hero button.p{font-size:16px;font-weight:700;padding:14px 26px;min-height:52px}
 @media(max-width:560px){.th-hero{padding:24px 20px}.th-hero .hst{gap:22px}.th-hero button.p{width:100%}}
 </style>
+<style>
+/* ===== 새 디자인: 해설집의 문항코드·난이도 체계 =====
+   과목색이 상단을 물들이고, 바탕은 같은 계열의 연한 틴트, 카드는 흰색 한 단계(테두리만). */
+:root{--rad:14px}
+header{background:var(--b);border-bottom:0;color:#fff}
+header h1 .bn{color:#fff}
+header .sjp small{background:#fff!important;color:var(--bd)!important}
+header .sjp b{color:#fff}
+header nav button{color:#ffffffd9;border-bottom-color:transparent}
+header nav button:hover{color:#fff}
+header nav button.on{color:#fff;border-bottom-color:#fff;font-weight:700}
+header #qrBtn,header #setBtn{background:#ffffff1f;border:1px solid #ffffff55;color:#fff}
+header #qrBtn:hover,header #setBtn:hover{background:#ffffff33}
+header #sync,header #saved{color:#ffffffd9;background:transparent;border-color:#ffffff40}
+header #stuSel{background:#fff;color:var(--t);border:0}
+header :focus-visible{outline-color:#fff}
+.card{border-radius:var(--rad);box-shadow:none}
+.qa:hover,.bkcard:hover{box-shadow:none}
+h2{font-size:20px;font-weight:800;letter-spacing:-.02em}
+button.p,button.s{border-radius:10px}button.p{font-weight:700}
+/* 교사 홈 배너: 상단이 이미 과목색이므로 밝은 틴트 면으로 */
+.th-hero{background:var(--bl);color:var(--t);border:1px solid color-mix(in srgb,var(--b) 22%,var(--l))}
+.th-hero .sub{opacity:.75}
+.th-hero .hst b{color:var(--bd)}
+.th-hero button.p{background:var(--b);color:#fff}
+/* 문항 코드 칩 + 난이도 점 (앱 전체 공통) */
+.qc{display:inline-flex;align-items:center;gap:6px;vertical-align:baseline;white-space:nowrap}
+.qc b{font-weight:700;font-variant-numeric:tabular-nums;font-size:.92em;letter-spacing:0;padding:1px 7px;border-radius:6px;background:color-mix(in srgb,var(--b) 13%,var(--surface));color:var(--bd);border:1px solid color-mix(in srgb,var(--b) 30%,transparent)}
+.qc i{font-style:normal;font-size:.7em;letter-spacing:1px;color:var(--l2)}.qc i em{font-style:normal;color:var(--b)}
+@media(max-width:720px){main{padding:0 14px 120px}.card{padding:16px}h2{font-size:19px}header nav button{color:var(--m)}header nav button:hover{color:var(--t)}header nav button.on{color:var(--b);border-bottom-color:transparent}}
+html[data-theme=dark] header{background:#16324f}html[data-theme=dark] body[data-subj=cm] header{background:#123f2b}
+html[data-theme=dark] .th-hero{background:var(--bl)}
+</style>
 </head><body>
 <header><h1 id="brand"><a class="lgo" onclick="goHome()" title="홈으로" role="link" tabindex="0" onkeydown="if(event.key==='Enter')goHome()"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lgx" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--b,#3b82f6)"/><stop offset="1" style="stop-color:var(--bd,#1d4ed8)"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lgx)"/><path d="M22.5 9.6A9 9 0 1 0 25 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M11.4 16.4l3.6 3.6 7-8.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bn">Solvi</span></a><span class="sjp" onclick="openSubjects()" title="과목 바꾸기"><small id="subj">물질과 에너지</small><b>▾</b></span></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span><span id="saved" title="이 기기에 자동 저장된 마지막 시각"></span><button id="setBtn" onclick="openSettings()" title="설정 · 단축키 · 데이터 관리" aria-label="설정">⚙</button></header>
 <main id="main"></main><aside id="exp"></aside>
@@ -683,6 +716,16 @@ function iconize(root){if(!root||!root.querySelectorAll)return;const w=document.
  const list=[];while(w.nextNode())list.push(w.currentNode);
  list.forEach(n=>{const parts=n.nodeValue.split(ICORE);const f=document.createDocumentFragment();parts.forEach((t,i)=>{if(i%2){const s=document.createElement('span');s.className='ico';s.innerHTML='<svg viewBox="0 0 24 24" fill-rule="evenodd" aria-hidden="true"><path d="'+ICO[t]+'"/></svg>';f.appendChild(s)}else if(t)f.appendChild(document.createTextNode(t))});n.parentNode.replaceChild(f,n)})}
 /* 접근성 보정: 라벨 없는 입력칸, 클릭만 되는 div/span, 화면 제목 */
+/* 문항 코드 → 코드 칩 + 난이도 점 */
+const _LVN={'하':1,'중':2,'상':3,'최':4};
+function chipify(root){
+ const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(n){const p=n.parentElement;if(!p||p.closest('script,style,textarea,input,select,option,.qc,[contenteditable],#bkprobe,.wsm'))return NodeFilter.FILTER_REJECT;return /\b[A-Z]{1,2}\d{0,2}-\d{2,3}\b/.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}});
+ const L=[];while(w.nextNode())L.push(w.currentNode);
+ L.forEach(n=>{const s=n.nodeValue,re=/\b([A-Z]{1,2}\d{0,2}-\d{2,3})\b/g;let m,last=0,out=null;
+  while((m=re.exec(s))){const q=byCode[m[1]];if(!q)continue;out=out||document.createDocumentFragment();out.appendChild(document.createTextNode(s.slice(last,m.index)));
+   const lv=_LVN[q.lv||(typeof bkLv==='function'?bkLv(q):'')]||0;const sp=document.createElement('span');sp.className='qc';
+   sp.innerHTML='<b>'+m[1]+'</b>'+(lv?'<i role="img" aria-label="난이도 '+q.lv+'"><em>'+'●'.repeat(lv)+'</em>'+'○'.repeat(4-lv)+'</i>':'');out.appendChild(sp);last=m.index+m[0].length}
+  if(out){out.appendChild(document.createTextNode(s.slice(last)));n.parentNode.replaceChild(out,n)}})}
 function a11y(root){
  root.querySelectorAll('input:not([type=hidden]):not([aria-label]),select:not([aria-label]),textarea:not([aria-label])').forEach(e=>{
   if(e.closest('label')||(e.id&&document.querySelector('label[for="'+e.id+'"]')))return;
@@ -697,7 +740,7 @@ function a11y(root){
   if(e.closest('.modal-bg,#toast'))return;e.setAttribute('role','button');e.tabIndex=0});
  const m=document.getElementById('main');if(m&&!m.querySelector('h1,h2')){const c=m.querySelector('.card h3,.card b');if(c&&!c.getAttribute('role')){c.setAttribute('role','heading');c.setAttribute('aria-level','2')}}}
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.getAttribute&&e.target.getAttribute('role')==='button'&&e.target.tagName!=='BUTTON'&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){e.preventDefault();e.target.click()}});
-let _icoT=0;new MutationObserver(ms=>{if(_icoT)return;_icoT=setTimeout(()=>{_icoT=0;iconize(document.body);try{a11y(document.body)}catch(e){}},60)}).observe(document.body,{childList:true,subtree:true,characterData:true});
+let _icoT=0;new MutationObserver(ms=>{if(_icoT)return;_icoT=setTimeout(()=>{_icoT=0;iconize(document.body);try{a11y(document.body)}catch(e){}try{chipify(document.getElementById('main')||document.body)}catch(e){}},60)}).observe(document.body,{childList:true,subtree:true,characterData:true});
 function decorate(){document.body.classList.toggle('hasfab',!!document.querySelector('.fab'));document.querySelectorAll('button').forEach(b=>{if(!b.title){const t=b.textContent.trim();if(t)b.title=t}})}
 function goFull(){bkLoad().then(()=>{tab='books';bkGoFull();render();scrollTo(0,0)}).catch(()=>alert('교재를 불러오지 못했습니다.'))}
 function nav(){const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['concept','개념학습'],['books','교재'],['smap','내 유형 지도'],['shist','기록']]:teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'],['stat','누적 분석'],['search','문항 검색']]:[['enter','번호 채점']];
