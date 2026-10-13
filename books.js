@@ -647,7 +647,6 @@ async function bkPathMount(el){await bkInit();await conceptLoad();const L=bkBook
  el.innerHTML=`<div class="bkpath"><div><label>책</label><select id="bkp1" onchange="bkPath(1)"><option value="">책 고르기</option>${L.map(b=>b.full?Array.from({length:(bkxAll().find(x=>x.id===b.id)||{}).rounds||20},(_,i)=>`<option value="${b.id}r${i+1}">${esc(b.name)} ${i+1}회</option>`).join(''):`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select></div>
  <div><label>소단원 · 구성</label><select id="bkp2" onchange="bkPath(2)" disabled><option value="">고르기</option></select></div>
  <div><label>쪽</label><select id="bkp3" disabled><option value="">쪽 고르기</option></select></div>
- <div><label>인쇄 간격</label><select id="bkpgap" onchange="bkPath(1)"><option value="0">기본</option><option value="1">조금 넓게</option><option value="2">넓게</option><option value="3">아주 넓게</option></select></div>
  <div><button class="p" id="bkpg" onclick="bkPathGo()" disabled style="width:100%">채점 시작</button></div></div>`}
 function bkOpen(id){BKV={v:'read',id};tab='books';render();scrollTo(0,0)}
 function bkClose(){BKV={v:'shelf',id:null};render();scrollTo(0,0)}
