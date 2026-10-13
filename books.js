@@ -255,7 +255,7 @@ function bkQHtml(q,no,o){o=o||{};
   if(!tgt)tgt=kids.filter(k=>k.tagName==='P').pop();if(tgt)tgt.insertAdjacentHTML('beforeend',' <span class="pt">'+pt+'</span>')}
  if(o.ans){qs.insertAdjacentHTML('beforeend','<div class="ans"><div></div><div></div><div></div></div>')}
  return '<div class="u q" data-c="'+q.code+'">'+qs.innerHTML.replace(/ id="[^"]*"/g,'')+'</div>'}
-function bkOxHtml(q,no,kind){const r=bkDoc(q.q);const qs=r.querySelector('.qs')||r;let h=qs.innerHTML.replace(/^<p>/,'').replace(/<\/p>$/,'');
+function bkOxHtml(q,no,kind){const r=bkDoc(q.q);const qs=r.querySelector('.qs')||r;let h=qs.innerHTML.replace(/^<p>/,'').replace(/<\/p>$/,'');if(kind==='bl')h=h.replace(/<span class="bk">[^<]*<\/span>/g,'<span class="bk">&nbsp;</span>');
  return '<div class="u o '+(kind==='bl'?'b':'')+'" data-c="'+q.code+'"><span class="nc"><b>'+no+'</b><small>'+q.code+'</small></span><span class="tx">'+h+'</span>'+(kind==='ox'?'<span class="bx">O / X</span>':'')+'</div>'}
 function bkAnsOf(q){if(q.set==='ox')return String(q.ans).toUpperCase()==='O'?'○':'×';if(q.set==='blank')return (q.blanks||[]).map((a,k)=>'㉠㉡㉢㉣㉤'[k]+' '+a).join(' · ');if(q.set==='essay')return '';return bkCir(q.ans)}
 function bkXHtml(q,no){const r=bkDoc(q.exp||'');const sol=r.querySelector('.sol')||r;sol.querySelectorAll('.sh').forEach(e=>e.remove());
@@ -274,7 +274,7 @@ function bkSel(){
  const base=DATA.filter(q=>q.sub&&q.set!=='bank'&&!q.mock);
  const subs=bkSubs();const S={subs,ox:{},bl:{},basic:{},type:[],essay:[]};
  const byNo=(a,b)=>(a.no||0)-(b.no||0);
- subs.forEach(s=>{S.ox[s.k]=base.filter(q=>q.sub===s.k&&q.set==='ox').sort(byNo);S.bl[s.k]=base.filter(q=>q.sub===s.k&&q.set==='blank').sort(byNo)});
+ subs.forEach(s=>{const r=bkFitOxBl(s,base.filter(q=>q.sub===s.k&&q.set==='ox').sort(byNo),base.filter(q=>q.sub===s.k&&q.set==='blank').sort(byNo));S.ox[s.k]=r.ox;S.bl[s.k]=r.bl});
  const used=new Set();
  subs.forEach(s=>{const lows=base.filter(q=>q.sub===s.k&&q.set==='mc'&&bkLv(q)==='하').sort(byNo);
   const pick=bkFitBasic(s,lows);S.basic[s.k]=pick;pick.forEach(q=>used.add(q.code))});
@@ -289,6 +289,17 @@ function bkSel(){
  if(es.length>ecap){const t=es.length;es=Array.from({length:ecap},(_,i)=>es[Math.floor(i*t/ecap)])}
  S.essay=es;
  return BKSELC[SUBJ]=S}
+function bkTags(s){const C=(CONC[SUBJ]||{}).secs||[];let n=0;const t=[];
+ for(const sc of C.filter(x=>x.sub===s.k)){const w='#'+String(sc.title).replace(/[\s·,]+/g,'').slice(0,14);if(n+w.length>100)break;t.push(w);n+=w.length+2}
+ return esc(t.join('  '))}
+function bkFitCol(s,kd,cands){
+ const nm=kd==='ox'?'OX 확인':'빈칸 채우기';const order=[];const tg=new Map();cands.forEach(q=>{const k=q.type||'';if(!tg.has(k))tg.set(k,[]);tg.get(k).push(q)});
+ const lists=[...tg.values()];for(let i=0;order.length<cands.length;i++){let any=false;lists.forEach(l=>{if(l[i]){order.push(l[i]);any=true}});if(!any)break}
+ const head=bkU('h:'+kd+':'+s.k,'<div class="u ct"><span>'+nm+'</span><small>'+esc(s.k)+'</small></div>',{});
+ let used=head.h;const out=[];
+ for(const q of order){const u=bkU('o:'+q.code+':'+kd,bkOxHtml(q,out.length+1,kd),{code:q.code});if(used+u.h>BK_BODY)break;used+=u.h;out.push(q)}
+ return out.sort((a,b)=>(a.no||0)-(b.no||0))}
+function bkFitOxBl(s,ox,bl){return {ox:bkFitCol(s,'ox',ox),bl:bkFitCol(s,'bl',bl)}}
 function bkFitBasic(s,cands){
  const order=[];const tg=new Map();cands.forEach(q=>{if(!tg.has(q.type))tg.set(q.type,[]);tg.get(q.type).push(q)});
  const lists=[...tg.values()];for(let i=0;order.length<cands.length;i++){let any=false;lists.forEach(l=>{if(l[i]){order.push(l[i]);any=true}});if(!any)break}
@@ -346,14 +357,12 @@ function bkPlanConcept(id){
    [...d.children].forEach((el,i)=>cu.push(bkU('cb:'+sec.id+':'+i,'<div class="u cbk">'+el.outerHTML+'</div>',{w:BK_FULLW})))});
   const cp=bkPack(cu,1,BK_BODY);row.c=pages.length+1;
   cp.forEach(p=>pages.push({k:'cn',kind:'c',sub:s,label:'개념 정리',cols:[p.cols[0].map(u=>u.html)]}));
-  {const us=[];let first=true;const kinds={};
-   [['ox','OX 확인',S.ox[s.k]],['bl','빈칸 채우기',S.bl[s.k]]].forEach(([kd,nm,arr])=>{if(!arr||!arr.length)return;
-    us.push(bkU('h:'+kd+':'+s.k,'<div class="u ct"><span>'+nm+'</span><small>'+esc(s.k)+' · '+arr.length+'문항</small></div>',{keep:true,brk:first,kd}));first=false;
-    arr.forEach((q,i)=>us.push(bkU('o:'+q.code+':'+kd,bkOxHtml(q,i+1,kd),{code:q.code,kd})))});
-   if(us.length){row.ox=pages.length+1;
-    bkPack(us,2,BK_BODY).forEach(p=>{const ks=new Set(p.cols.flat().map(u=>u.kd).filter(Boolean));const lab=ks.has('ox')&&ks.has('bl')?'OX · 빈칸':ks.has('bl')?'빈칸 채우기':'OX 확인';
-     if(ks.has('bl')&&!row.bl)row.bl=pages.length+1;
-     pages.push({k:'pr',kind:'ox',sub:s,label:lab,cols:p.cols.map(c=>c.map(u=>u.html)),codes:p.cols.flat().map(u=>u.code).filter(Boolean)})})}}
+  {const cols=[],codes=[];
+   [['ox','OX 확인',S.ox[s.k]],['bl','빈칸 채우기',S.bl[s.k]]].forEach(([kd,nm,arr])=>{const us=[];
+    if(arr&&arr.length){us.push(bkU('h:'+kd+':'+s.k,'<div class="u ct"><span>'+nm+'</span><small>'+esc(s.k)+' · '+arr.length+'문항</small></div>',{}));
+     arr.forEach((q,i)=>{us.push(bkU('o:'+q.code+':'+kd,bkOxHtml(q,i+1,kd),{code:q.code}));codes.push(q.code)})}
+    cols.push(us.map(u=>u.html))});
+   if(codes.length){row.ox=row.bl=pages.length+1;pages.push({k:'pr',kind:'ox',sub:s,label:'OX · 빈칸',cols,codes})}}
   {const arr=S.basic[s.k];if(arr&&arr.length){
    const hu=bkU('h:mc:'+s.k,'<div class="u ct"><span>기초 5지선다</span><small>'+esc(s.k)+' · '+arr.length+'문항</small></div>',{keep:true,brk:true});
    const us=arr.map((q,i)=>bkU('q:'+q.code,bkQHtml(q,i+1,{code:1}),{code:q.code}));
@@ -381,7 +390,7 @@ function bkPlanType(id){
  const S=bkSel();const pages=[{k:'cover'},{k:'toc'}];const toc=[];let no=0;const nums=new Map();
  S.subs.forEach(s=>{
   const qs=S.type.filter(q=>q.sub===s.k);if(!qs.length)return;
-  const units=[bkU('sb:'+s.k+':t',bkSbn({k:s.k,name:s.name,goal:''},'<span class="g">'+qs.length+'문항 · 유형별로 묶고, 유형 안에서는 쉬운 문제부터 어려운 문제 순으로 배열했습니다.</span>'),{brk:true,keep:true})];
+  const units=[bkU('sb:'+s.k+':t',bkSbn({k:s.k,name:s.name,goal:''},'<span class="g">'+bkTags(s)+'</span>'),{brk:true,keep:true})];
   let cur=null,ti=0;
   qs.forEach(q=>{if(q.type!==cur){cur=q.type;ti++;const grp=qs.filter(x=>x.type===cur);const av=grp.reduce((a,x)=>a+LVI[bkLv(x)],0)/grp.length;const n=Math.max(1,Math.min(4,Math.round(av)+1));const st='★'.repeat(n)+'☆'.repeat(4-n);
     units.push(bkU('th:'+s.k+':'+ti+':'+cur,'<div class="th"><b>유형 '+String(ti).padStart(2,'0')+'</b><span>'+esc(cur)+'</span><small>'+st+'</small></div>',{keep:true}))}
