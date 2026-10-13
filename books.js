@@ -618,16 +618,16 @@ async function bkShow(){
  const L=bkBookList(),m=$('#main');
  const card=b=>`<div class="bkcard"><div class="bkcov"><i></i><b>${esc(b.custom?b.name:SNAME[SUBJ])}</b><span>${esc(b.custom?SNAME[SUBJ]:b.name)}</span><em>Solvi</em></div><div class="bi2"><h3>${esc(b.name)}</h3><p>${esc(b.sub)}<br><small>${esc(b.meta)}</small></p><div class="bt2">${b.full?`<button class="p" onclick="BKV={v:'rounds',id:'${b.id}'};bkShow()">회차 보기</button>`:`<button class="p" onclick="bkOpen('${b.id}')">열기</button><button onclick="bkPrint('${b.id}',1)">인쇄 · PDF</button>`}${b.custom?`<button onclick="bkxDel('${b.id}')">삭제</button>`:''}</div></div></div>`;
  m.innerHTML=`<div class="card"><h2>교재 <small style="font-weight:400;color:var(--m);font-size:13px">${esc(SNAME[SUBJ])}</small></h2>
- <p style="margin:-4px 0 14px;font-size:13px;color:var(--m);line-height:1.6">책을 열어 보거나 PDF로 인쇄하세요. 문제 쪽 아래의 <b>QR</b>을 스캔하면 그 쪽이 바로 채점됩니다. 아래 「경로로 채점」에서 책 → 구간 → 쪽을 골라 채점할 수도 있어요.</p>
+ <p style="margin:-4px 0 14px;font-size:13px;color:var(--m);line-height:1.6">문제 쪽 아래 <b>QR</b>을 스캔하면 그 쪽이 바로 채점돼요.</p>
  <div class="bkshelf">${L.filter(b=>!b.custom).map(card).join('')}</div></div>
  <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2 style="margin:0">내 교재</h2><button class="p" onclick="bkNew('std')">＋ 교재 만들기</button></div>
- <p style="margin:6px 0 12px;font-size:13px;color:var(--m);line-height:1.6">이름·부제를 정하고 개념을 넣을지, OX·빈칸만 양치기할지, 특정 소단원만 파고들지, 전범위 모의고사(최대 20회)로 만들지 골라 보세요.</p>
+ <p style="margin:6px 0 12px;font-size:13px;color:var(--m);line-height:1.6">종합, 직전 대비, 양치기, 전범위 모의고사 중에서 골라 만들어요.</p>
  ${L.some(b=>b.custom)?`<div class="bkshelf">${L.filter(b=>b.custom).map(card).join('')}</div>`:`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">${['std','last','drill','part','full'].map(k=>`<button onclick="bkNew('${k}')" style="text-align:left;padding:12px;border-radius:10px"><b style="display:block">${BKK[k][0]}</b><small style="font-weight:400;color:var(--m)">${BKK[k][1]}</small></button>`).join('')}</div>`}</div>
- <div class="card"><h2>경로로 채점</h2><p style="margin:-4px 0 12px;font-size:13px;color:var(--m)">QR을 찍을 수 없을 때는 여기서 책 → 구간 → 쪽을 골라 채점하세요.</p>
+ <details class="card"><summary style="cursor:pointer;font-size:17px;font-weight:700">QR 없이 채점하기</summary><div style="height:12px"></div>
  <div class="bkpath"><div><label>책</label><select id="bkp1" onchange="bkPath(1)"><option value="">책 고르기</option>${L.map(b=>b.full?Array.from({length:(bkxAll().find(x=>x.id===b.id)||{}).rounds||20},(_,i)=>`<option value="${b.id}r${i+1}">${esc(b.name)} ${i+1}회</option>`).join(''):`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select></div>
  <div><label>구간</label><select id="bkp2" onchange="bkPath(2)" disabled><option value="">구간 고르기</option></select></div>
  <div><label>쪽</label><select id="bkp3" disabled><option value="">쪽 고르기</option></select></div>
- <div><button class="p" id="bkpg" onclick="bkPathGo()" disabled style="width:100%">채점 시작</button></div></div></div>`}
+ <div><button class="p" id="bkpg" onclick="bkPathGo()" disabled style="width:100%">채점 시작</button></div></div></details>`}
 function bkGroups(plan){const g=new Map();plan.pages.forEach(p=>{if(!p.codes||!p.codes.length)return;const k=plan.kind==='m'?'문제지':((p.sub?p.sub.k+' ':'')+(p.label||''));if(!g.has(k))g.set(k,[]);g.get(k).push(p)});return g}
 async function bkPath(lv){
  const s1=$('#bkp1'),s2=$('#bkp2'),s3=$('#bkp3'),go=$('#bkpg');
@@ -714,7 +714,7 @@ function bkBuilder(){const d=BKV.d,subs=bkSubs();const S=bkSel();
  const chip=k=>`<button class="${d.kind===k?'p':''}" onclick="bkxKind('${k}')" style="text-align:left;padding:10px 12px;border-radius:10px;min-width:0"><b style="display:block;font-size:14px">${BKK[k][0]}</b><small style="font-weight:400;opacity:.8">${BKK[k][1]}</small></button>`;
  const ck=(k,l)=>`<label class="chk"><input type="checkbox" id="bxi_${k}" ${d.inc[k]?'checked':''} onchange="bkxRead();bkxEst()"> ${l}</label>`;
  const body=d.kind==='full'?`<div class="g2" style="margin-top:6px"><div><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">회차당 문항 수</label><select id="bxc" onchange="bkxRead();bkxEst()">${[16,20,25,30].map(n=>`<option ${d.count===n?'selected':''}>${n}</option>`).join('')}</select></div><div><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">회차 수 (최대 20)</label><select id="bxr" onchange="bkxRead()">${[5,10,15,20].map(n=>`<option ${d.rounds===n?'selected':''}>${n}</option>`).join('')}</select></div></div>
-  <p class="hint" style="margin-top:10px">책을 열면 회차가 나뉘어 있고, 회차마다 <b>문제지</b>와 <b>문제지 + 해설</b>을 시험지처럼 따로 인쇄할 수 있어요. 문항은 전 범위에서 고르게 뽑고 100점으로 배점해요.</p>`
+  <p class="hint" style="margin-top:10px">회차마다 문제지와 해설을 따로 인쇄해요. 전 범위에서 고르게 뽑아 100점으로 배점해요.</p>`
  :`<div style="margin-top:6px;font-size:13px;font-weight:700">구성</div><div class="chks" style="display:flex;gap:6px 16px;flex-wrap:wrap;margin:6px 0">${ck('concept','개념 정리')}${ck('ox','OX')}${ck('bl','빈칸')}${ck('basic','기초 5지선다')}${ck('type','유형 문제')}${ck('essay','서술형')}</div>
   <label class="chk" style="display:block;margin:6px 0"><input type="checkbox" id="bxa" ${d.all?'checked':''} onchange="bkxRead();bkxEst()"> <b>양치기</b> — 대표 문항만이 아니라 해당 구성의 문항을 전부 담기</label>
   <div style="margin-top:10px;font-size:13px;font-weight:700">소단원 ${d.kind==='part'?'(파고들 부분을 고르세요)':'(비우면 전체)'}</div>
