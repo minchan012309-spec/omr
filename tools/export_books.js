@@ -1,7 +1,7 @@
 // 교재를 단독 HTML 파일로 내보낸다.  node tools/export_books.js [출력폴더]  (python3 server.py 실행 중이어야 함)
 const {chromium}=require(process.env.PW||'/opt/node-tools/node_modules/playwright');const fs=require('fs');
 const OUT=process.argv[2]||'textbooks';const SITE='https://minchan012309-spec.github.io/omr/';
-const NAMES={'me-c':'물질과에너지_개념서','me-t':'물질과에너지_유형서','cm-c':'세포와물질대사_개념서','cm-t':'세포와물질대사_유형서','cm-m3':'세포와물질대사_실전동형모의고사_3회'};
+const NAMES={'me-c':'물질과에너지_개념서','me-t':'물질과에너지_유형서','cm-c':'세포와물질대사_개념서','cm-t':'세포와물질대사_유형서'};
 (async()=>{const b=await chromium.launch();const pg=await b.newPage({viewport:{width:1000,height:900}});
  pg.on('pageerror',e=>console.log('PAGEERR',String(e)));
  await pg.goto('http://localhost:8765/index.html');await pg.waitForTimeout(1500);
