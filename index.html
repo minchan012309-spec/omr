@@ -1940,12 +1940,14 @@ function wsPopFill(win,rec){
  const sh=$('#wsPaper').shadowRoot;if(!sh)return;
  const gapOpts=[[0,'기본'],[4,'조금 넓게'],[8,'넓게'],[14,'아주 넓게']].map(([v,t])=>`<option value="${v}" ${(rec.gapmm||0)===v?'selected':''}>${t}</option>`).join('');
  const styOpts=Object.entries(STYLES).map(([k,v])=>`<option value="${k}" ${rec.style===k?'selected':''}>${esc(v)}</option>`).join('');
- const colOpts=Object.entries(PAL).map(([k,v])=>`<option value="${k}" ${(rec.color||'blue')===k?'selected':''}>${esc(v[4])}</option>`).join('');
- const bar=popBarHtml(`<label>문제 간격<select id="pgap">${gapOpts}</select></label><label>디자인<select id="psty">${styOpts}</select></label><label>색상<select id="pcol">${colOpts}</select></label>`);
+ const colOpts=Object.entries(PAL).map(([k,v])=>`<option value="${k}" style="color:${v[0]}" ${(rec.color||'blue')===k?'selected':''}>● ${esc(v[4])}</option>`).join('');
+ const fntOpts=Object.entries(FONTS).map(([k,v])=>`<option value="${k}" ${(rec.font||'paper')===k?'selected':''}>${esc(v[0])}</option>`).join('');
+ const cc=(PAL[rec.color||'blue']||PAL.blue);
+ const bar=popBarHtml(`<label>문제 간격<select id="pgap">${gapOpts}</select></label><label>디자인<select id="psty">${styOpts}</select></label><label>색상<span style="width:16px;height:16px;border-radius:50%;background:${cc[0]};display:inline-block;border:1px solid rgba(0,0,0,.15)" title="${esc(cc[4])}"></span><select id="pcol">${colOpts}</select></label><label>글꼴<select id="pfnt">${fntOpts}</select></label>`);
  const d=win.document;d.open();
  d.write('<!doctype html><html><head><meta charset="utf-8"><base href="'+location.href.split('#')[0]+'"><title>'+esc(rec.title||'학습지')+'</title>'+links+'<style>'+faces+'@page{size:A4;margin:0}body{margin:0;background:#e9eef5}#paper{width:210mm;margin:64px auto 20px}@media print{body{background:#fff}#paper{margin:0}}'+POPCSS+'</style></head><body>'+bar+'<div id="paper"></div></body></html>');d.close();
  d.getElementById('paper').attachShadow({mode:'open'}).innerHTML=sh.innerHTML;
- popWire(win,dd=>{dd.getElementById('pgap').onchange=e=>wsPopSet({gapmm:+e.target.value});dd.getElementById('psty').onchange=e=>wsPopSet({style:e.target.value});dd.getElementById('pcol').onchange=e=>wsPopSet({color:e.target.value})})}
+ popWire(win,dd=>{dd.getElementById('pgap').onchange=e=>wsPopSet({gapmm:+e.target.value});dd.getElementById('psty').onchange=e=>wsPopSet({style:e.target.value});dd.getElementById('pcol').onchange=e=>wsPopSet({color:e.target.value});dd.getElementById('pfnt').onchange=e=>wsPopSet({font:e.target.value})})}
 async function wsPopSet(o){if(!WSP.rec||!WSP.win||WSP.win.closed)return;Object.assign(WSP.rec,o);await openWs(WSP.rec,null,{win:WSP.win})}
 function cbPrint(id){const C=CONC[SUBJ];const ids=id?[id]:[...CB.print];if(!ids.length){toast('인쇄할 개념을 체크하거나 「이 개념 인쇄」를 눌러 주세요');return}
  const secs=C.secs.filter(s=>ids.includes(s.id));const pw=popOpen('인쇄 문서를 만드는 중…');busyRun('인쇄 문서를 만드는 중…',async()=>{await ensureCodes([...secs.flatMap(s=>[...s.ox,...s.blank])]);cbPrintHtml(cbPrintDoc(secs,true,secs.length===1?secs[0].title+' 개념 학습지':SNAME[SUBJ]+' 개념 학습지'),pw)})}
