@@ -788,7 +788,7 @@ async function finish(force){
  scrollTo(0,0);render()}
 /* ---------- 교재 탭 (books.js 를 처음 열 때 불러옴) ---------- */
 let _bkp=null;
-function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=4';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
+function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=5';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
 function booksView(){$('#main').innerHTML='<div class="card">'+ldg('교재를 불러오는 중…')+'</div>';bkLoad().then(()=>{if(tab==='books')return bkShow()}).catch(()=>{$('#main').innerHTML='<div class="card"><h2>교재</h2><p>교재를 불러오지 못했습니다. 인터넷 연결을 확인하고 다시 눌러 주세요.</p><button class="p" onclick="render()">다시 시도</button></div>'})}
 function bkPageGo(){const id=$('#bpb').value,n=parseInt($('#bp').value);if(!n){alert('쪽 번호를 입력하세요.');return}bkLoad().then(()=>bkGradePage(id,n)).catch(()=>alert('교재를 불러오지 못했습니다.'))}
 async function bkRoute(s){try{await bkLoad();await bkInit();return bkRouteStr(s)}catch(e){alert('교재를 불러오지 못했습니다.')}}
