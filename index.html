@@ -906,10 +906,10 @@ function gradeHead(){const g=cur.done;
 const noOf=(q,i)=>cur.ws?i+1:((cur.book&&cur.book.nums&&cur.book.nums[q.code])||q.bno||q.no);
 function markView(){
  const n=cur.qs.length,wrong=cur.qs.filter((q,i)=>!cur.ans[i]).length,r=n-wrong,p=n?Math.round(r/n*100):0;
- const tiles=cur.qs.map((q,i)=>{const w=!cur.ans[i];return `<div class="mk2 ${w?'w':''} ${cur.sel===i?'cs':''}" onclick="markTog(${i})" onmouseenter="popQ('${q.code}',this)" onmouseleave="popHide()"><b>${noOf(q,i)}</b><span class="ca">${q.set==='blank'?'주관식':esc(String(q.ans).slice(0,6))}</span>${w?'<i class="x">✕</i>':''}<button class="qi" title="문제·해설 보기" onclick="event.stopPropagation();markInfo(${i})">ⓘ</button></div>`}).join('');
+ const tiles=cur.qs.map((q,i)=>{const w=!cur.ans[i];return `<div class="mk2 ${w?'w':''} ${cur.sel===i?'cs':''}" onclick="markTog(${i})" onmouseenter="popQ('${q.code}',this)" onmouseleave="popHide()"><b>${noOf(q,i)}</b><span class="ca">${q.set==='blank'?'주관식':esc(String(q.ans).slice(0,6))}</span>${w?'<i class="x">✕</i>':''}</div>`}).join('');
  $('#main').innerHTML=`<div class="mkv"><div class="card gcard gs">${gradeHead()}
  <div class="msum"><div class="mring" style="--p:${p}"><b>${p}</b></div><span class="m" style="margin-left:-8px;font-size:13px">점</span><div class="mcnt"><div><small>맞음</small><b>${r}</b></div><div class="no"><small>틀림</small><b>${wrong}</b></div></div><div class="mact"><button class="s sm" onclick="markAll(1)">모두 맞음</button><button class="s sm" onclick="markAll(0)">모두 틀림</button>${cur.ws?'<button class="s sm" onclick="omrOpen()">📷 OMR</button>':''}<button class="p mdone" onclick="finish()">채점 완료</button></div></div>
- <div class="mhint">정답이 모두 표시돼 있어요. <b>틀린 문항의 번호</b>만 누르세요 (다시 누르면 취소) · ⓘ 문제·해설</div><div class="mk-grid2">${tiles}</div></div><div class="mkd">${detCard()}</div></div>`;fillDet()}
+ <div class="mhint">정답이 모두 표시돼 있어요. <b>틀린 문항의 번호</b>만 누르세요 (다시 누르면 취소)</div><div class="mk-grid2">${tiles}</div></div><div class="mkd">${detCard()}</div></div>`;fillDet()}
 function markInfo(i){cur.sel=i;if(matchMedia('(min-width:1100px)').matches){fillDet();document.querySelectorAll('.mk2').forEach((e,j)=>e.classList.toggle('cs',j===i))}else showCode(cur.qs[i].code)}
 function studView(){const n=cur.qs.length,done=cur.qs.filter((q,i)=>cur.ans[i]).length,pct=n?Math.round(done/n*100):0;const one=!!cur.focus;if(one){if(idx>=n)idx=n-1;if(idx<0)idx=0}
  const rows=cur.qs.map((q,i)=>row(q,i)).join('');
