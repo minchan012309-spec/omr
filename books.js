@@ -31,7 +31,7 @@ const BKCSS=`
 .bkdoc .ft .pn{font-size:12px;font-weight:700;text-align:center}
 .bkdoc .ft .fr2{justify-self:end;display:flex;align-items:center;gap:2.4mm}
 .bkdoc .ft .qt{font-size:9px;line-height:1.35;color:#333;text-align:right}.bkdoc .ft .qt b{display:block;font-size:10px;color:#111}
-.bkdoc .ft .qq{width:12mm;height:12mm;display:flex;align-items:center;justify-content:center;border:.6px solid #111;padding:.8mm;background:#fff}
+.bkdoc .ft .qq{width:15mm;height:15mm;border:0;padding:0;background:none;display:flex;align-items:center;justify-content:center}
 .bkdoc .ft .qq svg{width:100%;height:100%;display:block}
 .bkdoc .ft .fn{font-size:9.5px;color:#444;text-align:right}
 /* 문항 */
@@ -69,7 +69,7 @@ const BKCSS=`
 .bkdoc .fb .pn{color:var(--p);font-weight:700;font-size:13.5px;min-width:12mm}.bkdoc .fb .pn.r{text-align:right}
 .bkdoc .fb .qrb{display:flex;align-items:center;gap:2.8mm}
 .bkdoc .fb .qt{font-size:9.2px;line-height:1.45;color:#444}
-.bkdoc .fb .qq{width:10.5mm;height:10.5mm;border:.3mm solid var(--line);padding:.8mm;background:#fff;display:flex;align-items:center;justify-content:center}.bkdoc .fb .qq svg{width:100%;height:100%;display:block}
+.bkdoc .fb .qq{width:15mm;height:15mm;border:0;padding:0;background:none;display:flex;align-items:center;justify-content:center}.bkdoc .fb .qq svg{width:100%;height:100%;display:block}
 .bkdoc .bk .bd{top:21mm;height:${BK_BODY}mm}
 .bkdoc .bk .cols:before{border-left:.3mm solid var(--line)}
 .bkdoc .ct{background:var(--pl);color:var(--pd);font-weight:800;font-size:12.5px;padding:1.5mm 3mm;border-radius:1.6mm;margin:0 0 3.6mm;display:flex;gap:2.4mm;align-items:baseline}
