@@ -1998,7 +1998,19 @@ function wsPopFill(win,rec){
 async function wsPopSet(o){if(!WSP.rec||!WSP.win||WSP.win.closed)return;Object.assign(WSP.rec,o);await openWs(WSP.rec,null,{win:WSP.win})}
 function cbPrint(id){const C=CONC[SUBJ];const ids=id?[id]:[...CB.print];if(!ids.length){toast('인쇄할 개념을 체크하거나 「이 개념 인쇄」를 눌러 주세요');return}
  const secs=C.secs.filter(s=>ids.includes(s.id));const pw=popOpen('인쇄 문서를 만드는 중…');busyRun('인쇄 문서를 만드는 중…',async()=>{await ensureCodes([...secs.flatMap(s=>[...s.ox,...s.blank])]);cbPrintHtml(cbPrintDoc(secs,true,secs.length===1?secs[0].title+' 개념 학습지':SNAME[SUBJ]+' 개념 학습지'),pw)})}
-function cbPrintSummary(){const C=CONC[SUBJ];const nm=(STINFO&&STINFO.name)||'';const pw=popOpen('인쇄 문서를 만드는 중…');busyRun('인쇄 문서를 만드는 중…',async()=>{cbPrintHtml(`<!doctype html><html><head><meta charset="utf-8"><title>요약 노트</title><style>${cbTheme(CBCSS+CBPRCSS)}.cbk table{font-size:9.6pt}h3.cbh{font-size:12pt;margin:5mm 0 1.5mm;border-left:1.4mm solid #2f9d66;padding-left:2.4mm;break-after:avoid}</style></head><body><div class="top"><h1>시험 10분 전 요약 노트</h1><div>${esc(SNAME[SUBJ])} · ${new Date().toLocaleDateString('ko-KR')}</div></div><div class="cbk">${C.summary.map(x=>`<h3 class="cbh">${esc(x.title)}</h3>${x.html}`).join('')}</div></body></html>`,pw)})}
+function cbPrintSummary(){const C=CONC[SUBJ];const nm=(STINFO&&STINFO.name)||'';const pw=popOpen('인쇄 문서를 만드는 중…');busyRun('인쇄 문서를 만드는 중…',async()=>{cbPrintHtml(`<!doctype html><html><head><meta charset="utf-8"><title>요약 노트</title><style>${cbTheme(CBCSS+CBPRCSS)}.cbk table{font-size:9.6pt}h3.cbh{font-size:12pt;margin:5mm 0 1.5mm;border-left:1.4mm solid #2f9d66;padding-left:2.4mm;break-after:avoid}</style><style>
+/* 모션 점검(빈도 기준): 자주 쓰는 화면 전환은 짧고 조용하게 */
+@keyframes pageUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+#main.pgin>*,#main.pgin .hcol>.card{animation:pageUp .18s cubic-bezier(.2,.8,.2,1) both!important;animation-delay:0s!important}
+#exp{transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s}
+.modal.open .box{animation:zoomIn .16s cubic-bezier(.2,.8,.2,1) both}
+#qsheet.open .shbox{animation-duration:.22s}
+.q1 .b:hover,.mk2:hover,.mk:hover,.rt:hover,.qa:hover{transform:none}
+header h1:hover .logo{transform:none}
+button{transition-timing-function:cubic-bezier(.2,.8,.2,1)}
+#toast .tt.out{transition:opacity .25s,transform .25s cubic-bezier(.2,.8,.2,1)}
+</style>
+</head><body><div class="top"><h1>시험 10분 전 요약 노트</h1><div>${esc(SNAME[SUBJ])} · ${new Date().toLocaleDateString('ko-KR')}</div></div><div class="cbk">${C.summary.map(x=>`<h3 class="cbh">${esc(x.title)}</h3>${x.html}`).join('')}</div></body></html>`,pw)})}
 
 /* ---------- 학생 리포트 ---------- */
 function reportCss(){return `.pages{--p:#2f7fd0;--pd:#1d5ca6;--pl:#eaf3fd;--pl2:#cfe2f7}.pg{width:210mm;min-height:297mm;background:#fff;margin:0 auto 7mm;box-shadow:0 2px 12px #0002;padding:14mm 14mm 12mm;position:relative;break-after:page;page-break-after:always;font-size:10pt;line-height:1.55;color:#1b2430}
