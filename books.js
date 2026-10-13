@@ -194,7 +194,7 @@ const BKSCR=`
 .bkcov i{display:block;width:16px;height:3px;background:#111;margin:14px 0 6px}
 .bkcov b{font-size:11.5px;line-height:1.25;word-break:keep-all;font-weight:800;letter-spacing:-.5px}.bkcov span{font-size:10px;color:#444;margin-top:3px}
 .bkcov em{position:absolute;left:7px;right:7px;bottom:6px;border-top:1px solid #111;padding-top:3px;font-style:normal;font-size:8px;color:#555}
-.bkcard .bi2{flex:1;min-width:0;display:flex;flex-direction:column}.bkcard h3{margin:0;font-size:16px}.bkcard p{margin:4px 0 8px;font-size:12.5px;color:var(--m);line-height:1.5}
+.bkcard .bi2{flex:1;min-width:0;display:flex;flex-direction:column}.bkcard h3{margin:0;font-size:16px}.bkcard small{word-break:keep-all;display:block}.bkcard p{margin:4px 0 8px;font-size:12.5px;color:var(--m);line-height:1.5}
 .bkcard .bt2{margin-top:auto;display:flex;gap:6px;flex-wrap:wrap}.bkcard .bt2 button{padding:7px 12px;font-size:13px;border-radius:8px}
 .bkrl{display:flex;flex-direction:column;border-top:1px solid var(--l)}.bkrr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 2px;border-bottom:1px solid var(--l)}.bkrr b{min-width:42px;font-size:15px}.bkrr span{flex:1 1 140px;font-size:12.5px;color:var(--m)}.bkrr button{padding:6px 12px;font-size:13px;border-radius:8px}.bklm{display:inline-flex;gap:4px}.bklm button{padding:5px 12px;font-size:13px;border-radius:8px}
 .bkpath{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;align-items:end}
