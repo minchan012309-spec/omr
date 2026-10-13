@@ -8,7 +8,7 @@ const bkLv=q=>q.lv0||q.lv||'';
 const BKPAL={cm:{p:'#2f9d66',pd:'#1f7d4e',pl:'#eefcf5',pl2:'#d9f8e8',line:'#b0e3c9'},me:{p:'#2f7fd0',pd:'#1d5ca6',pl:'#eef5fc',pl2:'#d9e8f8',line:'#b9cfe6'}};
 const BKPADS=[2.8,4.5,6.5,9];
 let BKO=(()=>{try{return JSON.parse(localStorage.getItem('omr_bko')||'{}')}catch(e){return {}}})();
-const bkOsig=()=>(BKO.gap||0)+'|'+(BKO.color||'')+'|'+(BKO.font||'')+'|'+(BKO.design||'');
+const bkOsig=()=>(BKO.color||'')+'|'+(BKO.font||'')+'|'+(BKO.design||'');
 function bkOset(o){Object.assign(BKO,o);try{localStorage.setItem('omr_bko',JSON.stringify(BKO))}catch(e){}}
 const bkPal=()=>{if(BKO.color&&typeof PAL!=='undefined'&&PAL[BKO.color]){const v=PAL[BKO.color];return {p:v[0],pd:v[1],pl:v[2],pl2:v[3],line:v[3]}}return BKPAL[SUBJ]||BKPAL.cm};
 const bkVars=()=>{const c=bkPal();return '--p:'+c.p+';--pd:'+c.pd+';--pl:'+c.pl+';--pl2:'+c.pl2+';--line:'+c.line+';--y:#ffca2c'};
@@ -326,7 +326,8 @@ async function bkPlan(id){
  if(BKP[id]&&BKP[id].subj===SUBJ&&BKP[id].sig===bkOsig())return BKP[id];
  await bkInit();await conceptLoad();
  const P=bkParts(id);if(!P)return null;
- const mk=()=>P.kind==='c'?bkPlanConcept(id):P.kind==='t'?bkPlanType(id):P.def.kind==='full'?(P.def.round?bkPlanFull(id,P.def,P.def.round):null):bkPlanCustom(id,P.def);
+ const mk0=()=>P.kind==='c'?bkPlanConcept(id):P.kind==='t'?bkPlanType(id):P.def.kind==='full'?(P.def.round?bkPlanFull(id,P.def,P.def.round):null):bkPlanCustom(id,P.def);
+ const mk=()=>{const og=BKO.gap;BKO.gap=P.gap||0;try{return mk0()}finally{BKO.gap=og}};
  const plan=BKREC?mk():await bkSettle(mk);if(!plan)return null;
  plan.pages.forEach((p,i)=>p.n=i+1);
  plan.id=id;plan.subj=SUBJ;plan.sig=bkOsig();return BKP[id]=plan}
@@ -414,13 +415,16 @@ function bkxDefOf(m){ // 경로 문자열에서 책 정의 복원 → 다른 기
  if(m[4]!=null)return {kind:'full',count:+m[4],round:m[5]?+m[5]:0};
  const mask=parseInt(m[2],36)||0,inc={};Object.keys(BKXF).forEach(k=>{if(k!=='all'&&k!=='last'&&(mask&BKXF[k]))inc[k]=1});
  return {kind:'std',inc,all:!!(mask&BKXF.all),last:!!(mask&BKXF.last),subs:m[3]?m[3].split('.').map(Number):[]}}
-function bkParts(id){const m=String(id).match(/^(me|cm)-(c|t|x(?:b([0-9a-z]+)(?:-([\d.]+))?|e(\d+)(?:r(\d+))?))$/);if(!m)return null;
- if(m[2]==='c'||m[2]==='t')return {subj:m[1],kind:m[2]};
+function bkGapOf(id){const g=String(id).match(/~g([1-3])$/);return g?+g[1]:0}
+function bkBare(id){return String(id).replace(/~g[1-3]$/,'')}
+function bkPid(id){const g=BKO.gap||0;return bkBare(id)+(g?'~g'+g:'')}
+function bkParts(id){const gap=bkGapOf(id);id=bkBare(id);const m=String(id).match(/^(me|cm)-(c|t|x(?:b([0-9a-z]+)(?:-([\d.]+))?|e(\d+)(?:r(\d+))?))$/);if(!m)return null;
+ if(m[2]==='c'||m[2]==='t')return {subj:m[1],kind:m[2],gap};
  const d=bkxDefOf(m[5]!=null?[0,0,0,0,m[5],m[6]]:[0,0,m[3],m[4]]);
  const rec=bkxAll().find(b=>b.id===(m[1]+'-'+(d.kind==='full'?'xe'+d.count:'xb'+m[3]+(m[4]?'-'+m[4]:''))));
  d.name=rec?rec.name:(d.kind==='full'?'전범위 모의고사':'맞춤 교재');d.subt=rec?rec.sub:'';d.rounds=rec&&rec.rounds||20;
  d.base=m[1]+'-'+(d.kind==='full'?'xe'+d.count:'xb'+m[3]+(m[4]?'-'+m[4]:''));
- return {subj:m[1],kind:'x',def:d}}
+ return {subj:m[1],kind:'x',def:d,gap}}
 function bkxPreset(kind){const B={
  std:{name:'나만의 교재',sub:'개념 · 확인 문제 · 유형',inc:{concept:1,ox:1,bl:1,basic:1,type:1},all:0},
  last:{name:'직전 대비 교재',sub:'시험 직전 핵심 압축 정리',inc:{concept:1,ox:1,bl:1,type:1},all:0,last:1},
@@ -601,7 +605,7 @@ async function bkGradeAll(id){
  const key=id+':all',bk={page:key,bk:id,n:0,all:1,label:plan.short+' 전체'};
  {const lk=recLock('book',key);if(lk&&lk.items){showLockedRec(lk,{book:bk});return}}
  newCur(qs,{book:bk})}
-function bkRouteStr(s){const m=String(s).match(/^((?:me|cm)-(?:c|t|x[0-9a-z.\-]+)):(\d+|all)$/);if(!m)return;return m[2]==='all'?bkGradeAll(m[1]):bkGradePage(m[1],+m[2])}
+function bkRouteStr(s){const m=String(s).match(/^((?:me|cm)-(?:c|t|x[0-9a-z.\-]+)(?:~g[1-3])?):(\d+|all)$/);if(!m)return;return m[2]==='all'?bkGradeAll(m[1]):bkGradePage(m[1],+m[2])}
 function bkNextHtml(){const b=cur&&cur.book;if(!b||!b.bk||b.all)return '';const plan=BKP[b.bk];if(!plan)return '';
  const nx=plan.pages.find(p=>p.n>b.n&&p.codes&&p.codes.length);
  return nx?'<div class="hint" style="margin:10px 0">'+esc(plan.short)+' p.'+b.n+' 채점을 마쳤습니다. 다음 문제 쪽(<b>p.'+nx.n+'</b>)도 이어서 채점할까요? <button class="p" style="margin-left:8px" onclick="bkGradePage(\''+b.bk+'\','+nx.n+')">p.'+nx.n+' 채점하기</button></div>':''}
@@ -647,6 +651,7 @@ function bkOpen(id){BKV={v:'read',id};tab='books';render();scrollTo(0,0)}
 function bkClose(){BKV={v:'shelf',id:null};render();scrollTo(0,0)}
 function bkScale(){const w=document.getElementById('bkpages');if(!w)return;const W=w.clientWidth;const s=Math.min(1,W/(210*BK_MM))*(BKV.z||1);w.style.setProperty('--bks',s.toFixed(4));w.style.setProperty('--bkw',(210*BK_MM*s)+'px');w.style.setProperty('--bkh',(297*BK_MM*s)+'px')}
 async function bkReader(id){
+ id=bkPid(id);
  const m=$('#main');m.innerHTML='<div class="card">'+ldg('책을 펴는 중…')+'</div>';
  const plan=await bkPlan(id);if(!plan){bkClose();return}
  const jumps=[];if(plan.kind==='c'){plan.toc.forEach(r=>{jumps.push([r.sub.k+' '+r.sub.name+' · 개념',r.c]);if(r.ox)jumps.push(['　'+r.sub.k+' OX',r.ox]);if(r.bl)jumps.push(['　'+r.sub.k+' 빈칸',r.bl]);if(r.mc)jumps.push(['　'+r.sub.k+' 기초 5지선다',r.mc])})}
@@ -680,10 +685,11 @@ function bkBarHtml(plan){
  const des=plan.kind==='m'?`<label>디자인<select id="pdes">${o([['exam','시험지 (흑백)'],['color','컬러 포인트']],BKO.design||'exam')}</select></label>`:'';
  return `<label>문제 간격<select id="pgap">${gap}</select></label>${des}<label>색상<span style="width:16px;height:16px;border-radius:50%;background:${dot};display:inline-block;border:1px solid rgba(0,0,0,.15)"></span><select id="pcol"><option value="" ${BKO.color?'':'selected'}>● 과목색</option>${col}</select></label><label>글꼴<select id="pfnt">${fnt}</select></label>`}
 async function bkRepop(o){if(!BKPOP||!BKPOP.win||BKPOP.win.closed)return;bkOset(o);if(BKPOP.subj!==SUBJ)await setSubject(BKPOP.subj);
- const plan=await bkPlan(BKPOP.id);if(!plan)return;await bkShowIn(BKPOP.win,plan,BKPOP.all)}
+ const plan=await bkPlan(bkPid(BKPOP.id));if(!plan)return;await bkShowIn(BKPOP.win,plan,BKPOP.all)}
 async function bkShowIn(w,plan,all){window._popExtra=bkBarHtml(plan);try{await cbPrintHtml(bkDocHtml(plan,all),w)}finally{window._popExtra=''}
  popWire(w,d=>{d.getElementById('pgap').onchange=e=>bkRepop({gap:+e.target.value});const des=d.getElementById('pdes');if(des)des.onchange=e=>bkRepop({design:e.target.value});d.getElementById('pcol').onchange=e=>bkRepop({color:e.target.value});d.getElementById('pfnt').onchange=e=>bkRepop({font:e.target.value})})}
 async function bkPrint(id,all){
+ id=bkPid(id);
  const pw=typeof popOpen==='function'?popOpen('인쇄할 책을 만드는 중…'):null;
  await bkInit();const P=bkParts(id);if(P&&P.subj!==SUBJ)await setSubject(P.subj);
  busyRun('인쇄할 책을 만드는 중…',async()=>{await conceptLoad();const plan=await bkPlan(id);if(!plan){if(pw)pw.close();return}
