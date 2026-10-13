@@ -169,7 +169,8 @@ const BKCSS=`
 .bkdoc .toc .how h4{margin:0 0 2mm;font-size:13.5px;font-weight:800;color:var(--pd)}
 /* 실전 모의고사(출제 파일 서식) */
 .bkdoc .mk .hd .t2 b{background:#111}
-.bkdoc .mk.cl .hd .t2 b{background:var(--pd)}.bkdoc .mk.cl *{border-color:var(--pd)!important}.bkdoc .mk.cl .cv2 .ttl .a,.bkdoc .mk.cl .info .r{color:var(--pd)}.bkdoc .mk.cl .cv2 .ln{border-color:var(--pd)!important}
+.bkdoc .mk.cl .hd .t2 b{background:var(--pd)}.bkdoc .mk.cl *{border-color:var(--pd)!important}.bkdoc .mk.cl .cv2 .ttl .a,.bkdoc .mk.cl .info .r{color:var(--pd)}.bkdoc .mk .cv2 .cvqr{position:absolute;right:0;bottom:30mm;display:flex;align-items:center;gap:3mm;font-size:10px;color:#444;line-height:1.4;text-align:right}.bkdoc .mk .cv2 .cvqr .qq{width:16mm;height:16mm;order:2}.bkdoc .mk .cv2 .cvqr .qq svg{width:100%;height:100%;display:block}
+.bkdoc .mk.cl .cv2 .ln{border-color:var(--pd)!important}
 .bkdoc .mk .info{position:absolute;left:12mm;right:12mm;top:26mm;height:15mm;border:1px solid #111;display:grid;grid-template-columns:1fr 26mm;font-size:11px}
 .bkdoc .mk .info .l{padding:1.6mm 3mm;font-weight:700;font-size:12.5px;border-right:1px solid #111;display:flex;flex-direction:column;justify-content:space-between}
 .bkdoc .mk .info .l div{display:flex;font-weight:600;font-size:11px;border-top:1px solid #111;margin:0 -3mm -1.6mm}.bkdoc .mk .info .l div span{flex:1;padding:.6mm 3mm;border-right:1px solid #111}.bkdoc .mk .info .l div span:last-child{border-right:0}
@@ -568,8 +569,8 @@ function bkToc(plan){
 function bkMockCover(plan){const M=plan.M;
  return '<div class="cv2"><div class="row1"><div>'+'Solvi'+'</div><div>'+'전범위'+'</div><div>'+esc(M.sname)+'</div></div><div class="ttl"><div class="a">전 범 위 모 의 고 사</div><div class="b">'+esc(M.sname)+'</div><div class="c">제 '+M.round+' 회 [ '+esc(M.title)+' ]</div><div class="ln"></div></div>'+
  '<table class="info3"><tr><th>출제 범위</th><td>'+M.range.map(esc).join('<br>')+'</td></tr><tr><th>문항 · 배점</th><td>객관식 '+M.codes.length+'문항 · '+M.tot+'점</td></tr><tr><th>시험 시간</th><td>'+esc(M.time)+'</td></tr></table>'+
- '<div class="note"><h3>유 의 사 항</h3><ol><li>시험 시작 종이 울린 후 문제지의 해당란에 학년, 반, 번호, 이름을 정확히 쓰시오.</li><li>모든 문항은 객관식이며, ①~⑤ 중 가장 적절한 것 하나를 고르시오.</li><li>각 문항의 끝에 표시된 배점을 참고하여 시간을 안배하시오.</li><li>문제지 뒤의 정답 및 해설은 시험이 끝난 후에 확인하시오.</li><li>각 쪽 아래 QR을 스캔하면 그 쪽의 답을 바로 채점할 수 있다.</li></ol></div>'+
- '<table class="idt"><tr><td class="k">학 년</td><td style="width:20mm"></td><td class="k">반</td><td style="width:20mm"></td><td class="k">번 호</td><td style="width:20mm"></td><td class="k">이 름</td><td></td></tr></table><div class="foot">이 문제지의 저작권은 출제자에게 있으며, 무단 복제 · 전재를 금합니다.</div></div>'}
+ '<div class="note"><h3>유 의 사 항</h3><ol><li>시험 시작 종이 울린 후 문제지의 해당란에 학년, 반, 번호, 이름을 정확히 쓰시오.</li><li>모든 문항은 객관식이며, ①~⑤ 중 가장 적절한 것 하나를 고르시오.</li><li>각 문항의 끝에 표시된 배점을 참고하여 시간을 안배하시오.</li><li>문제지 뒤의 정답 및 해설은 시험이 끝난 후에 확인하시오.</li><li>표지와 문제 쪽 아래의 QR은 모두 같으며, 스캔하면 시험 전체를 채점할 수 있다.</li></ol></div>'+
+ '<table class="idt"><tr><td class="k">학 년</td><td style="width:20mm"></td><td class="k">반</td><td style="width:20mm"></td><td class="k">번 호</td><td style="width:20mm"></td><td class="k">이 름</td><td></td></tr></table><div class="cvqr"><div class="qq">'+qrSvg(bkUrl(plan,{n:0}))+'</div><span>어느 쪽의 QR을 스캔해도<br>시험 전체를 채점해요</span></div><div class="foot">이 문제지의 저작권은 출제자에게 있으며, 무단 복제 · 전재를 금합니다.</div></div>'}
 function bkPageHtml(plan,i){
  const p=plan.pages[i];const V=' style="'+bkVars()+'"';
  if(p.k==='cover')return '<div class="bp bk"'+V+'>'+bkCover(plan)+'</div>';
