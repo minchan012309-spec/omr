@@ -531,7 +531,7 @@ function bkBase(){if(window.BKBASE)return window.BKBASE;return ((typeof CF!=='un
 function bkUrl(plan,p){return bkBase()+'#bk='+plan.id+':'+(plan.kind==='m'?'all':p.n)}
 function bkHd2(plan,p){const even=p.n%2===0;const L='<span>'+esc(SNAME[SUBJ])+' · <b>'+esc(plan.short)+'</b></span>';const R='<span class="lb2">'+(p.sub&&p.sub.k?esc(p.sub.k)+' · ':'')+esc(p.label||'')+'</span>';
  return '<div class="hd2">'+(even?R+L:L+R)+'</div>'}
-function bkFb(plan,p){const even=p.n%2===0,qr=p.codes&&p.codes.length;
+function bkFb(plan,p){const even=p.n%2===0,qr=(p.codes&&p.codes.length)||(plan.kind==='m'&&p.k==='ak');
  const pn='<span class="pn'+(even?' r':'')+'">'+p.n+'</span>';
  const side=qr?'<div class="qrb"><div class="qq">'+qrSvg(bkUrl(plan,p))+'</div></div>':'<span class="lab">'+esc(p.label||plan.short)+'</span>';
  // 쪽 번호: 홀수쪽은 왼쪽, 짝수쪽은 오른쪽 / 문제 쪽은 단원명 자리에 QR
