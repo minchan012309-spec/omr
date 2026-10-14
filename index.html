@@ -764,18 +764,24 @@ function saveCfg(){CF.url=$('#cu').value.trim();CF.key=$('#ck').value.trim();CF.
 async function doAuth(k){try{$('#cmsg').textContent='처리 중…';await auth(k,$('#ce').value.trim(),$('#cp').value);$('#cfg').classList.remove('open');await load()}catch(e){$('#cmsg').textContent=e.message}}
 function logout(){sess=null;localStorage.removeItem(LSS);try{sessionStorage.removeItem(LSS)}catch(e){}srv=false;$('#cfg').classList.remove('open');tab='enter';load()}
 /* ---------- 학생 ---------- */
+const stuTomb=()=>new Set(jget('omr_stu_del',[]));
+function stuTombAdd(ids){const s=stuTomb();ids.forEach(i=>s.add(i));jset('omr_stu_del',[...s].slice(-300))}
+async function stuSrvDel(id){try{const r=await sb('/rest/v1/students?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=representation'}});if(!r.ok)return false;const j=await r.json().catch(()=>[]);return true}catch(e){return false}}
 async function stuSync(){const r=await sb('/rest/v1/students?select=id,name,grade,memo,t,login&order=t.asc&limit=2000');if(!r.ok){CF.stuErr=1;return}CF.stuErr=0;
- const rem=await r.json();const have=new Set(rem.map(x=>x.id));
+ let rem=await r.json();const tomb=stuTomb();
+ for(const x of rem.filter(x=>tomb.has(x.id))){await stuSrvDel(x.id)}
+ jset('omr_stu_del',[...tomb].filter(i=>rem.some(x=>x.id===i)));
+ rem=rem.filter(x=>!tomb.has(x.id));STU=STU.filter(x=>!tomb.has(x.id));const have=new Set(rem.map(x=>x.id));
  for(const x of STU.filter(x=>!have.has(x.id)))await sb('/rest/v1/students',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(x)});
  STU=[...rem,...STU.filter(x=>!have.has(x.id))].sort((a,b)=>a.t-b.t);jset(LST,STU)}
 async function stuAdd(){const n=$('#sn').value.trim();if(!n)return;const s={id:uuid(),name:n,grade:$('#sg').value.trim(),memo:$('#sm').value.trim(),t:Date.now()};
  STU.push(s);jset(LST,STU);if(srv==='cloud')await sb('/rest/v1/students',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(s)});CUR_S=s.id;localStorage.setItem(LCS,CUR_S);syncLabel();render()}
 async function stuEdit(id){const s=STU.find(x=>x.id===id);const n=prompt('이름',s.name);if(n===null)return;const g=prompt('학년·반',s.grade||'');if(g===null)return;s.name=n.trim()||s.name;s.grade=g.trim();jset(LST,STU);
  if(srv==='cloud')await sb('/rest/v1/students?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({name:s.name,grade:s.grade})});syncLabel();render()}
-async function stuDel(id){if(!confirm('이 학생을 삭제할까요? 채점 기록은 남지만 학생과의 연결이 끊어집니다.'))return;STU=STU.filter(x=>x.id!==id);jset(LST,STU);if(CUR_S===id)CUR_S='';
- if(srv==='cloud')await sb('/rest/v1/students?id=eq.'+id,{method:'DELETE'});syncLabel();render()}
+async function stuDel(id){if(!confirm('이 학생을 삭제할까요? 채점 기록은 남지만 학생과의 연결이 끊어집니다.'))return;STU=STU.filter(x=>x.id!==id);jset(LST,STU);if(CUR_S===id)CUR_S='';stuTombAdd([id]);
+ if(srv==='cloud'){if(!(await stuSrvDel(id)))toast('온라인에서 아직 지우지 못했어요. 연결되면 다시 시도해요')}syncLabel();render()}
 async function stuDelSel(){const ids=[...STSEL];if(!ids.length)return;if(!confirm('선택한 학생 '+ids.length+'명을 삭제할까요?\n채점 기록은 남지만 학생과의 연결이 끊어져요.'))return;
- let fail=0;if(srv==='cloud'){for(const id of ids){try{const r=await sb('/rest/v1/students?id=eq.'+id,{method:'DELETE'});if(!r.ok)fail++}catch(e){fail++}}}
+ let fail=0;stuTombAdd(ids);if(srv==='cloud'){for(const id of ids){if(!(await stuSrvDel(id)))fail++}}
  STU=STU.filter(x=>!ids.includes(x.id));jset(LST,STU);if(ids.includes(CUR_S))CUR_S='';STSEL.clear();syncLabel();render();toast(fail?'일부 학생은 온라인에서 지우지 못했어요 ('+fail+'명)':ids.length+'명을 삭제했어요')}
 let SQ='',SGR='';
 const stuFlt=s=>(!SQ||(s.name+' '+(s.grade||'')+' '+(s.memo||'')+' '+(s.login||'')).toLowerCase().includes(SQ.toLowerCase()))&&(!SGR||(s.grade||'')===SGR);
