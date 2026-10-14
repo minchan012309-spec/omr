@@ -673,6 +673,7 @@ html[data-theme=dark] .sgn{color:#0f0f10}
 @media(max-width:600px){.dombn{padding:14px 16px}.dombn b{font-size:18px}.dombn a.p{width:100%;justify-content:center}}
 html[data-theme=dark] .dombn{box-shadow:none}
 #bellBtn,#helpBtn,#refBtn,#setBtn,#qrBtn{min-height:0!important;min-width:0!important;flex:none!important;aspect-ratio:1/1;box-sizing:border-box}.ig h3 em{font-style:normal;font-size:11px;font-weight:700;background:var(--b);color:#fff;border-radius:99px;padding:1px 8px;margin-left:6px;vertical-align:middle}.ig p{margin:0 0 6px}html[data-theme=dark] .ig h3 em{color:#0f0f10}
+#domnt a.dnu{text-decoration:none;cursor:pointer}#domnt a.dnu small{display:block;font-size:13px;font-weight:600;opacity:.9;margin-top:2px;letter-spacing:0}#domnt a.dnu:hover{filter:brightness(1.06)}.dombn a.dml{color:#2b2100;font-weight:800;background:#fff7cf;padding:0 6px;border-radius:6px;text-decoration:underline}
 html.big body{font-size:17px}html.big button,html.big select,html.big input:not([type=checkbox]){min-height:46px}html.big nav button{padding-left:14px;padding-right:14px}
 html[data-theme=dark] svg text[fill="#1f2933"],html[data-theme=dark] svg text[fill="#2b2f36"]{fill:var(--t)}html[data-theme=dark] svg [stroke="#e6ebf1"]{stroke:#34343a}html[data-theme=dark] svg [fill="#c9d0d8"]{fill:#4a4a52}html[data-theme=dark] svg [stroke="#2b2f36"]{stroke:#c9c9d0}
 html[data-theme=dark] .task{background:var(--sf1);border-color:var(--l2)}html[data-theme=dark] .task.ok{background:#16211b;border-color:#2b4638}html[data-theme=dark] .task.late{background:#2a1a1a;border-color:#5a2f2f}
@@ -2713,10 +2714,10 @@ function syncClick(){if(PVSAVE){exitPreview();return}if(STUD){openSettings()}els
 const DOMNT={host:'ssolvi.kro.kr',until:Date.parse('2026-10-17T00:00:00+09:00')};
 function domNotice(){try{if(Date.now()>=DOMNT.until||sessionStorage.getItem('omr_domnt')||document.getElementById('domnt'))return;
  const onNew=location.hostname===DOMNT.host;const o=document.createElement('div');o.id='domnt';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','주소 변경 안내');
- o.innerHTML=`<div class="dnb"><h2>앱 주소가 바뀌었어요</h2><div class="dnu">${DOMNT.host}</div><ul><li>앞으로는 <b>이 주소</b>로 들어와 주세요.</li><li>홈 화면에 추가해서 쓰던 분은 <b>새 주소에서 다시 추가</b>해 주세요.</li><li>처음 한 번은 <b>로그인을 다시</b> 해야 해요. 패스키도 다시 등록해 주세요.</li></ul><p>이 안내는 10월 16일(금)까지만 보여요.</p><div class="dnr">${onNew?'':`<a class="p" href="https://${DOMNT.host}/">새 주소로 이동</a>`}<button class="${onNew?'p':'s'}" onclick="domNoticeClose()">확인했어요</button></div></div>`;
+ o.innerHTML=`<div class="dnb"><h2>앱 주소가 바뀌었어요</h2><a class="dnu" href="https://${DOMNT.host}/">${DOMNT.host}<small>눌러서 이동 ›</small></a><ul><li>앞으로는 <b>이 주소</b>로 들어와 주세요.</li><li>홈 화면에 추가해서 쓰던 분은 <b>새 주소에서 다시 추가</b>해 주세요.</li><li>처음 한 번은 <b>로그인을 다시</b> 해야 해요. 패스키도 다시 등록해 주세요.</li></ul><p>이 안내는 10월 16일(금)까지만 보여요.</p><div class="dnr">${onNew?'':`<a class="p" href="https://${DOMNT.host}/">새 주소로 이동</a>`}<button class="${onNew?'p':'s'}" onclick="domNoticeClose()">확인했어요</button></div></div>`;
  document.body.appendChild(o);setTimeout(()=>{const b=o.querySelector('button');b&&b.focus()},50)}catch(e){}}
 function domBanner(){if(Date.now()>=DOMNT.until)return '';const onNew=location.hostname===DOMNT.host;
- return `<div class="dombn" role="status"><div class="dbt"><b>앱 주소가 바뀌었어요</b><span>앞으로는 <u>${DOMNT.host}</u> 로 들어와 주세요. 홈 화면 앱은 새 주소에서 다시 추가하고, 처음 한 번은 다시 로그인해야 해요.</span></div>${onNew?'':`<a class="p" href="https://${DOMNT.host}/">새 주소로 이동</a>`}</div>`}
+ return `<div class="dombn" role="status"><div class="dbt"><b>앱 주소가 바뀌었어요</b><span>앞으로는 <a class="dml" href="https://${DOMNT.host}/">${DOMNT.host}</a> 로 들어와 주세요. 홈 화면 앱은 새 주소에서 다시 추가하고, 처음 한 번은 다시 로그인해야 해요.</span></div>${onNew?'':`<a class="p" href="https://${DOMNT.host}/">새 주소로 이동</a>`}</div>`}
 function domNoticeClose(){try{sessionStorage.setItem('omr_domnt','1')}catch(e){}const o=document.getElementById('domnt');if(o)o.remove()}
 setTimeout(domNotice,900);
 /* ---------- 새로고침 · 버그 신고 ---------- */
