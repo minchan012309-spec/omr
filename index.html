@@ -844,7 +844,7 @@ async function load(){loadCfg();hist=jget(LS,[]);STU=jget(LST,[]);WSH=jget(LW,[]
  await loadBankIndex();
  STUD=cloud()?sget(LSTUD):null;if(STUD){await loadStud();if(STUD){syncLabel();render();return}}
  if(cloud()&&sess){try{
-   await stuSync();setTimeout(sgLoad,300);
+   await stuSync();setTimeout(sgLoad,300);setTimeout(bugPoll,600);
    const r=await sb('/rest/v1/attempts?select=t,set,sub,items,student_id&order=t.asc&limit=20000');
    if(r.ok){const rem=(await r.json()).map(x=>({t:x.t,set:x.set,sub:x.sub,items:x.items,sid:x.student_id||''}));const have=new Set(rem.map(x=>x.t));
     const up=hist.filter(x=>!have.has(x.t));
@@ -969,7 +969,7 @@ function decorate(){document.body.classList.toggle('hasfab',!!document.querySele
 function goFull(){bkLoad().then(()=>{tab='books';bkGoFull();render();scrollTo(0,0)}).catch(()=>alert('교재를 불러오지 못했습니다.'))}
 function nav(){const hb=document.getElementById('helpBtn');if(hb)hb.hidden=!STUD||!permOn('tour');
 const PK={smap:'make',stat:'stat',concept:'concept',books:'books',wrong:'wrong',diag:'diag',tasks:'tasks',enter:'enter',shist:'shist'};
-const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['stat','유형 분석'],['concept','개념학습'],['books','교재'],['smap','학습지 만들기'],['shist','기록']].filter(([k])=>!PK[k]||permOn(PK[k])):teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'+(SG.list.length?' ('+SG.list.length+')':'')],['stat','누적 분석'],['search','문항 검색'],['tset','설정']]:[['enter','번호 채점']];
+const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['stat','유형 분석'],['concept','개념학습'],['books','교재'],['smap','학습지 만들기'],['shist','기록']].filter(([k])=>!PK[k]||permOn(PK[k])):teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'+(SG.list.length?' ('+SG.list.length+')':'')],['stat','누적 분석'],['search','문항 검색'],['tset','설정'+(BUG.list.length?' ('+BUG.list.length+')':'')]]:[['enter','번호 채점']];
  if(!T.find(x=>x[0]===tab)&&!(tab==='grade'&&cur)&&!(tab==='prac'&&PR)&&!((tab==='build'||tab==='bdesign'||tab==='bmake'||tab==='wsedit'||tab==='review')&&teacher())&&!(tab==='prac'&&STUD)&&!(tab==='mock'&&teacher()))tab=T[0][0];$('#nav').innerHTML=T.map(([k,v])=>`<button class="${tab===k||(k==='ws'&&['build','bdesign','review'].includes(tab))||(k==='books'&&tab==='mock')||(k==='enter'&&tab==='grade'&&STUD)?'on':''}" onclick="navGo('${k}')">${v}</button>`).join('')}
 let _navKey=null;
 function goHome(){const k=STUD?'home':(teacher()?'thome':'enter');if(cur&&tab==='grade'&&!cur.done&&!confirm('채점을 그만둘까요? 입력한 내용은 저장되지 않습니다.'))return;if(cur&&tab==='grade'){clearInterval(_tm);if(!cur.done)gdraftClear();cur=null}PR=null;$('#exp').classList.remove('open');tab=k;render();scrollTo(0,0)}
@@ -1238,7 +1238,7 @@ function nBadge(){const b=document.getElementById('bellN');if(!b)return;const n=
 async function nFetch(first){
  try{if(!cloud())return;
   if(STUD&&!STUD.preview){permFetch();const r=await rpc('st_notices',{p_login:STUD.login,p_pw:STUD.pw});NT.err=r.ok?'':(r.status===404?'공지 기능이 서버에 설정되지 않았어요. 선생님께 알려 주세요.':'공지를 불러오지 못했어요 ('+r.status+')');let jn=[];try{jn=r.ok?await r.json():[]}catch(e){}NT.list=Array.isArray(jn)?jn:[];NT.dbg='서버 응답 '+r.status+' · 받은 공지 '+NT.list.length+'건'}
-  else if(sess){sgLoad();const r=await sb('/rest/v1/notices?select=id,title,body,t,student_id&order=t.desc&limit=60');NT.err=r.ok?'':(r.status===404?'notices 테이블이 없어요. setup.sql 11번을 실행하세요.':'공지를 불러오지 못했어요 ('+r.status+')');NT.sent=r.ok?await r.json():[];NT.list=[];NT.dbg='서버 응답 '+r.status+' · 보낸 공지 '+NT.sent.length+'건'}
+  else if(sess){sgLoad();bugPoll();const r=await sb('/rest/v1/notices?select=id,title,body,t,student_id&order=t.desc&limit=60');NT.err=r.ok?'':(r.status===404?'notices 테이블이 없어요. setup.sql 11번을 실행하세요.':'공지를 불러오지 못했어요 ('+r.status+')');NT.sent=r.ok?await r.json():[];NT.list=[];NT.dbg='서버 응답 '+r.status+' · 보낸 공지 '+NT.sent.length+'건'}
   else NT.list=[]}catch(e){NT.err='공지를 불러오지 못했어요. 인터넷 연결을 확인하세요.'}
  const s=nSeenGet();const fresh=NT.list.filter(x=>!s.has('n:'+x.id)&&!NT.announced.has(x.id));
  if(!first&&fresh.length){fresh.slice(0,2).forEach(x=>toast('새 알림 · '+x.title));}
@@ -2739,6 +2739,7 @@ async function bugSend(){const m=(($('#bugmsg')||{}).value||'').trim();if(m.leng
   if(ok){toast('신고를 보냈어요. 고마워요!');closeCfg()}else st.innerHTML='<span style="color:var(--no)">'+(code===404?'신고 기능이 서버에 설정되지 않았어요(setup.sql 13번). 「내용 복사」로 직접 전달해 주세요.':'보내지 못했어요'+(code?' ('+code+')':'')+'. 「내용 복사」로 직접 전달해 주세요.')+'</span>'}
  catch(e){st.innerHTML='<span style="color:var(--no)">연결하지 못했어요. 「내용 복사」로 직접 전달해 주세요.</span>'}BUG.busy=0}
 async function bugLoad(){if(!sess||STUD)return;try{const r=await sb('/rest/v1/bug_reports?select=id,who,msg,info,t&order=t.desc&limit=30');BUG.list=r.ok?await r.json():[];BUG.err=r.status===404?'bug_reports 테이블이 없어요. setup.sql 13번을 실행하세요.':''}catch(e){BUG.list=[]}}
+async function bugPoll(){const old=BUG.list.map(x=>x.id).join();await bugLoad();if(old!==BUG.list.map(x=>x.id).join()){try{if(teacher()&&['thome','tset'].includes(tab)){render()}else nav()}catch(e){}}}
 async function bugDel(id){try{await sb('/rest/v1/bug_reports?id=eq.'+id,{method:'DELETE'})}catch(e){}await bugLoad();tsetView()}
 /* ---------- 한 기기에 여러 계정 ---------- */
 const ACK='omr_accts';
@@ -2823,7 +2824,10 @@ async function sgReject(id){if(!confirm('이 가입 신청을 거절할까요?')
 async function sgToggle(on){try{const r=await rpc('join_open_set',{p_open:on});if(!r.ok)throw 0;SG.open=on;toast(on?'가입을 받아요':'가입을 받지 않아요')}catch(e){toast('저장하지 못했어요');tsetView()}}
 function sgCopy(){const s=sgLink();try{navigator.clipboard.writeText(s);toast('링크를 복사했어요')}catch(e){prompt('링크를 복사하세요',s)}}
 {const _sv=stuView;stuView=function(){_sv();if(SG.list.length||SG.err)$('#main').insertAdjacentHTML('afterbegin',sgCard())}}
-{const _th=teacherHome;teacherHome=function(){_th();if(SG.list.length&&teacher())$('#main').insertAdjacentHTML('afterbegin',`<div class="hint sgban" role="button" tabindex="0" onclick="tab='stu';render()" onkeydown="if(event.key==='Enter')this.click()"><b>가입 신청 ${SG.list.length}건</b>이 승인을 기다리고 있어요. <span>눌러서 확인 ›</span></div>`)}}
+{const _th=teacherHome;teacherHome=function(){_th();if(!teacher())return;let h='';
+  if(BUG.list.length)h+=`<div class="hint sgban" role="button" tabindex="0" onclick="tab='tset';render();setTimeout(()=>{const e=document.getElementById('ts_bug');e&&e.scrollIntoView()},300)" onkeydown="if(event.key==='Enter')this.click()"><b>버그 신고 ${BUG.list.length}건</b>이 도착했어요. <span>눌러서 확인 ›</span></div>`;
+  if(SG.list.length)h+=`<div class="hint sgban" role="button" tabindex="0" onclick="tab='stu';render()" onkeydown="if(event.key==='Enter')this.click()"><b>가입 신청 ${SG.list.length}건</b>이 승인을 기다리고 있어요. <span>눌러서 확인 ›</span></div>`;
+  if(h)$('#main').insertAdjacentHTML('afterbegin',h)}}
 /* ---------- 학생 회원가입 · 선생님 승인 ---------- */
 const SGK='omr_signup';
 let SGU={mode:'login',code:'',busy:0,err:'',st:'',t:0};
@@ -3296,16 +3300,16 @@ function openSettings(){const rp=jget('omr_rep_v1',[]),mk=jget('omr_mock_v1',[])
  $('#cfgBox').innerHTML=`<h2 style="margin-top:0">설정</h2>
  ${(STUD&&!STUD.preview)||sess?`<div class="cfs"><h3>계정</h3><p>이 기기에 저장된 계정이에요. 눌러서 바로 전환할 수 있어요.</p><div id="acctbox">${acctHtml()}</div></div>`:''}
  <div class="setr"><b>자동 저장</b><span class="m">${SAVEDT?'이 기기에 '+new Date(SAVEDT).toLocaleTimeString('ko-KR')+' 저장됨':'변경 사항은 바로 이 기기에 저장됩니다.'}${cloud()&&sess?' · 온라인 동기화 사용 중':''}</span></div>
- <div class="setr"><b>난이도 자동 보정</b><label class="m"><input type="checkbox" ${CALIB_ON?'checked':''} onchange="setCalib(this.checked)"> 풀이 5회 이상인 문항은 실제 정답률로 난이도(하·중·상·최)를 조정</label></div>
- <div class="setr"><b>즐겨찾기</b><span class="m">${FAV.length}문항 · <a href="#" onclick="closeCfg();SP.src='fav';SP.sub='';tab='search';render();return false">검색에서 보기</a></span></div>
- <div class="setr"><b>신고 내역</b><span class="m">${rp.length}건 · <a href="#" onclick="reportExport();return false">내려받기</a>${rp.length?' · <a href="#" onclick="if(confirm(\'신고 내역을 지울까요?\')){jset(\'omr_rep_v1\',[]);openSettings()}return false">비우기</a>':''}</span></div>
+ ${STUD?'':`<div class="setr"><b>난이도 자동 보정</b><label class="m"><input type="checkbox" ${CALIB_ON?'checked':''} onchange="setCalib(this.checked)"> 풀이 5회 이상인 문항은 실제 정답률로 난이도(하·중·상·최)를 조정</label></div>`}
+ ${STUD?'':`<div class="setr"><b>즐겨찾기</b><span class="m">${FAV.length}문항 · <a href="#" onclick="closeCfg();SP.src='fav';SP.sub='';tab='search';render();return false">검색에서 보기</a></span></div>
+ <div class="setr"><b>신고 내역</b><span class="m">${rp.length}건 · <a href="#" onclick="reportExport();return false">내려받기</a>${rp.length?' · <a href="#" onclick="if(confirm(\'신고 내역을 지울까요?\')){jset(\'omr_rep_v1\',[]);openSettings()}return false">비우기</a>':''}</span></div>`}
  ${(STUD&&!STUD.preview)||(sess&&!STUD)?pkSection():''}
  ${STUD?`<h3>튜토리얼</h3><div class="m" style="margin-bottom:6px">직접 눌러 보며 기능을 익혀요. 오른쪽 위 「?」에서도 열 수 있어요.</div><div class="row">${Object.entries(TOURS).map(([k,v])=>`<button class="s" onclick="tourStart('${k}')">${esc(v.name)}${tourDone(k)?' ✓':''}</button>`).join('')}</div>`:''}
  <h3>단축키</h3><div class="keys">${KEYS.map(k=>`<div><kbd>${k[0]}</kbd><span>${k[1]}</span></div>`).join('')}</div>
  <h3>버그 신고 · 새로고침</h3><div class="row"><button class="s" onclick="openInstGuide()">홈 화면에 추가하는 방법</button><button class="s" onclick="openBug()">버그 신고하기</button><button class="s" onclick="hardRefresh()">앱 새로고침</button></div>
- <h3>데이터 관리</h3><div class="row"><button class="s" onclick="healthView()">시스템 점검</button><button class="s" onclick="backupAll()">백업 내려받기</button><label class="s" style="cursor:pointer;display:inline-block;padding:8px 14px">백업 불러오기<input type="file" accept="application/json" hidden onchange="restoreAll(this)"></label></div>
- <div class="dz"><b>학습 자료만 지우기 (학생 유지)</b><div class="m">만들어 둔 학습지·교재·모의고사·채점 기록·과제·즐겨찾기·신고·내 구성을 모두 지웁니다. 등록된 학생 정보와 로그인·설정은 남아요.</div><button class="s dgr" onclick="closeCfg();wipeContent()">학습 자료 지우기…</button></div>
- <div class="dz"><b>전체 초기화</b><div class="m">학생·채점 기록·학습지·모의고사(${mk.length}개)·즐겨찾기·신고·설정을 모두 지웁니다. 로그인과 선택한 과목만 남습니다.</div><button class="s dgr" onclick="wipeAll()">모든 데이터 초기화…</button></div>
+ <h3>데이터 관리</h3><div class="row"><button class="s" onclick="healthView()">시스템 점검</button>${STUD?'':`<button class="s" onclick="backupAll()">백업 내려받기</button><label class="s" style="cursor:pointer;display:inline-block;padding:8px 14px">백업 불러오기<input type="file" accept="application/json" hidden onchange="restoreAll(this)"></label>`}</div>
+ ${STUD?'':`<div class="dz"><b>학습 자료만 지우기 (학생 유지)</b><div class="m">만들어 둔 학습지·교재·모의고사·채점 기록·과제·즐겨찾기·신고·내 구성을 모두 지웁니다. 등록된 학생 정보와 로그인·설정은 남아요.</div><button class="s dgr" onclick="closeCfg();wipeContent()">학습 자료 지우기…</button></div>
+ <div class="dz"><b>전체 초기화</b><div class="m">학생·채점 기록·학습지·모의고사(${mk.length}개)·즐겨찾기·신고·설정을 모두 지웁니다. 로그인과 선택한 과목만 남습니다.</div><button class="s dgr" onclick="wipeAll()">모든 데이터 초기화…</button></div>`}
  `;$('#cfg').classList.add('open');cfgChrome();if((STUD&&!STUD.preview)||(sess&&!STUD))pkRefresh()}
 document.addEventListener('keydown',e=>{const tg=e.target.tagName,typing=tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT';
  if(e.key==='Escape'){if($('#cfg').classList.contains('open'))return closeCfg();const x=$('#exp');if(x&&x.classList.contains('open'))return x.classList.remove('open')}
