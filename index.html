@@ -627,7 +627,7 @@ html[data-theme=dark] .th-hero{background:var(--bl)}
 .inkbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0 10px;padding:6px;border:1px solid var(--l);border-radius:12px;background:var(--surface);position:sticky;top:58px;z-index:3}
 .inkbar button{padding:6px 12px;border-radius:8px;border:1px solid var(--l2);background:var(--surface);font:inherit;font-size:13px;cursor:pointer;min-height:40px}
 .inkbar button.on{background:var(--bl);border-color:var(--b);color:var(--bd);font-weight:700}
-.inkbar .isw{width:40px;min-width:40px;padding:0;position:relative}.inkw{padding-bottom:150px}.inkw .pr_q,.inkw .shq{margin-bottom:0}.inkbar .isw::after{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--c)}
+.inkbar .isw{width:40px;min-width:40px;height:40px;min-height:40px;padding:0;position:relative;border-radius:50%!important;flex:none;aspect-ratio:1}.inkw{padding-bottom:150px}.inkw .pr_q,.inkw .shq{margin-bottom:0}.inkbar .isw::after{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--c)}
 .inkbar .isep{width:1px;height:22px;background:var(--l)}.inkbar .ifin{font-size:12.5px;color:var(--m);display:inline-flex;align-items:center;gap:4px;margin-left:auto}
 #qsheet .inkbar{position:static}
 </style>
@@ -635,7 +635,7 @@ html[data-theme=dark] .th-hero{background:var(--bl)}
 /* 튜토리얼 */
 #helpBtn{width:38px;height:38px;border-radius:50%;font-size:18px;font-weight:800;cursor:pointer;padding:0;flex:none;line-height:1;background:#ffffff1f;border:1px solid #ffffff55;color:#fff}#helpBtn:hover{background:#ffffff33}#helpBtn[hidden]{display:none}
 .tpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px 16px}.tpg .tp{display:flex;align-items:center;gap:8px;margin:0}.tl{display:block;font-size:12px;color:var(--m);margin-bottom:3px}
-html.big{zoom:1.12}
+html.big body{font-size:17px}html.big button,html.big select,html.big input:not([type=checkbox]){min-height:46px}html.big nav button{padding-left:14px;padding-right:14px}
 html[data-theme=dark] svg text[fill="#1f2933"],html[data-theme=dark] svg text[fill="#2b2f36"]{fill:var(--t)}html[data-theme=dark] svg [stroke="#e6ebf1"]{stroke:#34343a}html[data-theme=dark] svg [fill="#c9d0d8"]{fill:#4a4a52}html[data-theme=dark] svg [stroke="#2b2f36"]{stroke:#c9c9d0}
 html[data-theme=dark] .task{background:var(--sf1);border-color:var(--l2)}html[data-theme=dark] .task.ok{background:#16211b;border-color:#2b4638}html[data-theme=dark] .task.late{background:#2a1a1a;border-color:#5a2f2f}
 html[data-theme=dark] .task b,html[data-theme=dark] .dgl b,html[data-theme=dark] .dgt,html[data-theme=dark] .dgwn,html[data-theme=dark] .bdg.on,html[data-theme=dark] .bdg.on b{color:var(--t)}
@@ -1235,9 +1235,9 @@ function inkAttach(w,store,key){
  const dot=(a,b,wd,c)=>{ctx.strokeStyle=c;ctx.lineWidth=wd;ctx.beginPath();ctx.moveTo(a[0]*W_(),a[1]);ctx.lineTo(b[0]*W_(),b[1]);ctx.stroke()};
  const one=s=>{const sc=(document.documentElement.dataset.theme==='dark'&&s.c==='#1d1d1f')?'#f5f5f7':s.c;ctx.lineCap='round';ctx.lineJoin='round';const p=s.p;if(p.length===1){ctx.fillStyle=sc;ctx.beginPath();ctx.arc(p[0][0]*W_(),p[0][1],s.w*(0.5+(p[0][2]||.5))/2,0,7);ctx.fill();return}
   for(let i=1;i<p.length;i++)dot(p[i-1],p[i],s.w*(0.55+(p[i][2]||.5)*.9),sc)};
- const draw=()=>{const d=devicePixelRatio||1;ctx.setTransform(d,0,0,d,0,0);ctx.clearRect(0,0,cv.width,cv.height);S.forEach(one)};
- const fit=()=>{const r=w.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=Math.max(1,Math.round(r.width*d));cv.height=Math.max(1,Math.round(r.height*d));cv.style.width=r.width+'px';cv.style.height=r.height+'px';draw()};
- const pos=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)/r.width,e.clientY-r.top,e.pressure||.5]};
+ const draw=()=>{const k=cv.width/W_();ctx.setTransform(k,0,0,k,0,0);ctx.clearRect(0,0,cv.width/k,cv.height/k);S.forEach(one)};
+ const fit=()=>{const r=w.getBoundingClientRect(),d=devicePixelRatio||1;cv.style.width='100%';cv.style.height='100%';cv.width=Math.max(1,Math.round(r.width*d));cv.height=Math.max(1,Math.round(r.height*d));draw()};
+ const pos=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)/(r.width||1),(e.clientY-r.top)/(r.height||1)*(cv.clientHeight||r.height),e.pressure||.5]};
  const mode=()=>{cv.style.pointerEvents=INK.on?'auto':'none';cv.style.touchAction=INK.finger?'none':'pan-y pinch-zoom';cv.classList.toggle('er',INK.tool==='eraser')};
  const erase=(p)=>{const rw=W_();const before=S.length;for(let i=S.length-1;i>=0;i--){if(S[i].p.some(q=>Math.hypot((q[0]-p[0])*rw,q[1]-p[1])<14))S.splice(i,1)}if(S.length!==before)draw()};
  cv.addEventListener('pointerdown',e=>{if(!INK.on)return;if(e.pointerType==='touch'&&!INK.finger)return;e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(x){}
