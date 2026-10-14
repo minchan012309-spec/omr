@@ -580,6 +580,9 @@ html[data-theme=dark] .th-hero{background:var(--bl)}
 #tourmenu button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;border:0;background:none;text-align:left;padding:10px;border-radius:8px;font:inherit;cursor:pointer;min-height:44px}
 #tourmenu button:hover{background:var(--bl)}#tourmenu button span{font-size:12.5px;color:var(--m)}#tourmenu button i{font-style:normal;color:var(--b)}
 </style>
+<style>
+.pkl{display:flex;flex-direction:column;gap:6px}.pki{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--l);border-radius:10px;padding:8px 10px}.pki small{display:block;color:var(--m);font-size:12px}
+</style>
 </head><body>
 <header><h1 id="brand"><a class="lgo" onclick="goHome()" title="홈으로" role="link" tabindex="0" onkeydown="if(event.key==='Enter')goHome()"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lgx" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--b,#3b82f6)"/><stop offset="1" style="stop-color:var(--bd,#1d4ed8)"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lgx)"/><path d="M22.5 9.6A9 9 0 1 0 25 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M11.4 16.4l3.6 3.6 7-8.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bn">Solvi</span></a><span class="sjp" onclick="openSubjects()" title="과목 바꾸기"><small id="subj">물질과 에너지</small><b>▾</b></span></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span><span id="saved" title="이 기기에 자동 저장된 마지막 시각"></span><button id="helpBtn" onclick="tourMenu(event)" title="튜토리얼" aria-label="튜토리얼" hidden>?</button><button id="setBtn" onclick="openSettings()" title="설정 · 단축키 · 데이터 관리" aria-label="설정">⚙</button></header>
 <main id="main"></main><aside id="exp"></aside>
@@ -658,7 +661,10 @@ async function ensureTags(tags){let _i=0;for(const t of tags){_i++;if(tags.lengt
 const ensureCodes=codes=>ensureTags([...new Set(codes.map(tagOf).filter(Boolean))]);
 function qMeta(c){const q=byCode[c];if(q)return q;const t=tagOf(c);if(t&&BIDXALL[t])return{code:c,set:'bank',sub:BIDXALL[t].sub,subname:BIDXALL[t].subname,type:BIDXALL[t].label};return null}
 /* ---------- 저장소 · 클라우드 ---------- */
-function loadCfg(){CF={url:'https://airejqudbqfsfhadvwqp.supabase.co',key:'sb_publishable_YPbHe6NNnV5eQT0u1SZiCg_JLvrM7IV',pub:'https://minchan012309-spec.github.io/omr/'};sess=jget(LSS,null)}
+const autoOn=()=>{try{return localStorage.getItem('omr_auto')!=='0'}catch(e){return true}};
+function autoSet(v){try{localStorage.setItem('omr_auto',v?'1':'0')}catch(e){}if(!v){try{if(sess)sessionStorage.setItem(LSS,JSON.stringify(sess));localStorage.removeItem(LSS);if(STUD&&!STUD.preview){sessionStorage.setItem(LSTUD,JSON.stringify(STUD));localStorage.removeItem(LSTUD)}}catch(e){}}else{try{if(sess)localStorage.setItem(LSS,JSON.stringify(sess));if(STUD&&!STUD.preview)localStorage.setItem(LSTUD,JSON.stringify(STUD));sessionStorage.removeItem(LSS);sessionStorage.removeItem(LSTUD)}catch(e){}}}
+const sget=k=>{const a=jget(k,null);if(a)return a;try{return JSON.parse(sessionStorage.getItem(k)||'null')}catch(e){return null}};
+function loadCfg(){CF={url:'https://airejqudbqfsfhadvwqp.supabase.co',key:'sb_publishable_YPbHe6NNnV5eQT0u1SZiCg_JLvrM7IV',pub:'https://minchan012309-spec.github.io/omr/'};sess=sget(LSS)}
 const cloud=()=>!!(CF.url&&CF.key);
 const teacher=()=>(!cloud()||!!sess)&&!STUD;
 const base_=()=>CF.url.replace(/\/$/,'');
@@ -669,7 +675,7 @@ async function sb(path,o={},retry=true){let r=await fetch(base_()+path,{...o,hea
 const rpc=(fn,args)=>sb('/rest/v1/rpc/'+fn,{method:'POST',body:JSON.stringify(args)});
 async function refresh(){try{const r=await fetch(base_()+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:CF.key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:sess.refresh_token})});
  if(!r.ok){sess=null;localStorage.removeItem(LSS);return false}setSess(await r.json());return true}catch(e){return false}}
-function setSess(j){sess={access_token:j.access_token,refresh_token:j.refresh_token,user:j.user&&{id:j.user.id,email:j.user.email}||(sess&&sess.user)};jset(LSS,sess)}
+function setSess(j){sess={access_token:j.access_token,refresh_token:j.refresh_token,user:j.user&&{id:j.user.id,email:j.user.email}||(sess&&sess.user)};if(autoOn()){jset(LSS,sess);try{sessionStorage.removeItem(LSS)}catch(e){}}else{try{sessionStorage.setItem(LSS,JSON.stringify(sess));localStorage.removeItem(LSS)}catch(e){}}}
 async function auth(kind,email,pw){const p=kind==='up'?'/auth/v1/signup':'/auth/v1/token?grant_type=password';
  const r=await fetch(base_()+p,{method:'POST',headers:{apikey:CF.key,'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
  const j=await r.json();if(!r.ok)throw new Error(j.msg||j.error_description||j.message||'실패');
@@ -677,7 +683,7 @@ async function auth(kind,email,pw){const p=kind==='up'?'/auth/v1/signup':'/auth/
 const uuid=()=>(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)}));
 async function load(){loadCfg();hist=jget(LS,[]);STU=jget(LST,[]);WSH=jget(LW,[]);CUR_S=localStorage.getItem(LCS)||'';srv=false;
  await loadBankIndex();
- STUD=cloud()?jget(LSTUD,null):null;if(STUD){await loadStud();if(STUD){syncLabel();render();return}}
+ STUD=cloud()?sget(LSTUD):null;if(STUD){await loadStud();if(STUD){syncLabel();render();return}}
  if(cloud()&&sess){try{
    await stuSync();
    const r=await sb('/rest/v1/attempts?select=t,set,sub,items,student_id&order=t.asc&limit=20000');
@@ -702,18 +708,19 @@ async function save(rec){rec.sid=rec.sid!==undefined?rec.sid:CUR_S;hist.push(rec
 function openCfg(){const b=$('#cfgBox');
  b.innerHTML=`<h2>${cloud()?'로그인 · 온라인 저장':'온라인 저장 설정'}</h2><div class="m">선생님(관리자)이 로그인하면 학생 등록, 취약 유형 분석, 학습지 관리를 쓸 수 있습니다. 학생은 로그인 없이 학습지 번호나 QR로 채점합니다.</div>
  ${cloud()&&!sess?`<label>이메일</label><input id="ce" type="email"><label>비밀번호 (6자 이상)</label><input id="cp" type="password">
- <div class="row" style="margin-top:12px"><button class="p" onclick="doAuth('in')">로그인</button><button class="s" onclick="doAuth('up')">가입</button></div><div id="cmsg" class="m"></div>`:''}
- ${sess?`<p>로그인: <b>${esc(sess.user&&sess.user.email||'')}</b></p><div class="row"><button class="s" onclick="logout()">로그아웃</button></div>`:''}
+ <label class="chk" style="margin:8px 0"><input type="checkbox" ${autoOn()?'checked':''} onchange="autoSet(this.checked)"> 자동 로그인</label>
+ <div class="row" style="margin-top:8px"><button class="p" onclick="doAuth('in')">로그인</button><button class="s" onclick="doAuth('up')">가입</button>${pkOK()?'<button class="s" onclick="pkLogin()">패스키로 로그인</button>':''}</div><div id="cmsg" class="m"></div>`:''}
+ ${sess?`<p>로그인: <b>${esc(sess.user&&sess.user.email||'')}</b></p><div class="row"><button class="s" onclick="logout()">로그아웃</button></div>${pkSection()}`:''}
 
  ${teacher()?`<h3 style="margin:18px 0 4px;font-size:15px">선생님 이름</h3><div class="m">홈 화면 인사에 「○○○님」으로 표시돼요. 로그인한 계정에도 저장돼서 다른 기기에서도 그대로 보여요.</div><div class="row" style="margin-top:8px;gap:8px"><input id="tn2" maxlength="12" value="${esc(teacherName())}" placeholder="예) 김민찬" style="flex:1"><button class="p" onclick="tnSave($('#tn2').value)">저장</button></div>`:''}
  <h3 style="margin:18px 0 4px;font-size:15px">화면 테마</h3><div class="m">다크 테마는 아직 실험 단계라 일부 화면이 어색할 수 있어요. 인쇄물은 영향받지 않아요.</div><div class="row" style="margin-top:8px;gap:8px"><button class="${themeGet()==='light'?'p':'s'}" onclick="themeSet('light')">라이트</button><button class="${themeGet()==='dark'?'p':'s'}" onclick="themeSet('dark')">다크 (실험)</button></div>
- <div class="row" style="margin-top:14px"><button class="s" onclick="$('#cfg').classList.remove('open')">닫기</button></div>`;$('#cfg').classList.add('open')}
+ <div class="row" style="margin-top:14px"><button class="s" onclick="$('#cfg').classList.remove('open')">닫기</button></div>`;$('#cfg').classList.add('open');if(sess)pkRefresh()}
 function themeGet(){try{return localStorage.getItem('omr_theme')==='dark'?'dark':'light'}catch(e){return 'light'}}
 function themeSet(v){try{localStorage.setItem('omr_theme',v)}catch(e){}document.documentElement.dataset.theme=v;openCfg()}
 document.documentElement.dataset.theme=themeGet();
 function saveCfg(){CF.url=$('#cu').value.trim();CF.key=$('#ck').value.trim();CF.pub=$('#cpub').value.trim();jset(LC,{url:CF.url,key:CF.key,pub:CF.pub});openCfg()}
 async function doAuth(k){try{$('#cmsg').textContent='처리 중…';await auth(k,$('#ce').value.trim(),$('#cp').value);$('#cfg').classList.remove('open');await load()}catch(e){$('#cmsg').textContent=e.message}}
-function logout(){sess=null;localStorage.removeItem(LSS);srv=false;$('#cfg').classList.remove('open');tab='enter';load()}
+function logout(){sess=null;localStorage.removeItem(LSS);try{sessionStorage.removeItem(LSS)}catch(e){}srv=false;$('#cfg').classList.remove('open');tab='enter';load()}
 /* ---------- 학생 ---------- */
 async function stuSync(){const r=await sb('/rest/v1/students?select=id,name,grade,memo,t,login&order=t.asc&limit=2000');if(!r.ok){CF.stuErr=1;return}CF.stuErr=0;
  const rem=await r.json();const have=new Set(rem.map(x=>x.id));
@@ -725,6 +732,9 @@ async function stuEdit(id){const s=STU.find(x=>x.id===id);const n=prompt('이름
  if(srv==='cloud')await sb('/rest/v1/students?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({name:s.name,grade:s.grade})});syncLabel();render()}
 async function stuDel(id){if(!confirm('이 학생을 삭제할까요? 채점 기록은 남지만 학생과의 연결이 끊어집니다.'))return;STU=STU.filter(x=>x.id!==id);jset(LST,STU);if(CUR_S===id)CUR_S='';
  if(srv==='cloud')await sb('/rest/v1/students?id=eq.'+id,{method:'DELETE'});syncLabel();render()}
+async function stuDelSel(){const ids=[...STSEL];if(!ids.length)return;if(!confirm('선택한 학생 '+ids.length+'명을 삭제할까요?\n채점 기록은 남지만 학생과의 연결이 끊어져요.'))return;
+ let fail=0;if(srv==='cloud'){for(const id of ids){try{const r=await sb('/rest/v1/students?id=eq.'+id,{method:'DELETE'});if(!r.ok)fail++}catch(e){fail++}}}
+ STU=STU.filter(x=>!ids.includes(x.id));jset(LST,STU);if(ids.includes(CUR_S))CUR_S='';STSEL.clear();syncLabel();render();toast(fail?'일부 학생은 온라인에서 지우지 못했어요 ('+fail+'명)':ids.length+'명을 삭제했어요')}
 let SQ='',SGR='';
 const stuFlt=s=>(!SQ||(s.name+' '+(s.grade||'')+' '+(s.memo||'')+' '+(s.login||'')).toLowerCase().includes(SQ.toLowerCase()))&&(!SGR||(s.grade||'')===SGR);
 function stuSum(){const wk=Date.now()-7*864e5;const all=hist.filter(h=>h.sid).flatMap(h=>h.items),r=all.filter(x=>x.r).length;const act=new Set(hist.filter(h=>h.t>=wk&&h.sid).map(h=>h.sid));const idle=STU.filter(s=>!act.has(s.id));
@@ -740,7 +750,7 @@ function stuView(){
   <div class="sr2"><span><em>약한 유형</em>${worst?esc(worst):'<i class="m">아직 없음</i>'}</span><span><em>학생 계정</em>${s.login?`<b>${esc(s.login)}</b>`:'<i class="m">없음</i>'}</span></div>
   <div class="sr3 act"><button class="s sm" onclick="setStu('${s.id}');tab='weak';render()">취약 유형</button><button class="s sm" onclick="issueLogin('${s.id}')">${s.login?'계정 재발급':'계정 발급'}</button>${s.login?`<button class="s sm" onclick="revokeLogin('${s.id}')">계정 해제</button>`:''}<button class="s sm" onclick="previewStudent('${s.id}')" title="이 학생이 보는 화면을 그대로 봅니다">학생 화면</button><button class="s sm" onclick="stuEdit('${s.id}')">수정</button><button class="s sm" onclick="stuDel('${s.id}')">삭제</button></div></div>`}).join('');
  $('#main').innerHTML=`<div class="g2s"><div class="sidecol">${stuSum()}<div class="card"><h2>학생 등록</h2>${CF.stuErr?'<div class="hint">온라인 학생 표가 아직 없습니다. setup.sql을 다시 실행하세요. 지금은 이 기기에만 저장됩니다.</div>':''}
- <div class="form"><label>이름<input id="sn" type="text"></label><label>학년·반<input id="sg" type="text" placeholder="예) 고2 3반"></label><label>메모<input id="sm" type="text"></label></div><button class="p" onclick="stuAdd()">등록</button></div></div><div class="card"><div class="row"><h2 style="margin:0">학생 목록</h2><input type="search" placeholder="이름·학년·아이디 검색" value="${esc(SQ)}" oninput="SQ=this.value;clearTimeout(window._sq);window._sq=setTimeout(stuView,250)" style="width:210px"><select onchange="SGR=this.value;stuView()"><option value="">전체 학년·반</option>${[...new Set(STU.map(s=>s.grade||'').filter(Boolean))].sort().map(g=>`<option ${SGR===g?'selected':''}>${esc(g)}</option>`).join('')}</select><button class="s sm" style="margin-left:auto" onclick="exportCsv()" title="모든 채점 기록을 엑셀에서 열 수 있는 CSV 파일로 저장">채점 기록 CSV 저장</button></div>${STU.length?`<div class="tw"><div class="row"><span class="m">선택한 학생 ${STSEL.size}명에게 맞춤 학습지를</span><input id="bk" type="number" value="4" min="2" max="10" style="width:60px"><span class="m">개 취약 유형,</span><input id="bn" type="number" value="20" min="6" max="100" style="width:70px"><span class="m">문항씩</span><button class="p" ${STSEL.size?'':'disabled'} onclick="batchStudents()">일괄 생성</button><span class="m">(디자인은 「학습지 만들기」에서 정한 설정을 씁니다)</span></div><div class="srl">${rows}</div></div>`:'<div class="empty">등록한 학생이 없습니다.</div>'}</div></div>`}
+ <div class="form"><label>이름<input id="sn" type="text"></label><label>학년·반<input id="sg" type="text" placeholder="예) 고2 3반"></label><label>메모<input id="sm" type="text"></label></div><button class="p" onclick="stuAdd()">등록</button></div></div><div class="card"><div class="row"><h2 style="margin:0">학생 목록</h2><input type="search" placeholder="이름·학년·아이디 검색" value="${esc(SQ)}" oninput="SQ=this.value;clearTimeout(window._sq);window._sq=setTimeout(stuView,250)" style="width:210px"><select onchange="SGR=this.value;stuView()"><option value="">전체 학년·반</option>${[...new Set(STU.map(s=>s.grade||'').filter(Boolean))].sort().map(g=>`<option ${SGR===g?'selected':''}>${esc(g)}</option>`).join('')}</select><button class="s sm" style="margin-left:auto" onclick="exportCsv()" title="모든 채점 기록을 엑셀에서 열 수 있는 CSV 파일로 저장">채점 기록 CSV 저장</button></div>${STU.length?`<div class="tw"><div class="row"><span class="m">선택한 학생 ${STSEL.size}명에게 맞춤 학습지를</span><input id="bk" type="number" value="4" min="2" max="10" style="width:60px"><span class="m">개 취약 유형,</span><input id="bn" type="number" value="20" min="6" max="100" style="width:70px"><span class="m">문항씩</span><button class="p" ${STSEL.size?'':'disabled'} onclick="batchStudents()">일괄 생성</button><button class="s" ${STSEL.size?'':'disabled'} onclick="stuDelSel()">선택 학생 삭제</button><span class="m">(디자인은 「학습지 만들기」에서 정한 설정을 씁니다)</span></div><div class="srl">${rows}</div></div>`:'<div class="empty">등록한 학생이 없습니다.</div>'}</div></div>`}
 /* ---------- 공통 ---------- */
 /* ---------- 이모지 → 실루엣 아이콘 ---------- */
 const ICO={
@@ -2345,12 +2355,41 @@ const LSTUD='omr_stud_v1';
 async function stLogin(){const lg=($('#stid')||{}).value||'',pw=($('#stpw')||{}).value||'';if(!lg||!pw){alert('아이디와 비밀번호를 입력하세요.');return}
  try{const r=await rpc('st_login',{p_login:lg.trim().toLowerCase(),p_pw:pw});const j=r.ok?await r.json():null;
   if(!j){alert('아이디나 비밀번호가 맞지 않습니다.');return}
-  STUD={login:lg.trim().toLowerCase(),pw};jset(LSTUD,STUD);tab='home';await load();try{const pc=sessionStorage.getItem('omr_pend');if(pc){sessionStorage.removeItem('omr_pend');pc.startsWith('BK:')?bkRoute(pc.slice(3)):openByNumber(pc)}}catch(e){}}catch(e){alert('로그인하지 못했습니다. 인터넷 연결을 확인하세요.')}}
-function logoutStud(){STUD=null;STINFO=null;ASSIGN=[];localStorage.removeItem(LSTUD);hist=[];cur=null;tab='enter';load()}
+  await stSetSession(lg.trim().toLowerCase(),pw);tab='home';await load();try{const pc=sessionStorage.getItem('omr_pend');if(pc){sessionStorage.removeItem('omr_pend');pc.startsWith('BK:')?bkRoute(pc.slice(3)):openByNumber(pc)}}catch(e){}}catch(e){alert('로그인하지 못했습니다. 인터넷 연결을 확인하세요.')}}
+function logoutStud(){if(STUD&&STUD.tok)rpc('st_logout',{p_login:STUD.login,p_token:STUD.pw.slice(4)}).catch(()=>{});try{sessionStorage.removeItem(LSTUD)}catch(e){}STUD=null;STINFO=null;ASSIGN=[];localStorage.removeItem(LSTUD);hist=[];cur=null;tab='enter';load()}
 function syncClick(){if(PVSAVE){exitPreview();return}if(STUD){if(confirm('로그아웃할까요?'))logoutStud()}else openCfg()}
+/* ---------- 패스키(WebAuthn) 로그인 ---------- */
+const pkOK=()=>!!(window.PublicKeyCredential&&navigator.credentials&&cloud());
+const b64u2buf=s=>{s=String(s).replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u.buffer};
+const buf2b64u=b=>{let s='';for(const x of new Uint8Array(b))s+=String.fromCharCode(x);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
+async function pkCall(body){const r=await fetch(base_()+'/functions/v1/passkey',{method:'POST',headers:hdr(),body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(r.status===404?'패스키 서버가 아직 설정되지 않았어요. (README의 패스키 설정 참고)':(j.error||'패스키 요청에 실패했어요'));return j}
+async function pkCreate(o){o.challenge=b64u2buf(o.challenge);o.user.id=b64u2buf(o.user.id);(o.excludeCredentials||[]).forEach(c=>c.id=b64u2buf(c.id));
+ const c=await navigator.credentials.create({publicKey:o});return {id:c.id,rawId:buf2b64u(c.rawId),type:c.type,response:{clientDataJSON:buf2b64u(c.response.clientDataJSON),attestationObject:buf2b64u(c.response.attestationObject),transports:c.response.getTransports?c.response.getTransports():[]},clientExtensionResults:c.getClientExtensionResults?c.getClientExtensionResults():{},authenticatorAttachment:c.authenticatorAttachment}}
+async function pkGet(o){o.challenge=b64u2buf(o.challenge);(o.allowCredentials||[]).forEach(c=>c.id=b64u2buf(c.id));
+ const c=await navigator.credentials.get({publicKey:o});const r=c.response;return {id:c.id,rawId:buf2b64u(c.rawId),type:c.type,response:{clientDataJSON:buf2b64u(r.clientDataJSON),authenticatorData:buf2b64u(r.authenticatorData),signature:buf2b64u(r.signature),userHandle:r.userHandle?buf2b64u(r.userHandle):undefined},clientExtensionResults:c.getClientExtensionResults?c.getClientExtensionResults():{},authenticatorAttachment:c.authenticatorAttachment}}
+const pkWho=()=>STUD&&!STUD.preview?{who:'student',login:STUD.login,secret:STUD.pw}:{who:'teacher'};
+function pkErr(e){if(e&&(e.name==='NotAllowedError'||e.name==='AbortError'))return '패스키 사용을 취소했어요';if(e&&e.name==='InvalidStateError')return '이 기기에는 이미 등록된 패스키예요';return (e&&e.message)||'패스키에 실패했어요'}
+async function pkRegister(){try{const a=pkWho();const {options,cid}=await pkCall({action:'reg-options',...a});const cred=await pkCreate(options);
+  const ua=navigator.userAgent;const label=/iPad/.test(ua)?'iPad':/iPhone/.test(ua)?'iPhone':/Android/.test(ua)?'Android':/Mac/.test(ua)?'Mac':/Windows/.test(ua)?'Windows':'내 기기';
+  await pkCall({action:'reg-verify',cid,credential:cred,label,...a});toast('패스키를 등록했어요');pkRefresh()}catch(e){toast(pkErr(e))}}
+async function pkLogin(){try{const {options,cid}=await pkCall({action:'login-options'});const cred=await pkGet(options);const r=await pkCall({action:'login-verify',cid,credential:cred});
+  if(r.kind==='teacher'){const x=await fetch(base_()+'/auth/v1/verify',{method:'POST',headers:{apikey:CF.key,'Content-Type':'application/json'},body:JSON.stringify({type:'magiclink',token_hash:r.token_hash})});const j=await x.json();
+   if(!x.ok||!j.access_token)throw new Error('로그인 세션을 만들지 못했어요');setSess(j);STUD=null;$('#cfg').classList.remove('open');await load()}
+  else{STUD={login:r.login,pw:'tok:'+r.token,tok:1};stStore();tab='home';$('#cfg').classList.remove('open');await load()}}catch(e){toast(pkErr(e))}}
+async function pkRefresh(){const el=document.getElementById('pkbox');if(!el)return;if(!pkOK()){el.innerHTML='<div class="m">이 브라우저는 패스키를 지원하지 않아요.</div>';return}
+ try{const a=pkWho();const r=await pkCall({action:'list',...a});const it=r.items||[];
+  el.innerHTML=`${it.length?`<div class="pkl">${it.map(p=>`<div class="pki"><span><b>${esc(p.label||'패스키')}</b><small>${new Date(p.created_at).toLocaleDateString('ko-KR')} 등록</small></span><button class="s sm" onclick="pkRemove(${p.id})">삭제</button></div>`).join('')}</div>`:'<div class="m">등록된 패스키가 없어요.</div>'}<div class="row" style="margin-top:8px"><button class="p" onclick="pkRegister()">이 기기에 패스키 등록</button></div>`}
+ catch(e){el.innerHTML=`<div class="m">${esc(e.message)}</div>`}}
+async function pkRemove(id){if(!confirm('이 패스키를 삭제할까요?'))return;try{await pkCall({action:'remove',id,...pkWho()});pkRefresh()}catch(e){toast(e.message)}}
+const pkSection=()=>`<h3 style="margin:18px 0 4px;font-size:15px">패스키 · 자동 로그인</h3><label class="chk" style="margin:4px 0"><input type="checkbox" ${autoOn()?'checked':''} onchange="autoSet(this.checked)"> 자동 로그인 (이 기기에서 로그인 상태 유지)</label><div class="m" style="margin:6px 0">패스키를 등록하면 지문·얼굴·기기 암호로 비밀번호 없이 로그인해요.</div><div id="pkbox"><div class="m">불러오는 중…</div></div>`;
+async function stSetSession(login,pw){STUD={login,pw};
+ if(autoOn()){try{const r=await rpc('st_issue_token',{p_login:login,p_pw:pw});const tok=r.ok?await r.json():null;if(tok)STUD={login,pw:'tok:'+tok,tok:1}}catch(e){}}
+ stStore()}
+function stStore(){try{if(autoOn()){localStorage.setItem(LSTUD,JSON.stringify(STUD));sessionStorage.removeItem(LSTUD)}else{sessionStorage.setItem(LSTUD,JSON.stringify(STUD));localStorage.removeItem(LSTUD)}}catch(e){}}
 async function loadStud(){
  try{const r=await rpc('st_data',{p_login:STUD.login,p_pw:STUD.pw});const j=r.ok?await r.json():null;
-  if(!j){STUD=null;localStorage.removeItem(LSTUD);return}
+  if(!j){STUD=null;localStorage.removeItem(LSTUD);try{sessionStorage.removeItem(LSTUD)}catch(e){}return}
   STINFO=j.student;hist=(j.attempts||[]).map(x=>({t:x.t,set:x.set,sub:x.sub,items:x.items,rng:x.rng||undefined,sid:''})).sort((a,b)=>a.t-b.t);ASSIGN=j.assignments||[];WSH=[];STU=[];CUR_S='';setTimeout(outboxFlush,300)}
  catch(e){}}
 async function stSubmit(rec){const body={p_login:STUD.login,p_pw:STUD.pw,p_t:rec.t,p_set:rec.set,p_sub:rec.sub,p_items:rec.items};if(rec.rng)body.p_rng=rec.rng;
@@ -2359,7 +2398,8 @@ async function stSubmit(rec){const body={p_login:STUD.login,p_pw:STUD.pw,p_t:rec
 async function saveRec(rec){if(STUD&&STUD.preview){hist.push(rec);return}if(STUD){try{await stSubmit(rec)}catch(e){if(e.locked){alert('이미 제출한 채점이에요. 선생님이 초기화해야 다시 제출할 수 있어요.');await loadStud();return 'locked'}if(!e.status||e.status>=500||!navigator.onLine){outboxAdd(rec);toast('인터넷이 연결되지 않아 임시 저장했어요. 연결되면 자동으로 제출돼요.')}else alert('서버에 저장하지 못했습니다. 점수는 이 화면에서 확인할 수 있습니다.')}hist.push(rec);return}await save(rec)}
 function stLoginCard(){return `<div class="card enter stl"><div class="stbrand"><i></i>${SNAME[SUBJ]}</div><h2>학생 로그인</h2><div class="m" style="margin-bottom:12px">선생님께 받은 아이디와 비밀번호를 입력하세요.</div>
  <input id="stid" class="stin" type="text" placeholder="아이디" autocapitalize="off" autocomplete="username"><input id="stpw" class="stin" type="password" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')stLogin()">
- <div class="btns"><button class="p" onclick="stLogin()">로그인</button></div></div>`}
+ <label class="chk" style="margin:8px 0"><input type="checkbox" ${autoOn()?'checked':''} onchange="autoSet(this.checked)"> 자동 로그인</label>
+ <div class="btns"><button class="p" onclick="stLogin()">로그인</button>${pkOK()?'<button class="s" onclick="pkLogin()">패스키로 로그인</button>':''}</div></div>`}
 /* ---- 학생 홈 ---- */
 function ringSvg(p,label,sub,col){const r=42,C=2*Math.PI*r;return `<div class="rsv"><svg viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="#e6ebf1" stroke-width="10"/><circle cx="55" cy="55" r="${r}" fill="none" style="stroke:${col||'var(--b)'}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*p} ${C}" transform="rotate(-90 55 55)"/><text x="55" y="56" text-anchor="middle" dominant-baseline="central" font-size="24" font-weight="700" fill="#1f2933">${label}</text></svg><span>${sub}</span></div>`}
 function dayStart(t){const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
@@ -2764,8 +2804,10 @@ function backupAll(){try{localStorage.setItem('omr_lastbk',String(Date.now()))}c
 function restoreAll(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!confirm('백업 파일의 내용으로 이 기기의 데이터를 덮어씁니다. 계속할까요?'))return;Object.entries(o).forEach(([k,v])=>{if(k.startsWith('omr_'))localStorage.setItem(k,v)});location.reload()}catch(e){alert('백업 파일을 읽을 수 없습니다.')}};r.readAsText(f)}
 function setCalib(v){CALIB_ON=!!v;try{localStorage.setItem('omr_calib_v1',v?'1':'0')}catch(e){}calibAll();openSettings()}
 async function wipeAll(){const t=prompt('학생·채점 기록·학습지·모의고사·즐겨찾기·신고 등 모든 데이터를 지웁니다. 되돌릴 수 없습니다.\n먼저 「설정 > 백업 내려받기」를 권장합니다.\n계속하려면 "초기화"라고 입력하세요.');if(t!=='초기화')return;
- const cloudToo=cloud()&&sess&&confirm('온라인(클라우드)에 저장된 학생, 채점 기록, 학습지, 과제도 함께 지울까요?\n[확인] = 온라인 데이터도 삭제\n[취소] = 이 기기의 데이터만 삭제');
- if(cloudToo){for(const t of ['assignments','attempts','worksheets','students']){try{await sb('/rest/v1/'+t+'?id=not.is.null',{method:'DELETE'})}catch(e){}}}
+ const cloudToo=cloud()&&sess&&confirm('온라인(클라우드)에 저장된 학생, 채점 기록, 학습지, 과제도 함께 지울까요?\n[확인] = 온라인 데이터도 삭제 (권장)\n[취소] = 이 기기의 데이터만 삭제 — 학생 목록은 다음 접속 때 온라인에서 다시 나타나요');
+ const failed=[];
+ if(cloudToo){for(const t of ['assignments','attempts','worksheets','students']){try{const r=await sb('/rest/v1/'+t+'?id=not.is.null',{method:'DELETE'});if(!r.ok)failed.push(t)}catch(e){failed.push(t)}}}
+ if(failed.length&&!confirm('온라인에서 지우지 못한 항목이 있어요: '+failed.join(', ')+'\n(이 기기의 데이터는 계속 지울까요?)'))return;
  const keep=[LSS,'omr_subj_v1'];Object.keys(localStorage).filter(k=>k.startsWith('omr_')&&!keep.includes(k)).forEach(k=>localStorage.removeItem(k));
  alert('초기화했습니다. 다시 시작합니다.');location.reload()}
 const KEYS=[['?','이 도움말 열기'],['/','문항 검색으로 이동'],['Esc','열린 창·시트 닫기'],['Ctrl + Z','편집 중 되돌리기 (학습지 검토·유형 선택)'],['Ctrl + K','빠른 이동 · 학습지/학생 검색'],['1 ~ 5','채점: 해당 번호 선택 · 문제 풀이 시트: 답 선택'],['0','채점: 모름 처리'],['O / X','OX 문항 답 입력'],['← →','문제 풀이 시트에서 이전·다음 문항'],['Enter','빈칸 문항에서 다음으로'],['Ctrl + Enter','빈칸 문항 입력 중 제출']];
@@ -2775,11 +2817,12 @@ function openSettings(){const rp=jget('omr_rep_v1',[]),mk=jget('omr_mock_v1',[])
  <div class="setr"><b>난이도 자동 보정</b><label class="m"><input type="checkbox" ${CALIB_ON?'checked':''} onchange="setCalib(this.checked)"> 풀이 5회 이상인 문항은 실제 정답률로 난이도(하·중·상·최)를 조정</label></div>
  <div class="setr"><b>즐겨찾기</b><span class="m">${FAV.length}문항 · <a href="#" onclick="closeCfg();SP.src='fav';SP.sub='';tab='search';render();return false">검색에서 보기</a></span></div>
  <div class="setr"><b>신고 내역</b><span class="m">${rp.length}건 · <a href="#" onclick="reportExport();return false">내려받기</a>${rp.length?' · <a href="#" onclick="if(confirm(\'신고 내역을 지울까요?\')){jset(\'omr_rep_v1\',[]);openSettings()}return false">비우기</a>':''}</span></div>
+ ${(STUD&&!STUD.preview)||(sess&&!STUD)?pkSection():''}
  ${STUD?`<h3>튜토리얼</h3><div class="m" style="margin-bottom:6px">직접 눌러 보며 기능을 익혀요. 오른쪽 위 「?」에서도 열 수 있어요.</div><div class="row">${Object.entries(TOURS).map(([k,v])=>`<button class="s" onclick="tourStart('${k}')">${esc(v.name)}${tourDone(k)?' ✓':''}</button>`).join('')}</div>`:''}
  <h3>단축키</h3><div class="keys">${KEYS.map(k=>`<div><kbd>${k[0]}</kbd><span>${k[1]}</span></div>`).join('')}</div>
  <h3>데이터 관리</h3><div class="row"><button class="s" onclick="healthView()">시스템 점검</button><button class="s" onclick="backupAll()">백업 내려받기</button><label class="s" style="cursor:pointer;display:inline-block;padding:8px 14px">백업 불러오기<input type="file" accept="application/json" hidden onchange="restoreAll(this)"></label></div>
  <div class="dz"><b>전체 초기화</b><div class="m">학생·채점 기록·학습지·모의고사(${mk.length}개)·즐겨찾기·신고·설정을 모두 지웁니다. 로그인과 선택한 과목만 남습니다.</div><button class="s dgr" onclick="wipeAll()">모든 데이터 초기화…</button></div>
- <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="s" onclick="closeCfg()">닫기</button></div>`;$('#cfg').classList.add('open')}
+ <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="s" onclick="closeCfg()">닫기</button></div>`;$('#cfg').classList.add('open');if((STUD&&!STUD.preview)||(sess&&!STUD))pkRefresh()}
 document.addEventListener('keydown',e=>{const tg=e.target.tagName,typing=tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT';
  if(e.key==='Escape'){if($('#cfg').classList.contains('open'))return closeCfg();const x=$('#exp');if(x&&x.classList.contains('open'))return x.classList.remove('open')}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!typing){if(typeof RV!=='undefined'&&RV&&tab==='review'){e.preventDefault();return rvUndo()}if(tab==='build'){e.preventDefault();return bUndo()}}
