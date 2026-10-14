@@ -485,6 +485,54 @@ nav button{min-height:48px}
 <style>
 /* 다크 테마: 중립적인 어두운 회색·검정 (기기 설정을 따라 자동 전환, 설정에서 고정 가능) */
 html[data-theme=dark]{--qf:invert(.9) hue-rotate(180deg);--qfi:invert(1) hue-rotate(180deg);color-scheme:dark;--surface:#1a1a1c;--bg:#0f0f10;--t:#ececee;--m:#a4a4ab;--m2:#b9b9c0;--l:#2c2c30;--l2:#3b3b41;--sf1:#202023;--sf2:#2b2b30;--b:#6ca8ec;--bd:#9ac3f3;--bl:#1f2630;--yl:#33301f;--no:#ef6a66}
+/* 자동 생성: 밝은 배경 규칙의 다크 대응 */
+html[data-theme=dark] tr.sel td{background:hsl(215 36% 15.1%)}
+html[data-theme=dark] .sr .ss span{background:hsl(214 28% 15.3%)}
+html[data-theme=dark] .chs2 button.ok{background:hsl(143 28% 17.0%)}
+html[data-theme=dark] .chs2 button.bad{background:hsl(3 36% 15.9%)}
+html[data-theme=dark] .sfhint{background:hsl(48 36% 17.1%);color:hsl(44 56% 72%)}
+html[data-theme=dark] .aq i{background:hsl(143 19% 20.4%)}
+html[data-theme=dark] .aq.bad i{background:hsl(20 36% 20.9%)}
+html[data-theme=dark] .tbar{background:hsl(214 16% 16.4%)}
+html[data-theme=dark] .omr2 .q1.got{background:hsl(212 36% 15.1%);border-color:hsl(213 20% 26%)}
+html[data-theme=dark] .fcm i.on{background:hsl(213 36% 18.9%)}
+html[data-theme=dark] .omrst.ok{background:hsl(146 26% 16.8%);color:hsl(153 51% 72%)}
+html[data-theme=dark] .omrst.fl{background:hsl(26 36% 16.2%);color:hsl(17 56% 72%)}
+html[data-theme=dark] .ckb2 button.on{background:hsl(147 26% 15.9%);color:hsl(153 51% 72%);border-color:hsl(143 16% 26%)}
+html[data-theme=dark] .pgm .pc i{background:hsl(213 36% 19.1%)}
+html[data-theme=dark] tr:has(input[type="checkbox"]):hover td{background:hsl(213 36% 14.8%)}
+html[data-theme=dark] .mk{background:hsl(146 25% 15.5%);border-color:hsl(142 14% 26%)}
+html[data-theme=dark] .mk.w{background:hsl(3 36% 15.9%)}
+html[data-theme=dark] .wi:hover{background:hsl(214 36% 14.8%)}
+html[data-theme=dark] .wi.sel{background:hsl(212 36% 15.7%)}
+html[data-theme=dark] .omrq.fl{background:hsl(25 36% 15.7%)}
+html[data-theme=dark] .sfc:hover{background:hsl(211 36% 17.4%)}
+html[data-theme=dark] .ck:hover{background:hsl(213 36% 15.3%)}
+html[data-theme=dark] .sj:hover:not(.off){background:hsl(213 36% 15.3%)}
+html[data-theme=dark] .sj.on{background:hsl(212 36% 15.7%)}
+html[data-theme=dark] #pvbar{background:hsl(44 36% 17.6%)}
+html[data-theme=dark] .q1.cur{background:hsl(50 36% 16.0%)}
+html[data-theme=dark] .rvps{background:hsl(213 15% 17.1%)}
+html[data-theme=dark] .wlist tr.sel{background:hsl(212 36% 15.7%)}
+html[data-theme=dark] .dz{background:hsl(7 36% 14.7%)}
+html[data-theme=dark] .rvn{background:hsl(50 36% 15.1%)}
+html[data-theme=dark] .tmr.warn{background:hsl(3 36% 15.9%);color:hsl(1 42% 72%)}
+html[data-theme=dark] .steps u{background:hsl(212 18% 18.3%)}
+html[data-theme=dark] .bdp .rvps{background:hsl(215 23% 16.8%)}
+html[data-theme=dark] .q1.g.w .n{background:hsl(3 36% 15.9%)}
+html[data-theme=dark] .rt.ok{background:hsl(146 25% 15.5%);border-color:hsl(142 14% 26%)}
+html[data-theme=dark] .rt.no{background:hsl(5 36% 15.0%);border-color:hsl(3 20% 26%)}
+html[data-theme=dark] .qnote{background:hsl(50 36% 15.1%)}
+html[data-theme=dark] .pvload{background:hsl(0 0% 14.0%)}
+html[data-theme=dark] .lockb{background:hsl(45 36% 16.7%)}
+html[data-theme=dark] .ccq.ok{background:hsl(146 25% 15.5%);border-color:hsl(142 14% 26%)}
+html[data-theme=dark] .ccq.no{background:hsl(5 36% 15.0%);border-color:hsl(3 20% 26%)}
+html[data-theme=dark] .bki.okb{background:hsl(148 27% 16.6%)}
+html[data-theme=dark] .bki.nob{background:hsl(0 36% 15.7%)}
+html[data-theme=dark] .mtag{background:hsl(45 36% 18.2%);color:hsl(44 56% 72%)}
+html[data-theme=dark] .tsb span.warn{background:hsl(36 36% 17.1%);color:hsl(35 56% 72%)}
+html[data-theme=dark] #notifp .ntag.n{background:hsl(32 36% 16.5%);color:hsl(33 56% 72%)}
+html[data-theme=dark] .sj small{color:var(--m)}
 html[data-theme=dark] body[data-subj=cm]{--b:#52c48c;--bd:#86d9b0;--bl:#1d2a24;--bg:#0f0f10}
 html[data-theme=dark] header{background:#18181a;border-bottom:1px solid #2c2c30}html[data-theme=dark] header nav{background:transparent}
 html[data-theme=dark] header nav button{color:#a4a4ab}html[data-theme=dark] header nav button:hover{color:#fff}html[data-theme=dark] header nav button.on{color:#fff;border-bottom-color:var(--b)}
@@ -588,6 +636,34 @@ html[data-theme=dark] .th-hero{background:var(--bl)}
 #helpBtn{width:38px;height:38px;border-radius:50%;font-size:18px;font-weight:800;cursor:pointer;padding:0;flex:none;line-height:1;background:#ffffff1f;border:1px solid #ffffff55;color:#fff}#helpBtn:hover{background:#ffffff33}#helpBtn[hidden]{display:none}
 .tpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px 16px}.tpg .tp{display:flex;align-items:center;gap:8px;margin:0}.tl{display:block;font-size:12px;color:var(--m);margin-bottom:3px}
 html.big{zoom:1.12}
+html[data-theme=dark] svg text[fill="#1f2933"],html[data-theme=dark] svg text[fill="#2b2f36"]{fill:var(--t)}html[data-theme=dark] svg [stroke="#e6ebf1"]{stroke:#34343a}html[data-theme=dark] svg [fill="#c9d0d8"]{fill:#4a4a52}html[data-theme=dark] svg [stroke="#2b2f36"]{stroke:#c9c9d0}
+html[data-theme=dark] .task{background:var(--sf1);border-color:var(--l2)}html[data-theme=dark] .task.ok{background:#16211b;border-color:#2b4638}html[data-theme=dark] .task.late{background:#2a1a1a;border-color:#5a2f2f}
+html[data-theme=dark] .task b,html[data-theme=dark] .dgl b,html[data-theme=dark] .dgt,html[data-theme=dark] .dgwn,html[data-theme=dark] .bdg.on,html[data-theme=dark] .bdg.on b{color:var(--t)}
+html[data-theme=dark] .tag.y{background:#33301f;color:#f0c27a}html[data-theme=dark] .tag.r{background:#3a1f1f;color:#f29a9a}
+html[data-theme=dark] .bdg.on{background:#2e2a14;border-color:#6b5d1c}html[data-theme=dark] .bdg.on small{color:#cdbb72}html[data-theme=dark] .bdg{background:var(--sf1)}html[data-theme=dark] .gring{background:conic-gradient(var(--b) calc(var(--p)*1%),#34343a 0)}
+html[data-theme=dark] .dgl{background:var(--sf1)}html[data-theme=dark] .dgl.t{background:#16211b}html[data-theme=dark] .dgl.f{background:#2a1a1f}html[data-theme=dark] .dgm i.fl{background:#4a2433;color:#f5a3c0}html[data-theme=dark] .dgm i.tr{background:#1f4033;color:#86d9b0}html[data-theme=dark] .dgm i{color:var(--m2)}html[data-theme=dark] .dgwn{background:#2e2a14;border-color:#6b5d1c}html[data-theme=dark] .dgwn b{color:#f0c27a}html[data-theme=dark] .dgw{color:var(--m2)}html[data-theme=dark] .dbar{background:#2c2c30}
+html[data-theme=dark] .cbi .wk{color:#14100a}html[data-theme=dark] .qc i{color:#8a8a93}
+#cfgBox .swr{display:flex;margin:0}#cfgBox .swr span{display:block}#cfgBox input.swi,.swr input.swi{width:46px;height:28px;min-height:0;padding:0;border:0;border-radius:99px;flex:none}#cfgBox input[type=text],#cfgBox input[type=email],#cfgBox input[type=password],#cfgBox #tn2{min-height:42px;padding:9px 12px;border:1px solid var(--l2);border-radius:10px;background:var(--surface);color:var(--t);font:inherit;width:100%}#cfgBox #tn2{width:auto}
+#cfgBox .cfh{margin:0 0 4px;font-size:22px;letter-spacing:-.02em}.cfs{border:1px solid var(--l);border-radius:16px;padding:16px;margin:12px 0;background:var(--surface)}.cfs h3{margin:0 0 4px;font-size:15px}.cfs p{margin:0 0 12px;font-size:13px;color:var(--m);line-height:1.5}
+.cfs .fld label{font-size:12px}.cfacc{display:flex;align-items:center;gap:12px}.cfacc .av{flex:none;width:40px;height:40px;border-radius:50%;background:var(--b);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}.cfacc div{flex:1;min-width:0}.cfacc b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis}.cfacc small{color:var(--m);font-size:12px}
+.seg{display:flex;background:var(--bg);border:1px solid var(--l);border-radius:12px;padding:3px;gap:3px}.seg button{flex:1;border:0;background:none;color:var(--m2);border-radius:9px;padding:9px 6px;font-weight:600;font-size:13.5px;cursor:pointer;min-height:40px}.seg button.on{background:var(--surface);color:var(--bd);box-shadow:0 1px 4px #0002}
+html[data-theme=dark] .cfacc .av{color:#0f0f10}html[data-theme=dark] .seg button.on{background:var(--sf2);color:var(--t)}
+.tsh{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:4px 2px 12px}.tsh h1{margin:0;font-size:26px;letter-spacing:-.02em}.tsh p{margin:4px 0 0;color:var(--m);font-size:14px}
+.tsb{display:flex;gap:6px;flex-wrap:wrap}.tsb span{font-size:12px;font-weight:600;padding:5px 11px;border-radius:99px;background:var(--bl);color:var(--bd)}.tsb span.warn{background:#fff1dc;color:#9a5a00}
+.tsn{display:flex;gap:6px;overflow-x:auto;position:sticky;top:56px;z-index:5;padding:8px 2px;margin:0 -2px 12px;background:var(--bg);scrollbar-width:none}.tsn::-webkit-scrollbar{display:none}.tsn button{flex:none;border:1px solid var(--l);background:var(--surface);color:var(--t);border-radius:99px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;min-height:36px}.tsn button:hover{border-color:var(--b);color:var(--bd)}
+.tsc{background:var(--surface);border:1px solid var(--l);border-radius:18px;padding:18px 20px 20px;margin:0 0 14px;scroll-margin-top:110px}
+.tsc>.tsch{display:flex;gap:12px;align-items:center;margin-bottom:14px}.tsc>.tsch i{flex:none;width:40px;height:40px;border-radius:12px;background:var(--bl);color:var(--bd);display:flex;align-items:center;justify-content:center}.tsc>.tsch h2{margin:0;font-size:18px;letter-spacing:-.01em}.tsc>.tsch p{margin:2px 0 0;font-size:13px;color:var(--m)}
+.tgp{margin-top:16px}.tgp:first-of-type{margin-top:4px}.tgp h3{margin:0 0 8px;font-size:13px;color:var(--m2);font-weight:700;display:flex;align-items:baseline;gap:8px}.tgp h3 small{font-weight:400;color:var(--m);font-size:12px}
+.swg{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+.swr{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 14px;border:1px solid var(--l);border-radius:14px;background:var(--bg);cursor:pointer;transition:border-color .15s,background .15s}.swr:hover{border-color:var(--b)}.swr b{display:block;font-size:14px;font-weight:600}.swr small{display:block;font-size:12px;color:var(--m);margin-top:2px;line-height:1.4}
+.swi{appearance:none;-webkit-appearance:none;flex:none;width:46px;height:28px;border-radius:99px;background:#c3ccd6;position:relative;cursor:pointer;transition:background .18s;border:0;margin:0}.swi::after{content:'';position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0004;transition:transform .18s}.swi:checked{background:var(--b)}.swi:checked::after{transform:translateX(18px)}.swi:focus-visible{outline:3px solid var(--bl);outline-offset:2px}
+.fld label{display:block;font-size:12px;font-weight:600;color:var(--m2);margin-bottom:5px}.fld input,.fld select{width:100%;min-height:44px;padding:9px 12px;border:1px solid var(--l2);border-radius:10px;background:var(--surface);color:var(--t);font:inherit}.fld input:focus,.fld select:focus{outline:2px solid var(--b);outline-offset:0;border-color:var(--b)}
+.tsn2{margin:12px 0 0;font-size:12.5px;color:var(--m)}.fl{cursor:pointer;display:inline-flex;align-items:center}
+.srvck{margin-top:12px;display:grid;gap:6px}.srvck div{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:var(--bg);border:1px solid var(--l);font-size:13px}.srvck i{width:10px;height:10px;border-radius:50%;background:#2e9e6b}.srvck .bad i{background:#d64545}.srvck span{flex:1}.srvck em{font-style:normal;color:var(--m)}.srvck .bad em{color:#d64545;font-weight:600}
+@media(max-width:640px){.tsc{padding:14px 14px 16px;border-radius:16px}.swg{grid-template-columns:1fr}}
+html[data-theme=dark] .tsb span.warn{background:#3a2b12;color:#f0c27a}html[data-theme=dark] .swi{background:#4a4a52}html[data-theme=dark] .swi:checked{background:var(--b)}html[data-theme=dark] .swi::after{background:#f4f4f6}
+.inkbar.off{font-size:13px;color:var(--m);background:var(--bg)}
+
 html[data-theme=dark] .da{background:#16211b!important;color:#86d9b0!important}
 html[data-theme=dark] .dx{background:var(--sf1);border-color:var(--l2)}html[data-theme=dark] .mk2{background:#16211b;border-color:#2b4638}html[data-theme=dark] .mk2.w{background:#2a1a1a;border-color:#5a2f2f}html[data-theme=dark] .mk2.cs{border-color:var(--b)}
 .tsg{margin:12px 0 4px}.tsg>b{display:block;font-size:13px;margin-bottom:6px}.g2 input:not([type=checkbox]){width:100%}
@@ -749,15 +825,17 @@ async function save(rec){rec.sid=rec.sid!==undefined?rec.sid:CUR_S;hist.push(rec
  if(srv==='cloud'){try{const r=await sb('/rest/v1/attempts',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({t:rec.t,set:rec.set,sub:rec.sub,items:rec.items,student_id:rec.sid||null})});if(!r.ok)throw 0}catch(e){alert('온라인 저장에 실패했습니다. 이 기기에는 저장되었고, 다음에 접속하면 다시 올립니다.')}}
  else if(srv==='local'){try{await fetch('/api/results',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rec)})}catch(e){}}}
 function openCfg(){const b=$('#cfgBox');
- b.innerHTML=`<h2>${cloud()?'로그인 · 온라인 저장':'온라인 저장 설정'}</h2><div class="m">선생님(관리자)이 로그인하면 학생 등록, 취약 유형 분석, 학습지 관리를 쓸 수 있습니다. 학생은 로그인 없이 학습지 번호나 QR로 채점합니다.</div>
- ${cloud()&&!sess?`<label>이메일</label><input id="ce" type="email"><label>비밀번호 (6자 이상)</label><input id="cp" type="password">
- <label class="chk" style="margin:8px 0"><input type="checkbox" ${autoOn()?'checked':''} onchange="autoSet(this.checked)"> 자동 로그인</label>
- <div class="row" style="margin-top:8px"><button class="p" onclick="doAuth('in')">로그인</button><button class="s" onclick="doAuth('up')">가입</button>${pkOK()?'<button class="s" onclick="pkLogin()">패스키로 로그인</button>':''}</div><div id="cmsg" class="m"></div>`:''}
- ${sess?`<p>로그인: <b>${esc(sess.user&&sess.user.email||'')}</b></p><div class="row"><button class="s" onclick="logout()">로그아웃</button></div>${pkSection()}`:''}
-
- ${teacher()?`<h3 style="margin:18px 0 4px;font-size:15px">선생님 이름</h3><div class="m">홈 화면 인사에 「○○○님」으로 표시돼요. 로그인한 계정에도 저장돼서 다른 기기에서도 그대로 보여요.</div><div class="row" style="margin-top:8px;gap:8px"><input id="tn2" maxlength="12" value="${esc(teacherName())}" placeholder="예) 김민찬" style="flex:1"><button class="p" onclick="tnSave($('#tn2').value)">저장</button></div>`:''}
- <h3 style="margin:18px 0 4px;font-size:15px">화면 테마</h3><div class="m">기본은 기기(시스템) 설정을 따라가요. 인쇄물은 영향받지 않아요.</div><div class="row" style="margin-top:8px;gap:8px"><button class="${themeGet()==='auto'?'p':'s'}" onclick="themeSet('auto')">시스템 설정</button><button class="${themeGet()==='light'?'p':'s'}" onclick="themeSet('light')">라이트</button><button class="${themeGet()==='dark'?'p':'s'}" onclick="themeSet('dark')">다크</button></div>
- `;$('#cfg').classList.add('open');cfgChrome();if(sess)pkRefresh()}
+ const th=themeGet();const seg=(v,l)=>`<button class="${th===v?'on':''}" onclick="themeSet('${v}')">${l}</button>`;
+ b.innerHTML=`<h2 class="cfh">${sess?'설정':(cloud()?'로그인':'온라인 저장 설정')}</h2>
+ ${cloud()&&!sess?`<div class="cfs"><h3>선생님 로그인</h3><p>선생님(관리자)이 로그인하면 학생 등록, 취약 유형 분석, 학습지 관리를 쓸 수 있어요. 학생은 로그인 없이 학습지 번호나 QR로 채점해요.</p>
+ <div class="fld"><label>이메일</label><input id="ce" type="email" autocomplete="username"></div><div class="fld" style="margin-top:8px"><label>비밀번호 (6자 이상)</label><input id="cp" type="password" autocomplete="current-password"></div>
+ <label class="swr" style="margin-top:10px"><span><b>자동 로그인</b><small>이 기기에서 로그인 상태를 유지해요</small></span><input class="swi" type="checkbox" ${autoOn()?'checked':''} onchange="autoSet(this.checked)"></label>
+ <div class="row" style="margin-top:12px"><button class="p" onclick="doAuth('in')">로그인</button><button class="s" onclick="doAuth('up')">가입</button>${pkOK()?'<button class="s" onclick="pkLogin()">패스키로 로그인</button>':''}</div><div id="cmsg" class="m"></div></div>`:''}
+ ${sess?`<div class="cfs"><h3>계정</h3><div class="cfacc"><span class="av">${esc((sess.user&&sess.user.email||'?')[0].toUpperCase())}</span><div><b>${esc(sess.user&&sess.user.email||'')}</b><small>온라인 저장 연결됨</small></div><button class="s sm" onclick="logout()">로그아웃</button></div></div><div class="cfs">${pkSection()}</div>`:''}
+ ${teacher()?`<div class="cfs"><h3>선생님 이름</h3><p>홈 화면 인사에 「○○○님」으로 표시돼요. 로그인한 계정에도 저장돼서 다른 기기에서도 그대로 보여요.</p><div class="row" style="gap:8px"><input id="tn2" maxlength="12" value="${esc(teacherName())}" placeholder="예) 김민찬" style="flex:1;min-height:42px"><button class="p" onclick="tnSave($('#tn2').value)">저장</button></div></div>`:''}
+ <div class="cfs"><h3>화면 테마</h3><p>기본은 기기(시스템) 설정을 따라가요. 인쇄물은 영향받지 않아요.</p><div class="seg">${seg('auto','시스템 설정')}${seg('light','라이트')}${seg('dark','다크')}</div></div>
+ ${teacher()?`<div class="cfs"><h3>더 많은 설정</h3><p>학생 권한, 학습지·교재 기본값, 큰 글씨 모드, 서버 점검은 설정 탭에 있어요.</p><button class="s" onclick="closeCfg();tab='tset';render()">설정 탭 열기 ›</button></div>`:''}`;
+ $('#cfg').classList.add('open');cfgChrome();if(sess)pkRefresh()}
 function themeGet(){try{const v=localStorage.getItem('omr_theme');return v==='dark'||v==='light'?v:'auto'}catch(e){return 'auto'}}
 const themeEff=()=>{const v=themeGet();return v==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):v};
 function themeApply(){document.documentElement.dataset.theme=themeEff();const m=document.querySelector('meta[name=theme-color]');if(m)m.content=themeEff()==='dark'?'#111111':'#2a72bf'}
@@ -1027,9 +1105,9 @@ document.addEventListener('click',e=>{if(!e.target.closest('#tourmenu,#helpBtn')
 function tourAuto(){if(!STUD||!permOn('tour')||TOUR||tourDone('offered')||tourDone('intro'))return;try{if(!localStorage.getItem(updSeenKey()))localStorage.setItem(updSeenKey(),JSON.stringify(UPDATES.map(u=>u.id)))}catch(e){}tourMark('offered');setTimeout(()=>{if(tab==='home'&&!TOUR)tourStart('intro')},900)}
 /* ---------- 설정 탭: 학생 권한 · 교사 편의 기능 ---------- */
 const PERMS=[
- ['학습 도구',[['make','학습지 만들기 · 화면에서 풀기'],['print','인쇄용 학습지 만들기'],['ink','문제 위 필기'],['pageSolve','교재 N쪽만 화면에서 풀기'],['showExp','풀이 후 해설 보기']]],
- ['메뉴 접근',[['tasks','과제'],['enter','번호 채점'],['shist','기록'],['books','교재'],['stat','유형 분석'],['concept','개념학습'],['wrong','오답노트'],['diag','오답 진단']]],
- ['도움말',[['tour','도움말(?) · 처음 시작 튜토리얼'],['forceUpd','업데이트 후 새 기능 튜토리얼 자동 표시']]]];
+ ['학습 도구','students','학생이 직접 문제를 만들고 푸는 기능',[['make','학습지 만들기 · 화면에서 풀기','유형을 골라 스스로 문제를 만들어요'],['print','인쇄용 학습지 만들기','PDF·종이로 뽑는 기능'],['ink','문제 위 필기','애플펜슬로 문제 위에 쓰기'],['pageSolve','교재 N쪽만 화면에서 풀기','교재의 한 쪽만 골라 풀기'],['showExp','풀이 후 해설 보기','답을 고른 뒤 바로 해설 공개']]],
+ ['메뉴 접근','menu','학생 화면 위쪽 메뉴에 보이는 탭',[['tasks','과제','선생님이 낸 과제 목록'],['enter','번호 채점','학습지 번호·QR로 채점'],['shist','기록','내 풀이 기록'],['books','교재','교재 보기'],['stat','유형 분석','내 유형별 정답률'],['concept','개념학습','단원별 개념 정리'],['wrong','오답노트','틀린 문제 모음'],['diag','오답 진단','틀린 이유 분석']]],
+ ['도움말','help','튜토리얼과 새 기능 안내',[['tour','도움말(?) · 처음 시작 튜토리얼','오른쪽 위 ? 버튼과 첫 로그인 안내'],['forceUpd','새 기능 튜토리얼 자동 표시','업데이트 후 처음 접속하면 자동으로 안내']]]];
 let PERM={};const permNum=(k,d)=>{const P=(STUD&&STUD.preview&&TSET.perms)||PERM;const v=+P[k];return v>0?v:d};const permOn=k=>{const P=(STUD&&STUD.preview&&TSET.perms)||PERM;return P[k]!==false&&P[k]!==0};
 let PREF=Object.assign({guide:1,nextPage:1,bkGap:0,bkColor:'',bkFont:'paper',total:15,lvr:'std',academy:'',wsQr:1,wsAns:1,wsCols:2,wsFont:'paper',bkDays:14,big:0,start:'thome'},jget('omr_pref_v1',{}));
 const LVPS={basic:[5,4,1,0],std:[2,5,3,0],hard:[1,3,5,1]};
@@ -1040,35 +1118,41 @@ let TSET={perms:null,busy:0};
 async function permFetch(){try{const r=await rpc('st_perms',{p_login:STUD.login,p_pw:STUD.pw});if(r.ok){const j=await r.json();if(j&&typeof j==='object'){const o=JSON.stringify(PERM);PERM=j;if(o!==JSON.stringify(PERM)&&STUD)render()}}}catch(e){}}
 async function tsetLoad(){if(!cloud()||!sess){TSET.perms={};return}
  try{const r=await sb('/rest/v1/teacher_settings?select=data');const a=r.ok?await r.json():[];TSET.perms=(a[0]&&a[0].data&&a[0].data.perms)||{};TSET.err=r.ok?'':(r.status===404?'teacher_settings 테이블이 없어요. setup.sql을 다시 실행하세요.':'불러오지 못했어요 ('+r.status+')')}catch(e){TSET.perms={};TSET.err='불러오지 못했어요'}}
+const TI={students:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',menu:'<path d="M3 6h18M3 12h18M3 18h18"/>',help:'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',doc:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5V21h16"/>',screen:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/>',db:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',srv:'<rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01"/>'};
+const tIc=k=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TI[k]||''}</svg>`;
 async function tsetView(){
  if(!TSET.perms){$('#main').innerHTML='<div class="card">'+ldg('설정을 불러오는 중…')+'</div>';await tsetLoad();if(tab!=='tset')return}
  const P=TSET.perms;const on=k=>P[k]!==false&&P[k]!==0;
- const chk=(k,l)=>`<label class="chk tp"><input type="checkbox" ${on(k)?'checked':''} onchange="tsetPerm('${k}',this.checked)"> ${l}</label>`;
- const pf=(k,l,d)=>`<label class="chk tp"><input type="checkbox" ${PREF[k]===0?'':'checked'} onchange="PREF.${k}=this.checked?1:0;prefSave();tsetSaved()"> <span>${l}${d?`<small class="m" style="display:block">${d}</small>`:''}</span></label>`;
- const sel=(k,l,opts)=>`<div><label class="tl">${l}</label><select onchange="PREF.${k}=${typeof opts[0][0]==='number'?'+this.value':'this.value'};prefSave();tsetSaved()">${opts.map(([v,n])=>`<option value="${v}" ${(PREF[k]??opts[0][0])===v?'selected':''}>${n}</option>`).join('')}</select></div>`;
- const mq=permNumT('maxQ',60);
- $('#main').innerHTML=`<div class="card"><div class="row"><h2 style="margin:0">학생 권한</h2><span class="m" style="margin-left:auto">${Object.keys(P).filter(k=>P[k]===false).length}개 제한 중</span></div>
- <div class="m" style="margin:6px 0 10px">끈 기능은 학생 화면에서 사라지고, 학생이 앱을 열어 둔 동안은 1분 안에 반영돼요. 모든 학생에게 똑같이 적용돼요.${cloud()&&sess?'':'<br><b>온라인 저장에 로그인해야 학생에게 적용돼요.</b>'}</div>${TSET.err?`<div class="hint">${esc(TSET.err)}</div>`:''}
- ${PERMS.map(([g,a])=>`<div class="tsg"><b>${g}</b><div class="tpg">${a.map(([k,l])=>chk(k,l)).join('')}</div></div>`).join('')}
- <div class="tsg"><b>학습 한도</b><div class="g2"><div><label class="tl">학생이 한 번에 만들 수 있는 최대 문항 수</label><input type="number" min="5" max="60" value="${mq}" onchange="tsetNum('maxQ',this.value,5,60)"></div></div></div>
- <div class="row" style="margin-top:10px"><button class="s sm" onclick="tsetAll(true)">모두 허용</button><button class="s sm" onclick="tsetPreset('exam')">시험 기간 (풀이·교재만)</button><button class="s sm" onclick="tsetPreset('print')">인쇄 학습 중심 (필기·해설 끔)</button><button class="s sm" onclick="STUD={preview:1,login:'',pw:''};tab='home';render()" ${STU.length?'':'hidden'}>학생 화면 미리보기</button></div></div>
- <div class="card"><h2>학습지 기본값</h2><div class="m" style="margin-bottom:10px">새 학습지를 만들 때 처음 채워지는 값이에요. 이 기기에 저장돼요.</div>
- <div class="g2"><div><label class="tl">학원·학교 이름 (학습지 머리글)</label><input value="${esc(PREF.academy||'')}" maxlength="30" onchange="PREF.academy=this.value.trim();prefSave();tsetSaved()"></div>
- <div><label class="tl">선생님 이름</label><input value="${esc(teacherName())}" maxlength="20" onchange="try{localStorage.setItem(TN,this.value.trim())}catch(e){}tsetSaved()"></div>
- <div><label class="tl">문항 수</label><input type="number" min="5" max="100" value="${PREF.total}" onchange="PREF.total=Math.max(5,Math.min(100,+this.value||15));prefSave();tsetSaved()"></div>
- ${sel('lvr','난이도 구성',[['basic','기초 (하 중심)'],['std','표준'],['hard','도전 (상 중심)']])}
- ${sel('wsCols','단 수',[[2,'2단'],[1,'1단']])}
- ${sel('wsFont','글꼴',Object.entries(FONTS).map(([k,v])=>[k,v[0]]))}</div>
- <div class="tpg" style="margin-top:10px">${pf('wsAns','정답·해설 페이지 포함')}${pf('wsQr','쪽마다 QR 넣기','QR을 찍어 바로 채점해요')}</div></div>
- <div class="card"><h2>교재 인쇄 기본값</h2><div class="g2" style="margin-top:8px">${sel('bkGap','문제 간격',[[0,'기본'],[1,'조금 넓게'],[2,'넓게'],[3,'아주 넓게']])}${sel('bkFont','글꼴',Object.entries(FONTS).map(([k,v])=>[k,v[0]]))}</div>
- <div class="m" style="margin-top:8px">교재를 새로 만들 때의 난이도·문항 수는 「교재 ▸ 교재 만들기」에서 정해요.</div></div>
- <div class="card"><h2>화면 · 편의</h2><div class="tpg">${pf('guide','홈에 시작 가이드 보이기')}${pf('nextPage','교재 채점이 끝나면 다음 쪽 이어서 채점할지 묻기')}${pf('big','큰 글씨·큰 버튼 모드','태블릿에서 누르기 편하게 화면을 12% 키워요')}</div>
- <div class="g2" style="margin-top:10px">${sel('start','앱을 열면 먼저 보이는 화면',[['thome','홈'],['grade','채점'],['weak','취약 유형']])}${sel('bkDays','백업 알림 주기',[[14,'14일마다'],[7,'7일마다'],[30,'30일마다'],[0,'알리지 않음']])}</div></div>
- <div class="card"><h2>알림 · 도움말</h2><div class="row" style="margin-top:6px"><button class="s" onclick="notifOpen()">공지 보내기·보낸 공지 보기</button></div>
- <div class="m" style="margin:12px 0 6px">튜토리얼 다시 보기</div><div class="row" style="flex-wrap:wrap">${Object.entries(TOURS).map(([k,v])=>`<button class="s sm" onclick="tourStart('${k}')">${esc(v.name)}</button>`).join('')}</div></div>
- <div class="card"><h2>데이터</h2><div class="m" style="margin-bottom:8px">학생·채점 기록·학습지는 이 기기와 온라인 저장소에 있어요.</div>
- <div class="row" style="flex-wrap:wrap"><button class="s" onclick="backupAll()">백업 내려받기</button><label class="s" style="cursor:pointer;display:inline-flex;align-items:center;padding:0 14px">백업 불러오기<input type="file" accept=".json" hidden onchange="restoreAll(this)"></label><button class="s" onclick="healthView()">시스템 점검</button></div>
- <div class="m" style="margin-top:10px">테마(시스템·라이트·다크)와 로그인·패스키는 오른쪽 위 ⚙에서 바꿔요.</div></div>`}
+ const sw=(k,l,d)=>`<label class="swr"><span><b>${l}</b>${d?`<small>${d}</small>`:''}</span><input class="swi" type="checkbox" ${on(k)?'checked':''} onchange="tsetPerm('${k}',this.checked)"></label>`;
+ const pf=(k,l,d)=>`<label class="swr"><span><b>${l}</b>${d?`<small>${d}</small>`:''}</span><input class="swi" type="checkbox" ${PREF[k]===0||(k==='big'&&!PREF[k])?'':'checked'} onchange="PREF.${k}=this.checked?1:0;prefSave();tsetSaved()"></label>`;
+ const sel=(k,l,opts)=>`<div class="fld"><label>${l}</label><select onchange="PREF.${k}=${typeof opts[0][0]==='number'?'+this.value':'this.value'};prefSave();tsetSaved()">${opts.map(([v,n])=>`<option value="${v}" ${(PREF[k]??opts[0][0])===v?'selected':''}>${n}</option>`).join('')}</select></div>`;
+ const sec=(id,ic,h,sub,body,right)=>`<section class="tsc" id="ts_${id}"><div class="tsch"><i>${tIc(ic)}</i><div><h2>${h}</h2><p>${sub}</p></div>${right||''}</div>${body}</section>`;
+ const off=Object.keys(P).filter(k=>P[k]===false).length;const mq=permNumT('maxQ',60);
+ const NAV=[['perm','학생 권한'],['ws','학습지'],['bk','교재'],['ui','화면'],['msg','알림·도움말'],['data','데이터·서버']];
+ $('#main').innerHTML=`<div class="tsh"><div><h1>설정</h1><p>학생이 쓸 수 있는 기능과 내 작업 방식을 정해요.</p></div><div class="tsb"><span class="${off?'warn':''}">학생 기능 ${off?off+'개 제한':'모두 허용'}</span><span>${cloud()&&sess?'온라인 저장 연결됨':'이 기기에만 저장'}</span></div></div>
+ <nav class="tsn">${NAV.map(([k,l])=>`<button onclick="document.getElementById('ts_${k}').scrollIntoView({behavior:'smooth',block:'start'})">${l}</button>`).join('')}</nav>
+ ${sec('perm','students','학생 권한','모든 학생에게 똑같이 적용돼요. 학생 앱이 열려 있으면 1분 안에 반영돼요.',
+ (TSET.err?`<div class="hint">${esc(TSET.err)}</div>`:'')+(cloud()&&sess?'':'<div class="hint"><b>온라인 저장에 로그인해야 학생에게 적용돼요.</b></div>')+
+ PERMS.map(([g,ic,sub,a])=>`<div class="tgp"><h3>${g}<small>${sub}</small></h3><div class="swg">${a.map(([k,l,d])=>sw(k,l,d)).join('')}</div></div>`).join('')+
+ `<div class="tgp"><h3>학습 한도</h3><div class="fld" style="max-width:340px"><label>학생이 한 번에 만들 수 있는 최대 문항 수</label><input type="number" min="5" max="60" value="${mq}" onchange="tsetNum('maxQ',this.value,5,60)"></div></div>
+ <div class="row" style="margin-top:12px;flex-wrap:wrap"><button class="s sm" onclick="tsetAll(true)">모두 허용</button><button class="s sm" onclick="tsetPreset('exam')">시험 기간 (풀이·교재만)</button><button class="s sm" onclick="tsetPreset('print')">인쇄 학습 중심 (필기·해설 끔)</button><button class="s sm" onclick="STUD={preview:1,login:'',pw:''};tab='home';render()" ${STU.length?'':'hidden'}>학생 화면 미리보기</button></div>`)}
+ ${sec('ws','doc','학습지 기본값','새 학습지를 만들 때 처음 채워지는 값이에요.',`<div class="g2"><div class="fld"><label>학원·학교 이름 (머리글)</label><input value="${esc(PREF.academy||'')}" maxlength="30" onchange="PREF.academy=this.value.trim();prefSave();tsetSaved()"></div>
+ <div class="fld"><label>선생님 이름</label><input value="${esc(teacherName())}" maxlength="20" onchange="try{localStorage.setItem(TN,this.value.trim())}catch(e){}tsetSaved()"></div>
+ <div class="fld"><label>문항 수</label><input type="number" min="5" max="100" value="${PREF.total}" onchange="PREF.total=Math.max(5,Math.min(100,+this.value||15));prefSave();tsetSaved()"></div>
+ ${sel('lvr','난이도 구성',[['basic','기초 (하 중심)'],['std','표준'],['hard','도전 (상 중심)']])}${sel('wsCols','단 수',[[2,'2단'],[1,'1단']])}${sel('wsFont','글꼴',Object.entries(FONTS).map(([k,v])=>[k,v[0]]))}</div>
+ <div class="swg" style="margin-top:12px">${pf('wsAns','정답·해설 페이지 포함','학습지 뒤에 정답과 해설을 붙여요')}${pf('wsQr','쪽마다 QR 넣기','QR을 찍어 바로 채점해요')}</div>`)}
+ ${sec('bk','book','교재 인쇄 기본값','교재를 인쇄할 때의 기본 모양이에요.',`<div class="g2">${sel('bkGap','문제 간격',[[0,'기본'],[1,'조금 넓게'],[2,'넓게'],[3,'아주 넓게']])}${sel('bkFont','글꼴',Object.entries(FONTS).map(([k,v])=>[k,v[0]]))}</div><p class="tsn2">교재를 새로 만들 때의 난이도·문항 수는 「교재 ▸ 교재 만들기」에서 정해요.</p>`)}
+ ${sec('ui','screen','화면 · 편의','이 기기에 저장돼요.',`<div class="swg">${pf('guide','홈에 시작 가이드 보이기')}${pf('nextPage','교재 채점 후 다음 쪽 이어서 채점할지 묻기')}${pf('big','큰 글씨·큰 버튼 모드','태블릿에서 누르기 편하게 화면을 12% 키워요')}</div>
+ <div class="g2" style="margin-top:12px">${sel('start','앱을 열면 먼저 보이는 화면',[['thome','홈'],['grade','채점'],['weak','취약 유형']])}${sel('bkDays','백업 알림 주기',[[14,'14일마다'],[7,'7일마다'],[30,'30일마다'],[0,'알리지 않음']])}</div>
+ <p class="tsn2">테마(시스템·라이트·다크)와 로그인·패스키는 오른쪽 위 ⚙에서 바꿔요.</p>`)}
+ ${sec('msg','bell','알림 · 도움말','학생에게 공지를 보내고 튜토리얼을 다시 볼 수 있어요.',`<div class="row"><button class="p" onclick="notifOpen()">공지 보내기 · 보낸 공지 보기</button></div>
+ <div class="tgp"><h3>튜토리얼 다시 보기</h3><div class="row" style="flex-wrap:wrap">${Object.entries(TOURS).map(([k,v])=>`<button class="s sm" onclick="tourStart('${k}')">${esc(v.name)}</button>`).join('')}</div></div>`)}
+ ${sec('data','db','데이터 · 서버','백업과 서버 설정 상태를 확인해요.',`<div class="row" style="flex-wrap:wrap"><button class="s" onclick="backupAll()">백업 내려받기</button><label class="s fl">백업 불러오기<input type="file" accept=".json" hidden onchange="restoreAll(this)"></label><button class="s" onclick="healthView()">시스템 점검</button><button class="p" onclick="srvCheck()">서버 설정 점검</button></div><div id="srvck" class="srvck"></div>`)}`}
+async function srvCheck(){const el=$('#srvck');if(!el)return;if(!cloud()||!sess){el.innerHTML='<div class="hint">온라인 저장에 로그인해야 점검할 수 있어요.</div>';return}
+ el.innerHTML='<div class="m">점검 중…</div>';
+ const T=[['공지 (notices 테이블)','11',()=>sb('/rest/v1/notices?select=id&limit=1')],['학생 공지 읽기 (st_notices)','11',()=>rpc('st_notices',{p_login:'_',p_pw:'_'})],['학생 권한 저장 (teacher_settings)','12',()=>sb('/rest/v1/teacher_settings?select=user_id&limit=1')],['학생 권한 읽기 (st_perms)','12',()=>rpc('st_perms',{p_login:'_',p_pw:'_'})],['패스키 (passkeys 테이블)','10',()=>sb('/rest/v1/passkeys?select=id&limit=1')],['자동 로그인 (st_logout)','10',()=>rpc('st_logout',{p_login:'_',p_pw:'_'})]];
+ const out=[];for(const [n,sec,f] of T){let ok=false,msg='';try{const r=await f();ok=r.ok||r.status===204;msg=ok?'정상':(r.status===404?'없음 — setup.sql '+sec+'번을 실행하세요':'오류 '+r.status)}catch(e){msg='연결 실패'}out.push(`<div class="${ok?'ok':'bad'}"><i></i><span>${n}</span><em>${msg}</em></div>`)}
+ el.innerHTML=out.join('')}
 const permNumT=(k,d)=>{const v=+(TSET.perms||{})[k];return v>0?v:d};
 function tsetSaved(){toast('저장했어요')}
 async function tsetSave(){const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:{perms:TSET.perms},updated_at:new Date().toISOString()})});
@@ -1105,9 +1189,9 @@ function nUnread(){const s=nSeenGet();let n=0;UPDATES.forEach(u=>{if(updFor(u)&&
 function nBadge(){const b=document.getElementById('bellN');if(!b)return;const n=nUnread();b.textContent=n>9?'9+':String(n);b.hidden=!n}
 async function nFetch(first){
  try{if(!cloud())return;
-  if(STUD&&!STUD.preview){permFetch();const r=await rpc('st_notices',{p_login:STUD.login,p_pw:STUD.pw});NT.list=r.ok?((await r.json())||[]):[]}
-  else if(sess){const r=await sb('/rest/v1/notices?select=id,title,body,t,student_id&order=t.desc&limit=60');NT.sent=r.ok?await r.json():[];NT.list=[]}
-  else NT.list=[]}catch(e){}
+  if(STUD&&!STUD.preview){permFetch();const r=await rpc('st_notices',{p_login:STUD.login,p_pw:STUD.pw});NT.err=r.ok?'':(r.status===404?'공지 기능이 서버에 설정되지 않았어요. 선생님께 알려 주세요.':'공지를 불러오지 못했어요 ('+r.status+')');NT.list=r.ok?((await r.json())||[]):[]}
+  else if(sess){const r=await sb('/rest/v1/notices?select=id,title,body,t,student_id&order=t.desc&limit=60');NT.err=r.ok?'':(r.status===404?'notices 테이블이 없어요. setup.sql 11번을 실행하세요.':'공지를 불러오지 못했어요 ('+r.status+')');NT.sent=r.ok?await r.json():[];NT.list=[]}
+  else NT.list=[]}catch(e){NT.err='공지를 불러오지 못했어요. 인터넷 연결을 확인하세요.'}
  const s=nSeenGet();const fresh=NT.list.filter(x=>!s.has('n:'+x.id)&&!NT.announced.has(x.id));
  if(!first&&fresh.length){fresh.slice(0,2).forEach(x=>toast('새 알림 · '+x.title));}
  else if(first&&fresh.length){toast('새 알림 '+fresh.length+'개가 있어요')}
@@ -1125,7 +1209,7 @@ function nRender(){let p=document.getElementById('notifp');if(!p){p=document.cre
  const s=nSeenGet();const items=[...NT.list.map(x=>({k:'n',id:x.id,t:+x.t,title:x.title,body:x.body,tag:'공지'})),...UPDATES.filter(updFor).map(u=>({k:'u',id:u.id,t:new Date(u.date).getTime(),title:u.title,body:u.body,tag:'업데이트',tour:u.tour}))].sort((a,b)=>b.t-a.t);
  const composer=(!STUD&&sess)?`<details class="ncomp"><summary>공지 보내기</summary><div class="ncf"><input id="nt_t" maxlength="60" placeholder="제목"><textarea id="nt_b" rows="3" maxlength="500" placeholder="내용 (학생 화면 알림에 보여요)"></textarea><select id="nt_s"><option value="">모든 학생</option>${STU.map(x=>`<option value="${x.id}">${esc(x.name)}${x.grade?' · '+esc(x.grade):''}</option>`).join('')}</select><button class="p" onclick="nSend()">보내기</button></div>
  ${NT.sent.length?`<div class="nsent"><b>보낸 공지</b>${NT.sent.slice(0,8).map(x=>`<div><span>${esc(x.title)}<small>${new Date(+x.t).toLocaleDateString('ko-KR')}${x.student_id?' · '+esc((STU.find(y=>y.id===x.student_id)||{}).name||'한 명'):' · 전체'}</small></span><button class="s sm" onclick="nDel(${x.id})">삭제</button></div>`).join('')}</div>`:''}</details>`:'';
- p.innerHTML=`<div class="nh"><b>알림</b><button class="s sm" onclick="nClose()" aria-label="닫기">닫기</button></div>${composer}<div class="nl">${items.length?items.map(i=>`<div class="ni ${s.has(i.k+':'+i.id)?'':'new'} ${i.tour&&TOURS[i.tour]?'go':''}" ${i.tour&&TOURS[i.tour]?`role="button" tabindex="0" onclick="nClose();tourStart('${i.tour}')" onkeydown="if(event.key==='Enter')this.click()"`:''}><div class="nt"><span class="ntag ${i.k}">${i.tag}</span><b>${esc(i.title)}</b><small>${new Date(i.t).toLocaleDateString('ko-KR')}</small></div><p>${esc(i.body||'')}</p>${i.tour&&TOURS[i.tour]?'<span class="ngo">눌러서 튜토리얼 보기 ›</span>':''}</div>`).join(''):'<div class="m" style="padding:14px">알림이 없어요.</div>'}</div>`}
+ p.innerHTML=`<div class="nh"><b>알림</b><button class="s sm" onclick="nClose()" aria-label="닫기">닫기</button></div>${NT.err?`<div class="hint" style="margin:8px 12px">${esc(NT.err)}</div>`:''}${composer}<div class="nl">${items.length?items.map(i=>`<div class="ni ${s.has(i.k+':'+i.id)?'':'new'} ${i.tour&&TOURS[i.tour]?'go':''}" ${i.tour&&TOURS[i.tour]?`role="button" tabindex="0" onclick="nClose();tourStart('${i.tour}')" onkeydown="if(event.key==='Enter')this.click()"`:''}><div class="nt"><span class="ntag ${i.k}">${i.tag}</span><b>${esc(i.title)}</b><small>${new Date(i.t).toLocaleDateString('ko-KR')}</small></div><p>${esc(i.body||'')}</p>${i.tour&&TOURS[i.tour]?'<span class="ngo">눌러서 튜토리얼 보기 ›</span>':''}</div>`).join(''):'<div class="m" style="padding:14px">알림이 없어요.</div>'}</div>`}
 async function nSend(){const title=($('#nt_t')||{}).value.trim(),body=($('#nt_b')||{}).value.trim(),sid=($('#nt_s')||{}).value;if(!title){toast('제목을 입력하세요');return}
  try{const r=await sb('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({title,body,student_id:sid||null})});if(!r.ok)throw new Error(r.status===404?'notices 테이블이 없어요. setup.sql을 다시 실행하세요.':'보내지 못했어요 ('+r.status+')');
   toast('공지를 보냈어요');await nFetch(false)}catch(e){toast(e.message)}}
@@ -1135,7 +1219,7 @@ document.addEventListener('click',e=>{if(NT.open&&!e.target.closest('#notifp,#be
 const INK=(()=>{let s={};try{s=JSON.parse(localStorage.getItem('omr_ink')||'{}')}catch(e){}return {on:s.on!==false,color:s.color||'#1d1d1f',w:s.w||2.6,tool:'pen',finger:!!s.finger}})();
 let INKC=null;
 function inkSave(){try{localStorage.setItem('omr_ink',JSON.stringify({on:INK.on,color:INK.color,w:INK.w,finger:INK.finger}))}catch(e){}}
-function inkBar(){if(STUD&&!permOn('ink'))return '';const col=['#1d1d1f','#2a72bf','#d64545','#2e9e6b',...(themeEff()==='dark'?['#f5f5f7','#ffd84a']:[])];
+function inkBar(){if(STUD&&!permOn('ink'))return '<div class="inkbar off" role="note">✏️ 필기는 선생님이 꺼 두었어요</div>';const col=['#1d1d1f','#2a72bf','#d64545','#2e9e6b',...(themeEff()==='dark'?['#f5f5f7','#ffd84a']:[])];
  return `<div class="inkbar" role="toolbar" aria-label="필기 도구"><button class="${INK.on?'on':''}" onclick="inkSet('on',!INK.on)">${INK.on?'필기 켬':'필기 끔'}</button>
  <span class="isep"></span><button class="${INK.on&&INK.tool==='pen'?'on':''}" onclick="inkSet('tool','pen')">펜</button><button class="${INK.on&&INK.tool==='eraser'?'on':''}" onclick="inkSet('tool','eraser')">지우개</button>
  <span class="isep"></span>${col.map(c=>`<button class="isw ${INK.color===c&&INK.tool==='pen'?'on':''}" style="--c:${c}" aria-label="색 ${c}" onclick="inkSet('color','${c}')"></button>`).join('')}
@@ -1144,7 +1228,7 @@ function inkBar(){if(STUD&&!permOn('ink'))return '';const col=['#1d1d1f','#2a72b
  <label class="ifin"><input type="checkbox" ${INK.finger?'checked':''} onchange="inkSet('finger',this.checked)"> 손가락으로도 쓰기</label></div>`}
 function inkSet(k,v){INK[k]=v;if(k==='color')INK.tool='pen';if(k==='tool'&&v==='pen'&&!INK.on)INK.on=true;if(k==='tool'&&v==='eraser')INK.on=true;if(k==='w')INK.tool='pen';inkSave();const b=document.querySelector('.inkbar');if(b)b.outerHTML=inkBar();if(INKC)INKC.mode()}
 function inkAttach(w,store,key){
- if(!w)return;const old=w.querySelector('canvas.ink');if(old)old.remove();
+ if(!w||(STUD&&!permOn('ink')))return;const old=w.querySelector('canvas.ink');if(old)old.remove();
  const cv=document.createElement('canvas');cv.className='ink';w.appendChild(cv);const ctx=cv.getContext('2d');
  const S=store[key]=store[key]||[];let st=null;
  const W_=()=>cv.clientWidth||1;
@@ -2578,7 +2662,7 @@ async function pkRefresh(){const el=document.getElementById('pkbox');if(!el)retu
  catch(e){el.innerHTML=`<div class="m" style="color:var(--no)">${esc(e.message)}</div><div class="row" style="margin-top:8px"><button class="s sm" onclick="pkRefresh()">다시 시도</button><button class="s sm" onclick="pkPing()">서버 점검</button></div>`}}
 async function pkPing(){try{const r=await pkCall({action:'ping'});alert('패스키 서버 점검\n\n사이트 도메인(RP ID): '+r.rpID+'\n허용 주소: '+(r.origins||[]).join(', ')+'\n\n'+Object.entries(r.checks||{}).map(([k,v])=>k+': '+v).join('\n'))}catch(e){alert('점검 실패: '+e.message)}}
 async function pkRemove(id){if(!confirm('이 패스키를 삭제할까요?'))return;try{await pkCall({action:'remove',id,...pkWho()});pkRefresh()}catch(e){toast(e.message)}}
-const pkSection=()=>`<h3 style="margin:18px 0 4px;font-size:15px">패스키 · 자동 로그인</h3><label class="chk" style="margin:4px 0"><input type="checkbox" ${autoOn()?'checked':''} onchange="autoSet(this.checked)"> 자동 로그인 (이 기기에서 로그인 상태 유지)</label><div class="m" style="margin:6px 0">패스키를 등록하면 지문·얼굴·기기 암호로 비밀번호 없이 로그인해요.</div><div id="pkbox"><div class="m">불러오는 중…</div></div>`;
+const pkSection=()=>`<h3>패스키 · 자동 로그인</h3><p>패스키를 등록하면 지문·얼굴·기기 암호로 비밀번호 없이 로그인해요.</p><label class="swr"><span><b>자동 로그인</b><small>이 기기에서 로그인 상태를 유지해요</small></span><input class="swi" type="checkbox" ${autoOn()?'checked':''} onchange="autoSet(this.checked)"></label><div id="pkbox" style="margin-top:10px"><div class="m">불러오는 중…</div></div>`;
 async function stSetSession(login,pw){STUD={login,pw};
  if(autoOn()){try{const r=await rpc('st_issue_token',{p_login:login,p_pw:pw});const tok=r.ok?await r.json():null;if(tok)STUD={login,pw:'tok:'+tok,tok:1}}catch(e){}}
  stStore()}
