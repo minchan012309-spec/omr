@@ -12,7 +12,20 @@ const cfg = { rpID: SITE ? new URL(SITE).hostname : 'localhost', rpName: 'Solvi'
 const sha256hex = async (s: string) => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))).map((b) => b.toString(16).padStart(2, '0')).join('');
 const randToken = () => { const u = crypto.getRandomValues(new Uint8Array(32)); return Array.from(u).map((b) => b.toString(16).padStart(2, '0')).join(''); };
 
+const withTimeout = <T>(p: Promise<T>, ms: number, msg: string): Promise<T> => Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]);
+
 const db = {
+  async ping() {
+    const out: Record<string, string> = {};
+    for (const t of ['passkeys', 'passkey_challenges', 'st_tokens']) {
+      try { const { error } = await withTimeout(sb.from(t).select('*', { head: true, count: 'exact' }).limit(1) as unknown as Promise<{ error: { message: string } | null }>, 8000, '시간 초과'); out[t] = error ? '오류: ' + error.message : 'ok'; }
+      catch (e) { out[t] = '오류: ' + (e as Error).message; }
+    }
+    try { const { error } = await withTimeout(sb.rpc('_st_auth_row', { p_login: 'x', p_pw: 'x' }) as unknown as Promise<{ error: { message: string } | null }>, 8000, '시간 초과'); out['_st_auth_row'] = error ? '오류: ' + error.message : 'ok'; }
+    catch (e) { out['_st_auth_row'] = '오류: ' + (e as Error).message; }
+    out['SITE_URL'] = SITE || '(설정 안 됨)';
+    return { checks: out };
+  },
   async saveChallenge(c: { challenge: string; purpose: string; subject: string }) {
     const { data, error } = await sb.from('passkey_challenges').insert(c).select('id').single();
     if (error) throw error;
@@ -67,8 +80,8 @@ Deno.serve(async (req) => {
     const body = await req.json();
     let user = null;
     const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
-    if (jwt) { const { data } = await sb.auth.getUser(jwt); user = data?.user ? { id: data.user.id, email: data.user.email } : null; }
-    const r = await handle(body, user);
+    if (jwt) { const { data } = await withTimeout(sb.auth.getUser(jwt), 8000, '로그인 확인 시간 초과'); user = data?.user ? { id: data.user.id, email: data.user.email } : null; }
+    const r = await withTimeout(handle(body, user), 20000, '서버 안에서 20초 넘게 기다렸어요 (DB 연결 확인)');
     return new Response(JSON.stringify(r.json), { status: r.status, headers: { ...cors, 'Content-Type': 'application/json' } });
   } catch (e) {
     return new Response(JSON.stringify({ error: String((e as Error).message || e) }), { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } });
