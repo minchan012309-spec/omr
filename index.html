@@ -635,6 +635,13 @@ html[data-theme=dark] .th-hero{background:var(--bl)}
 /* 튜토리얼 */
 #helpBtn{width:38px;height:38px;border-radius:50%;font-size:18px;font-weight:800;cursor:pointer;padding:0;flex:none;line-height:1;background:#ffffff1f;border:1px solid #ffffff55;color:#fff}#helpBtn:hover{background:#ffffff33}#helpBtn[hidden]{display:none}
 .tpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px 16px}.tpg .tp{display:flex;align-items:center;gap:8px;margin:0}.tl{display:block;font-size:12px;color:var(--m);margin-bottom:3px}
+
+.acl{display:grid;gap:8px}.acr{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--l);border-radius:14px;background:var(--bg)}.acr.cur{border-color:var(--b);background:var(--bl)}.acr>div{flex:1;min-width:0}.acr b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.acr small{color:var(--m);font-size:12px}
+.av{flex:none;width:34px;height:34px;border-radius:50%;background:var(--b);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}.av.s{background:#2e9e6b}
+.acq{margin-top:16px;border-top:1px solid var(--l);padding-top:12px;display:grid;gap:6px}.acb{display:flex;align-items:center;gap:10px;text-align:left;min-height:46px}.acb small{margin-left:auto;color:var(--m)}
+html[data-theme=dark] .av{color:#0f0f10}
+@media(max-width:600px){header h1 .bn{display:none!important}header h1 .logo{margin-right:0}header{gap:6px!important;padding:0 10px!important}header h1{gap:8px!important;min-width:0}header h1 small{max-width:none!important;overflow:visible!important;text-overflow:clip!important;white-space:nowrap;font-size:14px!important;padding:5px 12px!important;font-weight:800!important}#qrBtn,#bellBtn,#helpBtn,#setBtn{width:38px!important;height:38px!important;min-width:0!important;padding:0!important}#sync{display:none}}
+@media(max-width:360px){header h1 small{font-size:12.5px!important;padding:4px 9px!important}header h1 b{display:none}}
 html.big body{font-size:17px}html.big button,html.big select,html.big input:not([type=checkbox]){min-height:46px}html.big nav button{padding-left:14px;padding-right:14px}
 html[data-theme=dark] svg text[fill="#1f2933"],html[data-theme=dark] svg text[fill="#2b2f36"]{fill:var(--t)}html[data-theme=dark] svg [stroke="#e6ebf1"]{stroke:#34343a}html[data-theme=dark] svg [fill="#c9d0d8"]{fill:#4a4a52}html[data-theme=dark] svg [stroke="#2b2f36"]{stroke:#c9c9d0}
 html[data-theme=dark] .task{background:var(--sf1);border-color:var(--l2)}html[data-theme=dark] .task.ok{background:#16211b;border-color:#2b4638}html[data-theme=dark] .task.late{background:#2a1a1a;border-color:#5a2f2f}
@@ -794,7 +801,7 @@ async function sb(path,o={},retry=true){let r=await fetch(base_()+path,{...o,hea
 const rpc=(fn,args)=>sb('/rest/v1/rpc/'+fn,{method:'POST',body:JSON.stringify(args)});
 async function refresh(){try{const r=await fetch(base_()+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:CF.key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:sess.refresh_token})});
  if(!r.ok){sess=null;localStorage.removeItem(LSS);return false}setSess(await r.json());return true}catch(e){return false}}
-function setSess(j){sess={access_token:j.access_token,refresh_token:j.refresh_token,user:j.user&&{id:j.user.id,email:j.user.email}||(sess&&sess.user)};if(autoOn()){jset(LSS,sess);try{sessionStorage.removeItem(LSS)}catch(e){}}else{try{sessionStorage.setItem(LSS,JSON.stringify(sess));localStorage.removeItem(LSS)}catch(e){}}}
+function setSess(j){sess={access_token:j.access_token,refresh_token:j.refresh_token,user:j.user&&{id:j.user.id,email:j.user.email}||(sess&&sess.user)};setTimeout(()=>{try{acctSave()}catch(e){}},0);if(autoOn()){jset(LSS,sess);try{sessionStorage.removeItem(LSS)}catch(e){}}else{try{sessionStorage.setItem(LSS,JSON.stringify(sess));localStorage.removeItem(LSS)}catch(e){}}}
 async function auth(kind,email,pw){const p=kind==='up'?'/auth/v1/signup':'/auth/v1/token?grant_type=password';
  const r=await fetch(base_()+p,{method:'POST',headers:{apikey:CF.key,'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
  const j=await r.json();if(!r.ok)throw new Error(j.msg||j.error_description||j.message||'실패');
@@ -816,7 +823,7 @@ async function load(){loadCfg();hist=jget(LS,[]);STU=jget(LST,[]);WSH=jget(LW,[]
  jset(LS,hist);if(CUR_S&&!STU.find(s=>s.id===CUR_S))CUR_S='';
  syncLabel();render()}
 function syncLabel(){const e=$('#sync');e.className=srv?'on':'';
- e.textContent=STUD&&STUD.preview?'미리보기 종료':STUD?((STINFO&&STINFO.name)||'학생')+' · 로그아웃':!teacher()?'선생님 로그인':srv==='cloud'?('온라인 저장 · '+((sess&&sess.user&&sess.user.email)||'')):srv==='local'?'내 컴퓨터 서버에 저장':'이 기기에만 저장 · 설정';
+ e.textContent=STUD&&STUD.preview?'미리보기 종료':STUD?((STINFO&&STINFO.name)||'학생')+' · 계정':!teacher()?'선생님 로그인':srv==='cloud'?('온라인 저장 · '+((sess&&sess.user&&sess.user.email)||'')):srv==='local'?'내 컴퓨터 서버에 저장':'이 기기에만 저장 · 설정';
  const sel=$('#stuSel');sel.style.display=teacher()?'':'none';sel.innerHTML='<option value="">— 학생 선택 —</option>'+STU.map(s=>`<option value="${s.id}" ${s.id===CUR_S?'selected':''}>${esc(s.name)}${s.grade?' · '+esc(s.grade):''}</option>`).join('')}
 function setStu(v){CUR_S=v;localStorage.setItem(LCS,v);render()}
 const H=()=>STUD?hist:CUR_S?hist.filter(h=>h.sid===CUR_S):(teacher()?[]:hist);
@@ -827,11 +834,11 @@ async function save(rec){rec.sid=rec.sid!==undefined?rec.sid:CUR_S;hist.push(rec
 function openCfg(){const b=$('#cfgBox');
  const th=themeGet();const seg=(v,l)=>`<button class="${th===v?'on':''}" onclick="themeSet('${v}')">${l}</button>`;
  b.innerHTML=`<h2 class="cfh">${sess?'설정':(cloud()?'로그인':'온라인 저장 설정')}</h2>
- ${cloud()&&!sess?`<div class="cfs"><h3>선생님 로그인</h3><p>선생님(관리자)이 로그인하면 학생 등록, 취약 유형 분석, 학습지 관리를 쓸 수 있어요. 학생은 로그인 없이 학습지 번호나 QR로 채점해요.</p>
+ ${cloud()&&!sess?`${acctQuick()?`<div class="cfs">${acctQuick()}</div>`:''}<div class="cfs"><h3>선생님 로그인</h3><p>선생님(관리자)이 로그인하면 학생 등록, 취약 유형 분석, 학습지 관리를 쓸 수 있어요. 학생은 로그인 없이 학습지 번호나 QR로 채점해요.</p>
  <div class="fld"><label>이메일</label><input id="ce" type="email" autocomplete="username"></div><div class="fld" style="margin-top:8px"><label>비밀번호 (6자 이상)</label><input id="cp" type="password" autocomplete="current-password"></div>
  <label class="swr" style="margin-top:10px"><span><b>자동 로그인</b><small>이 기기에서 로그인 상태를 유지해요</small></span><input class="swi" type="checkbox" ${autoOn()?'checked':''} onchange="autoSet(this.checked)"></label>
  <div class="row" style="margin-top:12px"><button class="p" onclick="doAuth('in')">로그인</button><button class="s" onclick="doAuth('up')">가입</button>${pkOK()?'<button class="s" onclick="pkLogin()">패스키로 로그인</button>':''}</div><div id="cmsg" class="m"></div></div>`:''}
- ${sess?`<div class="cfs"><h3>계정</h3><div class="cfacc"><span class="av">${esc((sess.user&&sess.user.email||'?')[0].toUpperCase())}</span><div><b>${esc(sess.user&&sess.user.email||'')}</b><small>온라인 저장 연결됨</small></div><button class="s sm" onclick="logout()">로그아웃</button></div></div><div class="cfs">${pkSection()}</div>`:''}
+ ${sess?`<div class="cfs"><h3>계정</h3><div class="cfacc"><span class="av">${esc((sess.user&&sess.user.email||'?')[0].toUpperCase())}</span><div><b>${esc(sess.user&&sess.user.email||'')}</b><small>온라인 저장 연결됨</small></div><button class="s sm" onclick="doLogout()">로그아웃</button></div><div id="acctbox" style="margin-top:12px">${acctHtml()}</div></div><div class="cfs">${pkSection()}</div>`:''}
  ${teacher()?`<div class="cfs"><h3>선생님 이름</h3><p>홈 화면 인사에 「○○○님」으로 표시돼요. 로그인한 계정에도 저장돼서 다른 기기에서도 그대로 보여요.</p><div class="row" style="gap:8px"><input id="tn2" maxlength="12" value="${esc(teacherName())}" placeholder="예) 김민찬" style="flex:1;min-height:42px"><button class="p" onclick="tnSave($('#tn2').value)">저장</button></div></div>`:''}
  <div class="cfs"><h3>화면 테마</h3><p>기본은 기기(시스템) 설정을 따라가요. 인쇄물은 영향받지 않아요.</p><div class="seg">${seg('auto','시스템 설정')}${seg('light','라이트')}${seg('dark','다크')}</div></div>
  ${teacher()?`<div class="cfs"><h3>더 많은 설정</h3><p>학생 권한, 학습지·교재 기본값, 큰 글씨 모드, 서버 점검은 설정 탭에 있어요.</p><button class="s" onclick="closeCfg();tab='tset';render()">설정 탭 열기 ›</button></div>`:''}`;
@@ -1128,7 +1135,7 @@ async function tsetView(){
  const sel=(k,l,opts)=>`<div class="fld"><label>${l}</label><select onchange="PREF.${k}=${typeof opts[0][0]==='number'?'+this.value':'this.value'};prefSave();tsetSaved()">${opts.map(([v,n])=>`<option value="${v}" ${(PREF[k]??opts[0][0])===v?'selected':''}>${n}</option>`).join('')}</select></div>`;
  const sec=(id,ic,h,sub,body,right)=>`<section class="tsc" id="ts_${id}"><div class="tsch"><i>${tIc(ic)}</i><div><h2>${h}</h2><p>${sub}</p></div>${right||''}</div>${body}</section>`;
  const off=Object.keys(P).filter(k=>P[k]===false).length;const mq=permNumT('maxQ',60);
- const NAV=[['perm','학생 권한'],['ws','학습지'],['bk','교재'],['ui','화면'],['msg','알림·도움말'],['data','데이터·서버']];
+ const NAV=[['perm','학생 권한'],['ws','학습지'],['bk','교재'],['ui','화면'],['msg','알림·도움말'],['data','데이터·서버'],['acct','계정']];
  $('#main').innerHTML=`<div class="tsh"><div><h1>설정</h1><p>학생이 쓸 수 있는 기능과 내 작업 방식을 정해요.</p></div><div class="tsb"><span class="${off?'warn':''}">학생 기능 ${off?off+'개 제한':'모두 허용'}</span><span>${cloud()&&sess?'온라인 저장 연결됨':'이 기기에만 저장'}</span></div></div>
  <nav class="tsn">${NAV.map(([k,l])=>`<button onclick="document.getElementById('ts_${k}').scrollIntoView({behavior:'smooth',block:'start'})">${l}</button>`).join('')}</nav>
  ${sec('perm','students','학생 권한','모든 학생에게 똑같이 적용돼요. 학생 앱이 열려 있으면 1분 안에 반영돼요.',
@@ -1147,7 +1154,8 @@ async function tsetView(){
  <p class="tsn2">테마(시스템·라이트·다크)와 로그인·패스키는 오른쪽 위 ⚙에서 바꿔요.</p>`)}
  ${sec('msg','bell','알림 · 도움말','학생에게 공지를 보내고 튜토리얼을 다시 볼 수 있어요.',`<div class="row"><button class="p" onclick="notifOpen()">공지 보내기 · 보낸 공지 보기</button></div>
  <div class="tgp"><h3>튜토리얼 다시 보기</h3><div class="row" style="flex-wrap:wrap">${Object.entries(TOURS).map(([k,v])=>`<button class="s sm" onclick="tourStart('${k}')">${esc(v.name)}</button>`).join('')}</div></div>`)}
- ${sec('data','db','데이터 · 서버','백업과 서버 설정 상태를 확인해요.',`<div class="row" style="flex-wrap:wrap"><button class="s" onclick="backupAll()">백업 내려받기</button><label class="s fl">백업 불러오기<input type="file" accept=".json" hidden onchange="restoreAll(this)"></label><button class="s" onclick="healthView()">시스템 점검</button><button class="p" onclick="srvCheck()">서버 설정 점검</button></div><div id="srvck" class="srvck"></div>`)}`}
+ ${sec('data','db','데이터 · 서버','백업과 서버 설정 상태를 확인해요.',`<div class="row" style="flex-wrap:wrap"><button class="s" onclick="backupAll()">백업 내려받기</button><label class="s fl">백업 불러오기<input type="file" accept=".json" hidden onchange="restoreAll(this)"></label><button class="s" onclick="healthView()">시스템 점검</button><button class="p" onclick="srvCheck()">서버 설정 점검</button></div><div class="dz" style="margin-top:14px"><b>학습 자료만 지우기 (학생 유지)</b><div class="m">만들어 둔 학습지·교재·모의고사·채점 기록·과제·즐겨찾기·신고·내 구성을 모두 지워요. 등록된 학생 정보와 로그인·설정은 남아요.</div><button class="s dgr" onclick="wipeContent()">학습 자료 지우기…</button></div><div id="srvck" class="srvck"></div>`)}
+ ${sec('acct','students','계정','이 기기에 저장된 계정을 전환하거나 로그아웃해요.',`<div class="cfacc" style="margin-bottom:12px"><span class="av">${esc(((sess&&sess.user&&sess.user.email)||'?')[0].toUpperCase())}</span><div><b>${esc((sess&&sess.user&&sess.user.email)||'로그인 안 됨')}</b><small>${sess?'선생님 계정 · 온라인 저장 연결됨':'이 기기에만 저장'}</small></div></div><div id="acctbox">${acctHtml()}</div>${sess?'<div class="row" style="margin-top:14px"><button class="s dgr" onclick="doLogout()">로그아웃</button></div>':''}`)}`}
 async function srvCheck(){const el=$('#srvck');if(!el)return;if(!cloud()||!sess){el.innerHTML='<div class="hint">온라인 저장에 로그인해야 점검할 수 있어요.</div>';return}
  el.innerHTML='<div class="m">점검 중…</div>';
  const T=[['공지 (notices 테이블)','11',()=>sb('/rest/v1/notices?select=id&limit=1')],['학생 공지 읽기 (st_notices)','11',()=>rpc('st_notices',{p_login:'_',p_pw:'_'})],['학생 권한 저장 (teacher_settings)','12',()=>sb('/rest/v1/teacher_settings?select=user_id&limit=1')],['학생 권한 읽기 (st_perms)','12',()=>rpc('st_perms',{p_login:'_',p_pw:'_'})],['패스키 (passkeys 테이블)','10',()=>sb('/rest/v1/passkeys?select=id&limit=1')],['자동 로그인 (st_logout)','10',()=>rpc('st_logout',{p_login:'_',p_pw:'_'})]];
@@ -2633,7 +2641,28 @@ async function stLogin(){const lg=($('#stid')||{}).value||'',pw=($('#stpw')||{})
   if(!j){alert('아이디나 비밀번호가 맞지 않습니다.');return}
   await stSetSession(lg.trim().toLowerCase(),pw);tab='home';await load();try{const pc=sessionStorage.getItem('omr_pend');if(pc){sessionStorage.removeItem('omr_pend');pc.startsWith('BK:')?bkRoute(pc.slice(3)):openByNumber(pc)}}catch(e){}}catch(e){alert('로그인하지 못했습니다. 인터넷 연결을 확인하세요.')}}
 function logoutStud(){if(STUD&&STUD.tok)rpc('st_logout',{p_login:STUD.login,p_token:STUD.pw.slice(4)}).catch(()=>{});try{sessionStorage.removeItem(LSTUD)}catch(e){}STUD=null;STINFO=null;ASSIGN=[];localStorage.removeItem(LSTUD);hist=[];cur=null;tab='enter';load()}
-function syncClick(){if(PVSAVE){exitPreview();return}if(STUD){if(confirm('로그아웃할까요?'))logoutStud()}else openCfg()}
+function syncClick(){if(PVSAVE){exitPreview();return}if(STUD){openSettings()}else openCfg()}
+/* ---------- 한 기기에 여러 계정 ---------- */
+const ACK='omr_accts';
+const acctAll=()=>{const a=jget(ACK,[]);return Array.isArray(a)?a:[]};
+function acctStore(a){try{localStorage.setItem(ACK,JSON.stringify(a.slice(0,8)))}catch(e){}}
+const acctCur=()=>STUD&&!STUD.preview&&STUD.login?'s:'+STUD.login:(sess&&sess.user&&(sess.user.email||sess.user.id)?'t:'+(sess.user.email||sess.user.id):'');
+function acctSave(){if(!autoOn())return;const id=acctCur();if(!id)return;const a=acctAll();
+ const rec=id[0]==='s'?{id,kind:'s',label:(STINFO&&STINFO.name)||STUD.login,stud:{login:STUD.login,pw:STUD.pw,tok:STUD.tok}}:{id,kind:'t',label:(sess.user&&sess.user.email)||'선생님',sess:{access_token:sess.access_token,refresh_token:sess.refresh_token,user:sess.user}};
+ const i=a.findIndex(x=>x.id===id);if(i>=0)a[i]=rec;else a.push(rec);acctStore(a)}
+function acctDrop(){const id=acctCur();if(id)acctStore(acctAll().filter(x=>x.id!==id))}
+function acctClear(){try{['localStorage','sessionStorage'].forEach(s=>{window[s].removeItem(LSS);window[s].removeItem(LSTUD)})}catch(e){}}
+function acctSwitch(id){const r=acctAll().find(x=>x.id===id);if(!r)return;acctSave();acctClear();
+ try{if(r.kind==='t')localStorage.setItem(LSS,JSON.stringify(r.sess));else localStorage.setItem(LSTUD,JSON.stringify(r.stud))}catch(e){}location.reload()}
+function acctRemove(id){if(!confirm('이 기기의 저장된 계정 목록에서 지울까요? (계정 자체는 그대로예요)'))return;acctStore(acctAll().filter(x=>x.id!==id));openAcctRefresh()}
+function acctAdd(kind){acctSave();acctClear();try{sessionStorage.setItem('omr_addacct',kind)}catch(e){}location.reload()}
+function openAcctRefresh(){const e=document.getElementById('acctbox');if(e)e.innerHTML=acctHtml();else if(tab==='tset')tsetView()}
+function acctHtml(){const a=acctAll(),cur=acctCur();
+ const rows=a.map(x=>`<div class="acr ${x.id===cur?'cur':''}"><span class="av ${x.kind}">${esc((x.label||'?')[0].toUpperCase())}</span><div><b>${esc(x.label)}</b><small>${x.kind==='t'?'선생님':'학생'}${x.id===cur?' · 사용 중':''}</small></div>${x.id===cur?'':`<button class="p sm" onclick="acctSwitch('${esc(x.id)}')">전환</button>`}<button class="s sm" aria-label="목록에서 지우기" onclick="acctRemove('${esc(x.id)}')">✕</button></div>`).join('');
+ return `<div class="acl">${rows||'<div class="m">저장된 계정이 없어요. 로그인하면 여기에 저장돼요.</div>'}</div>${autoOn()?'':'<div class="hint" style="margin-top:8px">자동 로그인을 켜야 여러 계정을 저장하고 전환할 수 있어요.</div>'}<div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="s sm" onclick="acctAdd('t')">＋ 선생님 계정 추가</button><button class="s sm" onclick="acctAdd('s')">＋ 학생 계정 추가</button></div>`}
+const acctQuick=()=>{const a=acctAll();return a.length?`<div class="acq"><div class="m" style="margin-bottom:6px">이 기기에 저장된 계정</div>${a.map(x=>`<button class="s acb" onclick="acctSwitch('${esc(x.id)}')"><span class="av ${x.kind}">${esc((x.label||'?')[0].toUpperCase())}</span>${esc(x.label)}<small>${x.kind==='t'?'선생님':'학생'}</small></button>`).join('')}</div>`:''};
+function doLogout(){if(!confirm('로그아웃할까요? (이 기기의 저장된 계정 목록에서도 빠져요)'))return;closeCfg();acctDrop();if(STUD&&!STUD.preview)logoutStud();else logout()}
+try{const k=sessionStorage.getItem('omr_addacct');if(k){sessionStorage.removeItem('omr_addacct');if(k==='t')setTimeout(()=>{try{openCfg()}catch(e){}},900)}}catch(e){}
 /* ---------- 패스키(WebAuthn) 로그인 ---------- */
 const pkOK=()=>!!(window.PublicKeyCredential&&navigator.credentials&&cloud());
 const b64u2buf=s=>{s=String(s).replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u.buffer};
@@ -2665,12 +2694,12 @@ async function pkRemove(id){if(!confirm('이 패스키를 삭제할까요?'))ret
 const pkSection=()=>`<h3>패스키 · 자동 로그인</h3><p>패스키를 등록하면 지문·얼굴·기기 암호로 비밀번호 없이 로그인해요.</p><label class="swr"><span><b>자동 로그인</b><small>이 기기에서 로그인 상태를 유지해요</small></span><input class="swi" type="checkbox" ${autoOn()?'checked':''} onchange="autoSet(this.checked)"></label><div id="pkbox" style="margin-top:10px"><div class="m">불러오는 중…</div></div>`;
 async function stSetSession(login,pw){STUD={login,pw};
  if(autoOn()){try{const r=await rpc('st_issue_token',{p_login:login,p_pw:pw});const tok=r.ok?await r.json():null;if(tok)STUD={login,pw:'tok:'+tok,tok:1}}catch(e){}}
- stStore()}
+ stStore();try{acctSave()}catch(e){}}
 function stStore(){try{if(autoOn()){localStorage.setItem(LSTUD,JSON.stringify(STUD));sessionStorage.removeItem(LSTUD)}else{sessionStorage.setItem(LSTUD,JSON.stringify(STUD));localStorage.removeItem(LSTUD)}}catch(e){}}
 async function loadStud(){
  try{const r=await rpc('st_data',{p_login:STUD.login,p_pw:STUD.pw});const j=r.ok?await r.json():null;
   if(!j){STUD=null;localStorage.removeItem(LSTUD);try{sessionStorage.removeItem(LSTUD)}catch(e){}return}
-  permFetch();STINFO=j.student;hist=(j.attempts||[]).map(x=>({t:x.t,set:x.set,sub:x.sub,items:x.items,rng:x.rng||undefined,sid:''})).sort((a,b)=>a.t-b.t);ASSIGN=j.assignments||[];WSH=[];STU=[];CUR_S='';setTimeout(outboxFlush,300)}
+  permFetch();STINFO=j.student;try{acctSave()}catch(e){}hist=(j.attempts||[]).map(x=>({t:x.t,set:x.set,sub:x.sub,items:x.items,rng:x.rng||undefined,sid:''})).sort((a,b)=>a.t-b.t);ASSIGN=j.assignments||[];WSH=[];STU=[];CUR_S='';setTimeout(outboxFlush,300)}
  catch(e){}}
 async function stSubmit(rec){const body={p_login:STUD.login,p_pw:STUD.pw,p_t:rec.t,p_set:rec.set,p_sub:rec.sub,p_items:rec.items};if(rec.rng)body.p_rng=rec.rng;
  let r=await rpc('st_submit',body);if(r.status===404&&body.p_rng){delete body.p_rng;r=await rpc('st_submit',body)}
@@ -2679,7 +2708,7 @@ async function saveRec(rec){if(STUD&&STUD.preview){hist.push(rec);return}if(STUD
 function stLoginCard(){return `<div class="card enter stl"><div class="stbrand"><i></i>${SNAME[SUBJ]}</div><h2>학생 로그인</h2><div class="m" style="margin-bottom:12px">선생님께 받은 아이디와 비밀번호를 입력하세요.</div>
  <input id="stid" class="stin" type="text" placeholder="아이디" autocapitalize="off" autocomplete="username"><input id="stpw" class="stin" type="password" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')stLogin()">
  <label class="chk" style="margin:8px 0"><input type="checkbox" ${autoOn()?'checked':''} onchange="autoSet(this.checked)"> 자동 로그인</label>
- <div class="btns"><button class="p" onclick="stLogin()">로그인</button>${pkOK()?'<button class="s" onclick="pkLogin()">패스키로 로그인</button>':''}</div></div>`}
+ <div class="btns"><button class="p" onclick="stLogin()">로그인</button>${pkOK()?'<button class="s" onclick="pkLogin()">패스키로 로그인</button>':''}</div>${acctQuick()}</div>`}
 /* ---- 학생 홈 ---- */
 function ringSvg(p,label,sub,col){const r=42,C=2*Math.PI*r;return `<div class="rsv"><svg viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="#e6ebf1" stroke-width="10"/><circle cx="55" cy="55" r="${r}" fill="none" style="stroke:${col||'var(--b)'}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*p} ${C}" transform="rotate(-90 55 55)"/><text x="55" y="56" text-anchor="middle" dominant-baseline="central" font-size="24" font-weight="700" fill="#1f2933">${label}</text></svg><span>${sub}</span></div>`}
 function dayStart(t){const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
@@ -3083,6 +3112,15 @@ function dl(name,text){const a=document.createElement('a');a.href=URL.createObje
 function backupAll(){try{localStorage.setItem('omr_lastbk',String(Date.now()))}catch(e){}const o={};Object.keys(localStorage).filter(k=>k.startsWith('omr_')&&k!==LSS).forEach(k=>o[k]=localStorage.getItem(k));dl('omr-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(o))}
 function restoreAll(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!confirm('백업 파일의 내용으로 이 기기의 데이터를 덮어씁니다. 계속할까요?'))return;Object.entries(o).forEach(([k,v])=>{if(k.startsWith('omr_'))localStorage.setItem(k,v)});location.reload()}catch(e){alert('백업 파일을 읽을 수 없습니다.')}};r.readAsText(f)}
 function setCalib(v){CALIB_ON=!!v;try{localStorage.setItem('omr_calib_v1',v?'1':'0')}catch(e){}calibAll();openSettings()}
+async function wipeContent(){
+ const t=prompt('학습지·교재·모의고사·채점 기록·과제·즐겨찾기·신고·내 구성 등 만들어 둔 자료를 모두 지웁니다.\n등록된 학생 정보(이름·학년·계정)와 로그인, 설정은 그대로 남아요. 되돌릴 수 없어요.\n먼저 「백업 내려받기」를 권장합니다.\n계속하려면 "삭제"라고 입력하세요.');if(t!=='삭제')return;
+ const cloudToo=cloud()&&sess&&confirm('온라인에 저장된 학습지·채점 기록·과제도 함께 지울까요?\n(학생 목록은 지우지 않아요)\n[확인] = 온라인 자료도 삭제 (권장)\n[취소] = 이 기기의 자료만 삭제 — 온라인 자료는 다음 접속 때 다시 나타나요');
+ const failed=[];
+ if(cloudToo){for(const tb of ['assignments','attempts','worksheets']){try{const r=await sb('/rest/v1/'+tb+'?id=not.is.null',{method:'DELETE'});if(!r.ok)failed.push(tb)}catch(e){failed.push(tb)}}}
+ if(failed.length&&!confirm('온라인에서 지우지 못한 항목이 있어요: '+failed.join(', ')+'\n(이 기기의 자료는 계속 지울까요?)'))return;
+ const keep=/^omr_(stu_v1|stu_del|curstu_v1|sess_v1|stud_v1|cfg_v1|subj_v1|theme|auto|pref_v1|tname|accts|ink|inst_no|bko|tours_|upd_|nseen_|addacct)/;
+ Object.keys(localStorage).filter(k=>k.startsWith('omr_')&&!keep.test(k)).forEach(k=>localStorage.removeItem(k));
+ alert('만들어 둔 자료를 지웠습니다. 학생 정보는 그대로예요. 다시 시작합니다.');location.reload()}
 async function wipeAll(){const t=prompt('학생·채점 기록·학습지·모의고사·즐겨찾기·신고 등 모든 데이터를 지웁니다. 되돌릴 수 없습니다.\n먼저 「설정 > 백업 내려받기」를 권장합니다.\n계속하려면 "초기화"라고 입력하세요.');if(t!=='초기화')return;
  const cloudToo=cloud()&&sess&&confirm('온라인(클라우드)에 저장된 학생, 채점 기록, 학습지, 과제도 함께 지울까요?\n[확인] = 온라인 데이터도 삭제 (권장)\n[취소] = 이 기기의 데이터만 삭제 — 학생 목록은 다음 접속 때 온라인에서 다시 나타나요');
  const failed=[];
@@ -3093,6 +3131,7 @@ async function wipeAll(){const t=prompt('학생·채점 기록·학습지·모�
 const KEYS=[['?','이 도움말 열기'],['/','문항 검색으로 이동'],['Esc','열린 창·시트 닫기'],['Ctrl + Z','편집 중 되돌리기 (학습지 검토·유형 선택)'],['Ctrl + K','빠른 이동 · 학습지/학생 검색'],['1 ~ 5','채점: 해당 번호 선택 · 문제 풀이 시트: 답 선택'],['0','채점: 모름 처리'],['O / X','OX 문항 답 입력'],['← →','문제 풀이 시트에서 이전·다음 문항'],['Enter','빈칸 문항에서 다음으로'],['Ctrl + Enter','빈칸 문항 입력 중 제출']];
 function openSettings(){const rp=jget('omr_rep_v1',[]),mk=jget('omr_mock_v1',[]);
  $('#cfgBox').innerHTML=`<h2 style="margin-top:0">설정</h2>
+ ${(STUD&&!STUD.preview)||sess?`<div class="cfs"><h3>계정</h3><div class="cfacc"><span class="av">${esc((STUD?((STINFO&&STINFO.name)||STUD.login):(sess.user&&sess.user.email)||'?')[0].toUpperCase())}</span><div><b>${esc(STUD?((STINFO&&STINFO.name)||STUD.login):(sess.user&&sess.user.email)||'')}</b><small>${STUD?'학생 계정':'선생님 계정'}</small></div><button class="s sm" onclick="doLogout()">로그아웃</button></div><div id="acctbox" style="margin-top:12px">${acctHtml()}</div></div>`:''}
  <div class="setr"><b>자동 저장</b><span class="m">${SAVEDT?'이 기기에 '+new Date(SAVEDT).toLocaleTimeString('ko-KR')+' 저장됨':'변경 사항은 바로 이 기기에 저장됩니다.'}${cloud()&&sess?' · 온라인 동기화 사용 중':''}</span></div>
  <div class="setr"><b>난이도 자동 보정</b><label class="m"><input type="checkbox" ${CALIB_ON?'checked':''} onchange="setCalib(this.checked)"> 풀이 5회 이상인 문항은 실제 정답률로 난이도(하·중·상·최)를 조정</label></div>
  <div class="setr"><b>즐겨찾기</b><span class="m">${FAV.length}문항 · <a href="#" onclick="closeCfg();SP.src='fav';SP.sub='';tab='search';render();return false">검색에서 보기</a></span></div>
@@ -3101,6 +3140,7 @@ function openSettings(){const rp=jget('omr_rep_v1',[]),mk=jget('omr_mock_v1',[])
  ${STUD?`<h3>튜토리얼</h3><div class="m" style="margin-bottom:6px">직접 눌러 보며 기능을 익혀요. 오른쪽 위 「?」에서도 열 수 있어요.</div><div class="row">${Object.entries(TOURS).map(([k,v])=>`<button class="s" onclick="tourStart('${k}')">${esc(v.name)}${tourDone(k)?' ✓':''}</button>`).join('')}</div>`:''}
  <h3>단축키</h3><div class="keys">${KEYS.map(k=>`<div><kbd>${k[0]}</kbd><span>${k[1]}</span></div>`).join('')}</div>
  <h3>데이터 관리</h3><div class="row"><button class="s" onclick="healthView()">시스템 점검</button><button class="s" onclick="backupAll()">백업 내려받기</button><label class="s" style="cursor:pointer;display:inline-block;padding:8px 14px">백업 불러오기<input type="file" accept="application/json" hidden onchange="restoreAll(this)"></label></div>
+ <div class="dz"><b>학습 자료만 지우기 (학생 유지)</b><div class="m">만들어 둔 학습지·교재·모의고사·채점 기록·과제·즐겨찾기·신고·내 구성을 모두 지웁니다. 등록된 학생 정보와 로그인·설정은 남아요.</div><button class="s dgr" onclick="closeCfg();wipeContent()">학습 자료 지우기…</button></div>
  <div class="dz"><b>전체 초기화</b><div class="m">학생·채점 기록·학습지·모의고사(${mk.length}개)·즐겨찾기·신고·설정을 모두 지웁니다. 로그인과 선택한 과목만 남습니다.</div><button class="s dgr" onclick="wipeAll()">모든 데이터 초기화…</button></div>
  `;$('#cfg').classList.add('open');cfgChrome();if((STUD&&!STUD.preview)||(sess&&!STUD))pkRefresh()}
 document.addEventListener('keydown',e=>{const tg=e.target.tagName,typing=tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT';
