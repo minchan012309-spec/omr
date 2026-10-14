@@ -4,7 +4,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%233b82f6%22/%3E%3Cstop offset=%221%22 stop-color=%22%231d4ed8%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2232%22 height=%2232%22 rx=%229%22 fill=%22url%28%23g%29%22/%3E%3Cpath d=%22M22.5 9.6A9 9 0 1 0 25 16%22 fill=%22none%22 stroke=%22%23fff%22 stroke-width=%222.6%22 stroke-linecap=%22round%22 opacity=%22.55%22/%3E%3Cpath d=%22M11.4 16.4l3.6 3.6 7-8.2%22 fill=%22none%22 stroke=%22%23fff%22 stroke-width=%223%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css">
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Gothic+A1:wght@400;500;700&family=Hahmlet:wght@400;600;700&family=Sunflower:wght@300;500;700&family=Song+Myung&family=Jua&family=Do+Hyeon&display=swap" rel="stylesheet"><link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Gothic+A1:wght@400;500;700&display=swap" rel="stylesheet"><link href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/static/woff2/SUIT.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans@latest/css/SpoqaHanSansNeo.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
 @font-face{font-family:PretendardLocal;font-weight:400;font-display:swap;src:url(fonts/Pretendard-Regular.woff2) format('woff2')}
 @font-face{font-family:PretendardLocal;font-weight:600;font-display:swap;src:url(fonts/Pretendard-SemiBold.woff2) format('woff2')}
@@ -587,6 +587,10 @@ html[data-theme=dark] .th-hero{background:var(--bl)}
 /* 튜토리얼 */
 #helpBtn{width:38px;height:38px;border-radius:50%;font-size:18px;font-weight:800;cursor:pointer;padding:0;flex:none;line-height:1;background:#ffffff1f;border:1px solid #ffffff55;color:#fff}#helpBtn:hover{background:#ffffff33}#helpBtn[hidden]{display:none}
 .tpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px 16px}.tpg .tp{display:flex;align-items:center;gap:8px;margin:0}.tl{display:block;font-size:12px;color:var(--m);margin-bottom:3px}
+html.big{zoom:1.12}
+html[data-theme=dark] .da{background:#16211b!important;color:#86d9b0!important}
+html[data-theme=dark] .dx{background:var(--sf1);border-color:var(--l2)}html[data-theme=dark] .mk2{background:#16211b;border-color:#2b4638}html[data-theme=dark] .mk2.w{background:#2a1a1a;border-color:#5a2f2f}html[data-theme=dark] .mk2.cs{border-color:var(--b)}
+.tsg{margin:12px 0 4px}.tsg>b{display:block;font-size:13px;margin-bottom:6px}.g2 input:not([type=checkbox]){width:100%}
 html[data-theme=dark] button.p,html[data-theme=dark] button.p *,html[data-theme=dark] button.ck.on,html[data-theme=dark] button.ck.on *,html[data-theme=dark] span.tag.on{color:#0f0f10}
 #tour{position:fixed;inset:0;z-index:80;pointer-events:none}
 #tour .tspot{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(15,23,42,.55);outline:3px solid #fff;outline-offset:0;transition:left .2s,top .2s,width .2s,height .2s;pointer-events:none}
@@ -764,18 +768,24 @@ function saveCfg(){CF.url=$('#cu').value.trim();CF.key=$('#ck').value.trim();CF.
 async function doAuth(k){try{$('#cmsg').textContent='처리 중…';await auth(k,$('#ce').value.trim(),$('#cp').value);$('#cfg').classList.remove('open');await load()}catch(e){$('#cmsg').textContent=e.message}}
 function logout(){sess=null;localStorage.removeItem(LSS);try{sessionStorage.removeItem(LSS)}catch(e){}srv=false;$('#cfg').classList.remove('open');tab='enter';load()}
 /* ---------- 학생 ---------- */
+const stuTomb=()=>new Set(jget('omr_stu_del',[]));
+function stuTombAdd(ids){const s=stuTomb();ids.forEach(i=>s.add(i));jset('omr_stu_del',[...s].slice(-300))}
+async function stuSrvDel(id){try{const r=await sb('/rest/v1/students?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=representation'}});if(!r.ok)return false;const j=await r.json().catch(()=>[]);return true}catch(e){return false}}
 async function stuSync(){const r=await sb('/rest/v1/students?select=id,name,grade,memo,t,login&order=t.asc&limit=2000');if(!r.ok){CF.stuErr=1;return}CF.stuErr=0;
- const rem=await r.json();const have=new Set(rem.map(x=>x.id));
+ let rem=await r.json();const tomb=stuTomb();
+ for(const x of rem.filter(x=>tomb.has(x.id))){await stuSrvDel(x.id)}
+ jset('omr_stu_del',[...tomb].filter(i=>rem.some(x=>x.id===i)));
+ rem=rem.filter(x=>!tomb.has(x.id));STU=STU.filter(x=>!tomb.has(x.id));const have=new Set(rem.map(x=>x.id));
  for(const x of STU.filter(x=>!have.has(x.id)))await sb('/rest/v1/students',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(x)});
  STU=[...rem,...STU.filter(x=>!have.has(x.id))].sort((a,b)=>a.t-b.t);jset(LST,STU)}
 async function stuAdd(){const n=$('#sn').value.trim();if(!n)return;const s={id:uuid(),name:n,grade:$('#sg').value.trim(),memo:$('#sm').value.trim(),t:Date.now()};
  STU.push(s);jset(LST,STU);if(srv==='cloud')await sb('/rest/v1/students',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(s)});CUR_S=s.id;localStorage.setItem(LCS,CUR_S);syncLabel();render()}
 async function stuEdit(id){const s=STU.find(x=>x.id===id);const n=prompt('이름',s.name);if(n===null)return;const g=prompt('학년·반',s.grade||'');if(g===null)return;s.name=n.trim()||s.name;s.grade=g.trim();jset(LST,STU);
  if(srv==='cloud')await sb('/rest/v1/students?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({name:s.name,grade:s.grade})});syncLabel();render()}
-async function stuDel(id){if(!confirm('이 학생을 삭제할까요? 채점 기록은 남지만 학생과의 연결이 끊어집니다.'))return;STU=STU.filter(x=>x.id!==id);jset(LST,STU);if(CUR_S===id)CUR_S='';
- if(srv==='cloud')await sb('/rest/v1/students?id=eq.'+id,{method:'DELETE'});syncLabel();render()}
+async function stuDel(id){if(!confirm('이 학생을 삭제할까요? 채점 기록은 남지만 학생과의 연결이 끊어집니다.'))return;STU=STU.filter(x=>x.id!==id);jset(LST,STU);if(CUR_S===id)CUR_S='';stuTombAdd([id]);
+ if(srv==='cloud'){if(!(await stuSrvDel(id)))toast('온라인에서 아직 지우지 못했어요. 연결되면 다시 시도해요')}syncLabel();render()}
 async function stuDelSel(){const ids=[...STSEL];if(!ids.length)return;if(!confirm('선택한 학생 '+ids.length+'명을 삭제할까요?\n채점 기록은 남지만 학생과의 연결이 끊어져요.'))return;
- let fail=0;if(srv==='cloud'){for(const id of ids){try{const r=await sb('/rest/v1/students?id=eq.'+id,{method:'DELETE'});if(!r.ok)fail++}catch(e){fail++}}}
+ let fail=0;stuTombAdd(ids);if(srv==='cloud'){for(const id of ids){if(!(await stuSrvDel(id)))fail++}}
  STU=STU.filter(x=>!ids.includes(x.id));jset(LST,STU);if(ids.includes(CUR_S))CUR_S='';STSEL.clear();syncLabel();render();toast(fail?'일부 학생은 온라인에서 지우지 못했어요 ('+fail+'명)':ids.length+'명을 삭제했어요')}
 let SQ='',SGR='';
 const stuFlt=s=>(!SQ||(s.name+' '+(s.grade||'')+' '+(s.memo||'')+' '+(s.login||'')).toLowerCase().includes(SQ.toLowerCase()))&&(!SGR||(s.grade||'')===SGR);
@@ -838,8 +848,8 @@ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.tar
 let _icoT=0;new MutationObserver(ms=>{if(_icoT)return;_icoT=setTimeout(()=>{_icoT=0;iconize(document.body);try{a11y(document.body)}catch(e){}try{chipify(document.getElementById('main')||document.body)}catch(e){}},60)}).observe(document.body,{childList:true,subtree:true,characterData:true});
 function decorate(){document.body.classList.toggle('hasfab',!!document.querySelector('.fab'));document.querySelectorAll('button').forEach(b=>{if(!b.title){const t=b.textContent.trim();if(t)b.title=t}})}
 function goFull(){bkLoad().then(()=>{tab='books';bkGoFull();render();scrollTo(0,0)}).catch(()=>alert('교재를 불러오지 못했습니다.'))}
-function nav(){const hb=document.getElementById('helpBtn');if(hb)hb.hidden=!STUD;
-const PK={smap:'make',stat:'stat',concept:'concept',books:'books',wrong:'wrong',diag:'diag'};
+function nav(){const hb=document.getElementById('helpBtn');if(hb)hb.hidden=!STUD||!permOn('tour');
+const PK={smap:'make',stat:'stat',concept:'concept',books:'books',wrong:'wrong',diag:'diag',tasks:'tasks',enter:'enter',shist:'shist'};
 const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['stat','유형 분석'],['concept','개념학습'],['books','교재'],['smap','학습지 만들기'],['shist','기록']].filter(([k])=>!PK[k]||permOn(PK[k])):teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'],['stat','누적 분석'],['search','문항 검색'],['tset','설정']]:[['enter','번호 채점']];
  if(!T.find(x=>x[0]===tab)&&!(tab==='grade'&&cur)&&!(tab==='prac'&&PR)&&!((tab==='build'||tab==='bdesign'||tab==='bmake'||tab==='wsedit'||tab==='review')&&teacher())&&!(tab==='prac'&&STUD)&&!(tab==='mock'&&teacher()))tab=T[0][0];$('#nav').innerHTML=T.map(([k,v])=>`<button class="${tab===k||(k==='ws'&&['build','bdesign','review'].includes(tab))||(k==='books'&&tab==='mock')||(k==='enter'&&tab==='grade'&&STUD)?'on':''}" onclick="navGo('${k}')">${v}</button>`).join('')}
 let _navKey=null;
@@ -850,7 +860,7 @@ function pushNav(){const k=navKey();if(_navKey===null){history.replaceState({k},
 window.addEventListener('popstate',e=>{const k=(e.state&&e.state.k)||'';const p=k.split('|');if(!p[0])return;tab=p[0];if(p[1]!=='1')cur=null;if(p[2]!=='1')PR=null;if(p[3]!=='1')$('#wsView').classList.remove('open');_navKey=k;render(true)});
 function resetW(){FL='';FLS=0;W=JSON.parse(JSON.stringify(WDEF));W.sel=new Map();BQ='';BU=[];BD.codes=null;saveW()}
 const FRESHFROM=['build','bdesign','bmake','review','weak','prac','wsedit'];
-function render(skip){tipHide();if((tab==='build'||tab==='weak')&&window._lt!==tab&&!FRESHFROM.includes(window._lt||'')){try{resetW()}catch(e){}}{const m=document.getElementById('main');if(m){if(window._lt!==tab){m.classList.remove('pgin');void m.offsetWidth;m.classList.add('pgin');clearTimeout(window._pgt);window._pgt=setTimeout(()=>m.classList.remove('pgin'),600)}window._lt=tab}}if(teacher()&&tab==='enter'&&!STUD)tab='thome';{const m=$('#qsheet');if(m&&(!cur||cur.done||cur.mark))m.classList.remove('open')}nav();({grade:gradeView,bdesign:bdesignView,mock:mockView,wrong:wrongView,diag:diagView,thome:teacherHome,enter:enterView,weak:weakView,concept:conceptView,books:booksView,ws:wsListView,stu:stuView,stat:statView,search:searchView,tset:tsetView,prac:pracView,build:buildView,bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();try{if(NT.who!==nWho()){NT.who=nWho();nStart();if(STUD)setTimeout(updAuto,2500)}nBadge()}catch(e){}decorate()}
+function render(skip){tipHide();if((tab==='build'||tab==='weak')&&window._lt!==tab&&!FRESHFROM.includes(window._lt||'')){try{resetW()}catch(e){}}{const m=document.getElementById('main');if(m){if(window._lt!==tab){m.classList.remove('pgin');void m.offsetWidth;m.classList.add('pgin');clearTimeout(window._pgt);window._pgt=setTimeout(()=>m.classList.remove('pgin'),600)}window._lt=tab}}if(teacher()&&tab==='enter'&&!STUD)tab=(window._st0?'thome':(window._st0=1,PREF.start||'thome'));{const m=$('#qsheet');if(m&&(!cur||cur.done||cur.mark))m.classList.remove('open')}nav();({grade:gradeView,bdesign:bdesignView,mock:mockView,wrong:wrongView,diag:diagView,thome:teacherHome,enter:enterView,weak:weakView,concept:conceptView,books:booksView,ws:wsListView,stu:stuView,stat:statView,search:searchView,tset:tsetView,prac:pracView,build:buildView,bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();try{if(NT.who!==nWho()){NT.who=nWho();nStart();if(STUD)setTimeout(updAuto,2500)}nBadge()}catch(e){}decorate()}
 const lastRes=()=>{const m={};H().forEach(h=>h.items.forEach(x=>{(m[x.c]=m[x.c]||[]).push(x.r)}));return m};
 function statsFrom(hs,keyf,filter){const m={};
  hs.forEach(h=>h.items.forEach(x=>{const q=qMeta(x.c);if(!q||!q.type||(filter&&!filter(q)))return;const k=keyf(q);const o=m[k]=m[k]||{k,n:0,r:0,rec:[],q};o.n++;o.r+=x.r;o.rec.push(x.r)}));
@@ -1014,14 +1024,17 @@ function tourMenu(e){e.stopPropagation();const old=document.getElementById('tour
  document.body.appendChild(m);m.style.top=(r.bottom+6)+'px';m.style.right=Math.max(8,innerWidth-r.right)+'px'}
 function tourMenuGo(k){const m=document.getElementById('tourmenu');if(m)m.remove();tourStart(k)}
 document.addEventListener('click',e=>{if(!e.target.closest('#tourmenu,#helpBtn')){const m=document.getElementById('tourmenu');if(m)m.remove()}});
-function tourAuto(){if(!STUD||TOUR||tourDone('offered')||tourDone('intro'))return;try{if(!localStorage.getItem(updSeenKey()))localStorage.setItem(updSeenKey(),JSON.stringify(UPDATES.map(u=>u.id)))}catch(e){}tourMark('offered');setTimeout(()=>{if(tab==='home'&&!TOUR)tourStart('intro')},900)}
+function tourAuto(){if(!STUD||!permOn('tour')||TOUR||tourDone('offered')||tourDone('intro'))return;try{if(!localStorage.getItem(updSeenKey()))localStorage.setItem(updSeenKey(),JSON.stringify(UPDATES.map(u=>u.id)))}catch(e){}tourMark('offered');setTimeout(()=>{if(tab==='home'&&!TOUR)tourStart('intro')},900)}
 /* ---------- 설정 탭: 학생 권한 · 교사 편의 기능 ---------- */
-const PERMS=[['make','학습지 만들기 · 화면에서 풀기'],['print','인쇄용 학습지 만들기'],['ink','문제 위 필기'],['pageSolve','교재 N쪽만 화면에서 풀기'],['books','교재 보기'],['stat','유형 분석 보기'],['concept','개념학습'],['wrong','오답노트'],['diag','오답 진단']];
-let PERM={};const permOn=k=>{const P=(STUD&&STUD.preview&&TSET.perms)||PERM;return P[k]!==false&&P[k]!==0};
-let PREF=Object.assign({guide:1,nextPage:1,bkGap:0,bkColor:'',bkFont:'paper',total:15,lvr:'std'},jget('omr_pref_v1',{}));
+const PERMS=[
+ ['학습 도구',[['make','학습지 만들기 · 화면에서 풀기'],['print','인쇄용 학습지 만들기'],['ink','문제 위 필기'],['pageSolve','교재 N쪽만 화면에서 풀기'],['showExp','풀이 후 해설 보기']]],
+ ['메뉴 접근',[['tasks','과제'],['enter','번호 채점'],['shist','기록'],['books','교재'],['stat','유형 분석'],['concept','개념학습'],['wrong','오답노트'],['diag','오답 진단']]],
+ ['도움말',[['tour','도움말(?) · 처음 시작 튜토리얼'],['forceUpd','업데이트 후 새 기능 튜토리얼 자동 표시']]]];
+let PERM={};const permNum=(k,d)=>{const P=(STUD&&STUD.preview&&TSET.perms)||PERM;const v=+P[k];return v>0?v:d};const permOn=k=>{const P=(STUD&&STUD.preview&&TSET.perms)||PERM;return P[k]!==false&&P[k]!==0};
+let PREF=Object.assign({guide:1,nextPage:1,bkGap:0,bkColor:'',bkFont:'paper',total:15,lvr:'std',academy:'',wsQr:1,wsAns:1,wsCols:2,wsFont:'paper',bkDays:14,big:0,start:'thome'},jget('omr_pref_v1',{}));
 const LVPS={basic:[5,4,1,0],std:[2,5,3,0],hard:[1,3,5,1]};
 function prefSave(){jset('omr_pref_v1',PREF);prefApply()}
-function prefApply(){try{if(PREF.total){WDEF.total=PREF.total}if(LVPS[PREF.lvr])WDEF.lvr={'하':LVPS[PREF.lvr][0],'중':LVPS[PREF.lvr][1],'상':LVPS[PREF.lvr][2],'최':LVPS[PREF.lvr][3]};
+function prefApply(){try{document.documentElement.classList.toggle('big',!!PREF.big);WDEF.academy=PREF.academy||'';WDEF.qr=PREF.wsQr===0?0:1;WDEF.ans=PREF.wsAns===0?0:1;WDEF.cols=PREF.wsCols||2;WDEF.font=PREF.wsFont||'paper';if(PREF.total){WDEF.total=PREF.total}if(LVPS[PREF.lvr])WDEF.lvr={'하':LVPS[PREF.lvr][0],'중':LVPS[PREF.lvr][1],'상':LVPS[PREF.lvr][2],'최':LVPS[PREF.lvr][3]};
  localStorage.setItem('omr_bko',JSON.stringify({gap:PREF.bkGap||0,color:PREF.bkColor||'',font:PREF.bkFont||'paper',design:(jget('omr_bko',{})||{}).design||''}))}catch(e){}}
 let TSET={perms:null,busy:0};
 async function permFetch(){try{const r=await rpc('st_perms',{p_login:STUD.login,p_pw:STUD.pw});if(r.ok){const j=await r.json();if(j&&typeof j==='object'){const o=JSON.stringify(PERM);PERM=j;if(o!==JSON.stringify(PERM)&&STUD)render()}}}catch(e){}}
@@ -1029,19 +1042,41 @@ async function tsetLoad(){if(!cloud()||!sess){TSET.perms={};return}
  try{const r=await sb('/rest/v1/teacher_settings?select=data');const a=r.ok?await r.json():[];TSET.perms=(a[0]&&a[0].data&&a[0].data.perms)||{};TSET.err=r.ok?'':(r.status===404?'teacher_settings 테이블이 없어요. setup.sql을 다시 실행하세요.':'불러오지 못했어요 ('+r.status+')')}catch(e){TSET.perms={};TSET.err='불러오지 못했어요'}}
 async function tsetView(){
  if(!TSET.perms){$('#main').innerHTML='<div class="card">'+ldg('설정을 불러오는 중…')+'</div>';await tsetLoad();if(tab!=='tset')return}
- const P=TSET.perms;const chk=(k,l)=>`<label class="chk tp"><input type="checkbox" ${P[k]===false?'':'checked'} onchange="tsetPerm('${k}',this.checked)"> ${l}</label>`;
- const pf=(k,l,d)=>`<label class="chk tp"><input type="checkbox" ${PREF[k]===0?'':'checked'} onchange="PREF.${k}=this.checked?1:0;prefSave()"> ${l}${d?`<small>${d}</small>`:''}</label>`;
- $('#main').innerHTML=`<div class="card"><h2>학생 권한</h2><div class="m" style="margin-bottom:8px">학생 화면에서 쓸 수 있는 기능을 정해요. 끈 기능은 학생 화면에서 사라지고, 학생이 앱을 열어 둔 동안은 1분 안에 반영돼요.${cloud()&&sess?'':'<br><b>온라인 저장에 로그인해야 학생에게 적용돼요.</b>'}</div>${TSET.err?`<div class="hint">${esc(TSET.err)}</div>`:''}
- <div class="tpg">${PERMS.map(([k,l])=>chk(k,l)).join('')}</div></div>
- <div class="card"><h2>교사 편의 기능</h2><div class="m" style="margin-bottom:8px">이 기기에 저장돼요.</div>
- <div class="tpg">${pf('guide','홈에 시작 가이드 보이기')}${pf('nextPage','교재 채점이 끝나면 다음 쪽 이어서 채점하자고 묻기')}</div>
- <div class="g2" style="margin-top:12px"><div><label class="tl">새 학습지 기본 문항 수</label><input type="number" min="5" max="100" value="${PREF.total}" onchange="PREF.total=Math.max(5,Math.min(100,+this.value||15));prefSave();toast('저장했어요')"></div>
- <div><label class="tl">새 학습지 기본 난이도 구성</label><select onchange="PREF.lvr=this.value;prefSave();toast('저장했어요')">${[['basic','기초 (하 중심)'],['std','표준'],['hard','도전 (상 중심)']].map(([v,l])=>`<option value="${v}" ${PREF.lvr===v?'selected':''}>${l}</option>`).join('')}</select></div>
- <div><label class="tl">교재 인쇄 기본 문제 간격</label><select onchange="PREF.bkGap=+this.value;prefSave();toast('저장했어요')">${[[0,'기본'],[1,'조금 넓게'],[2,'넓게'],[3,'아주 넓게']].map(([v,l])=>`<option value="${v}" ${(PREF.bkGap||0)===v?'selected':''}>${l}</option>`).join('')}</select></div>
- <div><label class="tl">교재 인쇄 기본 글꼴</label><select onchange="PREF.bkFont=this.value;prefSave();toast('저장했어요')">${Object.entries(FONTS).map(([k,v])=>`<option value="${k}" ${(PREF.bkFont||'paper')===k?'selected':''}>${esc(v[0])}</option>`).join('')}</select></div></div>
- <div class="m" style="margin-top:10px">시스템 화면 설정(테마·로그인 등)은 오른쪽 위 ⚙에서 바꿔요.</div></div>`}
-async function tsetPerm(k,on){TSET.perms[k]=on;try{const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:{perms:TSET.perms},updated_at:new Date().toISOString()})});
-  if(!r.ok)throw new Error(r.status===404?'teacher_settings 테이블이 없어요. setup.sql을 다시 실행하세요.':'저장하지 못했어요 ('+r.status+')');toast('저장했어요')}catch(e){TSET.perms[k]=!on;toast(e.message);tsetView()}}
+ const P=TSET.perms;const on=k=>P[k]!==false&&P[k]!==0;
+ const chk=(k,l)=>`<label class="chk tp"><input type="checkbox" ${on(k)?'checked':''} onchange="tsetPerm('${k}',this.checked)"> ${l}</label>`;
+ const pf=(k,l,d)=>`<label class="chk tp"><input type="checkbox" ${PREF[k]===0?'':'checked'} onchange="PREF.${k}=this.checked?1:0;prefSave();tsetSaved()"> <span>${l}${d?`<small class="m" style="display:block">${d}</small>`:''}</span></label>`;
+ const sel=(k,l,opts)=>`<div><label class="tl">${l}</label><select onchange="PREF.${k}=${typeof opts[0][0]==='number'?'+this.value':'this.value'};prefSave();tsetSaved()">${opts.map(([v,n])=>`<option value="${v}" ${(PREF[k]??opts[0][0])===v?'selected':''}>${n}</option>`).join('')}</select></div>`;
+ const mq=permNumT('maxQ',60);
+ $('#main').innerHTML=`<div class="card"><div class="row"><h2 style="margin:0">학생 권한</h2><span class="m" style="margin-left:auto">${Object.keys(P).filter(k=>P[k]===false).length}개 제한 중</span></div>
+ <div class="m" style="margin:6px 0 10px">끈 기능은 학생 화면에서 사라지고, 학생이 앱을 열어 둔 동안은 1분 안에 반영돼요. 모든 학생에게 똑같이 적용돼요.${cloud()&&sess?'':'<br><b>온라인 저장에 로그인해야 학생에게 적용돼요.</b>'}</div>${TSET.err?`<div class="hint">${esc(TSET.err)}</div>`:''}
+ ${PERMS.map(([g,a])=>`<div class="tsg"><b>${g}</b><div class="tpg">${a.map(([k,l])=>chk(k,l)).join('')}</div></div>`).join('')}
+ <div class="tsg"><b>학습 한도</b><div class="g2"><div><label class="tl">학생이 한 번에 만들 수 있는 최대 문항 수</label><input type="number" min="5" max="60" value="${mq}" onchange="tsetNum('maxQ',this.value,5,60)"></div></div></div>
+ <div class="row" style="margin-top:10px"><button class="s sm" onclick="tsetAll(true)">모두 허용</button><button class="s sm" onclick="tsetPreset('exam')">시험 기간 (풀이·교재만)</button><button class="s sm" onclick="tsetPreset('print')">인쇄 학습 중심 (필기·해설 끔)</button><button class="s sm" onclick="STUD={preview:1,login:'',pw:''};tab='home';render()" ${STU.length?'':'hidden'}>학생 화면 미리보기</button></div></div>
+ <div class="card"><h2>학습지 기본값</h2><div class="m" style="margin-bottom:10px">새 학습지를 만들 때 처음 채워지는 값이에요. 이 기기에 저장돼요.</div>
+ <div class="g2"><div><label class="tl">학원·학교 이름 (학습지 머리글)</label><input value="${esc(PREF.academy||'')}" maxlength="30" onchange="PREF.academy=this.value.trim();prefSave();tsetSaved()"></div>
+ <div><label class="tl">선생님 이름</label><input value="${esc(teacherName())}" maxlength="20" onchange="try{localStorage.setItem(TN,this.value.trim())}catch(e){}tsetSaved()"></div>
+ <div><label class="tl">문항 수</label><input type="number" min="5" max="100" value="${PREF.total}" onchange="PREF.total=Math.max(5,Math.min(100,+this.value||15));prefSave();tsetSaved()"></div>
+ ${sel('lvr','난이도 구성',[['basic','기초 (하 중심)'],['std','표준'],['hard','도전 (상 중심)']])}
+ ${sel('wsCols','단 수',[[2,'2단'],[1,'1단']])}
+ ${sel('wsFont','글꼴',Object.entries(FONTS).map(([k,v])=>[k,v[0]]))}</div>
+ <div class="tpg" style="margin-top:10px">${pf('wsAns','정답·해설 페이지 포함')}${pf('wsQr','쪽마다 QR 넣기','QR을 찍어 바로 채점해요')}</div></div>
+ <div class="card"><h2>교재 인쇄 기본값</h2><div class="g2" style="margin-top:8px">${sel('bkGap','문제 간격',[[0,'기본'],[1,'조금 넓게'],[2,'넓게'],[3,'아주 넓게']])}${sel('bkFont','글꼴',Object.entries(FONTS).map(([k,v])=>[k,v[0]]))}</div>
+ <div class="m" style="margin-top:8px">교재를 새로 만들 때의 난이도·문항 수는 「교재 ▸ 교재 만들기」에서 정해요.</div></div>
+ <div class="card"><h2>화면 · 편의</h2><div class="tpg">${pf('guide','홈에 시작 가이드 보이기')}${pf('nextPage','교재 채점이 끝나면 다음 쪽 이어서 채점할지 묻기')}${pf('big','큰 글씨·큰 버튼 모드','태블릿에서 누르기 편하게 화면을 12% 키워요')}</div>
+ <div class="g2" style="margin-top:10px">${sel('start','앱을 열면 먼저 보이는 화면',[['thome','홈'],['grade','채점'],['weak','취약 유형']])}${sel('bkDays','백업 알림 주기',[[14,'14일마다'],[7,'7일마다'],[30,'30일마다'],[0,'알리지 않음']])}</div></div>
+ <div class="card"><h2>알림 · 도움말</h2><div class="row" style="margin-top:6px"><button class="s" onclick="notifOpen()">공지 보내기·보낸 공지 보기</button></div>
+ <div class="m" style="margin:12px 0 6px">튜토리얼 다시 보기</div><div class="row" style="flex-wrap:wrap">${Object.entries(TOURS).map(([k,v])=>`<button class="s sm" onclick="tourStart('${k}')">${esc(v.name)}</button>`).join('')}</div></div>
+ <div class="card"><h2>데이터</h2><div class="m" style="margin-bottom:8px">학생·채점 기록·학습지는 이 기기와 온라인 저장소에 있어요.</div>
+ <div class="row" style="flex-wrap:wrap"><button class="s" onclick="backupAll()">백업 내려받기</button><label class="s" style="cursor:pointer;display:inline-flex;align-items:center;padding:0 14px">백업 불러오기<input type="file" accept=".json" hidden onchange="restoreAll(this)"></label><button class="s" onclick="healthView()">시스템 점검</button></div>
+ <div class="m" style="margin-top:10px">테마(시스템·라이트·다크)와 로그인·패스키는 오른쪽 위 ⚙에서 바꿔요.</div></div>`}
+const permNumT=(k,d)=>{const v=+(TSET.perms||{})[k];return v>0?v:d};
+function tsetSaved(){toast('저장했어요')}
+async function tsetSave(){const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:{perms:TSET.perms},updated_at:new Date().toISOString()})});
+ if(!r.ok)throw new Error(r.status===404?'teacher_settings 테이블이 없어요. setup.sql을 다시 실행하세요.':'저장하지 못했어요 ('+r.status+')')}
+async function tsetNum(k,v,lo,hi){const old=TSET.perms[k];TSET.perms[k]=Math.max(lo,Math.min(hi,Math.round(+v)||hi));try{await tsetSave();tsetSaved()}catch(e){TSET.perms[k]=old;toast(e.message)}tsetView()}
+async function tsetAll(on){const old={...TSET.perms};const n={};if(TSET.perms.maxQ)n.maxQ=TSET.perms.maxQ;TSET.perms=n;try{await tsetSave();tsetSaved()}catch(e){TSET.perms=old;toast(e.message)}tsetView()}
+async function tsetPreset(k){const old={...TSET.perms};const off={exam:['make','print','tasks','shist','wrong','diag','concept','stat'],print:['ink','showExp','pageSolve']}[k];const n={};if(old.maxQ)n.maxQ=old.maxQ;off.forEach(x=>n[x]=false);TSET.perms=n;try{await tsetSave();tsetSaved()}catch(e){TSET.perms=old;toast(e.message)}tsetView()}
+async function tsetPerm(k,on){TSET.perms[k]=on;try{await tsetSave();tsetSaved()}catch(e){TSET.perms[k]=!on;toast(e.message);tsetView()}}
 /* ---------- 알림 · 업데이트 소식 ----------
    새 기능을 배포할 때 UPDATES 맨 앞에 항목을 추가하세요.
    tour: 학생이 업데이트 후 처음 접속하면 자동으로 띄울 튜토리얼 이름(TOURS의 키), aud: all | student | teacher */
@@ -1059,7 +1094,7 @@ const nSeenSet=s=>{try{localStorage.setItem('omr_nseen_'+nWho(),JSON.stringify([
 let NT={list:[],sent:[],announced:new Set(),open:false,t:0};
 function updSeenKey(){return 'omr_upd_'+(STUD?STUD.login:'x')}
 function updSeen(id){try{const k=updSeenKey();const a=JSON.parse(localStorage.getItem(k)||'[]');if(!a.includes(id))a.push(id);localStorage.setItem(k,JSON.stringify(a))}catch(e){}}
-function updAuto(){if(!STUD||STUD.preview||TOUR||PR||(cur&&!cur.done))return;
+function updAuto(){if(!STUD||STUD.preview||TOUR||PR||(cur&&!cur.done)||!permOn('forceUpd'))return;
  const k=updSeenKey();let seen=null;try{seen=JSON.parse(localStorage.getItem(k)||'null')}catch(e){}
  if(!seen){ // 이 아이디로 처음 접속: 처음 시작하기가 안내하므로 지금까지의 업데이트는 본 것으로 처리 (이미 쓰던 학생이면 모두 새 소식)
   if(!tourDone('offered')&&!tourDone('intro')){try{localStorage.setItem(k,JSON.stringify(UPDATES.map(u=>u.id)))}catch(e){}return}
@@ -1140,8 +1175,8 @@ function pracView(){if(!PR){tab='weak';render();return}
  else opts=`<div class="chs2">${(q.set==='ox'?['O','X']:['1','2','3','4','5']).map(o=>`<button class="${PR.shown?(q.ans===o?'ok':(a.a===o?'bad':'')):''}" ${PR.shown?'disabled':''} onclick="pracAns('${o}')">${o}</button>`).join('')}</div>`;
  $('#main').innerHTML=`<div class="card"><div class="row"><b>${esc(PR.title)}</b><span class="m">${PR.i+1} / ${PR.qs.length}</span><span class="tag">${esc(q.type||'')}</span><button class="s sm" onclick="if(confirm('그만할까요?')){PR=null;tab='weak';render()}">그만두기</button></div>
  ${inkBar()}<div class="inkw" id="prqw"><div class="pr_q" id="prq"></div></div>${opts}
- ${PR.shown?`<p><b>${a.r?'정답입니다':'오답입니다'}</b> · 정답 <b style="color:var(--b)">${fmt(q.ans)}</b></p><div class="pr_q" id="pre"></div><button class="p" onclick="pracNext()">${PR.i+1<PR.qs.length?'다음 문제':'결과 보기'}</button>`:''}</div>`;
- mount($('#prq'),wsq(q,PR.i));PR.ink=PR.ink||{};inkAttach($('#prqw'),PR.ink,PR.i);if(PR.shown)mount($('#pre'),q.exp||'');const pb=$('#pb');pb&&!PR.shown&&pb.focus()}
+ ${PR.shown?`<p><b>${a.r?'정답입니다':'오답입니다'}</b> · 정답 <b style="color:var(--b)">${fmt(q.ans)}</b></p>${permOn('showExp')||!STUD?'<div class="pr_q" id="pre"></div>':''}<button class="p" onclick="pracNext()">${PR.i+1<PR.qs.length?'다음 문제':'결과 보기'}</button>`:''}</div>`;
+ mount($('#prq'),wsq(q,PR.i));PR.ink=PR.ink||{};inkAttach($('#prqw'),PR.ink,PR.i);if(PR.shown&&$('#pre'))mount($('#pre'),q.exp||'');const pb=$('#pb');pb&&!PR.shown&&pb.focus()}
 function pracAns(v){if(PR.shown)return;const q=PR.qs[PR.i];PR.ans[PR.i]={a:v,r:ok(q,v)?1:0,s:Math.min(600,Math.round((Date.now()-(PR.t0||Date.now()))/1000))};PR.shown=true;render()}
 async function pracNext(){PR.i++;PR.shown=false;if(PR.i>=PR.qs.length){const rec={t:Date.now(),set:'practice',sub:'',items:PR.qs.map((q,i)=>({c:q.code,a:PR.ans[i].a,r:PR.ans[i].r,s:PR.ans[i].s>0?PR.ans[i].s:undefined})),sid:CUR_S};await saveRec(rec)}render()}
 
@@ -1401,9 +1436,9 @@ function setLvr(l,v){W.lvr[l]=Math.max(0,Math.min(20,parseInt(v)||0));saveW();bu
 function lvPreset(a){W.lvr={'하':a[0],'중':a[1],'상':a[2],'최':a[3]};saveW();buildView()}
 function priMove(i,d){const j=i+d;if(j<0||j>=4)return;[W.pri[i],W.pri[j]]=[W.pri[j],W.pri[i]];saveW();buildView()}
 function priCap(k,v){const n=parseInt(v);if(n>0)W.cap[k]=n;else delete W.cap[k];saveW()}
-const STYLES={basic:'기본',clean:'미니멀',naesin:'내신 시험지',nae2:'내신 컬러표',nae3:'내신 이중 테두리',mock:'모의고사형',mock2:'모의 컬러',mock3:'모의 좌측 제목',kice:'정통 시험지',kice2:'박스 시험지',kice3:'라벨 시험지',bold:'굵은 상단선',test:'단원평가',quiz:'쪽지시험',band:'밴드형',center:'가운데 정렬',soft:'소프트 박스',double:'신문 이중선'};
+const STYLES={basic:'기본',clean:'미니멀',naesin:'내신 시험지',nae2:'내신 컬러표',nae3:'내신 이중 테두리',mock:'모의고사형',mock2:'모의 컬러',mock3:'모의 좌측 제목',kice:'정통 시험지',kice2:'박스 시험지',kice3:'라벨 시험지',bold:'굵은 상단선',test:'단원평가',quiz:'쪽지시험',band:'밴드형',modern:'모던 카드',lined:'라인 포인트',prem:'프리미엄 박스',note:'미니멀 노트',center:'가운데 정렬',soft:'소프트 박스',double:'신문 이중선'};
 function wsFont(rec,st){return FONTS[rec.font]||FONTS.paper}
-const FONTS={paper:['프리텐다드 (기본)',"Pretendard,PretendardLocal,'Apple SD Gothic Neo','Malgun Gothic',sans-serif"],noto:['노토 산스','\'Noto Sans KR\',\'Apple SD Gothic Neo\',sans-serif'],malgun:['맑은 고딕',"'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif"],nanum:['나눔고딕',"'Nanum Gothic','Apple SD Gothic Neo',sans-serif"],plex:['IBM 플렉스',"'IBM Plex Sans KR','Apple SD Gothic Neo',sans-serif"],dodum:['고운돋움',"'Gowun Dodum','Apple SD Gothic Neo',sans-serif"],batang:['고운바탕 (바탕체)',"'Gowun Batang','Nanum Myeongjo','AppleMyungjo','Batang','바탕',serif"],myeong:['나눔명조',"'Nanum Myeongjo','Gowun Batang','AppleMyungjo','Batang',serif"],notoserif:['노토 세리프',"'Noto Serif KR','Nanum Myeongjo','AppleMyungjo',serif"],pretendard:['프리텐다드',"Pretendard,'Apple SD Gothic Neo',sans-serif"],gothica1:['고딕 A1',"'Gothic A1','Apple SD Gothic Neo',sans-serif"],hahmlet:['함렛 (세리프)',"Hahmlet,'Noto Serif KR',serif"],sunflower:['해바라기',"Sunflower,'Apple SD Gothic Neo',sans-serif"],songmyung:['송명',"'Song Myung','Nanum Myeongjo',serif"],jua:['주아 (둥근 글씨)',"Jua,'Apple SD Gothic Neo',sans-serif"],dohyeon:['도현',"'Do Hyeon','Apple SD Gothic Neo',sans-serif"]};
+const FONTS={paper:['프리텐다드 (기본)',"Pretendard,PretendardLocal,'Apple SD Gothic Neo','Malgun Gothic',sans-serif"],suit:['SUIT (깔끔한 고딕)',"SUIT,Pretendard,'Apple SD Gothic Neo','Malgun Gothic',sans-serif"],spoqa:['스포카 한 산스',"'Spoqa Han Sans Neo',Pretendard,'Apple SD Gothic Neo',sans-serif"],noto:['노토 산스','\'Noto Sans KR\',\'Apple SD Gothic Neo\',sans-serif'],gothica1:['고딕 A1',"'Gothic A1','Apple SD Gothic Neo',sans-serif"],plex:['IBM 플렉스',"'IBM Plex Sans KR','Apple SD Gothic Neo',sans-serif"],nanum:['나눔고딕',"'Nanum Gothic','Apple SD Gothic Neo',sans-serif"],dodum:['고운돋움',"'Gowun Dodum','Apple SD Gothic Neo',sans-serif"],malgun:['맑은 고딕',"'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',sans-serif"],batang:['고운바탕 (바탕체)',"'Gowun Batang','Nanum Myeongjo','AppleMyungjo','Batang','바탕',serif"],myeong:['나눔명조',"'Nanum Myeongjo','Gowun Batang','AppleMyungjo','Batang',serif"],notoserif:['노토 세리프',"'Noto Serif KR','Nanum Myeongjo','AppleMyungjo',serif"]};
 const PAL={blue:['#2f7fd0','#1d5ca6','#eaf3fd','#cfe2f7','파랑'],navy:['#243b6b','#16254a','#e9edf6','#c9d3ea','남색'],indigo:['#4b55c9','#333c9b','#eeeffb','#d3d6f4','인디고'],purple:['#7b5cd6','#5a3fb0','#f0ebfc','#d9cff5','보라'],pink:['#e0568a','#b73a6a','#fdecf3','#f7cadc','분홍'],red:['#d64545','#a82f2f','#fdecec','#f6c9c9','빨강'],orange:['#ef8a2b','#c46a12','#fff2e3','#fbd9b4','주황'],brown:['#8a5a3c','#633f27','#f6eee8','#e6d3c6','갈색'],olive:['#7a8a2a','#566319','#f4f6e4','#dfe6b4','올리브'],green:['#2e9e6b','#1b7a4f','#e8f6ef','#c6e8d7','초록'],teal:['#1f9aa3','#13707a','#e5f5f6','#bfe5e8','청록'],gray:['#4b5563','#1f2937','#f1f3f5','#d5d9de','회색'],black:['#222222','#000000','#f2f2f2','#cfcfcf','흑백'],sky:['#3aa0e8','#1f78bd','#e8f4fd','#c5e2f7','하늘'],mint:['#2bb3a0','#198779','#e4f7f4','#bfe9e2','민트'],lavender:['#9a86e0','#7360bf','#f1eefc','#dcd5f5','라벤더'],coral:['#f06a5b','#c9473a','#fdeeec','#f8cfca','코랄'],gold:['#d9a21b','#a67a0c','#fdf5de','#f3e1aa','골드'],wine:['#9b2c4d','#701d37','#f8e9ee','#e9c3cf','와인'],forest:['#2f6f4e','#1d4d35','#e8f2ec','#c3dccd','숲'],slate:['#5b6b82','#3c4a5e','#eef1f5','#d2d9e3','슬레이트'],rose:['#e57b9a','#bd5577','#fdeef3','#f7d0dd','로즈'],sand:['#b59468','#8a6d45','#f8f3ea','#e6d9c3','샌드'],crimson:['#c2185b','#8e0f42','#fce8f0','#f3bdd3','진홍'],peach:['#f4a07a','#c9774f','#fff1ea','#fad6c4','복숭아'],lime:['#8fb81f','#6a8a10','#f3f9e1','#dcebaa','라임'],aqua:['#1fb5d4','#1288a1','#e3f6fb','#b8e6f1','아쿠아'],cobalt:['#2554d6','#1a3b9c','#e8eefc','#c4d3f6','코발트'],plum:['#8e4585','#662d5f','#f6ebf5','#e4c9e0','자두'],khaki:['#7d7a4a','#58562f','#f3f2e6','#dbd9b8','카키']};
 const TAGN={type:'유형',lv:'난이도',sub:'소단원',src:'출처',code:'문항코드'};
 function styleThumb(st,col){const P=PAL[col]||PAL.blue,c=P[0],d=P[1],l=P[2],l2=P[3];
@@ -1866,7 +1901,7 @@ function teacherHome(){
  const idle=STU.filter(s=>!hist.some(h=>h.sid===s.id&&h.t>=today-7*864e5)).slice(0,5);
  const recW=WSH.slice().sort((a,b)=>b.t-a.t).slice(0,5);const act=hist.slice().sort((a,b)=>b.t-a.t).slice(0,8);
  const tile=(ic,t,d,f)=>`<button class="qa" onclick="${f}"><i>${ic}</i><div><b>${t}</b><span>${d}</span></div></button>`;
- const tname=teacherName();const lbk=+(localStorage.getItem('omr_lastbk')||0);const bkOld=!lbk||now-lbk>14*864e5;const bkBanner=bkOld&&(WSH.length||hist.length)?`<div class="hint" style="margin-bottom:12px">${lbk?Math.floor((now-lbk)/864e5)+'일 전에':'아직'} 백업하지 않았어요. 학생 기록과 학습지는 이 기기에 저장돼 있어서, 파일로 한 번 받아 두면 안전해요. <button class="p sm" onclick="backupAll();teacherHome()">백업 내려받기</button></div>`:'';
+ const tname=teacherName();const lbk=+(localStorage.getItem('omr_lastbk')||0);const bkOld=PREF.bkDays!==0&&(!lbk||now-lbk>(PREF.bkDays||14)*864e5);const bkBanner=bkOld&&(WSH.length||hist.length)?`<div class="hint" style="margin-bottom:12px">${lbk?Math.floor((now-lbk)/864e5)+'일 전에':'아직'} 백업하지 않았어요. 학생 기록과 학습지는 이 기기에 저장돼 있어서, 파일로 한 번 받아 두면 안전해요. <button class="p sm" onclick="backupAll();teacherHome()">백업 내려받기</button></div>`:'';
  $('#main').innerHTML=`${gdraftBanner()}${bkBanner}<div class="th-hero"><div><div class="hi">${gr}, ${tname?`<span>${esc(tname)}님</span>`:'선생님'}</div><div class="sub">${new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}</div><div class="hst"><div><b>${todayH.length}</b><span>오늘 채점</span></div><div><b>${weekH.length}</b><span>이번 주</span></div>${pend.length?`<div><b>${pend.length}</b><span>미제출 과제</span></div>`:''}</div></div><button class="p" onclick="tab='build';render()">＋ 새 학습지</button></div>
  ${startList()}
  <div class="thg2"><div class="thc"><div class="card"><h2>최근 학습지</h2>${recW.length?`<div class="rlist">${recW.map(w=>`<div class="rl"><span><b>${esc(w.title)}</b><small>${fmtNo(w.id)} · ${w.codes.length}문항 · ${new Date(w.t).toLocaleDateString('ko-KR')}</small></span><span class="row"><button class="s sm" onclick="wsReport('${w.id}')">결과</button><button class="p sm" onclick="openByNumber('${w.id}')">채점</button></span></div>`).join('')}</div>`:'<div class="empty">아직 만든 학습지가 없어요.</div>'}</div> <div class="card"><h2>최근 채점</h2>${act.length?act.map(h=>`<div class="rl"><span><b>${esc(nm(h.sid))}</b><small>${esc(h.set==='ws'?(WSH.find(w=>w.id===h.sub)||{}).title||fmtNo(h.sub):h.set==='book'?esc(bookLbl(h.sub)):h.set==='practice'?'연습':SETS[h.set]||h.set)} · ${new Date(h.t).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small></span><b>${Math.round(sc(h)*100)}%</b></div>`).join(''):'<div class="empty">아직 채점 기록이 없어요.</div>'}</div></div><div class="thc"> <div class="card"><h2>도움이 필요한 학생 <small class="m">최근 7일 정답률 낮은 순</small></h2>${need.length?need.map(x=>`<div class="rl"><span><b>${esc(nm(x.id))}</b><small>${x.n}문항 풀이</small></span><span class="row"><b class="${x.p<.5?'red':''}">${Math.round(x.p*100)}%</b><button class="s sm" onclick="CUR_S='${x.id}';tab='diag';render()">진단</button></span></div>`).join(''):'<div class="empty">채점 기록이 쌓이면 보여드려요.</div>'}${idle.length?`<div class="m" style="margin-top:10px">7일간 기록이 없는 학생: ${idle.map(s=>esc(s.name)).join(', ')}${STU.length>idle.length?' …':''}</div>`:''}</div> <div class="card"><h2>미제출 과제</h2>${pend.length?pend.slice(0,6).map(a=>`<div class="rl"><span><b>${esc(nm(a.student_id))}</b><small>${esc(a.title||fmtNo(a.wid))}${a.due?' · 마감 '+esc(a.due):''}</small></span></div>`).join(''):'<div class="empty">모든 과제가 제출됐어요.</div>'}</div></div></div>`}
@@ -1916,7 +1951,7 @@ const WSCSS=`.pages{display:block}
 function qrSvg(text){try{const q=qrcode(0,'M');q.addData(text);q.make();return q.createSvgTag(3,0)}catch(e){return ''}}
 const STYLE_CSS={
  basic:'',
- clean:`.ph1{border-top:0}.ph1 .tt{font-weight:500}.ph1 .inf{border-top:0;border-bottom:.25mm solid #e3e8ee}.ph2,.pf{border-color:#e3e8ee}.col+.col::before{border-left:0}.q .qn{color:#2b3a4f!important}`,
+ clean:`.ph1{border-top:0}.ph1 .tt{font-weight:600}.ph1 .inf{border-top:0;border-bottom:.25mm solid #e3e8ee}.ph2,.pf{border-color:#e3e8ee}.col+.col::before{border-left:0}.q .qn{color:#2b3a4f!important}`,
  naesin:`.ph1{display:block;border:.5mm solid #111;border-top:1.2mm solid #111;padding:2.4mm 3mm 0;position:relative}.ph1 .hd{padding-right:23mm}.ph1 .qrh{position:absolute;right:3mm;top:2mm}.ph1 .tt{font-size:17.5pt}.ph1 .ac{color:#444;min-height:3.4mm}
  .ph1 .nb{margin:3mm -3mm 0;width:calc(100% + 6mm);border-collapse:collapse;font-size:9pt;border-top:.4mm solid #111;table-layout:fixed}.ph1 .nb th{width:15mm;background:#f2f2f2;border-right:.3mm solid #111;font-weight:500;padding:1.5mm 0}.ph1 .nb td{border-right:.3mm solid #111;height:7.4mm;padding:0 2mm}.ph1 .nb td:last-child{border-right:0}
  .q .qn{color:#111!important;font-size:13pt!important;font-weight:500!important}.ph1 .tt{font-weight:500!important}.q .qp{margin-left:auto!important;color:#111!important;font-weight:400}.q .qc{margin-left:3mm!important}.ph2{border-bottom:.4mm solid #111;color:#111}.pf{border-top:.4mm solid #111}.pf .pn{color:#111}.col+.col::before{border-left:.3mm solid #111}`,
@@ -1943,6 +1978,22 @@ STYLE_CSS.mock2=STYLE_CSS.mock+`.ph1{border-top-color:var(--p);border-bottom-col
 STYLE_CSS.mock3=STYLE_CSS.mock+`.ph1{border-top-width:.5mm}.ph1 .hd{text-align:left;padding:0 22mm 0 0}.ph1 .ac{position:static;margin-top:2mm;color:#444}.ph1 .tt{font-size:19pt;letter-spacing:0;margin-top:1mm}`;
 STYLE_CSS.test=`.ph1{border:.4mm solid var(--pd);border-top:1.6mm solid var(--pd);padding:2.6mm 4mm 0}.ph1 .tt{color:var(--pd)}.ph1 .inf{border:0;border-top:.3mm solid var(--pd);margin:3mm -4mm 0;padding:1.8mm 4mm;background:var(--pl)}.q .qn{background:var(--pd)!important;color:#fff!important;border-radius:.6mm!important;min-width:7mm!important;width:7mm!important;height:6.4mm!important;justify-content:center;font-size:10.5pt!important}.q .qn::after{content:''}`;
 STYLE_CSS.quiz=`.ph1{border:.35mm solid #111;padding:2mm 4mm 0;margin-bottom:3.4mm}.ph1 .tt{font-size:14pt}.ph1 .inf{border:0;border-top:.3mm dashed #111;margin-top:2mm}.q .qn{font-size:12pt!important;color:#111!important}.col+.col::before{border-left:.3mm solid #111}`;
+
+/* ---- 신규 디자인 (고딕 중심) ---- */
+STYLE_CSS.modern=`.pg{padding:12mm 13mm 8mm}.ph1{border-top:0;background:linear-gradient(180deg,var(--pl),#fff);border:.3mm solid var(--pl2);border-radius:3.2mm;padding:4.2mm 5mm 0;margin-bottom:5mm}.ph1 .ac{display:inline-block;background:var(--p);color:#fff;border-radius:5mm;padding:.5mm 3mm;font-size:8pt;font-weight:600;letter-spacing:.2mm;margin-bottom:1.6mm}.ph1 .tt{font-size:19pt;font-weight:800;letter-spacing:-.2mm;color:#14202e}.ph1 .st{color:#586476}
+.ph1 .inf{border:0;border-top:.25mm dashed var(--pl2);margin:3.4mm 0 0;padding:2.2mm 0}.ph1 .inf em{background:var(--pl2);color:var(--pd);border-radius:1mm;padding:.2mm 1.6mm;font-size:8pt;font-weight:600}
+.q .qn{background:var(--p)!important;color:#fff!important;width:6.8mm!important;min-width:6.8mm!important;height:6.8mm!important;border-radius:50%!important;justify-content:center;font-size:10.5pt!important;padding:0!important}.q .qp{color:var(--pd)!important;font-weight:600}
+.wq{border-bottom:.2mm solid #eef1f5;padding-bottom:1.2mm}.col+.col::before{border-left:.25mm solid var(--pl2)}.wsec{background:var(--pl);border:0;border-radius:2mm;padding:1.2mm 3.4mm;color:var(--pd)}.pf{border-top:.25mm solid var(--pl2)}.pf .pn{background:var(--p);color:#fff;border-radius:5mm;padding:.2mm 3mm;font-weight:600;font-size:9pt}`;
+STYLE_CSS.lined=`.ph1{border-top:0;border-left:2.4mm solid var(--p);padding:.4mm 0 0 4.2mm;margin-bottom:5mm}.ph1 .ac{font-weight:700;letter-spacing:.4mm;font-size:8.6pt}.ph1 .tt{font-size:20pt;font-weight:800;letter-spacing:-.2mm}.ph1 .inf{border:0;border-top:.25mm solid #d9e0e8;margin-left:-4.2mm;padding:2mm 0 1.6mm 4.2mm}
+.q .qn{color:var(--p)!important;font-weight:800!important;font-size:14.5pt!important}.q .qn::after{content:'';display:inline-block;width:3.6mm;border-top:.5mm solid var(--p);margin-left:1.4mm;vertical-align:middle}.q .qp{color:#8794a3!important}
+.col+.col::before{border-left:.25mm solid #d9e0e8}.wsec{border:0;border-left:1.6mm solid var(--p);padding:.4mm 0 .4mm 2.6mm;color:#14202e}.pf{border-top:.25mm solid #d9e0e8}.pf .pn{font-weight:700}`;
+STYLE_CSS.prem=`.pg{padding:12mm 13mm 8mm}.ph1{border-top:0;border-bottom:.6mm solid var(--pd);padding:0 0 2.4mm;margin-bottom:5mm}.ph1 .ac{color:var(--p);font-weight:700;letter-spacing:.6mm;font-size:8.4pt;text-transform:uppercase}.ph1 .tt{font-size:22pt;font-weight:800;letter-spacing:-.3mm;color:#101a26}.ph1 .st{letter-spacing:.2mm}
+.ph1 .inf{display:grid;grid-template-columns:1.4fr 1fr .8fr 1fr;gap:0;border:.3mm solid #cfd8e2;border-radius:2mm;margin-top:3.4mm;padding:0;overflow:hidden}.ph1 .inf span{padding:1.8mm 3mm;border-right:.3mm solid #cfd8e2}.ph1 .inf span:last-child{border-right:0}.ph1 .inf .nm{flex:none}.ph1 .inf .sc{margin-left:0}
+.q .qn{background:#101a26!important;color:#fff!important;border-radius:1.2mm!important;min-width:7mm!important;height:6.2mm!important;justify-content:center;font-size:10.5pt!important;padding:0 1.6mm!important}.q .qp{color:#586476!important}
+.wq{border-bottom:.2mm solid #e8edf2}.col+.col::before{border-left:.3mm solid #cfd8e2}.wsec{background:#101a26;color:#fff;border:0;border-radius:1.2mm;padding:1mm 3.2mm;display:inline-block}.wsec em{color:#c9d3df}.pf{border-top:.3mm solid #cfd8e2}.pf .pn{color:#101a26;font-weight:700}`;
+STYLE_CSS.note=`.pg{padding:14mm 15mm 9mm}.ph1{border-top:0;padding:0;margin-bottom:6mm}.ph1 .ac{color:#8794a3;font-weight:500;letter-spacing:.4mm}.ph1 .tt{font-size:24pt;font-weight:600;letter-spacing:-.4mm;color:#14202e}.ph1 .st{color:#8794a3;font-size:10pt}
+.ph1 .inf{border:0;border-top:.2mm solid #14202e;border-bottom:.2mm solid #e3e8ee;margin-top:3.4mm}.q .qn{background:none!important;color:#14202e!important;font-weight:300!important;font-size:17pt!important;min-width:9mm!important}.q .qp{color:#8794a3!important}
+.col+.col::before{border-left:0}.cols{gap:11mm}.wq{margin-bottom:3mm}.wsec{border:0;font-weight:300;font-size:13pt;color:#14202e;border-bottom:.2mm solid #14202e;padding-bottom:1mm}.pf{border-top:.2mm solid #e3e8ee}.pf .pn{color:#14202e;font-weight:300}`;
 /* ---- 디자인 확장: 페이지 장식·구역·푸터·문항 번호 ---- */
 const FR=(c,w,o)=>`.pg::before{content:'';position:absolute;inset:${o||'5mm'};border:${w} solid ${c};pointer-events:none}`;
 STYLE_CSS.clean+=`.wsec{border:0;font-weight:500;color:#2b3a4f;letter-spacing:.3mm}.pf{border-top:0}.pf .pn{color:#7b8794;font-weight:400}`;
@@ -2573,13 +2624,13 @@ function sMapView(){
  let h=`<div class="card"><h2>학습지 만들기 <small style="font-weight:400;color:var(--m);font-size:13px">내 유형 지도</small></h2>${legendHtml(cnt)}<div class="hint">풀고 싶은 유형을 눌러 고른 뒤 아래에서 「화면에서 풀기」를 누르세요. 문제 위에 바로 필기할 수 있어요(애플펜슬). 해골과 빨강이 먼저 보강할 유형이에요.</div>`;
  subs.forEach(([sub,name])=>{const rs=(bySub[sub]||[]).filter(o=>!FL||o.lv===FL).sort((a,b)=>['skull','red','yellow','gray','green','star'].indexOf(a.lv)-['skull','red','yellow','gray','green','star'].indexOf(b.lv)||a.p-b.p);if(!rs.length)return;
   h+=`<h3>${sub} ${name}</h3><div class="heat">${rs.map(o=>`<div class="cell ${W.sel.has(o.k)?'on':''}" data-k="${esc(o.k)}" onclick="sTog(this.dataset.k)" onmousemove="tip(event,this)" onmouseleave="tipHide()"><i class="ic">${ICON[o.lv]}</i><span>${esc(o.type)}</span></div>`).join('')}</div>`});
- h+=`</div><div class="stick"><div><b>${W.sel.size}</b>개 유형</div><label class="m">총 <input type="number" id="sn_" min="5" max="60" value="${W.total||15}" style="width:70px" onchange="W.total=+this.value||15;saveW()"> 문항</label>${permOn('print')?`<button class="s" ${W.sel.size?'':'disabled'} onclick="sPrint()">인쇄용으로 만들기</button>`:''}<button class="p" ${W.sel.size?'':'disabled'} onclick="sPractice()">화면에서 풀기</button></div>`;
+ h+=`</div><div class="stick"><div><b>${W.sel.size}</b>개 유형</div><label class="m">총 <input type="number" id="sn_" min="5" max="${permNum('maxQ',60)}" value="${Math.min(W.total||15,permNum('maxQ',60))}" style="width:70px" onchange="W.total=Math.min(+this.value||15,permNum('maxQ',60));saveW()"> 문항</label>${permOn('print')?`<button class="s" ${W.sel.size?'':'disabled'} onclick="sPrint()">인쇄용으로 만들기</button>`:''}<button class="p" ${W.sel.size?'':'disabled'} onclick="sPractice()">화면에서 풀기</button></div>`;
  $('#main').innerHTML=h}
 function sTog(k){W.sel.has(k)?W.sel.delete(k):W.sel.set(k,5);const y=scrollY;sMapView();scrollTo(0,y)}
-async function sPrint(){const pw=popOpen('학습지를 만드는 중…');W.mode='total';W.dist='weak';W.sets={...W.sets,bank:1};
+async function sPrint(){W.total=Math.min(W.total||15,permNum('maxQ',60));const pw=popOpen('학습지를 만드는 중…');W.mode='total';W.dist='weak';W.sets={...W.sets,bank:1};
  try{const codes=await pickCodes();if(!codes.length){if(pw)pw.close();alert('출제할 문제가 없어요.');return}await ensureCodes(codes);const st=STINFO||{};
   const rec=mkWs(codes,{title:'내 학습지',subt:SNAME[SUBJ],name:st.name||'',style:'basic',cols:2,qr:true,ans:0});if(!rec){if(pw)pw.close();return}if(pw)WSP={win:pw,rec};openWs(rec,null,{win:pw})}catch(e){if(pw)pw.close();throw e}}
-async function sPractice(){W.mode='total';W.dist='weak';W.sets={...W.sets,bank:1};const codes=await pickCodes();if(!codes.length){alert('출제할 문제가 없어요.');return}practice(codes,'유형 연습')}
+async function sPractice(){W.total=Math.min(W.total||15,permNum('maxQ',60));W.mode='total';W.dist='weak';W.sets={...W.sets,bank:1};const codes=await pickCodes();if(!codes.length){alert('출제할 문제가 없어요.');return}practice(codes,'유형 연습')}
 /* ---- 정답률 추이 그래프 ---- */
 function trendSvg(hs,w,h){w=w||640;h=h||170;const pts=hs.slice(-30).map(x=>x.items.length?x.items.filter(i=>i.r).length/x.items.length:0);if(pts.length<2)return '<div class="m">기록이 더 쌓이면 그래프가 나옵니다.</div>';
  const px=i=>40+i*(w-60)/(pts.length-1),py=p=>h-26-p*(h-44);
