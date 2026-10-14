@@ -660,6 +660,14 @@ header #refBtn{background:#ffffff1f;color:#fff;border-color:#ffffff40}
 @media(max-width:520px){.tsc .g2{grid-template-columns:1fr!important}}
 #cfgBox>p.m{margin-right:48px!important}#cfgBox .seg button{white-space:nowrap}
 #domnt{position:fixed;inset:0;z-index:300;background:#0b1530cc;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}#domnt .dnb{width:min(560px,100%);box-sizing:border-box;background:var(--surface);color:var(--t);border-radius:20px;padding:28px 26px 22px;box-shadow:0 20px 60px #0008}#domnt h2{margin:0 0 14px;font-size:28px;line-height:1.25;letter-spacing:-.02em;word-break:keep-all}#domnt .dnu{display:block;background:var(--b);color:#fff;border-radius:14px;padding:14px 16px;text-align:center;font-size:clamp(22px,6.4vw,32px);font-weight:800;letter-spacing:-.01em;word-break:break-all}#domnt ul{margin:18px 0 8px;padding-left:20px;display:grid;gap:10px;font-size:17px;line-height:1.55;word-break:keep-all}#domnt p{margin:8px 0 0;color:var(--m);font-size:14px}#domnt .dnr{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}#domnt .dnr .p,#domnt .dnr .s{flex:1 1 160px;min-height:52px;font-size:17px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border-radius:12px}html[data-theme=dark] #domnt .dnu{color:#0f0f10}#domnt a.p{background:var(--b);color:#fff;border:0}html[data-theme=dark] #domnt a.p{color:#0f0f10}
+.sgjoin{display:flex;align-items:center;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--l)}.sgjoin span{flex:1;font-size:14px;color:var(--m)}.sgjoin .s{min-height:44px;font-weight:700}
+.sgdots{display:flex;gap:8px;justify-content:center;margin:8px 0 16px}.sgdots i{width:10px;height:10px;border-radius:50%;background:var(--b);animation:sgp 1.2s ease-in-out infinite both}.sgdots i:nth-child(2){animation-delay:.2s}.sgdots i:nth-child(3){animation-delay:.4s}@keyframes sgp{0%,80%,100%{opacity:.25;transform:scale(.8)}40%{opacity:1;transform:scale(1.1)}}
+.sgw.approved h2{color:var(--b)}
+.sgl{display:grid;gap:8px;margin-top:10px}.sgr{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--l);border-radius:14px;background:var(--bg)}.sgr>div{flex:1;min-width:0}.sgr b{display:block;font-size:15px}.sgr small{display:block;color:var(--m);font-size:12px;margin-top:2px}
+.sgn{display:inline-block;background:var(--b);color:#fff;border-radius:99px;padding:1px 10px;font-size:14px;vertical-align:middle;margin-left:4px}.sgcard{margin-bottom:14px}
+.sgban{cursor:pointer;margin-bottom:12px}.sgban span{color:var(--bd);font-weight:700;margin-left:6px}
+.sgshare{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:14px}.sgshare>div:first-child{flex:1;min-width:220px}.sgcode{display:block;font-size:34px;letter-spacing:.14em;font-weight:800;margin-top:2px}.sgqr{width:132px;height:132px;background:#fff;padding:8px;border-radius:12px;border:1px solid var(--l);box-sizing:border-box}.sgqr svg{width:100%;height:100%;display:block}
+html[data-theme=dark] .sgn{color:#0f0f10}
 html.big body{font-size:17px}html.big button,html.big select,html.big input:not([type=checkbox]){min-height:46px}html.big nav button{padding-left:14px;padding-right:14px}
 html[data-theme=dark] svg text[fill="#1f2933"],html[data-theme=dark] svg text[fill="#2b2f36"]{fill:var(--t)}html[data-theme=dark] svg [stroke="#e6ebf1"]{stroke:#34343a}html[data-theme=dark] svg [fill="#c9d0d8"]{fill:#4a4a52}html[data-theme=dark] svg [stroke="#2b2f36"]{stroke:#c9c9d0}
 html[data-theme=dark] .task{background:var(--sf1);border-color:var(--l2)}html[data-theme=dark] .task.ok{background:#16211b;border-color:#2b4638}html[data-theme=dark] .task.late{background:#2a1a1a;border-color:#5a2f2f}
@@ -830,7 +838,7 @@ async function load(){loadCfg();hist=jget(LS,[]);STU=jget(LST,[]);WSH=jget(LW,[]
  await loadBankIndex();
  STUD=cloud()?sget(LSTUD):null;if(STUD){await loadStud();if(STUD){syncLabel();render();return}}
  if(cloud()&&sess){try{
-   await stuSync();
+   await stuSync();setTimeout(sgLoad,300);
    const r=await sb('/rest/v1/attempts?select=t,set,sub,items,student_id&order=t.asc&limit=20000');
    if(r.ok){const rem=(await r.json()).map(x=>({t:x.t,set:x.set,sub:x.sub,items:x.items,sid:x.student_id||''}));const have=new Set(rem.map(x=>x.t));
     const up=hist.filter(x=>!have.has(x.t));
@@ -955,7 +963,7 @@ function decorate(){document.body.classList.toggle('hasfab',!!document.querySele
 function goFull(){bkLoad().then(()=>{tab='books';bkGoFull();render();scrollTo(0,0)}).catch(()=>alert('교재를 불러오지 못했습니다.'))}
 function nav(){const hb=document.getElementById('helpBtn');if(hb)hb.hidden=!STUD||!permOn('tour');
 const PK={smap:'make',stat:'stat',concept:'concept',books:'books',wrong:'wrong',diag:'diag',tasks:'tasks',enter:'enter',shist:'shist'};
-const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['stat','유형 분석'],['concept','개념학습'],['books','교재'],['smap','학습지 만들기'],['shist','기록']].filter(([k])=>!PK[k]||permOn(PK[k])):teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'],['stat','누적 분석'],['search','문항 검색'],['tset','설정']]:[['enter','번호 채점']];
+const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['stat','유형 분석'],['concept','개념학습'],['books','교재'],['smap','학습지 만들기'],['shist','기록']].filter(([k])=>!PK[k]||permOn(PK[k])):teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'+(SG.list.length?' ('+SG.list.length+')':'')],['stat','누적 분석'],['search','문항 검색'],['tset','설정']]:[['enter','번호 채점']];
  if(!T.find(x=>x[0]===tab)&&!(tab==='grade'&&cur)&&!(tab==='prac'&&PR)&&!((tab==='build'||tab==='bdesign'||tab==='bmake'||tab==='wsedit'||tab==='review')&&teacher())&&!(tab==='prac'&&STUD)&&!(tab==='mock'&&teacher()))tab=T[0][0];$('#nav').innerHTML=T.map(([k,v])=>`<button class="${tab===k||(k==='ws'&&['build','bdesign','review'].includes(tab))||(k==='books'&&tab==='mock')||(k==='enter'&&tab==='grade'&&STUD)?'on':''}" onclick="navGo('${k}')">${v}</button>`).join('')}
 let _navKey=null;
 function goHome(){const k=STUD?'home':(teacher()?'thome':'enter');if(cur&&tab==='grade'&&!cur.done&&!confirm('채점을 그만둘까요? 입력한 내용은 저장되지 않습니다.'))return;if(cur&&tab==='grade'){clearInterval(_tm);if(!cur.done)gdraftClear();cur=null}PR=null;$('#exp').classList.remove('open');tab=k;render();scrollTo(0,0)}
@@ -1156,7 +1164,7 @@ async function tsetView(){
  const selG=(k,l)=>`<div class="fld"><label>${l}</label><select onchange="PREF.${k}=this.value;prefSave();tsetSaved()">${fontOptsHtml(PREF[k]||'paper')}</select></div>`;
  const sec=(id,ic,h,sub,body,right)=>`<section class="tsc" id="ts_${id}"><div class="tsch"><i>${tIc(ic)}</i><div><h2>${h}</h2><p>${sub}</p></div>${right||''}</div>${body}</section>`;
  const off=Object.keys(P).filter(k=>P[k]===false).length;const mq=permNumT('maxQ',60);
- const NAV=[['perm','학생 권한'],['ws','학습지'],['bk','교재'],['ui','화면'],['msg','알림·도움말'],['data','데이터·서버'],['bug','신고'],['acct','계정']];
+ const NAV=[['perm','학생 권한'],['ws','학습지'],['bk','교재'],['ui','화면'],['msg','알림·도움말'],['data','데이터·서버'],['join','가입'],['bug','신고'],['acct','계정']];
  $('#main').innerHTML=`<div class="tsh"><div><h1>설정</h1><p>학생이 쓸 수 있는 기능과 내 작업 방식을 정해요.</p></div><div class="tsb"><span class="${off?'warn':''}">학생 기능 ${off?off+'개 제한':'모두 허용'}</span><span>${cloud()&&sess?'온라인 저장 연결됨':'이 기기에만 저장'}</span></div></div>
  <nav class="tsn">${NAV.map(([k,l])=>`<button onclick="document.getElementById('ts_${k}').scrollIntoView({behavior:'smooth',block:'start'})">${l}</button>`).join('')}</nav>
  ${sec('perm','students','학생 권한','모든 학생에게 똑같이 적용돼요. 학생 앱이 열려 있으면 1분 안에 반영돼요.',
@@ -1178,6 +1186,7 @@ async function tsetView(){
  <div class="tgp"><h3>튜토리얼 다시 보기</h3><div class="row" style="flex-wrap:wrap">${Object.entries(TOURS).map(([k,v])=>`<button class="s sm" onclick="tourStart('${k}')">${esc(v.name)}</button>`).join('')}</div></div>`)}
  ${sec('data','db','데이터 · 서버','백업과 서버 설정 상태를 확인해요.',`<div class="row" style="flex-wrap:wrap"><button class="s" onclick="backupAll()">백업 내려받기</button><label class="s fl">백업 불러오기<input type="file" accept=".json" hidden onchange="restoreAll(this)"></label><button class="s" onclick="healthView()">시스템 점검</button><button class="p" onclick="srvCheck()">서버 설정 점검</button></div><div class="dz" style="margin-top:14px"><b>학습 자료만 지우기 (학생 유지)</b><div class="m">만들어 둔 학습지·교재·모의고사·채점 기록·과제·즐겨찾기·신고·내 구성을 모두 지워요. 등록된 학생 정보와 로그인·설정은 남아요.</div><button class="s dgr" onclick="wipeContent()">학습 자료 지우기…</button></div><div id="srvck" class="srvck"></div>`)}
  ${sec('bug','help','버그 신고 · 새로고침','앱에서 이상한 점을 알리고, 학생이 보낸 신고를 확인해요.',`<div class="row" style="flex-wrap:wrap"><button class="p" onclick="openBug()">버그 신고하기</button><button class="s" onclick="hardRefresh()">앱 새로고침 (캐시 비우기)</button></div><div id="bugbox" class="srvck" style="margin-top:12px"></div>`)}
+ ${sec('join','students','학생 가입 · 승인','학생이 직접 회원가입을 신청하고, 선생님이 승인하면 로그인할 수 있어요.',`${SG.err?`<div class="hint">${esc(SG.err)}</div>`:''}<label class="swr"><span><b>가입 받기</b><small>끄면 새 신청을 받지 않아요</small></span><input class="swi" type="checkbox" ${SG.open?'checked':''} onchange="sgToggle(this.checked)"></label>${SG.code?`<div class="sgshare"><div><div class="m">선생님 코드</div><b class="sgcode">${esc(SG.code)}</b><div class="m" style="margin-top:10px;word-break:break-all">${esc(sgLink())}</div><div class="row" style="margin-top:10px"><button class="p sm" onclick="sgCopy()">가입 링크 복사</button></div></div><div class="sgqr" aria-label="가입 QR">${qrSvg(sgLink())}</div></div>`:'<div class="m">코드를 불러오는 중이에요…</div>'}<div class="tgp"><h3>대기 중인 신청 <small>${SG.list.length}건</small></h3>${sgReqHtml()}</div>`)}
  ${sec('acct','students','계정','이 기기에 저장된 계정을 전환하거나 로그아웃해요.',`<div id="acctbox">${acctHtml()}</div>`)}`;bugLoad().then(bugRender)}
 async function srvCheck(){const el=$('#srvck');if(!el)return;if(!cloud()||!sess){el.innerHTML='<div class="hint">온라인 저장에 로그인해야 점검할 수 있어요.</div>';return}
  el.innerHTML='<div class="m">점검 중…</div>';
@@ -1223,7 +1232,7 @@ function nBadge(){const b=document.getElementById('bellN');if(!b)return;const n=
 async function nFetch(first){
  try{if(!cloud())return;
   if(STUD&&!STUD.preview){permFetch();const r=await rpc('st_notices',{p_login:STUD.login,p_pw:STUD.pw});NT.err=r.ok?'':(r.status===404?'공지 기능이 서버에 설정되지 않았어요. 선생님께 알려 주세요.':'공지를 불러오지 못했어요 ('+r.status+')');let jn=[];try{jn=r.ok?await r.json():[]}catch(e){}NT.list=Array.isArray(jn)?jn:[];NT.dbg='서버 응답 '+r.status+' · 받은 공지 '+NT.list.length+'건'}
-  else if(sess){const r=await sb('/rest/v1/notices?select=id,title,body,t,student_id&order=t.desc&limit=60');NT.err=r.ok?'':(r.status===404?'notices 테이블이 없어요. setup.sql 11번을 실행하세요.':'공지를 불러오지 못했어요 ('+r.status+')');NT.sent=r.ok?await r.json():[];NT.list=[];NT.dbg='서버 응답 '+r.status+' · 보낸 공지 '+NT.sent.length+'건'}
+  else if(sess){sgLoad();const r=await sb('/rest/v1/notices?select=id,title,body,t,student_id&order=t.desc&limit=60');NT.err=r.ok?'':(r.status===404?'notices 테이블이 없어요. setup.sql 11번을 실행하세요.':'공지를 불러오지 못했어요 ('+r.status+')');NT.sent=r.ok?await r.json():[];NT.list=[];NT.dbg='서버 응답 '+r.status+' · 보낸 공지 '+NT.sent.length+'건'}
   else NT.list=[]}catch(e){NT.err='공지를 불러오지 못했어요. 인터넷 연결을 확인하세요.'}
  const s=nSeenGet();const fresh=NT.list.filter(x=>!s.has('n:'+x.id)&&!NT.announced.has(x.id));
  if(!first&&fresh.length){fresh.slice(0,2).forEach(x=>toast('새 알림 · '+x.title));}
@@ -2775,10 +2784,70 @@ async function stSubmit(rec){const body={p_login:STUD.login,p_pw:STUD.pw,p_t:rec
  let r=await rpc('st_submit',body);if(r.status===404&&body.p_rng){delete body.p_rng;r=await rpc('st_submit',body)}
  if(!r.ok){let m='';try{m=await r.text()}catch(e){}const er=new Error(m.includes('already submitted')?'locked':'submit');er.locked=m.includes('already submitted');er.status=r.status;throw er}}
 async function saveRec(rec){if(STUD&&STUD.preview){hist.push(rec);return}if(STUD){try{await stSubmit(rec)}catch(e){if(e.locked){alert('이미 제출한 채점이에요. 선생님이 초기화해야 다시 제출할 수 있어요.');await loadStud();return 'locked'}if(!e.status||e.status>=500||!navigator.onLine){outboxAdd(rec);toast('인터넷이 연결되지 않아 임시 저장했어요. 연결되면 자동으로 제출돼요.')}else alert('서버에 저장하지 못했습니다. 점수는 이 화면에서 확인할 수 있습니다.')}hist.push(rec);return}await save(rec)}
-function stLoginCard(){return `<div class="card enter stl"><div class="stbrand"><i></i>${SNAME[SUBJ]}</div><h2>학생 로그인</h2><div class="m" style="margin-bottom:12px">선생님께 받은 아이디와 비밀번호를 입력하세요.</div>
+/* ---------- 선생님: 가입 신청 승인 ---------- */
+let SG={list:[],code:'',open:true,err:'',loaded:0};
+const sgLink=()=>((CF&&CF.pub)||location.origin+'/').replace(/#.*$/,'')+'#join='+SG.code;
+async function sgLoad(){if(!sess||STUD||!cloud())return;const old=SG.list.length,first=!SG.loaded,oldIds=SG.list.map(x=>x.id).join();
+ try{const r=await sb('/rest/v1/signup_requests?select=id,name,grade,login,t&status=eq.pending&order=t.asc');SG.err=r.status===404?'가입 기능이 서버에 설정되지 않았어요. setup.sql 14번을 실행하세요.':'';SG.list=r.ok?await r.json():[];
+  if(r.ok){const j=await rpc('join_info',{});if(j.ok){const o=await j.json();if(o){SG.code=o.code;SG.open=!!o.open}}}}catch(e){}
+ SG.loaded=1;if(!first&&SG.list.length>old)toast('새 가입 신청이 '+(SG.list.length-old)+'건 있어요');
+ try{if(first||oldIds!==SG.list.map(x=>x.id).join()){if(teacher()&&['thome','stu','tset'].includes(tab))render();else nav()}}catch(e){}}
+function sgReqHtml(){return SG.list.length?`<div class="sgl">${SG.list.map(x=>`<div class="sgr"><div><b>${esc(x.name)}</b><small>${esc(x.grade||'학년 미입력')} · 아이디 ${esc(x.login)} · ${new Date(+x.t).toLocaleDateString('ko-KR')}</small></div><button class="p sm" onclick="sgApprove(${x.id})">승인</button><button class="s sm" onclick="sgReject(${x.id})">거절</button></div>`).join('')}</div>`:'<div class="m">대기 중인 가입 신청이 없어요.</div>'}
+function sgCard(){return `<div class="card sgcard"><div class="row"><h2 style="margin:0">가입 신청 <span class="sgn">${SG.list.length}</span></h2><button class="s sm" style="margin-left:auto" onclick="tab='tset';render();setTimeout(()=>{const e=document.getElementById('ts_join');e&&e.scrollIntoView()},200)">가입 링크·설정</button></div>${SG.err?`<div class="hint">${esc(SG.err)}</div>`:sgReqHtml()}</div>`}
+async function sgApprove(id){try{const r=await rpc('approve_signup',{p_id:id});if(!r.ok){const m=await r.text();toast(/login_taken/.test(m)?'이미 같은 아이디의 학생이 있어요':'승인하지 못했어요');return}
+  toast('승인했어요. 학생에게 알림이 가요');try{await stuSync()}catch(e){}await sgLoad();syncLabel();render()}catch(e){toast('승인하지 못했어요')}}
+async function sgReject(id){if(!confirm('이 가입 신청을 거절할까요?'))return;try{await rpc('reject_signup',{p_id:id});await sgLoad()}catch(e){toast('처리하지 못했어요')}}
+async function sgToggle(on){try{const r=await rpc('join_open_set',{p_open:on});if(!r.ok)throw 0;SG.open=on;toast(on?'가입을 받아요':'가입을 받지 않아요')}catch(e){toast('저장하지 못했어요');tsetView()}}
+function sgCopy(){const s=sgLink();try{navigator.clipboard.writeText(s);toast('링크를 복사했어요')}catch(e){prompt('링크를 복사하세요',s)}}
+{const _sv=stuView;stuView=function(){_sv();if(SG.list.length||SG.err)$('#main').insertAdjacentHTML('afterbegin',sgCard())}}
+{const _th=teacherHome;teacherHome=function(){_th();if(SG.list.length&&teacher())$('#main').insertAdjacentHTML('afterbegin',`<div class="hint sgban" role="button" tabindex="0" onclick="tab='stu';render()" onkeydown="if(event.key==='Enter')this.click()"><b>가입 신청 ${SG.list.length}건</b>이 승인을 기다리고 있어요. <span>눌러서 확인 ›</span></div>`)}}
+/* ---------- 학생 회원가입 · 선생님 승인 ---------- */
+const SGK='omr_signup';
+let SGU={mode:'login',code:'',busy:0,err:'',st:'',t:0};
+try{SGU.code=(localStorage.getItem('omr_joincode')||'')}catch(e){}
+try{const _j=location.hash.match(/^#join=([A-Za-z0-9]{4,12})/);if(_j){SGU.code=_j[1].toUpperCase();SGU.mode='signup';try{localStorage.setItem('omr_joincode',SGU.code)}catch(e){}history.replaceState(null,'',location.pathname+location.search)}}catch(e){}
+const sgPend=()=>jget(SGK,null);
+const SGERR={bad_code:'선생님 코드가 맞지 않아요. 선생님께 받은 코드를 다시 확인하세요.',closed:'지금은 가입을 받지 않아요. 선생님께 문의하세요.',invalid:'입력을 확인하세요. 아이디는 영문 소문자·숫자·_ 3~20자, 비밀번호는 4자 이상이에요.',login_taken:'이미 사용 중인 아이디예요. 다른 아이디를 써 주세요.'};
+function sgOpen(m){SGU.mode=m;SGU.err='';enterView()}
+async function sgSubmit(){if(SGU.busy)return;const g=i=>(document.getElementById(i)||{}).value||'';
+ const code=g('sgc').trim().toUpperCase(),name=g('sgn').trim(),grade=g('sgg').trim(),login=g('sgl').trim().toLowerCase(),pw=g('sgp'),pw2=g('sgp2');
+ const fail=m=>{SGU.err=m;SGU.busy=0;const e=$('#sgerr');if(e){e.textContent=m;e.hidden=false}};
+ if(!code)return fail('선생님 코드를 입력하세요.');if(!name)return fail('이름을 입력하세요.');if(!/^[a-z0-9_]{3,20}$/.test(login))return fail(SGERR.invalid);if(pw.length<4)return fail('비밀번호는 4자 이상이에요.');if(pw!==pw2)return fail('비밀번호가 서로 달라요.');
+ SGU.busy=1;const b=$('#sgbtn');if(b){b.disabled=true;b.textContent='신청하는 중…'}
+ try{const r=await rpc('st_signup',{p_code:code,p_name:name,p_grade:grade,p_login:login,p_pw:pw});
+  if(r.status===404){SGU.busy=0;if(b){b.disabled=false;b.textContent='가입 신청'}return fail('가입 기능이 서버에 설정되지 않았어요. 선생님께 알려 주세요.')}
+  const j=r.ok?await r.json():null;
+  if(!j||!j.ok){SGU.busy=0;if(b){b.disabled=false;b.textContent='가입 신청'}return fail(SGERR[j&&j.err]||'신청하지 못했어요. 잠시 후 다시 시도하세요.')}
+  jset(SGK,{login,pw,name,t:Date.now(),st:'pending'});try{localStorage.setItem('omr_joincode',code)}catch(e){}SGU.busy=0;SGU.mode='login';SGU.err='';enterView();sgPollStart()}
+ catch(e){SGU.busy=0;if(b){b.disabled=false;b.textContent='가입 신청'}fail('연결하지 못했어요. 인터넷을 확인하세요.')}}
+function sgCancel(){if(!confirm('가입 신청 대기 화면을 닫을까요? (신청 자체는 선생님이 처리할 때까지 남아 있어요)'))return;try{localStorage.removeItem(SGK)}catch(e){}enterView()}
+async function sgCheck(manual){const p=sgPend();if(!p||STUD)return;
+ try{const r=await rpc('st_signup_check',{p_login:p.login,p_pw:p.pw});const s=r.ok?await r.json():null;if(!s)return;
+  if(s==='none'){if(manual)toast('신청 정보를 찾지 못했어요');return}
+  if(s!==p.st){p.st=s;jset(SGK,p);if(s==='approved'){toast('가입이 승인됐어요! 로그인하세요')}else if(s==='rejected')toast('가입이 승인되지 않았어요');if(tab==='enter'&&!STUD)enterView()}
+  else if(manual)toast(s==='pending'?'아직 승인 대기 중이에요':'')}catch(e){if(manual)toast('확인하지 못했어요')}}
+let _sgT=0;function sgPollStart(){clearInterval(_sgT);_sgT=setInterval(()=>{if(!document.hidden&&sgPend()&&!STUD)sgCheck(false)},15000);sgCheck(false)}
+async function sgLogin(){const p=sgPend();if(!p)return;
+ try{const r=await rpc('st_login',{p_login:p.login,p_pw:p.pw});const j=r.ok?await r.json():null;if(!j){alert('로그인하지 못했어요. 아이디와 비밀번호로 직접 로그인해 보세요.');try{localStorage.removeItem(SGK)}catch(e){}enterView();return}
+  try{localStorage.removeItem(SGK)}catch(e){}await stSetSession(p.login,p.pw);tab='home';await load()}catch(e){alert('로그인하지 못했어요. 인터넷을 확인하세요.')}}
+function sgFormCard(){return `<div class="card enter stl"><div class="stbrand"><i></i>Solvi</div><h2>학생 회원가입</h2><div class="m" style="margin-bottom:12px">계정 하나로 모든 과목(물질과 에너지·세포와 물질대사 등 앞으로 추가되는 과목 포함)을 쓸 수 있어요. 가입을 신청하면 선생님이 확인한 뒤 승인해요.</div>
+ <div class="fld"><label>선생님 코드</label><input id="sgc" class="stin" type="text" value="${esc(SGU.code)}" autocapitalize="characters" autocomplete="off" placeholder="선생님께 받은 코드 6자리" maxlength="12"></div>
+ <div class="fld"><label>이름</label><input id="sgn" class="stin" type="text" maxlength="20" autocomplete="name" placeholder="예) 김민찬"></div>
+ <div class="fld"><label>학년·반 (선택)</label><input id="sgg" class="stin" type="text" maxlength="20" placeholder="예) 해원고2"></div>
+ <div class="fld"><label>아이디 (영문 소문자·숫자·_ 3~20자)</label><input id="sgl" class="stin" type="text" autocapitalize="off" autocomplete="username" maxlength="20" placeholder="예) minchan01"></div>
+ <div class="fld"><label>비밀번호 (4자 이상)</label><input id="sgp" class="stin" type="password" autocomplete="new-password"></div>
+ <div class="fld"><label>비밀번호 확인</label><input id="sgp2" class="stin" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')sgSubmit()"></div>
+ <div id="sgerr" class="hint" style="color:var(--no);margin-top:8px" ${SGU.err?'':'hidden'}>${esc(SGU.err)}</div>
+ <div class="btns" style="margin-top:12px"><button id="sgbtn" class="p" onclick="sgSubmit()">가입 신청</button><button class="s" onclick="sgOpen('login')">로그인으로 돌아가기</button></div></div>`}
+function sgPendCard(){const p=sgPend();const s=p.st||'pending';
+ return `<div class="card enter stl sgw ${s}"><div class="stbrand"><i></i>Solvi</div>${s==='approved'?`<h2>가입이 승인됐어요!</h2><div class="m" style="margin:6px 0 14px">${esc(p.name)}님, 이제 로그인해서 학습을 시작할 수 있어요.</div><div class="btns"><button class="p" onclick="sgLogin()">바로 로그인하기</button></div>`
+  :s==='rejected'?`<h2>가입이 승인되지 않았어요</h2><div class="m" style="margin:6px 0 14px">선생님께 문의한 뒤 다시 신청해 주세요.</div><div class="btns"><button class="p" onclick="try{localStorage.removeItem(SGK)}catch(e){};sgOpen('signup')">다시 신청하기</button><button class="s" onclick="try{localStorage.removeItem(SGK)}catch(e){};enterView()">닫기</button></div>`
+  :`<h2>승인 대기 중이에요</h2><div class="m" style="margin:6px 0 4px"><b>${esc(p.name)}</b>님의 가입 신청이 접수됐어요. 선생님이 승인하면 알림으로 알려 드릴게요.</div><div class="m" style="margin-bottom:14px">이 화면을 열어 두면 승인되는 즉시 알려 드려요. 아이디: <b>${esc(p.login)}</b></div><div class="sgdots" aria-hidden="true"><i></i><i></i><i></i></div><div class="btns"><button class="s" onclick="sgCheck(true)">승인됐는지 확인</button><button class="s" onclick="sgCancel()">닫기</button></div>`}</div>`}
+if(sgPend())setTimeout(sgPollStart,1200);
+function stLoginCard(){if(sgPend())return sgPendCard();if(SGU.mode==='signup')return sgFormCard();return `<div class="card enter stl"><div class="stbrand"><i></i>Solvi</div><h2>학생 로그인</h2><div class="m" style="margin-bottom:12px">선생님께 받은 아이디와 비밀번호를 입력하세요.</div>
  <input id="stid" class="stin" type="text" placeholder="아이디" autocapitalize="off" autocomplete="username"><input id="stpw" class="stin" type="password" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')stLogin()">
  <label class="chk" style="margin:8px 0"><input type="checkbox" ${autoOn()?'checked':''} onchange="autoSet(this.checked)"> 자동 로그인</label>
- <div class="btns"><button class="p" onclick="stLogin()">로그인</button>${pkOK()?'<button class="s" onclick="pkLogin()">패스키로 로그인</button>':''}</div>${acctQuick()}</div>`}
+ <div class="btns"><button class="p" onclick="stLogin()">로그인</button>${pkOK()?'<button class="s" onclick="pkLogin()">패스키로 로그인</button>':''}</div><div class="sgjoin"><span>아직 계정이 없나요?</span><button class="s" onclick="sgOpen('signup')">회원가입</button></div>${acctQuick()}</div>`}
 /* ---- 학생 홈 ---- */
 function ringSvg(p,label,sub,col){const r=42,C=2*Math.PI*r;return `<div class="rsv"><svg viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="#e6ebf1" stroke-width="10"/><circle cx="55" cy="55" r="${r}" fill="none" style="stroke:${col||'var(--b)'}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*p} ${C}" transform="rotate(-90 55 55)"/><text x="55" y="56" text-anchor="middle" dominant-baseline="central" font-size="24" font-weight="700" fill="#1f2933">${label}</text></svg><span>${sub}</span></div>`}
 function dayStart(t){const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
@@ -3132,7 +3201,7 @@ function mockDel(id){if(!confirm('이 모의고사를 목록에서 지울까요?
 async function mockExam(wid){if(guardStu&&guardStu())return;await openByNumber(wid);if(cur&&cur.ws){cur.mark=false;cur.ans={};cur.done=false;cur.t=Date.now();cur.sel=null;render()}}
 
 /* =================== 과목 선택 =================== */
-const SUBJECTS=[{id:'me',n:'물질과 에너지',ok:1,d:'교재 · 문제 은행 13,900문항'},{id:'cm',n:'세포와 물질대사',ok:1,d:'교재 283문항 · 문제 은행 10,000문항'},{n:'역학과 에너지',ok:0,d:'준비 중'}];
+const SUBJECTS=[{id:'me',n:'물질과 에너지',ok:1,d:'교재 · 문제 은행 13,900문항'},{id:'cm',n:'세포와 물질대사',ok:1,d:'교재 283문항 · 문제 은행 10,000문항'},{n:'역학과 에너지',ok:0,d:'준비 중'},{n:'화법과 언어',ok:0,d:'준비 중'},{n:'지구시스템과학',ok:0,d:'준비 중'}];
 function openSubjects(){const m=$('#cfg');$('#cfgBox').innerHTML=`<h2 style="margin-top:0">과목 선택</h2><div class="subj">${SUBJECTS.map(s=>`<button class="sj ${s.ok?'':'off'} ${s.n===$('#subj').textContent?'on':''}" ${s.ok?`onclick="setSubject('${s.id}')"`:'disabled'}><b>${s.n}</b><small>${s.d}</small></button>`).join('')}</div><div class="m" style="margin-top:10px">다른 과목 문제집이 완성되면 이곳에 추가됩니다.</div><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="s" onclick="closeCfg()">닫기</button></div>`;m.classList.add('open')}
 /* =================== 학생 화면 보기 (미리보기) =================== */
 let PVSAVE=null;
