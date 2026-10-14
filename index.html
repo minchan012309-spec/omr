@@ -3201,7 +3201,7 @@ function mockDel(id){if(!confirm('이 모의고사를 목록에서 지울까요?
 async function mockExam(wid){if(guardStu&&guardStu())return;await openByNumber(wid);if(cur&&cur.ws){cur.mark=false;cur.ans={};cur.done=false;cur.t=Date.now();cur.sel=null;render()}}
 
 /* =================== 과목 선택 =================== */
-const SUBJECTS=[{id:'me',n:'물질과 에너지',ok:1,d:'교재 · 문제 은행 13,900문항'},{id:'cm',n:'세포와 물질대사',ok:1,d:'교재 283문항 · 문제 은행 10,000문항'},{n:'역학과 에너지',ok:0,d:'준비 중'}];
+const SUBJECTS=[{id:'me',n:'물질과 에너지',ok:1,d:'교재 · 문제 은행 13,900문항'},{id:'cm',n:'세포와 물질대사',ok:1,d:'교재 283문항 · 문제 은행 10,000문항'},{n:'역학과 에너지',ok:0,d:'준비 중'},{n:'화법과 언어',ok:0,d:'준비 중'},{n:'지구시스템과학',ok:0,d:'준비 중'}];
 function openSubjects(){const m=$('#cfg');$('#cfgBox').innerHTML=`<h2 style="margin-top:0">과목 선택</h2><div class="subj">${SUBJECTS.map(s=>`<button class="sj ${s.ok?'':'off'} ${s.n===$('#subj').textContent?'on':''}" ${s.ok?`onclick="setSubject('${s.id}')"`:'disabled'}><b>${s.n}</b><small>${s.d}</small></button>`).join('')}</div><div class="m" style="margin-top:10px">다른 과목 문제집이 완성되면 이곳에 추가됩니다.</div><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="s" onclick="closeCfg()">닫기</button></div>`;m.classList.add('open')}
 /* =================== 학생 화면 보기 (미리보기) =================== */
 let PVSAVE=null;
