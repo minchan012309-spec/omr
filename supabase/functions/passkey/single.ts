@@ -119,9 +119,11 @@ function makeHandler({ swa, db, cfg }) {
 
 // Supabase Edge Function: 패스키 등록·로그인
 // 배포: supabase functions deploy passkey
-// 비밀값: supabase secrets set SITE_URL=https://<아이디>.github.io  (패스키를 쓰는 사이트 주소, 경로 제외)
+// 비밀값(선택): supabase secrets set SITE_URL=https://ssolvi.kro.kr  (패스키를 쓰는 사이트 주소, 경로 제외)
+// 설정하지 않으면 기본값 https://ssolvi.kro.kr 을 씁니다. 도메인을 바꾸면 SITE_URL 비밀값을 바꾸세요.
 
-const SITE = (Deno.env.get('SITE_URL') || '').replace(/\/+$/, '');
+const DEFAULT_SITE = 'https://ssolvi.kro.kr';
+const SITE = (Deno.env.get('SITE_URL') || DEFAULT_SITE).replace(/\/+$/, '');
 const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
 const cfg = { rpID: SITE ? new URL(SITE).hostname : 'localhost', rpName: 'Solvi', origins: SITE ? [SITE] : ['http://localhost:8765'] };
 
@@ -139,7 +141,7 @@ const db = {
     }
     try { const { error } = await withTimeout(sb.rpc('_st_auth_row', { p_login: 'x', p_pw: 'x' }) as unknown as Promise<{ error: { message: string } | null }>, 8000, '시간 초과'); out['_st_auth_row'] = error ? '오류: ' + error.message : 'ok'; }
     catch (e) { out['_st_auth_row'] = '오류: ' + (e as Error).message; }
-    out['SITE_URL'] = SITE || '(설정 안 됨)';
+    out['SITE_URL'] = SITE + (Deno.env.get('SITE_URL') ? '' : ' (기본값 사용 중)');
     return { checks: out };
   },
   async saveChallenge(c: { challenge: string; purpose: string; subject: string }) {
