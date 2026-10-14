@@ -659,6 +659,7 @@ header #refBtn{background:#ffffff1f;color:#fff;border-color:#ffffff40}
 .fl{border:1px solid var(--l2);border-radius:10px;padding:0 14px;min-height:44px;background:var(--surface);color:var(--t);font-size:14px}.fl:hover{border-color:var(--b)}
 @media(max-width:520px){.tsc .g2{grid-template-columns:1fr!important}}
 #cfgBox>p.m{margin-right:48px!important}#cfgBox .seg button{white-space:nowrap}
+#domnt{position:fixed;inset:0;z-index:300;background:#0b1530cc;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}#domnt .dnb{width:min(560px,100%);box-sizing:border-box;background:var(--surface);color:var(--t);border-radius:20px;padding:28px 26px 22px;box-shadow:0 20px 60px #0008}#domnt h2{margin:0 0 14px;font-size:28px;line-height:1.25;letter-spacing:-.02em;word-break:keep-all}#domnt .dnu{display:block;background:var(--b);color:#fff;border-radius:14px;padding:14px 16px;text-align:center;font-size:clamp(22px,6.4vw,32px);font-weight:800;letter-spacing:-.01em;word-break:break-all}#domnt ul{margin:18px 0 8px;padding-left:20px;display:grid;gap:10px;font-size:17px;line-height:1.55;word-break:keep-all}#domnt p{margin:8px 0 0;color:var(--m);font-size:14px}#domnt .dnr{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}#domnt .dnr .p,#domnt .dnr .s{flex:1 1 160px;min-height:52px;font-size:17px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border-radius:12px}html[data-theme=dark] #domnt .dnu{color:#0f0f10}#domnt a.p{background:var(--b);color:#fff;border:0}html[data-theme=dark] #domnt a.p{color:#0f0f10}
 html.big body{font-size:17px}html.big button,html.big select,html.big input:not([type=checkbox]){min-height:46px}html.big nav button{padding-left:14px;padding-right:14px}
 html[data-theme=dark] svg text[fill="#1f2933"],html[data-theme=dark] svg text[fill="#2b2f36"]{fill:var(--t)}html[data-theme=dark] svg [stroke="#e6ebf1"]{stroke:#34343a}html[data-theme=dark] svg [fill="#c9d0d8"]{fill:#4a4a52}html[data-theme=dark] svg [stroke="#2b2f36"]{stroke:#c9c9d0}
 html[data-theme=dark] .task{background:var(--sf1);border-color:var(--l2)}html[data-theme=dark] .task.ok{background:#16211b;border-color:#2b4638}html[data-theme=dark] .task.late{background:#2a1a1a;border-color:#5a2f2f}
@@ -808,7 +809,7 @@ function qMeta(c){const q=byCode[c];if(q)return q;const t=tagOf(c);if(t&&BIDXALL
 const autoOn=()=>{try{return localStorage.getItem('omr_auto')!=='0'}catch(e){return true}};
 function autoSet(v){try{localStorage.setItem('omr_auto',v?'1':'0')}catch(e){}if(!v){try{if(sess)sessionStorage.setItem(LSS,JSON.stringify(sess));localStorage.removeItem(LSS);if(STUD&&!STUD.preview){sessionStorage.setItem(LSTUD,JSON.stringify(STUD));localStorage.removeItem(LSTUD)}}catch(e){}}else{try{if(sess)localStorage.setItem(LSS,JSON.stringify(sess));if(STUD&&!STUD.preview)localStorage.setItem(LSTUD,JSON.stringify(STUD));sessionStorage.removeItem(LSS);sessionStorage.removeItem(LSTUD)}catch(e){}}}
 const sget=k=>{const a=jget(k,null);if(a)return a;try{return JSON.parse(sessionStorage.getItem(k)||'null')}catch(e){return null}};
-function loadCfg(){CF={url:'https://airejqudbqfsfhadvwqp.supabase.co',key:'sb_publishable_YPbHe6NNnV5eQT0u1SZiCg_JLvrM7IV',pub:'https://minchan012309-spec.github.io/omr/'};sess=sget(LSS)}
+function loadCfg(){CF={url:'https://airejqudbqfsfhadvwqp.supabase.co',key:'sb_publishable_YPbHe6NNnV5eQT0u1SZiCg_JLvrM7IV',pub:'https://ssolvi.kro.kr/'};sess=sget(LSS)}
 const cloud=()=>!!(CF.url&&CF.key);
 const teacher=()=>(!cloud()||!!sess)&&!STUD;
 const base_=()=>CF.url.replace(/\/$/,'');
@@ -2683,6 +2684,14 @@ async function stLogin(){const lg=($('#stid')||{}).value||'',pw=($('#stpw')||{})
   await stSetSession(lg.trim().toLowerCase(),pw);tab='home';await load();try{const pc=sessionStorage.getItem('omr_pend');if(pc){sessionStorage.removeItem('omr_pend');pc.startsWith('BK:')?bkRoute(pc.slice(3)):openByNumber(pc)}}catch(e){}}catch(e){alert('로그인하지 못했습니다. 인터넷 연결을 확인하세요.')}}
 function logoutStud(){if(STUD&&STUD.tok)rpc('st_logout',{p_login:STUD.login,p_token:STUD.pw.slice(4)}).catch(()=>{});try{sessionStorage.removeItem(LSTUD)}catch(e){}STUD=null;STINFO=null;ASSIGN=[];localStorage.removeItem(LSTUD);hist=[];cur=null;tab='enter';load()}
 function syncClick(){if(PVSAVE){exitPreview();return}if(STUD){openSettings()}else openCfg()}
+/* ---------- 주소 변경 안내 (2026-10-16 금요일까지) ---------- */
+const DOMNT={host:'ssolvi.kro.kr',until:Date.parse('2026-10-17T00:00:00+09:00')};
+function domNotice(){try{if(Date.now()>=DOMNT.until||sessionStorage.getItem('omr_domnt')||document.getElementById('domnt'))return;
+ const onNew=location.hostname===DOMNT.host;const o=document.createElement('div');o.id='domnt';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','주소 변경 안내');
+ o.innerHTML=`<div class="dnb"><h2>앱 주소가 바뀌었어요</h2><div class="dnu">${DOMNT.host}</div><ul><li>앞으로는 <b>이 주소</b>로 들어와 주세요.</li><li>홈 화면에 추가해서 쓰던 분은 <b>새 주소에서 다시 추가</b>해 주세요.</li><li>처음 한 번은 <b>로그인을 다시</b> 해야 해요. 패스키도 다시 등록해 주세요.</li></ul><p>이 안내는 10월 16일(금)까지만 보여요.</p><div class="dnr">${onNew?'':`<a class="p" href="https://${DOMNT.host}/">새 주소로 이동</a>`}<button class="${onNew?'p':'s'}" onclick="domNoticeClose()">확인했어요</button></div></div>`;
+ document.body.appendChild(o);setTimeout(()=>{const b=o.querySelector('button');b&&b.focus()},50)}catch(e){}}
+function domNoticeClose(){try{sessionStorage.setItem('omr_domnt','1')}catch(e){}const o=document.getElementById('domnt');if(o)o.remove()}
+setTimeout(domNotice,900);
 /* ---------- 새로고침 · 버그 신고 ---------- */
 async function hardRefresh(){try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)));const rg=await navigator.serviceWorker.getRegistrations();await Promise.all(rg.map(r=>r.update().catch(()=>{})))}catch(e){}location.reload()}
 let BUG={kind:'기능 오류',busy:0,list:[]};
