@@ -205,3 +205,105 @@ begin
     'assignments', (select coalesce(json_agg(json_build_object('wid', x.wid, 'title', x.title, 'due', x.due, 'note', x.note, 't', x.t) order by x.t desc), '[]'::json)
                     from assignments x where x.student_id = s.id));
 end $$;
+
+-- 10) 패스키 로그인 · 자동 로그인 토큰 (Edge Function `passkey`가 사용합니다)
+create table if not exists passkeys (
+  id            bigint generated always as identity primary key,
+  user_id       uuid references auth.users(id) on delete cascade,
+  student_id    uuid references students(id) on delete cascade,
+  credential_id text not null unique,
+  public_key    text not null,
+  counter       bigint not null default 0,
+  transports    text[],
+  label         text,
+  created_at    timestamptz not null default now(),
+  last_used     timestamptz,
+  check ((user_id is null) <> (student_id is null))
+);
+create table if not exists passkey_challenges (
+  id         uuid primary key default gen_random_uuid(),
+  challenge  text not null,
+  purpose    text not null,
+  subject    text not null default '',
+  created_at timestamptz not null default now()
+);
+create table if not exists st_tokens (
+  token_hash text primary key,
+  student_id uuid not null references students(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now() + interval '90 days'
+);
+-- 정책을 만들지 않으면 일반 사용자는 접근할 수 없고, 서비스 키(Edge Function)만 읽고 쓸 수 있습니다.
+alter table passkeys enable row level security;
+alter table passkey_challenges enable row level security;
+alter table st_tokens enable row level security;
+
+-- 학생 인증: 비밀번호 대신 「tok:<토큰>」을 넘기면 자동 로그인 토큰으로 확인합니다.
+create or replace function _st_auth(p_login text, p_pw text) returns students
+language plpgsql security definer set search_path = public, extensions as $$
+declare s students%rowtype;
+begin
+  if p_pw like 'tok:%' then
+    select st.* into s from students st join st_tokens t on t.student_id = st.id
+      where st.login = lower(trim(p_login)) and st.pw_hash is not null
+        and t.token_hash = encode(digest(substr(p_pw, 5), 'sha256'), 'hex') and t.expires_at > now() limit 1;
+  else
+    select * into s from students where login = lower(trim(p_login)) and pw_hash is not null and pw_hash = crypt(p_pw, pw_hash) limit 1;
+  end if;
+  if not found then return null; end if;
+  return s;
+end $$;
+revoke all on function _st_auth(text, text) from public, anon, authenticated;
+
+create or replace function _st_auth_row(p_login text, p_pw text) returns json
+language plpgsql security definer set search_path = public, extensions as $$
+declare s students%rowtype;
+begin
+  s := _st_auth(p_login, p_pw);
+  if s.id is null then return null; end if;
+  return json_build_object('id', s.id, 'name', s.name, 'login', s.login);
+end $$;
+revoke all on function _st_auth_row(text, text) from public, anon, authenticated;
+grant execute on function _st_auth_row(text, text) to service_role;
+
+-- 비밀번호로 로그인한 학생에게 자동 로그인 토큰을 발급 (비밀번호를 기기에 저장하지 않기 위해)
+create or replace function st_issue_token(p_login text, p_pw text) returns text
+language plpgsql security definer set search_path = public, extensions as $$
+declare s students%rowtype; tok text;
+begin
+  if p_pw like 'tok:%' then return null; end if;
+  s := _st_auth(p_login, p_pw);
+  if s.id is null then return null; end if;
+  tok := encode(gen_random_bytes(32), 'hex');
+  insert into st_tokens (token_hash, student_id) values (encode(digest(tok, 'sha256'), 'hex'), s.id);
+  delete from st_tokens where student_id = s.id and expires_at < now();
+  return tok;
+end $$;
+create or replace function st_logout(p_login text, p_token text) returns void
+language plpgsql security definer set search_path = public, extensions as $$
+begin
+  delete from st_tokens where token_hash = encode(digest(p_token, 'sha256'), 'hex')
+    and student_id in (select id from students where login = lower(trim(p_login)));
+end $$;
+grant execute on function st_issue_token(text, text) to anon, authenticated;
+grant execute on function st_logout(text, text) to anon, authenticated;
+
+-- 비밀번호를 다시 발급하거나 계정을 해제하면 기존 자동 로그인과 패스키도 함께 무효화합니다.
+create or replace function issue_login(p_student uuid, p_login text, p_pw text) returns void
+language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if not exists (select 1 from students where id = p_student and user_id = auth.uid()) then
+    raise exception 'not allowed';
+  end if;
+  if length(coalesce(p_pw,'')) < 4 then raise exception 'password too short'; end if;
+  if length(coalesce(p_login,'')) < 3 then raise exception 'login too short'; end if;
+  update students set login = lower(trim(p_login)), pw_hash = crypt(p_pw, gen_salt('bf')) where id = p_student;
+  delete from st_tokens where student_id = p_student;
+end $$;
+create or replace function revoke_login(p_student uuid) returns void
+language plpgsql security definer set search_path = public, extensions as $$
+begin
+  update students set login = null, pw_hash = null where id = p_student and user_id = auth.uid();
+  delete from st_tokens where student_id = p_student and exists (select 1 from students where id = p_student and user_id = auth.uid());
+  delete from passkeys where student_id = p_student and exists (select 1 from students where id = p_student and user_id = auth.uid());
+end $$;
