@@ -50,7 +50,7 @@ tr.sel td{background:#f3f8ff}
 .modal{position:fixed;inset:0;background:#0006;z-index:20;display:none;align-items:center;justify-content:center;padding:16px}.modal.open{display:flex}
 .modal .box{background:var(--surface);border-radius:14px;padding:22px;width:min(460px,100%);max-height:90vh;overflow:auto}
 .modal label{display:block;font-size:13px;color:var(--m);margin:10px 0 3px}.modal input{width:100%}.modal input[type=checkbox]{width:auto;margin:0}.modal label.cb{display:inline-flex;align-items:center;gap:6px;color:var(--t);font-size:14px;margin:4px 14px 4px 0}.modal label.cb b{font-weight:500}
-#wsView{position:fixed;inset:0;background:#e9eef5;z-index:30;overflow:auto;display:none}#wsView.open{display:block}#wsView.wsm{display:block;left:-30000px;right:auto;width:1200px;visibility:hidden;pointer-events:none}
+#wsView{--qf:none;--qfi:none;position:fixed;inset:0;background:#e9eef5;z-index:30;overflow:auto;display:none}#wsView.open{display:block}#wsView.wsm{display:block;left:-30000px;right:auto;width:1200px;visibility:hidden;pointer-events:none}
 #wsBar .wsx{order:99;margin-left:auto;width:38px;height:38px;border-radius:50%;border:1px solid var(--l);background:var(--surface);font-size:18px;line-height:1;cursor:pointer;color:#333;padding:0;display:grid;place-items:center}#wsBar .wsx:hover{background:var(--sf1)}
 #wsBar{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--l);padding:10px 16px;display:flex;gap:10px;align-items:center;z-index:2;flex-wrap:wrap}
 #wsPaper{width:210mm;margin:14px auto;padding:0;background:none}
@@ -483,14 +483,32 @@ nav button{min-height:48px}
 }
 </style>
 <style>
-/* 색 토큰: 다크 테마(실험) — 설정에서 켜면 html[data-theme=dark] */
-html[data-theme=dark]{color-scheme:dark;--surface:#1a212a;--bg:#11161c;--t:#e7ecf1;--m:#a6b2bf;--m2:#b8c3cf;--l:#2b3541;--l2:#3a4655;--sf1:#202934;--sf2:#2a3441;--b:#6aa9ee;--bd:#8dbcf2;--bl:#1b2a3c;--yl:#3a3216}
-html[data-theme=dark] body[data-subj=cm]{--b:#4fc58a;--bd:#7ad8a8;--bl:#14291f;--bg:#10171a}
-html[data-theme=dark] header,html[data-theme=dark] nav{background:var(--surface)}
-html[data-theme=dark] .st-hero{background:linear-gradient(120deg,#1d4f86,#2a72bf)}html[data-theme=dark] body[data-subj=cm] .st-hero{background:linear-gradient(120deg,#13603b,#15804c)}
-html[data-theme=dark] .st-hero button{background:#fff;color:#1d5ca6}
+/* 다크 테마: 중립적인 어두운 회색·검정 (기기 설정을 따라 자동 전환, 설정에서 고정 가능) */
+html[data-theme=dark]{--qf:invert(.9) hue-rotate(180deg);--qfi:invert(1) hue-rotate(180deg);color-scheme:dark;--surface:#1a1a1c;--bg:#0f0f10;--t:#ececee;--m:#a4a4ab;--m2:#b9b9c0;--l:#2c2c30;--l2:#3b3b41;--sf1:#202023;--sf2:#2b2b30;--b:#6ca8ec;--bd:#9ac3f3;--bl:#1f2630;--yl:#33301f;--no:#ef6a66}
+html[data-theme=dark] body[data-subj=cm]{--b:#52c48c;--bd:#86d9b0;--bl:#1d2a24;--bg:#0f0f10}
+html[data-theme=dark] header{background:#18181a;border-bottom:1px solid #2c2c30}html[data-theme=dark] header nav{background:transparent}
+html[data-theme=dark] header nav button{color:#a4a4ab}html[data-theme=dark] header nav button:hover{color:#fff}html[data-theme=dark] header nav button.on{color:#fff;border-bottom-color:var(--b)}
+html[data-theme=dark] header .sjp small{background:var(--b)!important;color:#0f0f10!important}
+html[data-theme=dark] header #stuSel{background:#26262a;color:var(--t);border:1px solid #3b3b41}
+html[data-theme=dark] header #sync,html[data-theme=dark] header #saved{color:#a4a4ab;border-color:#3b3b41}
+html[data-theme=dark] .st-hero{background:linear-gradient(120deg,#1d3556,#264a78)}html[data-theme=dark] body[data-subj=cm] .st-hero{background:linear-gradient(120deg,#17402b,#1d5a3a)}
+html[data-theme=dark] .st-hero button{background:#fff;color:#1d3556}
+html[data-theme=dark] .th-hero{background:var(--bl);border-color:#2c2c30}
 html[data-theme=dark] header h1 .bn{color:var(--t)}
-html[data-theme=dark] .p,html[data-theme=dark] button.p{color:#0d1722}
+html[data-theme=dark] .p,html[data-theme=dark] button.p{color:#0f0f10}
+html[data-theme=dark] select,html[data-theme=dark] input,html[data-theme=dark] textarea{background:#202023;color:var(--t);border-color:var(--l2)}
+html[data-theme=dark] select option{background:#202023;color:var(--t)}
+html[data-theme=dark] ::placeholder{color:#7d7d85}
+html[data-theme=dark] .hint,html[data-theme=dark] .sfhint,html[data-theme=dark] .draftb{background:#2a2718;color:#e6dcae;border-color:#4a4320}html[data-theme=dark] .hint b,html[data-theme=dark] .sfhint b{color:#f4e9ba}
+html[data-theme=dark] .sjpill,html[data-theme=dark] i[class^=lb_],html[data-theme=dark] .tvi b{color:#0f0f10}
+html[data-theme=dark] .cbk table,html[data-theme=dark] .cbk td,html[data-theme=dark] .cbk th{background-color:var(--surface)}html[data-theme=dark] .cbk th{background-color:var(--sf2)}
+html[data-theme=dark] .glab,html[data-theme=dark] .lay .lrow>.m,html[data-theme=dark] .mk2 b{color:var(--m2)!important}
+html[data-theme=dark] .cell span{color:var(--t)}html[data-theme=dark] .sr .ss span{background:var(--sf2);color:var(--m2)}
+html[data-theme=dark] .bkcov b,html[data-theme=dark] .bkcov span,html[data-theme=dark] .bkcov em,html[data-theme=dark] .bkcov i{color:#111}html[data-theme=dark] .bkcov i{background:#111}
+html[data-theme=dark] .cbk{--ink:#ececee;--gr:#b4b4bb;--pl:#1f2630;--pl2:#262c35;--line:#3b3b41;--wl:#2b2819;--hl:#5c5012;color:#ececee}
+html[data-theme=dark] .cbk .hl{color:#fff4b8}
+html[data-theme=dark] .bkcard,html[data-theme=dark] .card,html[data-theme=dark] .pr_q{background:var(--surface);color:var(--t)}
+html[data-theme=dark] .bkcard h3,html[data-theme=dark] .bkcard p,html[data-theme=dark] .bkcard small{color:var(--t)}html[data-theme=dark] .bkcard p,html[data-theme=dark] .bkcard small{color:var(--m)}
 </style>
 <style>
 /* 교사 홈 배너: 인사와 오늘의 숫자를 한 번에 읽히게 */
@@ -534,7 +552,7 @@ button.p,button.s{border-radius:10px}button.p{font-weight:700}
 .qc b{font-weight:700;font-variant-numeric:tabular-nums;font-size:.92em;letter-spacing:0;padding:1px 7px;border-radius:6px;background:color-mix(in srgb,var(--b) 13%,var(--surface));color:var(--bd);border:1px solid color-mix(in srgb,var(--b) 30%,transparent)}
 .qc i{font-style:normal;font-size:.7em;letter-spacing:1px;color:var(--l2)}.qc i em{font-style:normal;color:var(--b)}
 @media(max-width:720px){main{padding:0 14px 120px}.card{padding:16px}h2{font-size:19px}header nav button{color:var(--m)}header nav button:hover{color:var(--t)}header nav button.on{color:var(--b);border-bottom-color:transparent}}
-html[data-theme=dark] header{background:#16324f}html[data-theme=dark] body[data-subj=cm] header{background:#123f2b}
+
 html[data-theme=dark] .th-hero{background:var(--bl)}
 </style>
 <style>
@@ -568,6 +586,8 @@ html[data-theme=dark] .th-hero{background:var(--bl)}
 <style>
 /* 튜토리얼 */
 #helpBtn{width:38px;height:38px;border-radius:50%;font-size:18px;font-weight:800;cursor:pointer;padding:0;flex:none;line-height:1;background:#ffffff1f;border:1px solid #ffffff55;color:#fff}#helpBtn:hover{background:#ffffff33}#helpBtn[hidden]{display:none}
+.tpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px 16px}.tpg .tp{display:flex;align-items:center;gap:8px;margin:0}.tl{display:block;font-size:12px;color:var(--m);margin-bottom:3px}
+html[data-theme=dark] button.p,html[data-theme=dark] button.p *,html[data-theme=dark] button.ck.on,html[data-theme=dark] button.ck.on *,html[data-theme=dark] span.tag.on{color:#0f0f10}
 #tour{position:fixed;inset:0;z-index:80;pointer-events:none}
 #tour .tspot{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(15,23,42,.55);outline:3px solid #fff;outline-offset:0;transition:left .2s,top .2s,width .2s,height .2s;pointer-events:none}
 #tour.free .tspot{box-shadow:0 0 0 9999px rgba(15,23,42,.6);outline:0}
@@ -596,6 +616,11 @@ html[data-theme=dark] .th-hero{background:var(--bl)}
 #notifp .ni{border-top:1px solid var(--l);padding:10px 2px}#notifp .ni.new{background:var(--bl);border-radius:8px;padding:10px 8px;margin:2px 0}
 #notifp .nt{display:flex;align-items:center;gap:6px;flex-wrap:wrap}#notifp .nt small{margin-left:auto;color:var(--m);font-size:12px}#notifp .ni p{margin:4px 0 6px;font-size:13.5px;line-height:1.55;white-space:pre-wrap}
 #notifp .ntag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;background:var(--bl);color:var(--bd)}#notifp .ntag.n{background:#fff2e3;color:#8a4b00}
+</style>
+<style>
+#cfgBox{position:relative}#cfgBox .cfgx{position:sticky;top:0;float:right;z-index:5;width:40px;height:40px;border-radius:50%;border:1px solid var(--l);background:var(--surface);font-size:16px;cursor:pointer;margin:-6px -6px 0 8px;box-shadow:0 2px 8px #0002}
+#cfgBox .cfgx:hover{background:var(--bl)}
+#notifp .ni.go{cursor:pointer}#notifp .ni.go:hover{background:var(--bl);border-radius:8px}#notifp .ngo{font-size:12.5px;color:var(--bd);font-weight:700}
 </style>
 </head><body>
 <header><h1 id="brand"><a class="lgo" onclick="goHome()" title="홈으로" role="link" tabindex="0" onkeydown="if(event.key==='Enter')goHome()"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lgx" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--b,#3b82f6)"/><stop offset="1" style="stop-color:var(--bd,#1d4ed8)"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lgx)"/><path d="M22.5 9.6A9 9 0 1 0 25 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M11.4 16.4l3.6 3.6 7-8.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bn">Solvi</span></a><span class="sjp" onclick="openSubjects()" title="과목 바꾸기"><small id="subj">물질과 에너지</small><b>▾</b></span></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span><span id="saved" title="이 기기에 자동 저장된 마지막 시각"></span><button id="bellBtn" onclick="notifOpen(event)" title="알림" aria-label="알림"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 2a6 6 0 0 0-6 6v3.6L4.3 15a1 1 0 0 0 .9 1.4h13.6a1 1 0 0 0 .9-1.4L18 11.6V8a6 6 0 0 0-6-6zm-2 17a2 2 0 0 0 4 0h-4z"/></svg><span id="bellN" hidden></span></button><button id="helpBtn" onclick="tourMenu(event)" title="튜토리얼" aria-label="튜토리얼" hidden>?</button><button id="setBtn" onclick="openSettings()" title="설정 · 단축키 · 데이터 관리" aria-label="설정">⚙</button></header>
@@ -647,7 +672,7 @@ function hlHtml(h,terms){if(!terms||!terms.length)return h;const re=new RegExp('
 const PLAINQ='.q .qn{background:none!important;color:#1f2933!important;box-shadow:none!important;padding:0!important;min-width:0!important;width:auto!important;height:auto!important;border-radius:0!important;font-size:15px!important;line-height:1.3!important;margin-right:2px}.q .qn::after{content:"."}.q .qp{margin-left:4px}';
 function mount(el,html,css){const r=el.shadowRoot||el.attachShadow({mode:'open'});
  r.innerHTML=`<style>${QCSS}
- .wrap{font-family:Pretendard,PretendardLocal,sans-serif;font-size:10.5pt;line-height:1.62;color:#1b2430;word-break:keep-all}
+ .wrap{font-family:Pretendard,PretendardLocal,sans-serif;font-size:10.5pt;line-height:1.62;color:#1b2430;word-break:keep-all;filter:var(--qf,none)}.wrap img,.wrap svg{filter:var(--qfi,none)}
  .q{min-height:0!important;padding-bottom:1mm!important;break-inside:auto}img{max-width:100%}.fg{max-width:460px}mark.hl{background:#ffe27a;color:inherit;padding:0 1px;border-radius:2px;box-shadow:0 0 0 1px #f2b400 inset}${css||''}</style><div class="wrap">${html}</div>`}
 /* ---------- 문제 은행(지연 로딩) ---------- */
 /* 과목별 자료: me=물질과 에너지(bank/), cm=세포와 물질대사(cm/) */
@@ -727,11 +752,14 @@ function openCfg(){const b=$('#cfgBox');
  ${sess?`<p>로그인: <b>${esc(sess.user&&sess.user.email||'')}</b></p><div class="row"><button class="s" onclick="logout()">로그아웃</button></div>${pkSection()}`:''}
 
  ${teacher()?`<h3 style="margin:18px 0 4px;font-size:15px">선생님 이름</h3><div class="m">홈 화면 인사에 「○○○님」으로 표시돼요. 로그인한 계정에도 저장돼서 다른 기기에서도 그대로 보여요.</div><div class="row" style="margin-top:8px;gap:8px"><input id="tn2" maxlength="12" value="${esc(teacherName())}" placeholder="예) 김민찬" style="flex:1"><button class="p" onclick="tnSave($('#tn2').value)">저장</button></div>`:''}
- <h3 style="margin:18px 0 4px;font-size:15px">화면 테마</h3><div class="m">다크 테마는 아직 실험 단계라 일부 화면이 어색할 수 있어요. 인쇄물은 영향받지 않아요.</div><div class="row" style="margin-top:8px;gap:8px"><button class="${themeGet()==='light'?'p':'s'}" onclick="themeSet('light')">라이트</button><button class="${themeGet()==='dark'?'p':'s'}" onclick="themeSet('dark')">다크 (실험)</button></div>
- <div class="row" style="margin-top:14px"><button class="s" onclick="$('#cfg').classList.remove('open')">닫기</button></div>`;$('#cfg').classList.add('open');if(sess)pkRefresh()}
-function themeGet(){try{return localStorage.getItem('omr_theme')==='dark'?'dark':'light'}catch(e){return 'light'}}
-function themeSet(v){try{localStorage.setItem('omr_theme',v)}catch(e){}document.documentElement.dataset.theme=v;openCfg()}
-document.documentElement.dataset.theme=themeGet();
+ <h3 style="margin:18px 0 4px;font-size:15px">화면 테마</h3><div class="m">기본은 기기(시스템) 설정을 따라가요. 인쇄물은 영향받지 않아요.</div><div class="row" style="margin-top:8px;gap:8px"><button class="${themeGet()==='auto'?'p':'s'}" onclick="themeSet('auto')">시스템 설정</button><button class="${themeGet()==='light'?'p':'s'}" onclick="themeSet('light')">라이트</button><button class="${themeGet()==='dark'?'p':'s'}" onclick="themeSet('dark')">다크</button></div>
+ `;$('#cfg').classList.add('open');cfgChrome();if(sess)pkRefresh()}
+function themeGet(){try{const v=localStorage.getItem('omr_theme');return v==='dark'||v==='light'?v:'auto'}catch(e){return 'auto'}}
+const themeEff=()=>{const v=themeGet();return v==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):v};
+function themeApply(){document.documentElement.dataset.theme=themeEff();const m=document.querySelector('meta[name=theme-color]');if(m)m.content=themeEff()==='dark'?'#111111':'#2a72bf'}
+function themeSet(v){try{if(v==='auto')localStorage.removeItem('omr_theme');else localStorage.setItem('omr_theme',v)}catch(e){}themeApply();openCfg()}
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(themeGet()==='auto')themeApply()})}catch(e){}
+themeApply();
 function saveCfg(){CF.url=$('#cu').value.trim();CF.key=$('#ck').value.trim();CF.pub=$('#cpub').value.trim();jset(LC,{url:CF.url,key:CF.key,pub:CF.pub});openCfg()}
 async function doAuth(k){try{$('#cmsg').textContent='처리 중…';await auth(k,$('#ce').value.trim(),$('#cp').value);$('#cfg').classList.remove('open');await load()}catch(e){$('#cmsg').textContent=e.message}}
 function logout(){sess=null;localStorage.removeItem(LSS);try{sessionStorage.removeItem(LSS)}catch(e){}srv=false;$('#cfg').classList.remove('open');tab='enter';load()}
@@ -811,7 +839,8 @@ let _icoT=0;new MutationObserver(ms=>{if(_icoT)return;_icoT=setTimeout(()=>{_ico
 function decorate(){document.body.classList.toggle('hasfab',!!document.querySelector('.fab'));document.querySelectorAll('button').forEach(b=>{if(!b.title){const t=b.textContent.trim();if(t)b.title=t}})}
 function goFull(){bkLoad().then(()=>{tab='books';bkGoFull();render();scrollTo(0,0)}).catch(()=>alert('교재를 불러오지 못했습니다.'))}
 function nav(){const hb=document.getElementById('helpBtn');if(hb)hb.hidden=!STUD;
-const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['stat','유형 분석'],['concept','개념학습'],['books','교재'],['smap','학습지 만들기'],['shist','기록']]:teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'],['stat','누적 분석'],['search','문항 검색']]:[['enter','번호 채점']];
+const PK={smap:'make',stat:'stat',concept:'concept',books:'books',wrong:'wrong',diag:'diag'};
+const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['stat','유형 분석'],['concept','개념학습'],['books','교재'],['smap','학습지 만들기'],['shist','기록']].filter(([k])=>!PK[k]||permOn(PK[k])):teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'],['stat','누적 분석'],['search','문항 검색'],['tset','설정']]:[['enter','번호 채점']];
  if(!T.find(x=>x[0]===tab)&&!(tab==='grade'&&cur)&&!(tab==='prac'&&PR)&&!((tab==='build'||tab==='bdesign'||tab==='bmake'||tab==='wsedit'||tab==='review')&&teacher())&&!(tab==='prac'&&STUD)&&!(tab==='mock'&&teacher()))tab=T[0][0];$('#nav').innerHTML=T.map(([k,v])=>`<button class="${tab===k||(k==='ws'&&['build','bdesign','review'].includes(tab))||(k==='books'&&tab==='mock')||(k==='enter'&&tab==='grade'&&STUD)?'on':''}" onclick="navGo('${k}')">${v}</button>`).join('')}
 let _navKey=null;
 function goHome(){const k=STUD?'home':(teacher()?'thome':'enter');if(cur&&tab==='grade'&&!cur.done&&!confirm('채점을 그만둘까요? 입력한 내용은 저장되지 않습니다.'))return;if(cur&&tab==='grade'){clearInterval(_tm);if(!cur.done)gdraftClear();cur=null}PR=null;$('#exp').classList.remove('open');tab=k;render();scrollTo(0,0)}
@@ -821,7 +850,7 @@ function pushNav(){const k=navKey();if(_navKey===null){history.replaceState({k},
 window.addEventListener('popstate',e=>{const k=(e.state&&e.state.k)||'';const p=k.split('|');if(!p[0])return;tab=p[0];if(p[1]!=='1')cur=null;if(p[2]!=='1')PR=null;if(p[3]!=='1')$('#wsView').classList.remove('open');_navKey=k;render(true)});
 function resetW(){FL='';FLS=0;W=JSON.parse(JSON.stringify(WDEF));W.sel=new Map();BQ='';BU=[];BD.codes=null;saveW()}
 const FRESHFROM=['build','bdesign','bmake','review','weak','prac','wsedit'];
-function render(skip){tipHide();if((tab==='build'||tab==='weak')&&window._lt!==tab&&!FRESHFROM.includes(window._lt||'')){try{resetW()}catch(e){}}{const m=document.getElementById('main');if(m){if(window._lt!==tab){m.classList.remove('pgin');void m.offsetWidth;m.classList.add('pgin');clearTimeout(window._pgt);window._pgt=setTimeout(()=>m.classList.remove('pgin'),600)}window._lt=tab}}if(teacher()&&tab==='enter'&&!STUD)tab='thome';{const m=$('#qsheet');if(m&&(!cur||cur.done||cur.mark))m.classList.remove('open')}nav();({grade:gradeView,bdesign:bdesignView,mock:mockView,wrong:wrongView,diag:diagView,thome:teacherHome,enter:enterView,weak:weakView,concept:conceptView,books:booksView,ws:wsListView,stu:stuView,stat:statView,search:searchView,prac:pracView,build:buildView,bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();try{if(NT.who!==nWho()){NT.who=nWho();nStart();if(STUD)setTimeout(updAuto,2500)}nBadge()}catch(e){}decorate()}
+function render(skip){tipHide();if((tab==='build'||tab==='weak')&&window._lt!==tab&&!FRESHFROM.includes(window._lt||'')){try{resetW()}catch(e){}}{const m=document.getElementById('main');if(m){if(window._lt!==tab){m.classList.remove('pgin');void m.offsetWidth;m.classList.add('pgin');clearTimeout(window._pgt);window._pgt=setTimeout(()=>m.classList.remove('pgin'),600)}window._lt=tab}}if(teacher()&&tab==='enter'&&!STUD)tab='thome';{const m=$('#qsheet');if(m&&(!cur||cur.done||cur.mark))m.classList.remove('open')}nav();({grade:gradeView,bdesign:bdesignView,mock:mockView,wrong:wrongView,diag:diagView,thome:teacherHome,enter:enterView,weak:weakView,concept:conceptView,books:booksView,ws:wsListView,stu:stuView,stat:statView,search:searchView,tset:tsetView,prac:pracView,build:buildView,bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();try{if(NT.who!==nWho()){NT.who=nWho();nStart();if(STUD)setTimeout(updAuto,2500)}nBadge()}catch(e){}decorate()}
 const lastRes=()=>{const m={};H().forEach(h=>h.items.forEach(x=>{(m[x.c]=m[x.c]||[]).push(x.r)}));return m};
 function statsFrom(hs,keyf,filter){const m={};
  hs.forEach(h=>h.items.forEach(x=>{const q=qMeta(x.c);if(!q||!q.type||(filter&&!filter(q)))return;const k=keyf(q);const o=m[k]=m[k]||{k,n:0,r:0,rec:[],q};o.n++;o.r+=x.r;o.rec.push(x.r)}));
@@ -864,7 +893,7 @@ document.addEventListener('keydown',e=>{
  if(k==='Backspace'){cur.ans[idx]='';render();e.preventDefault()}
  else if(k==='ArrowDown'||k==='ArrowRight'||k==='Enter'){idx=Math.min(idx+1,cur.qs.length-1);render()}
  else if(k==='ArrowUp'||k==='ArrowLeft'){idx=Math.max(idx-1,0);render()}});
-function bookNext(){if(!cur.book)return '';if(cur.book.bk)return bkNextHtml();const nx=nextBookPage(cur.book.page);
+function bookNext(){if(!cur.book||PREF.nextPage===0)return '';if(cur.book.bk)return bkNextHtml();const nx=nextBookPage(cur.book.page);
  return nx?`<div class="hint" style="margin:10px 0">p.${cur.book.page} 채점을 마쳤습니다. 다음 쪽(<b>p.${nx}</b>)도 이어서 채점할까요? <button class="p" style="margin-left:8px" onclick="openBookPage(${nx})">p.${nx} 채점하기</button> <button class="s" onclick="cur=null;render()">그만하기</button></div>`:`<div class="hint" style="margin:10px 0">교재에서 채점할 수 있는 마지막 쪽입니다.</div>`}
 function resultHtml(){const n=cur.qs.length;const oks=cur.qs.map((q,i)=>ok(q,cur.ans[i]));const r=oks.filter(Boolean).length,w=n-r,p=n?Math.round(r/n*100):0;
  const t=aggItems(cur.qs.map((q,i)=>({q,r:oks[i]})),q=>q.sub+' '+q.subname+'|'+q.type).sort((a,b)=>a.p-b.p);
@@ -950,11 +979,11 @@ const TOURS={
   {center:1,text:'기록이 쌓일수록 분석이 정확해져요.'}]}
 };
 let TOUR=null;
-const tourKey=()=>'omr_tours_'+((STUD&&STUD.login)||'x');
+const tourKey=()=>'omr_tours_'+((STUD&&STUD.login)||'t');
 function tourDone(id){try{return !!(JSON.parse(localStorage.getItem(tourKey())||'{}')[id])}catch(e){return false}}
 function tourMark(id){try{const o=JSON.parse(localStorage.getItem(tourKey())||'{}');o[id]=1;localStorage.setItem(tourKey(),JSON.stringify(o))}catch(e){}}
 function tourEl(s){if(!s.sel)return null;return [...document.querySelectorAll(s.sel)].find(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0})||null}
-function tourStart(id,opt){if(!STUD||!TOURS[id])return;closeCfg&&closeCfg();tourEnd(true);let steps=TOURS[id].steps;opt=opt||{};
+function tourStart(id,opt){if(!TOURS[id])return;closeCfg&&closeCfg();tourEnd(true);let steps=TOURS[id].steps;opt=opt||{};
  if(opt.forced)steps=[{welcome:1,forced:1,text:opt.text||'새 기능이 추가됐어요. 직접 눌러 보며 익혀 볼까요?'},...steps.filter(s=>!s.welcome)];
  TOUR={id,i:-1,steps,upd:opt.upd||null};
  const o=document.createElement('div');o.id='tour';o.innerHTML='<div class="tspot"></div><div class="tcard" role="dialog" aria-live="polite"></div>';document.body.appendChild(o);
@@ -986,12 +1015,40 @@ function tourMenu(e){e.stopPropagation();const old=document.getElementById('tour
 function tourMenuGo(k){const m=document.getElementById('tourmenu');if(m)m.remove();tourStart(k)}
 document.addEventListener('click',e=>{if(!e.target.closest('#tourmenu,#helpBtn')){const m=document.getElementById('tourmenu');if(m)m.remove()}});
 function tourAuto(){if(!STUD||TOUR||tourDone('offered')||tourDone('intro'))return;try{if(!localStorage.getItem(updSeenKey()))localStorage.setItem(updSeenKey(),JSON.stringify(UPDATES.map(u=>u.id)))}catch(e){}tourMark('offered');setTimeout(()=>{if(tab==='home'&&!TOUR)tourStart('intro')},900)}
+/* ---------- 설정 탭: 학생 권한 · 교사 편의 기능 ---------- */
+const PERMS=[['make','학습지 만들기 · 화면에서 풀기'],['print','인쇄용 학습지 만들기'],['ink','문제 위 필기'],['pageSolve','교재 N쪽만 화면에서 풀기'],['books','교재 보기'],['stat','유형 분석 보기'],['concept','개념학습'],['wrong','오답노트'],['diag','오답 진단']];
+let PERM={};const permOn=k=>{const P=(STUD&&STUD.preview&&TSET.perms)||PERM;return P[k]!==false&&P[k]!==0};
+let PREF=Object.assign({guide:1,nextPage:1,bkGap:0,bkColor:'',bkFont:'paper',total:15,lvr:'std'},jget('omr_pref_v1',{}));
+const LVPS={basic:[5,4,1,0],std:[2,5,3,0],hard:[1,3,5,1]};
+function prefSave(){jset('omr_pref_v1',PREF);prefApply()}
+function prefApply(){try{if(PREF.total){WDEF.total=PREF.total}if(LVPS[PREF.lvr])WDEF.lvr={'하':LVPS[PREF.lvr][0],'중':LVPS[PREF.lvr][1],'상':LVPS[PREF.lvr][2],'최':LVPS[PREF.lvr][3]};
+ localStorage.setItem('omr_bko',JSON.stringify({gap:PREF.bkGap||0,color:PREF.bkColor||'',font:PREF.bkFont||'paper',design:(jget('omr_bko',{})||{}).design||''}))}catch(e){}}
+let TSET={perms:null,busy:0};
+async function permFetch(){try{const r=await rpc('st_perms',{p_login:STUD.login,p_pw:STUD.pw});if(r.ok){const j=await r.json();if(j&&typeof j==='object'){const o=JSON.stringify(PERM);PERM=j;if(o!==JSON.stringify(PERM)&&STUD)render()}}}catch(e){}}
+async function tsetLoad(){if(!cloud()||!sess){TSET.perms={};return}
+ try{const r=await sb('/rest/v1/teacher_settings?select=data');const a=r.ok?await r.json():[];TSET.perms=(a[0]&&a[0].data&&a[0].data.perms)||{};TSET.err=r.ok?'':(r.status===404?'teacher_settings 테이블이 없어요. setup.sql을 다시 실행하세요.':'불러오지 못했어요 ('+r.status+')')}catch(e){TSET.perms={};TSET.err='불러오지 못했어요'}}
+async function tsetView(){
+ if(!TSET.perms){$('#main').innerHTML='<div class="card">'+ldg('설정을 불러오는 중…')+'</div>';await tsetLoad();if(tab!=='tset')return}
+ const P=TSET.perms;const chk=(k,l)=>`<label class="chk tp"><input type="checkbox" ${P[k]===false?'':'checked'} onchange="tsetPerm('${k}',this.checked)"> ${l}</label>`;
+ const pf=(k,l,d)=>`<label class="chk tp"><input type="checkbox" ${PREF[k]===0?'':'checked'} onchange="PREF.${k}=this.checked?1:0;prefSave()"> ${l}${d?`<small>${d}</small>`:''}</label>`;
+ $('#main').innerHTML=`<div class="card"><h2>학생 권한</h2><div class="m" style="margin-bottom:8px">학생 화면에서 쓸 수 있는 기능을 정해요. 끈 기능은 학생 화면에서 사라지고, 학생이 앱을 열어 둔 동안은 1분 안에 반영돼요.${cloud()&&sess?'':'<br><b>온라인 저장에 로그인해야 학생에게 적용돼요.</b>'}</div>${TSET.err?`<div class="hint">${esc(TSET.err)}</div>`:''}
+ <div class="tpg">${PERMS.map(([k,l])=>chk(k,l)).join('')}</div></div>
+ <div class="card"><h2>교사 편의 기능</h2><div class="m" style="margin-bottom:8px">이 기기에 저장돼요.</div>
+ <div class="tpg">${pf('guide','홈에 시작 가이드 보이기')}${pf('nextPage','교재 채점이 끝나면 다음 쪽 이어서 채점하자고 묻기')}</div>
+ <div class="g2" style="margin-top:12px"><div><label class="tl">새 학습지 기본 문항 수</label><input type="number" min="5" max="100" value="${PREF.total}" onchange="PREF.total=Math.max(5,Math.min(100,+this.value||15));prefSave();toast('저장했어요')"></div>
+ <div><label class="tl">새 학습지 기본 난이도 구성</label><select onchange="PREF.lvr=this.value;prefSave();toast('저장했어요')">${[['basic','기초 (하 중심)'],['std','표준'],['hard','도전 (상 중심)']].map(([v,l])=>`<option value="${v}" ${PREF.lvr===v?'selected':''}>${l}</option>`).join('')}</select></div>
+ <div><label class="tl">교재 인쇄 기본 문제 간격</label><select onchange="PREF.bkGap=+this.value;prefSave();toast('저장했어요')">${[[0,'기본'],[1,'조금 넓게'],[2,'넓게'],[3,'아주 넓게']].map(([v,l])=>`<option value="${v}" ${(PREF.bkGap||0)===v?'selected':''}>${l}</option>`).join('')}</select></div>
+ <div><label class="tl">교재 인쇄 기본 글꼴</label><select onchange="PREF.bkFont=this.value;prefSave();toast('저장했어요')">${Object.entries(FONTS).map(([k,v])=>`<option value="${k}" ${(PREF.bkFont||'paper')===k?'selected':''}>${esc(v[0])}</option>`).join('')}</select></div></div>
+ <div class="m" style="margin-top:10px">시스템 화면 설정(테마·로그인 등)은 오른쪽 위 ⚙에서 바꿔요.</div></div>`}
+async function tsetPerm(k,on){TSET.perms[k]=on;try{const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:{perms:TSET.perms},updated_at:new Date().toISOString()})});
+  if(!r.ok)throw new Error(r.status===404?'teacher_settings 테이블이 없어요. setup.sql을 다시 실행하세요.':'저장하지 못했어요 ('+r.status+')');toast('저장했어요')}catch(e){TSET.perms[k]=!on;toast(e.message);tsetView()}}
 /* ---------- 알림 · 업데이트 소식 ----------
    새 기능을 배포할 때 UPDATES 맨 앞에 항목을 추가하세요.
    tour: 학생이 업데이트 후 처음 접속하면 자동으로 띄울 튜토리얼 이름(TOURS의 키), aud: all | student | teacher */
 const UPDATES=[
  {id:'2026-10-14-notif',date:'2026-10-14',title:'알림 기능',body:'설정 옆 종 모양에서 선생님 공지와 업데이트 소식을 볼 수 있어요. 새 알림이 오면 화면 위에 알려 줘요.',tour:'notif',aud:'all'},
  {id:'2026-10-14-passkey',date:'2026-10-14',title:'패스키 로그인 · 자동 로그인',body:'지문·얼굴·기기 암호로 비밀번호 없이 로그인하고, 이 기기에서 로그인 상태를 유지할 수 있어요.',tour:'passkey',aud:'all',needs:'pk'},
+ {id:'2026-10-14-settings',date:'2026-10-14',title:'설정 탭 · 어두운 화면 · 교재 옵션',body:'선생님이 학생 권한을 정할 수 있고, 화면은 시스템 설정에 따라 어두운 모드로 바뀌어요. 교재를 만들 때 난이도와 문항 수도 고를 수 있어요.',aud:'teacher'},
  {id:'2026-10-13-ink',date:'2026-10-13',title:'학습지 만들기 · 문제 위 필기',body:'학생도 학습지를 만들어 화면에서 풀 수 있고, 애플펜슬로 문제 위에 바로 필기할 수 있어요. 교재의 한 쪽만 골라 풀 수도 있고 「유형 분석」도 볼 수 있어요.',tour:'ink',aud:'student'},
  {id:'2026-10-13-design',date:'2026-10-13',title:'새 디자인',body:'과목색 상단, 문항 코드 칩과 난이도 점으로 화면을 새로 정돈했어요. 교사 홈 배너와 취약 유형의 선택 요약 박스도 달라졌어요.',aud:'all'}
 ];
@@ -1013,7 +1070,7 @@ function nUnread(){const s=nSeenGet();let n=0;UPDATES.forEach(u=>{if(updFor(u)&&
 function nBadge(){const b=document.getElementById('bellN');if(!b)return;const n=nUnread();b.textContent=n>9?'9+':String(n);b.hidden=!n}
 async function nFetch(first){
  try{if(!cloud())return;
-  if(STUD&&!STUD.preview){const r=await rpc('st_notices',{p_login:STUD.login,p_pw:STUD.pw});NT.list=r.ok?((await r.json())||[]):[]}
+  if(STUD&&!STUD.preview){permFetch();const r=await rpc('st_notices',{p_login:STUD.login,p_pw:STUD.pw});NT.list=r.ok?((await r.json())||[]):[]}
   else if(sess){const r=await sb('/rest/v1/notices?select=id,title,body,t,student_id&order=t.desc&limit=60');NT.sent=r.ok?await r.json():[];NT.list=[]}
   else NT.list=[]}catch(e){}
  const s=nSeenGet();const fresh=NT.list.filter(x=>!s.has('n:'+x.id)&&!NT.announced.has(x.id));
@@ -1033,7 +1090,7 @@ function nRender(){let p=document.getElementById('notifp');if(!p){p=document.cre
  const s=nSeenGet();const items=[...NT.list.map(x=>({k:'n',id:x.id,t:+x.t,title:x.title,body:x.body,tag:'공지'})),...UPDATES.filter(updFor).map(u=>({k:'u',id:u.id,t:new Date(u.date).getTime(),title:u.title,body:u.body,tag:'업데이트',tour:u.tour}))].sort((a,b)=>b.t-a.t);
  const composer=(!STUD&&sess)?`<details class="ncomp"><summary>공지 보내기</summary><div class="ncf"><input id="nt_t" maxlength="60" placeholder="제목"><textarea id="nt_b" rows="3" maxlength="500" placeholder="내용 (학생 화면 알림에 보여요)"></textarea><select id="nt_s"><option value="">모든 학생</option>${STU.map(x=>`<option value="${x.id}">${esc(x.name)}${x.grade?' · '+esc(x.grade):''}</option>`).join('')}</select><button class="p" onclick="nSend()">보내기</button></div>
  ${NT.sent.length?`<div class="nsent"><b>보낸 공지</b>${NT.sent.slice(0,8).map(x=>`<div><span>${esc(x.title)}<small>${new Date(+x.t).toLocaleDateString('ko-KR')}${x.student_id?' · '+esc((STU.find(y=>y.id===x.student_id)||{}).name||'한 명'):' · 전체'}</small></span><button class="s sm" onclick="nDel(${x.id})">삭제</button></div>`).join('')}</div>`:''}</details>`:'';
- p.innerHTML=`<div class="nh"><b>알림</b><button class="s sm" onclick="nClose()" aria-label="닫기">닫기</button></div>${composer}<div class="nl">${items.length?items.map(i=>`<div class="ni ${s.has(i.k+':'+i.id)?'':'new'}"><div class="nt"><span class="ntag ${i.k}">${i.tag}</span><b>${esc(i.title)}</b><small>${new Date(i.t).toLocaleDateString('ko-KR')}</small></div><p>${esc(i.body||'')}</p>${i.tour&&STUD&&TOURS[i.tour]?`<button class="s sm" onclick="nClose();tourStart('${i.tour}')">튜토리얼 보기</button>`:''}</div>`).join(''):'<div class="m" style="padding:14px">알림이 없어요.</div>'}</div>`}
+ p.innerHTML=`<div class="nh"><b>알림</b><button class="s sm" onclick="nClose()" aria-label="닫기">닫기</button></div>${composer}<div class="nl">${items.length?items.map(i=>`<div class="ni ${s.has(i.k+':'+i.id)?'':'new'} ${i.tour&&TOURS[i.tour]?'go':''}" ${i.tour&&TOURS[i.tour]?`role="button" tabindex="0" onclick="nClose();tourStart('${i.tour}')" onkeydown="if(event.key==='Enter')this.click()"`:''}><div class="nt"><span class="ntag ${i.k}">${i.tag}</span><b>${esc(i.title)}</b><small>${new Date(i.t).toLocaleDateString('ko-KR')}</small></div><p>${esc(i.body||'')}</p>${i.tour&&TOURS[i.tour]?'<span class="ngo">눌러서 튜토리얼 보기 ›</span>':''}</div>`).join(''):'<div class="m" style="padding:14px">알림이 없어요.</div>'}</div>`}
 async function nSend(){const title=($('#nt_t')||{}).value.trim(),body=($('#nt_b')||{}).value.trim(),sid=($('#nt_s')||{}).value;if(!title){toast('제목을 입력하세요');return}
  try{const r=await sb('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({title,body,student_id:sid||null})});if(!r.ok)throw new Error(r.status===404?'notices 테이블이 없어요. setup.sql을 다시 실행하세요.':'보내지 못했어요 ('+r.status+')');
   toast('공지를 보냈어요');await nFetch(false)}catch(e){toast(e.message)}}
@@ -1043,7 +1100,7 @@ document.addEventListener('click',e=>{if(NT.open&&!e.target.closest('#notifp,#be
 const INK=(()=>{let s={};try{s=JSON.parse(localStorage.getItem('omr_ink')||'{}')}catch(e){}return {on:s.on!==false,color:s.color||'#1d1d1f',w:s.w||2.6,tool:'pen',finger:!!s.finger}})();
 let INKC=null;
 function inkSave(){try{localStorage.setItem('omr_ink',JSON.stringify({on:INK.on,color:INK.color,w:INK.w,finger:INK.finger}))}catch(e){}}
-function inkBar(){const col=['#1d1d1f','#2a72bf','#d64545','#2e9e6b'];
+function inkBar(){if(STUD&&!permOn('ink'))return '';const col=['#1d1d1f','#2a72bf','#d64545','#2e9e6b',...(themeEff()==='dark'?['#f5f5f7','#ffd84a']:[])];
  return `<div class="inkbar" role="toolbar" aria-label="필기 도구"><button class="${INK.on?'on':''}" onclick="inkSet('on',!INK.on)">${INK.on?'필기 켬':'필기 끔'}</button>
  <span class="isep"></span><button class="${INK.on&&INK.tool==='pen'?'on':''}" onclick="inkSet('tool','pen')">펜</button><button class="${INK.on&&INK.tool==='eraser'?'on':''}" onclick="inkSet('tool','eraser')">지우개</button>
  <span class="isep"></span>${col.map(c=>`<button class="isw ${INK.color===c&&INK.tool==='pen'?'on':''}" style="--c:${c}" aria-label="색 ${c}" onclick="inkSet('color','${c}')"></button>`).join('')}
@@ -1057,8 +1114,8 @@ function inkAttach(w,store,key){
  const S=store[key]=store[key]||[];let st=null;
  const W_=()=>cv.clientWidth||1;
  const dot=(a,b,wd,c)=>{ctx.strokeStyle=c;ctx.lineWidth=wd;ctx.beginPath();ctx.moveTo(a[0]*W_(),a[1]);ctx.lineTo(b[0]*W_(),b[1]);ctx.stroke()};
- const one=s=>{ctx.lineCap='round';ctx.lineJoin='round';const p=s.p;if(p.length===1){ctx.fillStyle=s.c;ctx.beginPath();ctx.arc(p[0][0]*W_(),p[0][1],s.w*(0.5+(p[0][2]||.5))/2,0,7);ctx.fill();return}
-  for(let i=1;i<p.length;i++)dot(p[i-1],p[i],s.w*(0.55+(p[i][2]||.5)*.9),s.c)};
+ const one=s=>{const sc=(document.documentElement.dataset.theme==='dark'&&s.c==='#1d1d1f')?'#f5f5f7':s.c;ctx.lineCap='round';ctx.lineJoin='round';const p=s.p;if(p.length===1){ctx.fillStyle=sc;ctx.beginPath();ctx.arc(p[0][0]*W_(),p[0][1],s.w*(0.5+(p[0][2]||.5))/2,0,7);ctx.fill();return}
+  for(let i=1;i<p.length;i++)dot(p[i-1],p[i],s.w*(0.55+(p[i][2]||.5)*.9),sc)};
  const draw=()=>{const d=devicePixelRatio||1;ctx.setTransform(d,0,0,d,0,0);ctx.clearRect(0,0,cv.width,cv.height);S.forEach(one)};
  const fit=()=>{const r=w.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=Math.max(1,Math.round(r.width*d));cv.height=Math.max(1,Math.round(r.height*d));cv.style.width=r.width+'px';cv.style.height=r.height+'px';draw()};
  const pos=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)/r.width,e.clientY-r.top,e.pressure||.5]};
@@ -1269,6 +1326,7 @@ const LVS=['하','중','상','최'];
 const PRI_DEF=['wrong','twin','unseen','seen'];
 const PRI_NAME={wrong:'틀린 문제 원본',twin:'쌍둥이 변형 문제 (틀린 문제와 같은 유형·같은 틀)',unseen:'아직 안 푼 문제',seen:'이미 맞힌 문제'};
 const WDEF={mono:0,sect:0,expPos:'end',ab2:0,sets:{mc:1,top:1,ox:0,blank:0,essay:0,bank:1},n:4,ans:1,qr:1,per:4,cols:2,style:'basic',color:'blue',tags:{type:1,lv:1,sub:0,src:0,code:0},title:'취약 유형 학습지',subt:'',name:'',academy:'',pri:PRI_DEF.slice(),on:{wrong:1,twin:1,unseen:1,seen:1},cap:{},twinPer:1,lvr:{'하':2,'중':5,'상':3,'최':0},order:'type',wrongAnyLv:1,mode:'per',total:20,dist:'weak',view:'grid',bankPct:50,font:'paper',p100:0,ab:0,essay:0,exam:{school:'',year:'',term:''}};
+prefApply();
 let W=Object.assign({},WDEF,jget(LWS,{}));
 W.sel=new Map(Object.entries(W.selMap||{}));W.sets=Object.assign({},WDEF.sets,W.sets||{});W.pri=(W.pri&&W.pri.length===4)?W.pri:PRI_DEF.slice();W.on=Object.assign({},WDEF.on,W.on||{});W.lvr=Object.assign({},WDEF.lvr,W.lvr||{});W.cap=W.cap||{};W.tags=Object.assign({},WDEF.tags,W.tags||{});
 const saveW=()=>jset(LWS,{mono:W.mono,sect:W.sect,expPos:W.expPos,ab2:W.ab2,n:W.n,ans:W.ans,qr:W.qr,per:W.per,cols:W.cols,style:W.style,color:W.color,tags:W.tags,title:W.title,subt:W.subt,name:W.name,academy:W.academy,sets:W.sets,pri:W.pri,on:W.on,cap:W.cap,twinPer:W.twinPer,lvr:W.lvr,order:W.order,wrongAnyLv:W.wrongAnyLv,mode:W.mode,total:W.total,dist:W.dist,view:W.view,bankPct:W.bankPct,font:W.font,p100:W.p100,ab:W.ab,essay:W.essay,exam:W.exam,selMap:Object.fromEntries(W.sel)});
@@ -1768,7 +1826,7 @@ function tnSave(v){v=String(v||'').trim().slice(0,12);try{if(v)localStorage.setI
  closeCfg();toast('이름을 저장했어요');if(tab==='thome')teacherHome()}
 function tnEdit(){$('#cfgBox').innerHTML=`<h2 style="margin-top:0">이름 설정</h2><div class="m">홈 화면 인사에 「○○○님」으로 표시돼요.</div><div class="form" style="margin-top:10px"><label>이름<input id="tnin" maxlength="12" value="${esc(teacherName())}" placeholder="예) 김민찬" onkeydown="if(event.key==='Enter')tnSave(this.value)"></label></div><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="s" onclick="closeCfg()">취소</button><button class="p" onclick="tnSave($('#tnin').value)">저장</button></div>`;$('#cfg').classList.add('open');setTimeout(()=>{const e=$('#tnin');e&&e.focus()},50)}
 const CKH='omr_ck_hide';
-function startList(){try{if(localStorage.getItem(CKH))return ''}catch(e){}
+function startList(){if(PREF.guide===0)return '';try{if(localStorage.getItem(CKH))return ''}catch(e){}
  const items=[['학생 등록',STU.length>0,"tab='stu';render()"],['학습지 만들기',WSH.length>0,"tab='build';render()"],['채점해 보기',hist.length>0,"tab='grade';render()"],['전범위 모의고사',jget(MK,[]).length>0,"goFull()"],['오답 진단 보기',!!localStorage.getItem('omr_seen_diag'),"tab='diag';render()"],['백업 받아 두기',!!localStorage.getItem('omr_lastbk'),"backupAll();teacherHome()"]];
  const done=items.filter(x=>x[1]).length;if(done===items.length)return '';
  return `<div class="card ckl"><div class="row"><h2 style="margin:0">시작 가이드 <small class="m">${done}/${items.length}</small></h2><button class="s sm" style="margin-left:auto" onclick="try{localStorage.setItem(CKH,'1')}catch(e){};teacherHome()">숨기기</button></div><div class="ckb2">${items.map(([t,d,f])=>`<button class="${d?'on':''}" onclick="${f}"><i>${d?'✓':'○'}</i>${t}</button>`).join('')}</div></div>`}
@@ -2477,7 +2535,7 @@ function stStore(){try{if(autoOn()){localStorage.setItem(LSTUD,JSON.stringify(ST
 async function loadStud(){
  try{const r=await rpc('st_data',{p_login:STUD.login,p_pw:STUD.pw});const j=r.ok?await r.json():null;
   if(!j){STUD=null;localStorage.removeItem(LSTUD);try{sessionStorage.removeItem(LSTUD)}catch(e){}return}
-  STINFO=j.student;hist=(j.attempts||[]).map(x=>({t:x.t,set:x.set,sub:x.sub,items:x.items,rng:x.rng||undefined,sid:''})).sort((a,b)=>a.t-b.t);ASSIGN=j.assignments||[];WSH=[];STU=[];CUR_S='';setTimeout(outboxFlush,300)}
+  permFetch();STINFO=j.student;hist=(j.attempts||[]).map(x=>({t:x.t,set:x.set,sub:x.sub,items:x.items,rng:x.rng||undefined,sid:''})).sort((a,b)=>a.t-b.t);ASSIGN=j.assignments||[];WSH=[];STU=[];CUR_S='';setTimeout(outboxFlush,300)}
  catch(e){}}
 async function stSubmit(rec){const body={p_login:STUD.login,p_pw:STUD.pw,p_t:rec.t,p_set:rec.set,p_sub:rec.sub,p_items:rec.items};if(rec.rng)body.p_rng=rec.rng;
  let r=await rpc('st_submit',body);if(r.status===404&&body.p_rng){delete body.p_rng;r=await rpc('st_submit',body)}
@@ -2515,7 +2573,7 @@ function sMapView(){
  let h=`<div class="card"><h2>학습지 만들기 <small style="font-weight:400;color:var(--m);font-size:13px">내 유형 지도</small></h2>${legendHtml(cnt)}<div class="hint">풀고 싶은 유형을 눌러 고른 뒤 아래에서 「화면에서 풀기」를 누르세요. 문제 위에 바로 필기할 수 있어요(애플펜슬). 해골과 빨강이 먼저 보강할 유형이에요.</div>`;
  subs.forEach(([sub,name])=>{const rs=(bySub[sub]||[]).filter(o=>!FL||o.lv===FL).sort((a,b)=>['skull','red','yellow','gray','green','star'].indexOf(a.lv)-['skull','red','yellow','gray','green','star'].indexOf(b.lv)||a.p-b.p);if(!rs.length)return;
   h+=`<h3>${sub} ${name}</h3><div class="heat">${rs.map(o=>`<div class="cell ${W.sel.has(o.k)?'on':''}" data-k="${esc(o.k)}" onclick="sTog(this.dataset.k)" onmousemove="tip(event,this)" onmouseleave="tipHide()"><i class="ic">${ICON[o.lv]}</i><span>${esc(o.type)}</span></div>`).join('')}</div>`});
- h+=`</div><div class="stick"><div><b>${W.sel.size}</b>개 유형</div><label class="m">총 <input type="number" id="sn_" min="5" max="60" value="${W.total||15}" style="width:70px" onchange="W.total=+this.value||15;saveW()"> 문항</label><button class="s" ${W.sel.size?'':'disabled'} onclick="sPrint()">인쇄용으로 만들기</button><button class="p" ${W.sel.size?'':'disabled'} onclick="sPractice()">화면에서 풀기</button></div>`;
+ h+=`</div><div class="stick"><div><b>${W.sel.size}</b>개 유형</div><label class="m">총 <input type="number" id="sn_" min="5" max="60" value="${W.total||15}" style="width:70px" onchange="W.total=+this.value||15;saveW()"> 문항</label>${permOn('print')?`<button class="s" ${W.sel.size?'':'disabled'} onclick="sPrint()">인쇄용으로 만들기</button>`:''}<button class="p" ${W.sel.size?'':'disabled'} onclick="sPractice()">화면에서 풀기</button></div>`;
  $('#main').innerHTML=h}
 function sTog(k){W.sel.has(k)?W.sel.delete(k):W.sel.set(k,5);const y=scrollY;sMapView();scrollTo(0,y)}
 async function sPrint(){const pw=popOpen('학습지를 만드는 중…');W.mode='total';W.dist='weak';W.sets={...W.sets,bank:1};
@@ -2909,7 +2967,7 @@ function openSettings(){const rp=jget('omr_rep_v1',[]),mk=jget('omr_mock_v1',[])
  <h3>단축키</h3><div class="keys">${KEYS.map(k=>`<div><kbd>${k[0]}</kbd><span>${k[1]}</span></div>`).join('')}</div>
  <h3>데이터 관리</h3><div class="row"><button class="s" onclick="healthView()">시스템 점검</button><button class="s" onclick="backupAll()">백업 내려받기</button><label class="s" style="cursor:pointer;display:inline-block;padding:8px 14px">백업 불러오기<input type="file" accept="application/json" hidden onchange="restoreAll(this)"></label></div>
  <div class="dz"><b>전체 초기화</b><div class="m">학생·채점 기록·학습지·모의고사(${mk.length}개)·즐겨찾기·신고·설정을 모두 지웁니다. 로그인과 선택한 과목만 남습니다.</div><button class="s dgr" onclick="wipeAll()">모든 데이터 초기화…</button></div>
- <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="s" onclick="closeCfg()">닫기</button></div>`;$('#cfg').classList.add('open');if((STUD&&!STUD.preview)||(sess&&!STUD))pkRefresh()}
+ `;$('#cfg').classList.add('open');cfgChrome();if((STUD&&!STUD.preview)||(sess&&!STUD))pkRefresh()}
 document.addEventListener('keydown',e=>{const tg=e.target.tagName,typing=tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT';
  if(e.key==='Escape'){if($('#cfg').classList.contains('open'))return closeCfg();const x=$('#exp');if(x&&x.classList.contains('open'))return x.classList.remove('open')}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!typing){if(typeof RV!=='undefined'&&RV&&tab==='review'){e.preventDefault();return rvUndo()}if(tab==='build'){e.preventDefault();return bUndo()}}
@@ -2928,6 +2986,9 @@ function palFill(v){v=v.trim().toLowerCase();const items=[];
 function palRun(n){const i=PALI[n];if(!i)return;closeCfg();setTimeout(i.run,30)}
 let _pn=0;function palKey(e){const el=[...document.querySelectorAll('#pall .pit')];if(e.key==='Enter'){const n=el.findIndex(x=>x.classList.contains('on'));palRun(Math.max(0,n))}else if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();let n=el.findIndex(x=>x.classList.contains('on'));el.forEach(x=>x.classList.remove('on'));n=(n+(e.key==='ArrowDown'?1:-1)+el.length)%el.length;el[n]&&el[n].classList.add('on')}}
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPalette()}});
+function cfgChrome(){const b=$('#cfgBox');if(!b||b.querySelector('.cfgx'))return;b.insertAdjacentHTML('afterbegin','<button class="cfgx" onclick="closeCfg()" aria-label="닫기" title="닫기">✕</button>')}
+document.addEventListener('click',e=>{const m=$('#cfg');if(m&&m.classList.contains('open')&&e.target===m)closeCfg()});
+try{new MutationObserver(()=>{const m=$('#cfg');if(m&&m.classList.contains('open'))cfgChrome()}).observe($('#cfgBox'),{childList:true})}catch(e){}
 function closeCfg(){$('#cfg').classList.remove('open');const b=$('#cfgBox');if(b)b.classList.remove('omrw')}
 
 </script></body></html>

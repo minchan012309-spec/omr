@@ -409,22 +409,25 @@ const BKXK='omr_books_v1',BKXF={concept:1,ox:2,bl:4,basic:8,type:16,essay:32,all
 function bkxAll(){try{return JSON.parse(localStorage.getItem(BKXK)||'[]')}catch(e){return[]}}
 function bkxStore(a){try{localStorage.setItem(BKXK,JSON.stringify(a))}catch(e){}}
 function bkxId(subj,d){
- if(d.kind==='full')return subj+'-xe'+(d.count||20);
+ const lvS=(d.lv&&d.lv!==15?'l'+d.lv.toString(16):'');
+ if(d.kind==='full')return subj+'-xe'+(d.count||20)+lvS;
  let m=0;Object.keys(BKXF).forEach(k=>{if(k==='all'?d.all:k==='last'?d.last:(d.inc||{})[k])m|=BKXF[k]});
- const si=(d.subs||[]).slice().sort((a,b)=>a-b);return subj+'-xb'+m.toString(36)+(si.length?'-'+si.join('.'):'')}
+ const si=(d.subs||[]).slice().sort((a,b)=>a-b);return subj+'-xb'+m.toString(36)+(si.length?'-'+si.join('.'):'')+(lvS||d.cap>0?'_'+lvS+(d.cap>0?'n'+d.cap:''):'')}
 function bkxDefOf(m){ // 경로 문자열에서 책 정의 복원 → 다른 기기에서도 QR 채점 가능
- if(m[4]!=null)return {kind:'full',count:+m[4],round:m[5]?+m[5]:0};
+ if(m[4]!=null)return {kind:'full',count:+m[4],lv:m[6]!=null?parseInt(m[6],16):15,round:m[5]?+m[5]:0};
  const mask=parseInt(m[2],36)||0,inc={};Object.keys(BKXF).forEach(k=>{if(k!=='all'&&k!=='last'&&(mask&BKXF[k]))inc[k]=1});
- return {kind:'std',inc,all:!!(mask&BKXF.all),last:!!(mask&BKXF.last),subs:m[3]?m[3].split('.').map(Number):[]}}
+ return {kind:'std',inc,all:!!(mask&BKXF.all),last:!!(mask&BKXF.last),subs:m[3]?m[3].split('.').map(Number):[],lv:m[6]!=null?parseInt(m[6],16):15,cap:m[7]?+m[7]:0}}
 function bkGapOf(id){const g=String(id).match(/~g([1-3])$/);return g?+g[1]:0}
 function bkBare(id){return String(id).replace(/~g[1-3]$/,'')}
 function bkPid(id){const g=BKO.gap||0;return bkBare(id)+(g?'~g'+g:'')}
-function bkParts(id){const gap=bkGapOf(id);id=bkBare(id);const m=String(id).match(/^(me|cm)-(c|t|x(?:b([0-9a-z]+)(?:-([\d.]+))?|e(\d+)(?:r(\d+))?))$/);if(!m)return null;
+function bkParts(id){const gap=bkGapOf(id);id=bkBare(id);const m=String(id).match(/^(me|cm)-(c|t|x(?:b([0-9a-z]+)(?:-([\d.]+))?(?:_(?:l([0-9a-f]))?(?:n(\d+))?)?|e(\d+)(?:l([0-9a-f]))?(?:r(\d+))?))$/);if(!m)return null;
  if(m[2]==='c'||m[2]==='t')return {subj:m[1],kind:m[2],gap};
- const d=bkxDefOf(m[5]!=null?[0,0,0,0,m[5],m[6]]:[0,0,m[3],m[4]]);
- const rec=bkxAll().find(b=>b.id===(m[1]+'-'+(d.kind==='full'?'xe'+d.count:'xb'+m[3]+(m[4]?'-'+m[4]:''))));
+ const d=bkxDefOf(m[7]!=null?[0,0,0,0,m[7],m[9],m[8]]:[0,0,m[3],m[4],undefined,0,m[5],m[6]]);
+ const lvS=d.lv&&d.lv!==15?'l'+d.lv.toString(16):'';
+ const baseId=m[1]+'-'+(d.kind==='full'?'xe'+d.count+lvS:'xb'+m[3]+(m[4]?'-'+m[4]:'')+(lvS||d.cap>0?'_'+lvS+(d.cap>0?'n'+d.cap:''):''));
+ const rec=bkxAll().find(b=>b.id===baseId);
  d.name=rec?rec.name:(d.kind==='full'?'전범위 모의고사':'맞춤 교재');d.subt=rec?rec.sub:'';d.rounds=rec&&rec.rounds||20;
- d.base=m[1]+'-'+(d.kind==='full'?'xe'+d.count:'xb'+m[3]+(m[4]?'-'+m[4]:''));
+ d.base=baseId;
  return {subj:m[1],kind:'x',def:d,gap}}
 function bkxPreset(kind){const B={
  std:{name:'나만의 교재',sub:'개념 · 확인 문제 · 유형',inc:{concept:1,ox:1,bl:1,basic:1,type:1},all:0},
@@ -433,10 +436,12 @@ function bkxPreset(kind){const B={
  part:{name:'특정 부분 양치기',sub:'고른 소단원만 파고들기',inc:{ox:1,bl:1,basic:1,type:1},all:1},
  full:{name:'전범위 모의고사',sub:'전 범위에서 뽑은 실전 연습',inc:{},all:0,count:20,rounds:20}}[kind];
  return {kind,subs:[],...JSON.parse(JSON.stringify(B))}}
+const BKLVB={'하':1,'중':2,'상':4,'최':8};
+const bkLvOk=(q,lv)=>!lv||lv===15||!!(lv&(BKLVB[bkLv(q)]||2));
 function bkRng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-function bkMockSet(count,rd){
- const subs=bkSubs();const base=DATA.filter(q=>q.sub&&(q.set==='mc'||q.set==='top')&&!q.mock);
- const rnd=bkRng([...SUBJ+count].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7));
+function bkMockSet(count,rd,lv){
+ const subs=bkSubs();const base=DATA.filter(q=>q.sub&&(q.set==='mc'||q.set==='top')&&!q.mock&&bkLvOk(q,lv));
+ const rnd=bkRng([...SUBJ+count+(lv&&lv!==15?'l'+lv:'')].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7));
  const L=subs.map(s=>{const a=base.filter(q=>q.sub===s.k);for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}).filter(a=>a.length);
  const tot=L.reduce((a,x)=>a+x.length,0);const n=L.map(a=>Math.max(1,Math.round(count*a.length/tot)));
  for(let g=0;g<200;g++){const sm=n.reduce((a,b)=>a+b,0);if(sm===count)break;const i=n.indexOf(sm>count?Math.max(...n):Math.min(...n));n[i]+=sm>count?-1:1}
@@ -447,7 +452,7 @@ function bkMockPts(qs){const w={'하':2,'중':3,'상':4,'최':5};const raw=qs.ma
  const p=raw.map(x=>Math.floor(x*100/sm));let left=100-p.reduce((a,b)=>a+b,0);const ord=raw.map((x,i)=>i).sort((a,b)=>raw[b]-raw[a]);for(let k=0;left>0;k++,left--)p[ord[k%ord.length]]++;
  const m={};qs.forEach((q,i)=>m[q.code]=p[i]);return m}
 function bkPlanFull(id,d,rd){
- const subs=bkSubs();const qs=bkMockSet(d.count,rd),pts=bkMockPts(qs);
+ const subs=bkSubs();const qs=bkMockSet(d.count,rd,d.lv),pts=bkMockPts(qs);
  const used=[...new Set(qs.map(q=>q.sub))];
  const M={title:d.name,round:rd,sname:SNAME[SUBJ],codes:qs.map(q=>q.code),pts,tot:100,time:Math.max(30,Math.round(d.count*2.2/5)*5)+'분',range:subs.filter(s=>used.includes(s.k)).map(s=>s.k+' '+s.name)};
  const pages=[{k:'mcv'}];
@@ -491,13 +496,15 @@ function bkPlanCustom(id,d){
      arr.forEach((q,i)=>{us.push(bkU('o:'+q.code+':'+kd,bkOxHtml(q,i+1,kd),{code:q.code}));codes.push(q.code)})}
     cols.push(us.map(u=>u.html))});
    r.items.push(['OX · 빈칸',pages.length+1]);pages.push({k:'pr',kind:'ox',sub:s,label:'OX · 빈칸',cols,codes})}
-  r.mc=inc.basic?(d.all?of(s,q=>q.set==='mc'&&bkLv(q)==='하'):S.basic[s.k]||[]):[];
+  r.mc=inc.basic&&bkLvOk({lv:'하'},d.lv)?(d.all?of(s,q=>q.set==='mc'&&bkLv(q)==='하'):S.basic[s.k]||[]):[];
   if(r.mc.length){r.mc.forEach(q=>usedBasic.add(q.code));
    const us=[bkU('h:mc:'+s.k+':'+r.mc.length,'<div class="u ct"><span>기초 5지선다</span><small>'+esc(s.k)+' · '+r.mc.length+'문항</small></div>',{keep:true,brk:true}),...r.mc.map((q,i)=>bkU('q:'+q.code,bkQHtml(q,i+1,{code:1}),{code:q.code}))];
    r.items.push(['기초',pages.length+1]);qp(us,'mc','기초 5지선다',s)}
   if(inc.type){
    r.ty=d.all?of(s,q=>(q.set==='mc'||q.set==='top')&&!usedBasic.has(q.code)).sort((a,b)=>typeOrder.get(a.sub+'|'+a.type)-typeOrder.get(b.sub+'|'+b.type)||(LVI[bkLv(a)]-LVI[bkLv(b)])||byNo(a,b)):S.type.filter(q=>q.sub===s.k);
-   if(d.last&&r.ty.length>8)r.ty=bkPickRound(r.ty,8,['중','상','중','최']).sort((a,c)=>typeOrder.get(a.sub+'|'+a.type)-typeOrder.get(c.sub+'|'+c.type)||byNo(a,c));
+   if(d.lv&&d.lv!==15)r.ty=r.ty.filter(q=>bkLvOk(q,d.lv));
+   if(d.cap>0&&r.ty.length>d.cap)r.ty=bkPickRound(r.ty,d.cap,['중','상','중','최']).sort((a,c)=>typeOrder.get(a.sub+'|'+a.type)-typeOrder.get(c.sub+'|'+c.type)||(LVI[bkLv(a)]-LVI[bkLv(c)])||byNo(a,c));
+   else if(d.last&&r.ty.length>8)r.ty=bkPickRound(r.ty,8,['중','상','중','최']).sort((a,c)=>typeOrder.get(a.sub+'|'+a.type)-typeOrder.get(c.sub+'|'+c.type)||byNo(a,c));
    if(r.ty.length){const units=[bkU('sb:'+s.k+':t',bkSbn({k:s.k,name:s.name,goal:''},'<span class="g">'+bkTags(s)+'</span>'),{brk:true,keep:true})];
     let cur=null,ti=0;
     r.ty.forEach(q=>{if(q.type!==cur){cur=q.type;ti++;const grp=r.ty.filter(x=>x.type===cur);const av=grp.reduce((a,x)=>a+LVI[bkLv(x)],0)/grp.length;const n=Math.max(1,Math.min(4,Math.round(av)+1));const st='★'.repeat(n)+'☆'.repeat(4-n);
@@ -668,7 +675,7 @@ async function bkReader(id){
  jumps.push(['정답 · 해설',plan.aStart]);const seen=new Set();const J=jumps.filter(j=>j[1]&&!seen.has(j[0]+j[1]) && seen.add(j[0]+j[1]));
  m.innerHTML=`<div class="bkrd"><button class="s" onclick="bkClose()">‹ 교재함</button><b style="font-size:14px">${esc(plan.title)}</b><select id="bkj" onchange="bkJump(this.value)"><option value="">이동…</option><option value="1">표지</option>${J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}</select>${plan.kind==='m'?`<button class="p" onclick="bkGradeAll('${id}')">시험 전체 채점</button>`:''}<span class="bkzm"><button class="s" onclick="bkZoom(-1)" aria-label="작게">－</button><b id="bkzl">${Math.round((BKV.z||1)*100)}%</b><button class="s" onclick="bkZoom(1)" aria-label="크게">＋</button></span><button class="s" onclick="bkPrint('${id}',0)">문제만 인쇄</button><button class="p" onclick="bkPrint('${id}',1)">전체 인쇄 · PDF</button></div><div id="bkpages"></div>`;
  const hdr=document.querySelector('header');const rd=document.querySelector('.bkrd');if(rd&&hdr)rd.style.top=(hdr.getBoundingClientRect().height+6)+'px';const box=$('#bkpages');bkScale();
- box.innerHTML=plan.pages.map((p,i)=>`<div class="bkw" id="bkpg${p.n}" data-i="${i}" style="width:var(--bkw);height:var(--bkh)"></div>`+(p.codes&&p.codes.length?`<div class="bkbar" style="width:var(--bkw)"><span><b>p.${p.n}</b> · ${p.codes.length}문항</span><button class="s" onclick="bkSolve('${id}',${plan.kind==='m'?0:p.n})">${plan.kind==='m'?'시험 화면에서 풀기':'이 쪽 풀기'}</button><button class="p" onclick="${plan.kind==='m'?`bkGradeAll('${id}')`:`bkGradePage('${id}',${p.n})`}">${plan.kind==='m'?'시험 전체 채점하기':'이 쪽 채점하기'}</button></div>`:'<div style="height:10px"></div>')).join('');
+ box.innerHTML=plan.pages.map((p,i)=>`<div class="bkw" id="bkpg${p.n}" data-i="${i}" style="width:var(--bkw);height:var(--bkh)"></div>`+(p.codes&&p.codes.length?`<div class="bkbar" style="width:var(--bkw)"><span><b>p.${p.n}</b> · ${p.codes.length}문항</span>${STUD&&!permOn('pageSolve')?'':`<button class="s" onclick="bkSolve('${id}',${plan.kind==='m'?0:p.n})">${plan.kind==='m'?'시험 화면에서 풀기':'이 쪽 풀기'}</button>`}<button class="p" onclick="${plan.kind==='m'?`bkGradeAll('${id}')`:`bkGradePage('${id}',${p.n})`}">${plan.kind==='m'?'시험 전체 채점하기':'이 쪽 채점하기'}</button></div>`:'<div style="height:10px"></div>')).join('');
  const fill=el=>{if(el.dataset.f)return;el.dataset.f=1;bkShadow(el,'<div class="bkdoc scr">'+bkPageHtml(plan,+el.dataset.i)+'</div>')};
  if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){fill(e.target);io.unobserve(e.target)}}),{rootMargin:'900px 0px'});box.querySelectorAll('.bkw').forEach(e=>io.observe(e))}
  else box.querySelectorAll('.bkw').forEach(fill);
@@ -731,8 +738,10 @@ const BKK={last:['직전 대비 교재','핵심 개념·OX·빈칸·대표 유�
 function bkNew(kind){BKV={v:'new',id:null,d:bkxPreset(kind||'std')};render();scrollTo(0,0)}
 function bkxRead(){const d=BKV.d;if(!d)return;const g=i=>document.getElementById(i);
  if(g('bxn'))d.name=g('bxn').value;if(g('bxs'))d.sub=g('bxs').value;
- if(d.kind==='full'){if(g('bxc'))d.count=+g('bxc').value;if(g('bxr'))d.rounds=+g('bxr').value}
+ if(g('bxl_1')){let lv=0;[['1',1],['2',2],['4',4],['8',8]].forEach(([k,b])=>{const e=g('bxl_'+k);if(e&&e.checked)lv|=b});d.lv=lv||15}
+ if(d.kind==='full'){if(g('bxc'))d.count=Math.max(10,Math.min(60,Math.round(+g('bxc').value)||20));if(g('bxr'))d.rounds=+g('bxr').value}
  else{d.inc={};['concept','ox','bl','basic','type','essay'].forEach(k=>{const e=g('bxi_'+k);if(e&&e.checked)d.inc[k]=1});const a=g('bxa');if(a)d.all=a.checked?1:0;
+  if(g('bxk'))d.cap=Math.max(0,Math.min(40,Math.round(+g('bxk').value)||0));
   d.subs=bkSubs().map((s,i)=>g('bxs_'+i)&&g('bxs_'+i).checked?i:-1).filter(i=>i>=0);if(d.subs.length===bkSubs().length)d.subs=[]}}
 function bkxKind(k){bkxRead();const o=BKV.d,n=bkxPreset(k);const keepN=o.name!==BKK[o.kind][0]&&o.name!==bkxPreset(o.kind).name;
  if(keepN)n.name=o.name;if(o.sub&&o.sub!==bkxPreset(o.kind).sub)n.sub=o.sub;if(k!=='full'&&o.kind!=='full')n.subs=o.subs;BKV.d=n;bkShow()}
@@ -747,10 +756,13 @@ function bkxDel(id){const b=bkxAll().find(x=>x.id===id);if(!b||!confirm('「'+b.
 function bkBuilder(){const d=BKV.d,subs=bkSubs();const S=bkSel();
  const chip=k=>`<button class="${d.kind===k?'p':'s'}" onclick="bkxKind('${k}')" style="text-align:left;padding:10px 12px;border-radius:10px;min-width:0"><b style="display:block;font-size:14px">${BKK[k][0]}</b><small style="font-weight:400;opacity:.8">${BKK[k][1]}</small></button>`;
  const ck=(k,l)=>`<label class="chk"><input type="checkbox" id="bxi_${k}" ${d.inc[k]?'checked':''} onchange="bkxRead();bkxEst()"> ${l}</label>`;
- const body=d.kind==='full'?`<div class="g2" style="margin-top:6px"><div><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">회차당 문항 수</label><select id="bxc" onchange="bkxRead();bkxEst()">${[16,20,25,30].map(n=>`<option ${d.count===n?'selected':''}>${n}</option>`).join('')}</select></div><div><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">회차 수 (최대 20)</label><select id="bxr" onchange="bkxRead()">${[5,10,15,20].map(n=>`<option ${d.rounds===n?'selected':''}>${n}</option>`).join('')}</select></div></div>
-  <p class="hint" style="margin-top:10px">회차마다 문제지와 해설을 따로 인쇄해요. 전 범위에서 고르게 뽑아 100점으로 배점해요.</p>`
+ const lvc=(k,b,l)=>`<label class="chk"><input type="checkbox" id="bxl_${k}" ${(d.lv||15)&b?'checked':''} onchange="bkxRead();bkxEst()"> ${l}</label>`;
+ const lvBox=`<div style="margin-top:10px;font-size:13px;font-weight:700">난이도 <small style="font-weight:400;color:var(--m)">${d.kind==='full'?'뽑을 문제의 난이도':'유형 문제에 담을 난이도'}</small></div><div style="display:flex;gap:6px 16px;flex-wrap:wrap;margin:6px 0">${lvc(1,1,'하')}${lvc(2,2,'중')}${lvc(4,4,'상')}${lvc(8,8,'최상')}</div>`;
+ const body=d.kind==='full'?`<div class="g2" style="margin-top:6px"><div><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">회차당 문항 수 (10~60)</label><input type="number" id="bxc" min="10" max="60" value="${d.count}" onchange="bkxRead();bkxEst()" style="width:100%"></div><div><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">회차 수 (최대 20)</label><select id="bxr" onchange="bkxRead()">${[5,10,15,20].map(n=>`<option ${d.rounds===n?'selected':''}>${n}</option>`).join('')}</select></div></div>
+  ${lvBox}<p class="hint" style="margin-top:10px">회차마다 문제지와 해설을 따로 인쇄해요. 전 범위에서 고르게 뽑아 100점으로 배점해요.</p>`
  :`<div style="margin-top:6px;font-size:13px;font-weight:700">구성</div><div class="chks" style="display:flex;gap:6px 16px;flex-wrap:wrap;margin:6px 0">${ck('concept','개념 정리')}${ck('ox','OX')}${ck('bl','빈칸')}${ck('basic','기초 5지선다')}${ck('type','유형 문제')}${ck('essay','서술형')}</div>
   <label class="chk" style="display:block;margin:6px 0"><input type="checkbox" id="bxa" ${d.all?'checked':''} onchange="bkxRead();bkxEst()"> <b>양치기</b> — 대표 문항만이 아니라 해당 구성의 문항을 전부 담기</label>
+  ${lvBox}<div style="margin-top:6px"><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">유형 문제 수 — 소단원마다 최대 (0이면 기본 구성대로)</label><input type="number" id="bxk" min="0" max="40" value="${d.cap||0}" onchange="bkxRead();bkxEst()" style="width:120px"></div>
   <div style="margin-top:10px;font-size:13px;font-weight:700">소단원 ${d.kind==='part'?'(파고들 부분을 고르세요)':'(비우면 전체)'}</div>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 12px;margin:6px 0">${subs.map((s,i)=>`<label class="chk"><input type="checkbox" id="bxs_${i}" ${d.subs.includes(i)?'checked':''} onchange="bkxRead();bkxEst()"> ${esc(s.k)} ${esc(s.name)}</label>`).join('')}</div>`;
  return `<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><button class="s" onclick="BKV={v:'shelf',id:null};render()" style="padding:6px 12px;border-radius:8px">‹ 교재함</button><h2 style="margin:0">교재 만들기 <small style="font-weight:400;color:var(--m);font-size:13px">${esc(SNAME[SUBJ])}</small></h2></div>
@@ -759,12 +771,17 @@ function bkBuilder(){const d=BKV.d,subs=bkSubs();const S=bkSel();
  ${body}<p id="bxe" class="hint" style="margin:10px 0 0"></p>
  <div style="display:flex;gap:8px;margin-top:12px"><button class="p" onclick="bkxSaveBook()">교재 만들기</button><button class="s" onclick="BKV={v:'shelf',id:null};render()">취소</button></div></div>`}
 function bkxEst(){const e=document.getElementById('bxe');if(!e||!BKV.d)return;const d=BKV.d;
- if(d.kind==='full'){e.textContent='회차당 '+d.count+'문항 · 최대 '+(d.rounds||20)+'회';return}
+ const lvn=(d.lv&&d.lv!==15)?' · 난이도 '+[['하',1],['중',2],['상',4],['최상',8]].filter(x=>d.lv&x[1]).map(x=>x[0]).join('·'):'';
+ if(d.kind==='full'){e.textContent='회차당 '+d.count+'문항 · 최대 '+(d.rounds||20)+'회'+lvn;return}
  try{const id=bkxId(SUBJ,d);const base=DATA.filter(q=>q.sub&&q.set!=='bank'&&!q.mock);const subs=bkSubs().filter((s,i)=>!d.subs.length||d.subs.includes(i)).map(s=>s.k);const S=bkSel();
   let n=0;const inc=d.inc;subs.forEach(k=>{const f=(set,lv)=>base.filter(q=>q.sub===k&&q.set===set&&(!lv||bkLv(q)===lv)).length;
    if(d.all){if(inc.ox)n+=f('ox');if(inc.bl)n+=f('blank');if(inc.basic)n+=f('mc','하');if(inc.type)n+=base.filter(q=>q.sub===k&&(q.set==='mc'||q.set==='top')&&!(inc.basic&&bkLv(q)==='하')).length;if(inc.essay)n+=f('essay')}
    else{if(inc.ox)n+=(S.ox[k]||[]).length;if(inc.bl)n+=(S.bl[k]||[]).length;if(inc.basic)n+=(S.basic[k]||[]).length;if(inc.type)n+=S.type.filter(q=>q.sub===k).length;if(inc.essay)n+=S.essay.filter(q=>q.sub===k).length}});
-  e.textContent='소단원 '+subs.length+'개 · 약 '+n+'문항'+(n>900?' (많아요 — 인쇄에 시간이 걸릴 수 있어요)':'')}catch(x){e.textContent=''}}
+  if(inc.type&&(d.cap>0||(d.lv&&d.lv!==15))){n=0;subs.forEach(k=>{const f=(set,lv)=>base.filter(q=>q.sub===k&&q.set===set&&(!lv||bkLv(q)===lv)).length;
+   if(d.all){if(inc.ox)n+=f('ox');if(inc.bl)n+=f('blank');if(inc.basic&&bkLvOk({lv:'하'},d.lv))n+=f('mc','하');if(inc.essay)n+=f('essay')}
+   else{if(inc.ox)n+=(S.ox[k]||[]).length;if(inc.bl)n+=(S.bl[k]||[]).length;if(inc.basic&&bkLvOk({lv:'하'},d.lv))n+=(S.basic[k]||[]).length;if(inc.essay)n+=S.essay.filter(q=>q.sub===k).length}
+   let ty=d.all?base.filter(q=>q.sub===k&&(q.set==='mc'||q.set==='top')&&!(inc.basic&&bkLv(q)==='하')):S.type.filter(q=>q.sub===k);ty=ty.filter(q=>bkLvOk(q,d.lv));if(d.cap>0)ty=ty.slice(0,d.cap);n+=ty.length})}
+  e.textContent='소단원 '+subs.length+'개 · 약 '+n+'문항'+lvn+(n>900?' (많아요 — 인쇄에 시간이 걸릴 수 있어요)':'')}catch(x){e.textContent=''}}
 function bkLm(){try{return localStorage.getItem('omr_bklm')==='list'?'list':'card'}catch(e){return 'card'}}
 function bkSetLm(v){try{localStorage.setItem('omr_bklm',v)}catch(e){}bkShow()}
 function bkGoFull(){const f=bkxAll().find(b=>b.subj===SUBJ&&b.kind==='full');BKV=f?{v:'rounds',id:f.id}:{v:'new',id:null,d:bkxPreset('full')}}
