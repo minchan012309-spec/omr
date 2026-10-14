@@ -1,0 +1,76 @@
+// Supabase Edge Function: 패스키 등록·로그인
+// 배포: supabase functions deploy passkey
+// 비밀값: supabase secrets set SITE_URL=https://<아이디>.github.io  (패스키를 쓰는 사이트 주소, 경로 제외)
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import * as swa from 'https://esm.sh/@simplewebauthn/server@10.0.1';
+import { makeHandler } from './handler.js';
+
+const SITE = (Deno.env.get('SITE_URL') || '').replace(/\/+$/, '');
+const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
+const cfg = { rpID: SITE ? new URL(SITE).hostname : 'localhost', rpName: 'Solvi', origins: SITE ? [SITE] : ['http://localhost:8765'] };
+
+const sha256hex = async (s: string) => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))).map((b) => b.toString(16).padStart(2, '0')).join('');
+const randToken = () => { const u = crypto.getRandomValues(new Uint8Array(32)); return Array.from(u).map((b) => b.toString(16).padStart(2, '0')).join(''); };
+
+const db = {
+  async saveChallenge(c: { challenge: string; purpose: string; subject: string }) {
+    const { data, error } = await sb.from('passkey_challenges').insert(c).select('id').single();
+    if (error) throw error;
+    sb.from('passkey_challenges').delete().lt('created_at', new Date(Date.now() - 3600_000).toISOString()).then(() => {});
+    return data.id;
+  },
+  async takeChallenge(id: string) {
+    if (!id) return null;
+    const { data } = await sb.from('passkey_challenges').delete().eq('id', id).select('challenge,purpose,subject,created_at').maybeSingle();
+    return data ? { challenge: data.challenge, purpose: data.purpose, subject: data.subject, t: new Date(data.created_at).getTime() } : null;
+  },
+  async listPasskeys(owner: Record<string, string>) {
+    const { data } = await sb.from('passkeys').select('id,credential_id,transports,label,created_at').match(owner).order('created_at');
+    return data || [];
+  },
+  async getPasskeyByCred(cid: string) {
+    const { data } = await sb.from('passkeys').select('*').eq('credential_id', cid).maybeSingle();
+    return data;
+  },
+  async insertPasskey(row: Record<string, unknown>) {
+    const { error } = await sb.from('passkeys').insert(row);
+    if (error) throw error;
+  },
+  async updateCounter(id: number, counter: number) { await sb.from('passkeys').update({ counter, last_used: new Date().toISOString() }).eq('id', id); },
+  async deletePasskey(id: number, owner: Record<string, string>) { await sb.from('passkeys').delete().eq('id', id).match(owner); },
+  async studentByAuth(login: string, secret: string) {
+    const { data } = await sb.rpc('_st_auth_row', { p_login: login, p_pw: secret });
+    return data && data.id ? data : null;
+  },
+  async getStudent(id: string) { const { data } = await sb.from('students').select('id,name,login').eq('id', id).maybeSingle(); return data; },
+  async issueStudentToken(studentId: string) {
+    const token = randToken();
+    await sb.from('st_tokens').insert({ token_hash: await sha256hex(token), student_id: studentId });
+    return token;
+  },
+  async teacherLink(userId: string) {
+    const { data: u } = await sb.auth.admin.getUserById(userId);
+    const email = u?.user?.email;
+    if (!email) return null;
+    const { data, error } = await sb.auth.admin.generateLink({ type: 'magiclink', email });
+    if (error || !data?.properties?.hashed_token) return null;
+    return { token_hash: data.properties.hashed_token, email };
+  },
+};
+
+const { handle } = makeHandler({ swa, db, cfg });
+const cors = { 'Access-Control-Allow-Origin': SITE || '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Vary': 'Origin' };
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  try {
+    const body = await req.json();
+    let user = null;
+    const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+    if (jwt) { const { data } = await sb.auth.getUser(jwt); user = data?.user ? { id: data.user.id, email: data.user.email } : null; }
+    const r = await handle(body, user);
+    return new Response(JSON.stringify(r.json), { status: r.status, headers: { ...cors, 'Content-Type': 'application/json' } });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: String((e as Error).message || e) }), { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } });
+  }
+});
