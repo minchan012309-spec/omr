@@ -364,3 +364,36 @@ begin
   return coalesce((select data->'perms' from teacher_settings where user_id = s.user_id), '{}'::jsonb)::json;
 end $$;
 grant execute on function st_perms(text, text) to anon, authenticated;
+
+-- =====================================================================
+-- 13. 버그 신고
+-- =====================================================================
+create table if not exists bug_reports (
+  id         bigint generated always as identity primary key,
+  user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  student_id uuid references students(id) on delete set null,
+  who        text not null default '',
+  msg        text not null,
+  info       jsonb not null default '{}'::jsonb,
+  t          bigint not null default (extract(epoch from now()) * 1000)::bigint
+);
+alter table bug_reports enable row level security;
+drop policy if exists "bug select" on bug_reports;
+drop policy if exists "bug insert" on bug_reports;
+drop policy if exists "bug delete" on bug_reports;
+create policy "bug select" on bug_reports for select using (auth.uid() = user_id);
+create policy "bug insert" on bug_reports for insert with check (auth.uid() = user_id);
+create policy "bug delete" on bug_reports for delete using (auth.uid() = user_id);
+
+create or replace function st_bug(p_login text, p_pw text, p_msg text, p_info jsonb) returns boolean
+language plpgsql security definer set search_path = public, extensions as $$
+declare s students%rowtype;
+begin
+  s := _st_auth(p_login, p_pw);
+  if s.id is null then return false; end if;
+  if coalesce(trim(p_msg), '') = '' then return false; end if;
+  insert into bug_reports(user_id, student_id, who, msg, info)
+  values (s.user_id, s.id, s.name, left(p_msg, 2000), coalesce(p_info, '{}'::jsonb));
+  return true;
+end $$;
+grant execute on function st_bug(text, text, text, jsonb) to anon, authenticated;
