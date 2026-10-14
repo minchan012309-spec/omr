@@ -50,7 +50,7 @@ tr.sel td{background:#f3f8ff}
 .modal{position:fixed;inset:0;background:#0006;z-index:20;display:none;align-items:center;justify-content:center;padding:16px}.modal.open{display:flex}
 .modal .box{background:var(--surface);border-radius:14px;padding:22px;width:min(460px,100%);max-height:90vh;overflow:auto}
 .modal label{display:block;font-size:13px;color:var(--m);margin:10px 0 3px}.modal input{width:100%}.modal input[type=checkbox]{width:auto;margin:0}.modal label.cb{display:inline-flex;align-items:center;gap:6px;color:var(--t);font-size:14px;margin:4px 14px 4px 0}.modal label.cb b{font-weight:500}
-#wsView{position:fixed;inset:0;background:#e9eef5;z-index:30;overflow:auto;display:none}#wsView.open{display:block}#wsView.wsm{display:block;left:-30000px;right:auto;width:1200px;visibility:hidden;pointer-events:none}
+#wsView{--qf:none;--qfi:none;position:fixed;inset:0;background:#e9eef5;z-index:30;overflow:auto;display:none}#wsView.open{display:block}#wsView.wsm{display:block;left:-30000px;right:auto;width:1200px;visibility:hidden;pointer-events:none}
 #wsBar .wsx{order:99;margin-left:auto;width:38px;height:38px;border-radius:50%;border:1px solid var(--l);background:var(--surface);font-size:18px;line-height:1;cursor:pointer;color:#333;padding:0;display:grid;place-items:center}#wsBar .wsx:hover{background:var(--sf1)}
 #wsBar{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--l);padding:10px 16px;display:flex;gap:10px;align-items:center;z-index:2;flex-wrap:wrap}
 #wsPaper{width:210mm;margin:14px auto;padding:0;background:none}
@@ -484,9 +484,9 @@ nav button{min-height:48px}
 </style>
 <style>
 /* 다크 테마: 중립적인 어두운 회색·검정 (기기 설정을 따라 자동 전환, 설정에서 고정 가능) */
-html[data-theme=dark]{color-scheme:dark;--surface:#1a1a1c;--bg:#0f0f10;--t:#ececee;--m:#a4a4ab;--m2:#b9b9c0;--l:#2c2c30;--l2:#3b3b41;--sf1:#202023;--sf2:#2b2b30;--b:#6ca8ec;--bd:#9ac3f3;--bl:#1f2630;--yl:#33301f;--no:#ef6a66}
+html[data-theme=dark]{--qf:invert(.9) hue-rotate(180deg);--qfi:invert(1) hue-rotate(180deg);color-scheme:dark;--surface:#1a1a1c;--bg:#0f0f10;--t:#ececee;--m:#a4a4ab;--m2:#b9b9c0;--l:#2c2c30;--l2:#3b3b41;--sf1:#202023;--sf2:#2b2b30;--b:#6ca8ec;--bd:#9ac3f3;--bl:#1f2630;--yl:#33301f;--no:#ef6a66}
 html[data-theme=dark] body[data-subj=cm]{--b:#52c48c;--bd:#86d9b0;--bl:#1d2a24;--bg:#0f0f10}
-html[data-theme=dark] header{background:#18181a;border-bottom:1px solid #2c2c30}html[data-theme=dark] nav{background:var(--surface)}
+html[data-theme=dark] header{background:#18181a;border-bottom:1px solid #2c2c30}html[data-theme=dark] header nav{background:transparent}
 html[data-theme=dark] header nav button{color:#a4a4ab}html[data-theme=dark] header nav button:hover{color:#fff}html[data-theme=dark] header nav button.on{color:#fff;border-bottom-color:var(--b)}
 html[data-theme=dark] header .sjp small{background:var(--b)!important;color:#0f0f10!important}
 html[data-theme=dark] header #stuSel{background:#26262a;color:var(--t);border:1px solid #3b3b41}
@@ -552,7 +552,7 @@ button.p,button.s{border-radius:10px}button.p{font-weight:700}
 .qc b{font-weight:700;font-variant-numeric:tabular-nums;font-size:.92em;letter-spacing:0;padding:1px 7px;border-radius:6px;background:color-mix(in srgb,var(--b) 13%,var(--surface));color:var(--bd);border:1px solid color-mix(in srgb,var(--b) 30%,transparent)}
 .qc i{font-style:normal;font-size:.7em;letter-spacing:1px;color:var(--l2)}.qc i em{font-style:normal;color:var(--b)}
 @media(max-width:720px){main{padding:0 14px 120px}.card{padding:16px}h2{font-size:19px}header nav button{color:var(--m)}header nav button:hover{color:var(--t)}header nav button.on{color:var(--b);border-bottom-color:transparent}}
-html[data-theme=dark] header{background:#16324f}html[data-theme=dark] body[data-subj=cm] header{background:#123f2b}
+
 html[data-theme=dark] .th-hero{background:var(--bl)}
 </style>
 <style>
@@ -587,6 +587,7 @@ html[data-theme=dark] .th-hero{background:var(--bl)}
 /* 튜토리얼 */
 #helpBtn{width:38px;height:38px;border-radius:50%;font-size:18px;font-weight:800;cursor:pointer;padding:0;flex:none;line-height:1;background:#ffffff1f;border:1px solid #ffffff55;color:#fff}#helpBtn:hover{background:#ffffff33}#helpBtn[hidden]{display:none}
 .tpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px 16px}.tpg .tp{display:flex;align-items:center;gap:8px;margin:0}.tl{display:block;font-size:12px;color:var(--m);margin-bottom:3px}
+html[data-theme=dark] button.p,html[data-theme=dark] button.p *,html[data-theme=dark] button.ck.on,html[data-theme=dark] button.ck.on *,html[data-theme=dark] span.tag.on{color:#0f0f10}
 #tour{position:fixed;inset:0;z-index:80;pointer-events:none}
 #tour .tspot{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(15,23,42,.55);outline:3px solid #fff;outline-offset:0;transition:left .2s,top .2s,width .2s,height .2s;pointer-events:none}
 #tour.free .tspot{box-shadow:0 0 0 9999px rgba(15,23,42,.6);outline:0}
@@ -671,7 +672,7 @@ function hlHtml(h,terms){if(!terms||!terms.length)return h;const re=new RegExp('
 const PLAINQ='.q .qn{background:none!important;color:#1f2933!important;box-shadow:none!important;padding:0!important;min-width:0!important;width:auto!important;height:auto!important;border-radius:0!important;font-size:15px!important;line-height:1.3!important;margin-right:2px}.q .qn::after{content:"."}.q .qp{margin-left:4px}';
 function mount(el,html,css){const r=el.shadowRoot||el.attachShadow({mode:'open'});
  r.innerHTML=`<style>${QCSS}
- .wrap{font-family:Pretendard,PretendardLocal,sans-serif;font-size:10.5pt;line-height:1.62;color:#1b2430;word-break:keep-all}
+ .wrap{font-family:Pretendard,PretendardLocal,sans-serif;font-size:10.5pt;line-height:1.62;color:#1b2430;word-break:keep-all;filter:var(--qf,none)}.wrap img,.wrap svg{filter:var(--qfi,none)}
  .q{min-height:0!important;padding-bottom:1mm!important;break-inside:auto}img{max-width:100%}.fg{max-width:460px}mark.hl{background:#ffe27a;color:inherit;padding:0 1px;border-radius:2px;box-shadow:0 0 0 1px #f2b400 inset}${css||''}</style><div class="wrap">${html}</div>`}
 /* ---------- 문제 은행(지연 로딩) ---------- */
 /* 과목별 자료: me=물질과 에너지(bank/), cm=세포와 물질대사(cm/) */
@@ -1099,7 +1100,7 @@ document.addEventListener('click',e=>{if(NT.open&&!e.target.closest('#notifp,#be
 const INK=(()=>{let s={};try{s=JSON.parse(localStorage.getItem('omr_ink')||'{}')}catch(e){}return {on:s.on!==false,color:s.color||'#1d1d1f',w:s.w||2.6,tool:'pen',finger:!!s.finger}})();
 let INKC=null;
 function inkSave(){try{localStorage.setItem('omr_ink',JSON.stringify({on:INK.on,color:INK.color,w:INK.w,finger:INK.finger}))}catch(e){}}
-function inkBar(){if(STUD&&!permOn('ink'))return '';const col=['#1d1d1f','#2a72bf','#d64545','#2e9e6b'];
+function inkBar(){if(STUD&&!permOn('ink'))return '';const col=['#1d1d1f','#2a72bf','#d64545','#2e9e6b',...(themeEff()==='dark'?['#f5f5f7','#ffd84a']:[])];
  return `<div class="inkbar" role="toolbar" aria-label="필기 도구"><button class="${INK.on?'on':''}" onclick="inkSet('on',!INK.on)">${INK.on?'필기 켬':'필기 끔'}</button>
  <span class="isep"></span><button class="${INK.on&&INK.tool==='pen'?'on':''}" onclick="inkSet('tool','pen')">펜</button><button class="${INK.on&&INK.tool==='eraser'?'on':''}" onclick="inkSet('tool','eraser')">지우개</button>
  <span class="isep"></span>${col.map(c=>`<button class="isw ${INK.color===c&&INK.tool==='pen'?'on':''}" style="--c:${c}" aria-label="색 ${c}" onclick="inkSet('color','${c}')"></button>`).join('')}
@@ -1113,8 +1114,8 @@ function inkAttach(w,store,key){
  const S=store[key]=store[key]||[];let st=null;
  const W_=()=>cv.clientWidth||1;
  const dot=(a,b,wd,c)=>{ctx.strokeStyle=c;ctx.lineWidth=wd;ctx.beginPath();ctx.moveTo(a[0]*W_(),a[1]);ctx.lineTo(b[0]*W_(),b[1]);ctx.stroke()};
- const one=s=>{ctx.lineCap='round';ctx.lineJoin='round';const p=s.p;if(p.length===1){ctx.fillStyle=s.c;ctx.beginPath();ctx.arc(p[0][0]*W_(),p[0][1],s.w*(0.5+(p[0][2]||.5))/2,0,7);ctx.fill();return}
-  for(let i=1;i<p.length;i++)dot(p[i-1],p[i],s.w*(0.55+(p[i][2]||.5)*.9),s.c)};
+ const one=s=>{const sc=(document.documentElement.dataset.theme==='dark'&&s.c==='#1d1d1f')?'#f5f5f7':s.c;ctx.lineCap='round';ctx.lineJoin='round';const p=s.p;if(p.length===1){ctx.fillStyle=sc;ctx.beginPath();ctx.arc(p[0][0]*W_(),p[0][1],s.w*(0.5+(p[0][2]||.5))/2,0,7);ctx.fill();return}
+  for(let i=1;i<p.length;i++)dot(p[i-1],p[i],s.w*(0.55+(p[i][2]||.5)*.9),sc)};
  const draw=()=>{const d=devicePixelRatio||1;ctx.setTransform(d,0,0,d,0,0);ctx.clearRect(0,0,cv.width,cv.height);S.forEach(one)};
  const fit=()=>{const r=w.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=Math.max(1,Math.round(r.width*d));cv.height=Math.max(1,Math.round(r.height*d));cv.style.width=r.width+'px';cv.style.height=r.height+'px';draw()};
  const pos=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)/r.width,e.clientY-r.top,e.pressure||.5]};
