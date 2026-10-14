@@ -307,3 +307,34 @@ begin
   delete from st_tokens where student_id = p_student and exists (select 1 from students where id = p_student and user_id = auth.uid());
   delete from passkeys where student_id = p_student and exists (select 1 from students where id = p_student and user_id = auth.uid());
 end $$;
+
+-- 11) 알림: 선생님이 학생에게 공지를 보냅니다 (student_id가 비어 있으면 모든 학생)
+create table if not exists notices (
+  id         bigint generated always as identity primary key,
+  user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  student_id uuid references students(id) on delete cascade,
+  title      text not null,
+  body       text not null default '',
+  t          bigint not null default (extract(epoch from now()) * 1000)::bigint
+);
+alter table notices enable row level security;
+drop policy if exists "nt select" on notices;
+drop policy if exists "nt insert" on notices;
+drop policy if exists "nt update" on notices;
+drop policy if exists "nt delete" on notices;
+create policy "nt select" on notices for select using (auth.uid() = user_id);
+create policy "nt insert" on notices for insert with check (auth.uid() = user_id);
+create policy "nt update" on notices for update using (auth.uid() = user_id);
+create policy "nt delete" on notices for delete using (auth.uid() = user_id);
+
+-- 학생(비로그인)이 아이디/비밀번호(또는 자동 로그인 토큰)로 자기 알림을 읽는 함수
+create or replace function st_notices(p_login text, p_pw text) returns json
+language plpgsql security definer set search_path = public, extensions as $$
+declare s students%rowtype;
+begin
+  s := _st_auth(p_login, p_pw);
+  if s.id is null then return null; end if;
+  return (select coalesce(json_agg(json_build_object('id', n.id, 'title', n.title, 'body', n.body, 't', n.t) order by n.t desc), '[]'::json)
+          from (select * from notices where user_id = s.user_id and (student_id is null or student_id = s.id) order by t desc limit 50) n);
+end $$;
+grant execute on function st_notices(text, text) to anon, authenticated;
