@@ -554,6 +554,16 @@ html[data-theme=dark] .th-hero{background:var(--bl)}
 .mk2 .ca{display:block;font-size:30px;font-weight:800;line-height:1.1;color:var(--bd);font-variant-numeric:tabular-nums}
 .mk2.w .ca{color:var(--no)}
 </style>
+<style>
+/* 화면 필기 */
+.inkw{position:relative}.inkw canvas.ink{position:absolute;left:0;top:0;z-index:2;cursor:crosshair;border-radius:12px}.inkw canvas.ink.er{cursor:cell}
+.inkbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0 10px;padding:6px;border:1px solid var(--l);border-radius:12px;background:var(--surface);position:sticky;top:58px;z-index:3}
+.inkbar button{padding:6px 12px;border-radius:8px;border:1px solid var(--l2);background:var(--surface);font:inherit;font-size:13px;cursor:pointer;min-height:40px}
+.inkbar button.on{background:var(--bl);border-color:var(--b);color:var(--bd);font-weight:700}
+.inkbar .isw{width:40px;min-width:40px;padding:0;position:relative}.inkw{padding-bottom:150px}.inkw .pr_q,.inkw .shq{margin-bottom:0}.inkbar .isw::after{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--c)}
+.inkbar .isep{width:1px;height:22px;background:var(--l)}.inkbar .ifin{font-size:12.5px;color:var(--m);display:inline-flex;align-items:center;gap:4px;margin-left:auto}
+#qsheet .inkbar{position:static}
+</style>
 </head><body>
 <header><h1 id="brand"><a class="lgo" onclick="goHome()" title="홈으로" role="link" tabindex="0" onkeydown="if(event.key==='Enter')goHome()"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lgx" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--b,#3b82f6)"/><stop offset="1" style="stop-color:var(--bd,#1d4ed8)"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lgx)"/><path d="M22.5 9.6A9 9 0 1 0 25 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M11.4 16.4l3.6 3.6 7-8.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bn">Solvi</span></a><span class="sjp" onclick="openSubjects()" title="과목 바꾸기"><small id="subj">물질과 에너지</small><b>▾</b></span></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span><span id="saved" title="이 기기에 자동 저장된 마지막 시각"></span><button id="setBtn" onclick="openSettings()" title="설정 · 단축키 · 데이터 관리" aria-label="설정">⚙</button></header>
 <main id="main"></main><aside id="exp"></aside>
@@ -760,7 +770,7 @@ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.tar
 let _icoT=0;new MutationObserver(ms=>{if(_icoT)return;_icoT=setTimeout(()=>{_icoT=0;iconize(document.body);try{a11y(document.body)}catch(e){}try{chipify(document.getElementById('main')||document.body)}catch(e){}},60)}).observe(document.body,{childList:true,subtree:true,characterData:true});
 function decorate(){document.body.classList.toggle('hasfab',!!document.querySelector('.fab'));document.querySelectorAll('button').forEach(b=>{if(!b.title){const t=b.textContent.trim();if(t)b.title=t}})}
 function goFull(){bkLoad().then(()=>{tab='books';bkGoFull();render();scrollTo(0,0)}).catch(()=>alert('교재를 불러오지 못했습니다.'))}
-function nav(){const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['concept','개념학습'],['books','교재'],['smap','내 유형 지도'],['shist','기록']]:teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'],['stat','누적 분석'],['search','문항 검색']]:[['enter','번호 채점']];
+function nav(){const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['concept','개념학습'],['books','교재'],['smap','학습지 만들기'],['shist','기록']]:teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'],['stat','누적 분석'],['search','문항 검색']]:[['enter','번호 채점']];
  if(!T.find(x=>x[0]===tab)&&!(tab==='grade'&&cur)&&!(tab==='prac'&&PR)&&!((tab==='build'||tab==='bdesign'||tab==='bmake'||tab==='wsedit'||tab==='review')&&teacher())&&!(tab==='prac'&&STUD)&&!(tab==='mock'&&teacher()))tab=T[0][0];$('#nav').innerHTML=T.map(([k,v])=>`<button class="${tab===k||(k==='ws'&&['build','bdesign','review'].includes(tab))||(k==='books'&&tab==='mock')||(k==='enter'&&tab==='grade'&&STUD)?'on':''}" onclick="navGo('${k}')">${v}</button>`).join('')}
 let _navKey=null;
 function goHome(){const k=STUD?'home':(teacher()?'thome':'enter');if(cur&&tab==='grade'&&!cur.done&&!confirm('채점을 그만둘까요? 입력한 내용은 저장되지 않습니다.'))return;if(cur&&tab==='grade'){clearInterval(_tm);if(!cur.done)gdraftClear();cur=null}PR=null;$('#exp').classList.remove('open');tab=k;render();scrollTo(0,0)}
@@ -851,6 +861,41 @@ async function scanQR(){const box=$('#scan'),v=$('#scanV');box.classList.add('op
 function stopScan(){_scanOn=false;if(_stream){_stream.getTracks().forEach(t=>t.stop());_stream=null}$('#scan').classList.remove('open')}
 /* ---------- 유형 반복 학습 (화면에서 바로) ---------- */
 async function practice(codes,title){await ensureCodes(codes);let qs=codes.map(c=>byCode[c]).filter(Boolean);const q2=qs.filter(q=>!isMulti(q)&&q.set!=='noxq');if(q2.length)qs=q2;if(!qs.length)return;PR={qs,i:0,ans:[],shown:false,title:title||'유형 반복 학습'};tab='prac';render()}
+/* ---------- 화면 필기 (애플펜슬 · 마우스 · 선택 시 손가락) ---------- */
+const INK=(()=>{let s={};try{s=JSON.parse(localStorage.getItem('omr_ink')||'{}')}catch(e){}return {on:s.on!==false,color:s.color||'#1d1d1f',w:s.w||2.6,tool:'pen',finger:!!s.finger}})();
+let INKC=null;
+function inkSave(){try{localStorage.setItem('omr_ink',JSON.stringify({on:INK.on,color:INK.color,w:INK.w,finger:INK.finger}))}catch(e){}}
+function inkBar(){const col=['#1d1d1f','#2a72bf','#d64545','#2e9e6b'];
+ return `<div class="inkbar" role="toolbar" aria-label="필기 도구"><button class="${INK.on?'on':''}" onclick="inkSet('on',!INK.on)">${INK.on?'필기 켬':'필기 끔'}</button>
+ <span class="isep"></span><button class="${INK.on&&INK.tool==='pen'?'on':''}" onclick="inkSet('tool','pen')">펜</button><button class="${INK.on&&INK.tool==='eraser'?'on':''}" onclick="inkSet('tool','eraser')">지우개</button>
+ <span class="isep"></span>${col.map(c=>`<button class="isw ${INK.color===c&&INK.tool==='pen'?'on':''}" style="--c:${c}" aria-label="색 ${c}" onclick="inkSet('color','${c}')"></button>`).join('')}
+ <span class="isep"></span>${[[1.6,'가늘게'],[2.6,'보통'],[4.6,'굵게']].map(([w,l])=>`<button class="${INK.w===w?'on':''}" onclick="inkSet('w',${w})">${l}</button>`).join('')}
+ <span class="isep"></span><button onclick="INKC&&INKC.undo()">되돌리기</button><button onclick="INKC&&INKC.clear()">모두 지우기</button>
+ <label class="ifin"><input type="checkbox" ${INK.finger?'checked':''} onchange="inkSet('finger',this.checked)"> 손가락으로도 쓰기</label></div>`}
+function inkSet(k,v){INK[k]=v;if(k==='color')INK.tool='pen';if(k==='tool'&&v==='pen'&&!INK.on)INK.on=true;if(k==='tool'&&v==='eraser')INK.on=true;if(k==='w')INK.tool='pen';inkSave();const b=document.querySelector('.inkbar');if(b)b.outerHTML=inkBar();if(INKC)INKC.mode()}
+function inkAttach(w,store,key){
+ if(!w)return;const old=w.querySelector('canvas.ink');if(old)old.remove();
+ const cv=document.createElement('canvas');cv.className='ink';w.appendChild(cv);const ctx=cv.getContext('2d');
+ const S=store[key]=store[key]||[];let st=null;
+ const W_=()=>cv.clientWidth||1;
+ const dot=(a,b,wd,c)=>{ctx.strokeStyle=c;ctx.lineWidth=wd;ctx.beginPath();ctx.moveTo(a[0]*W_(),a[1]);ctx.lineTo(b[0]*W_(),b[1]);ctx.stroke()};
+ const one=s=>{ctx.lineCap='round';ctx.lineJoin='round';const p=s.p;if(p.length===1){ctx.fillStyle=s.c;ctx.beginPath();ctx.arc(p[0][0]*W_(),p[0][1],s.w*(0.5+(p[0][2]||.5))/2,0,7);ctx.fill();return}
+  for(let i=1;i<p.length;i++)dot(p[i-1],p[i],s.w*(0.55+(p[i][2]||.5)*.9),s.c)};
+ const draw=()=>{const d=devicePixelRatio||1;ctx.setTransform(d,0,0,d,0,0);ctx.clearRect(0,0,cv.width,cv.height);S.forEach(one)};
+ const fit=()=>{const r=w.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=Math.max(1,Math.round(r.width*d));cv.height=Math.max(1,Math.round(r.height*d));cv.style.width=r.width+'px';cv.style.height=r.height+'px';draw()};
+ const pos=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)/r.width,e.clientY-r.top,e.pressure||.5]};
+ const mode=()=>{cv.style.pointerEvents=INK.on?'auto':'none';cv.style.touchAction=INK.finger?'none':'pan-y pinch-zoom';cv.classList.toggle('er',INK.tool==='eraser')};
+ const erase=(p)=>{const rw=W_();const before=S.length;for(let i=S.length-1;i>=0;i--){if(S[i].p.some(q=>Math.hypot((q[0]-p[0])*rw,q[1]-p[1])<14))S.splice(i,1)}if(S.length!==before)draw()};
+ cv.addEventListener('pointerdown',e=>{if(!INK.on)return;if(e.pointerType==='touch'&&!INK.finger)return;e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(x){}
+  const p=pos(e);if(INK.tool==='eraser'){st={er:1};erase(p);return}st={c:INK.color,w:INK.w,p:[p]};S.push(st);draw()});
+ cv.addEventListener('pointermove',e=>{if(!st)return;e.preventDefault();const L=e.getCoalescedEvents?e.getCoalescedEvents():[e];for(const ev of (L.length?L:[e])){const p=pos(ev);if(st.er){erase(p);continue}const a=st.p[st.p.length-1];if(Math.hypot((p[0]-a[0])*W_(),p[1]-a[1])<.6)continue;st.p.push(p);dot(a,p,st.w*(0.55+(p[2]||.5)*.9),st.c)}});
+ const end=()=>{st=null};['pointerup','pointercancel','pointerleave'].forEach(n=>cv.addEventListener(n,end));
+ cv.addEventListener('touchstart',e=>{const t=e.touches[0];if(INK.on&&t&&t.touchType==='stylus')e.preventDefault()},{passive:false});
+ cv.addEventListener('touchmove',e=>{const t=e.touches[0];if(INK.on&&t&&t.touchType==='stylus')e.preventDefault()},{passive:false});
+ cv.addEventListener('contextmenu',e=>e.preventDefault());
+ if(window.ResizeObserver){const ro=new ResizeObserver(fit);ro.observe(w)}else addEventListener('resize',fit);
+ INKC={undo(){for(let i=S.length-1;i>=0;i--){S.splice(i,1);break}draw()},clear(){if(!S.length||confirm('이 문제의 필기를 모두 지울까요?')){S.length=0;draw()}},mode};
+ mode();fit();setTimeout(fit,400)}
 function pracView(){if(!PR){tab='weak';render();return}
  if(PR.i>=PR.qs.length){const n=PR.qs.length,r=PR.ans.filter(x=>x.r).length;const wr=PR.qs.filter((q,i)=>!PR.ans[i].r);
   $('#main').innerHTML=`<div class="card"><h2>${esc(PR.title)} 결과</h2><div class="score">${r}<small> / ${n} (${Math.round(r/n*100)}%)</small></div><div class="row" style="margin-top:12px">${wr.length?`<button class="p" onclick="practice([${wr.map(q=>"'"+q.code+"'").join(',')}],'틀린 문제 다시 풀기')">틀린 ${wr.length}문항 다시</button>`:''}<button class="s" onclick="PR=null;tab='weak';render()">취약 유형 지도로</button></div>
@@ -859,9 +904,9 @@ function pracView(){if(!PR){tab='weak';render();return}
  if(q.set==='blank')opts=`<div class="row"><input id="pb" class="txt" style="width:260px" type="text" placeholder="정답 입력 (여러 개는 / 로 구분)" onkeydown="if(event.key==='Enter')pracAns($('#pb').value)" ${PR.shown?'disabled':''}><button class="p" onclick="pracAns($('#pb').value)" ${PR.shown?'disabled':''}>확인</button></div>`;
  else opts=`<div class="chs2">${(q.set==='ox'?['O','X']:['1','2','3','4','5']).map(o=>`<button class="${PR.shown?(q.ans===o?'ok':(a.a===o?'bad':'')):''}" ${PR.shown?'disabled':''} onclick="pracAns('${o}')">${o}</button>`).join('')}</div>`;
  $('#main').innerHTML=`<div class="card"><div class="row"><b>${esc(PR.title)}</b><span class="m">${PR.i+1} / ${PR.qs.length}</span><span class="tag">${esc(q.type||'')}</span><button class="s sm" onclick="if(confirm('그만할까요?')){PR=null;tab='weak';render()}">그만두기</button></div>
- <div class="pr_q" id="prq"></div>${opts}
+ ${inkBar()}<div class="inkw" id="prqw"><div class="pr_q" id="prq"></div></div>${opts}
  ${PR.shown?`<p><b>${a.r?'정답입니다':'오답입니다'}</b> · 정답 <b style="color:var(--b)">${fmt(q.ans)}</b></p><div class="pr_q" id="pre"></div><button class="p" onclick="pracNext()">${PR.i+1<PR.qs.length?'다음 문제':'결과 보기'}</button>`:''}</div>`;
- mount($('#prq'),wsq(q,PR.i));if(PR.shown)mount($('#pre'),q.exp||'');const pb=$('#pb');pb&&!PR.shown&&pb.focus()}
+ mount($('#prq'),wsq(q,PR.i));PR.ink=PR.ink||{};inkAttach($('#prqw'),PR.ink,PR.i);if(PR.shown)mount($('#pre'),q.exp||'');const pb=$('#pb');pb&&!PR.shown&&pb.focus()}
 function pracAns(v){if(PR.shown)return;const q=PR.qs[PR.i];PR.ans[PR.i]={a:v,r:ok(q,v)?1:0,s:Math.min(600,Math.round((Date.now()-(PR.t0||Date.now()))/1000))};PR.shown=true;render()}
 async function pracNext(){PR.i++;PR.shown=false;if(PR.i>=PR.qs.length){const rec={t:Date.now(),set:'practice',sub:'',items:PR.qs.map((q,i)=>({c:q.code,a:PR.ans[i].a,r:PR.ans[i].r,s:PR.ans[i].s>0?PR.ans[i].s:undefined})),sid:CUR_S};await saveRec(rec)}render()}
 
@@ -885,8 +930,8 @@ function closeSheet(){qtOff();SH=null;const m=$('#qsheet');if(m)m.classList.remo
 function sheetDraw(){if(!QT||QT.i!==SH)qtOn(SH);const m=$('#qsheet'),q=cur.qs[SH],n=cur.qs.length,a=cur.ans[SH]||'',dn=cur.qs.filter((x,i)=>cur.ans[i]).length;
  const opts=optsOf(q);const mu=isMulti(q),sel=mu?a.split(','):[a];
  const ans=q.set==='noxq'?`<div class="shopts nx">${nxGroups(q,a,'sheetNx(',false)}</div>`:q.set==='blank'?`<input id="sht" class="txt" type="text" value="${esc(a)}" placeholder="정답 입력 (여러 빈칸은 / 로 구분)" oninput="cur.ans[SH]=this.value" onkeydown="if(event.key==='Enter')sheetGo(1)">`:`<div class="shopts">${mu?`<span class="m" style="width:100%">정답 ${String(q.ans).split(',').length}개를 모두 고르세요</span>`:''}${opts.map(o=>`<button class="${sel.includes(o)?'sel':''}" onclick="sheetPick('${o}')">${o}</button>`).join('')}${q.set==='ox'?'':`<button class="dk ${a==='?'?'sel':''}" onclick="sheetPick('?')">모름</button>`}</div>`;
- m.innerHTML=`<div class="shbox"><div class="shh"><b>${noOf(q,SH)}번</b><span class="m">${SH+1} / ${n} · 입력 ${dn}</span><button class="s sm" onclick="closeSheet()">닫기</button></div><div class="shq" id="shq"></div>${ans}<div class="shn"><button class="s" ${SH?'':'disabled'} onclick="sheetGo(-1)">← 이전</button><button class="s" onclick="closeSheet()">번호판</button><button class="p" onclick="${SH<n-1?'sheetGo(1)':'closeSheet()'}">${SH<n-1?'다음 →':'완료'}</button></div></div>`;
- mount($('#shq'),q.q||'')}
+ m.innerHTML=`<div class="shbox"><div class="shh"><b>${noOf(q,SH)}번</b><span class="m">${SH+1} / ${n} · 입력 ${dn}</span><button class="s sm" onclick="closeSheet()">닫기</button></div>${inkBar()}<div class="inkw" id="shqw"><div class="shq" id="shq"></div></div>${ans}<div class="shn"><button class="s" ${SH?'':'disabled'} onclick="sheetGo(-1)">← 이전</button><button class="s" onclick="closeSheet()">번호판</button><button class="p" onclick="${SH<n-1?'sheetGo(1)':'closeSheet()'}">${SH<n-1?'다음 →':'완료'}</button></div></div>`;
+ mount($('#shq'),q.q||'');cur.ink=cur.ink||{};setTimeout(()=>inkAttach($('#shqw'),cur.ink,SH),0)}
 function sheetPick(o){const q=cur.qs[SH];let adv=true;if(isMulti(q)&&o!=='?'){const st=new Set(String(cur.ans[SH]||'').split(',').filter(x=>x&&x!=='?'));st.has(o)?st.delete(o):st.add(o);cur.ans[SH]=[...st].sort().join(',');adv=st.size>=String(q.ans).split(',').length}else cur.ans[SH]=cur.ans[SH]===o?'':o;sheetDraw();if(cur.ans[SH]&&adv&&SH<cur.qs.length-1)setTimeout(()=>{if(SH!==null)sheetGo(1)},280)}
 function sheetNx(k,v){const q=cur.qs[SH],n=nxKey(q).length;const st=(cur.ans[SH]||'-'.repeat(n)).split('');st[k]=st[k]===v?'-':v;const r=st.join('');cur.ans[SH]=/^-*$/.test(r)?'':r;sheetDraw()}
 function sheetGo(d){SH=Math.max(0,Math.min(cur.qs.length-1,SH+d));cur.sel=SH;idx=SH;sheetDraw();const b=$('#qsheet .shbox');if(b)b.scrollTop=0}
@@ -2253,12 +2298,15 @@ function studTasks(){
 function sHistView(){$('#main').innerHTML=`<div class="card"><h2>채점 기록</h2>${hist.length?`<div class="tw"><table><tr><th>일시</th><th>범위</th><th>점수</th><th></th></tr>${hist.slice().reverse().slice(0,60).map(h=>`<tr><td>${new Date(h.t).toLocaleString('ko-KR')}</td><td class="l">${h.set==='ws'?'학습지 · '+esc((ASSIGN.find(a=>a.wid===h.sub)||{}).title||fmtNo(h.sub)):h.set==='book'?esc(bookLbl(h.sub)):h.set==='practice'?'유형 연습':esc((SETS[h.set]||h.set)+' '+(h.sub||''))}</td><td>${h.items.filter(x=>x.r).length}/${h.items.length}</td><td></td></tr>`).join('')}</table></div>`:'<div class="empty">기록이 없어요.</div>'}</div>`}
 function sMapView(){
  const rows=typeRows(hist),bySub={};rows.forEach(o=>(bySub[o.sub]=bySub[o.sub]||[]).push(o));const cnt={};rows.forEach(o=>cnt[o.lv]=(cnt[o.lv]||0)+1);
- let h=`<div class="card"><h2>내 유형 지도</h2>${legendHtml(cnt)}<div class="hint">연습하고 싶은 유형을 눌러 고른 뒤 아래에서 「바로 풀기」를 누르세요. 해골과 빨강이 먼저 보강할 유형이에요.</div>`;
+ let h=`<div class="card"><h2>학습지 만들기 <small style="font-weight:400;color:var(--m);font-size:13px">내 유형 지도</small></h2>${legendHtml(cnt)}<div class="hint">풀고 싶은 유형을 눌러 고른 뒤 아래에서 「화면에서 풀기」를 누르세요. 문제 위에 바로 필기할 수 있어요(애플펜슬). 해골과 빨강이 먼저 보강할 유형이에요.</div>`;
  subs.forEach(([sub,name])=>{const rs=(bySub[sub]||[]).filter(o=>!FL||o.lv===FL).sort((a,b)=>['skull','red','yellow','gray','green','star'].indexOf(a.lv)-['skull','red','yellow','gray','green','star'].indexOf(b.lv)||a.p-b.p);if(!rs.length)return;
   h+=`<h3>${sub} ${name}</h3><div class="heat">${rs.map(o=>`<div class="cell ${W.sel.has(o.k)?'on':''}" data-k="${esc(o.k)}" onclick="sTog(this.dataset.k)" onmousemove="tip(event,this)" onmouseleave="tipHide()"><i class="ic">${ICON[o.lv]}</i><span>${esc(o.type)}</span></div>`).join('')}</div>`});
- h+=`</div><div class="stick"><div><b>${W.sel.size}</b>개 유형</div><label class="m">총 <input type="number" id="sn_" min="5" max="60" value="${W.total||15}" style="width:70px" onchange="W.total=+this.value||15;saveW()"> 문항</label><button class="p" ${W.sel.size?'':'disabled'} onclick="sPractice()">바로 풀기</button></div>`;
+ h+=`</div><div class="stick"><div><b>${W.sel.size}</b>개 유형</div><label class="m">총 <input type="number" id="sn_" min="5" max="60" value="${W.total||15}" style="width:70px" onchange="W.total=+this.value||15;saveW()"> 문항</label><button class="s" ${W.sel.size?'':'disabled'} onclick="sPrint()">인쇄용으로 만들기</button><button class="p" ${W.sel.size?'':'disabled'} onclick="sPractice()">화면에서 풀기</button></div>`;
  $('#main').innerHTML=h}
 function sTog(k){W.sel.has(k)?W.sel.delete(k):W.sel.set(k,5);const y=scrollY;sMapView();scrollTo(0,y)}
+async function sPrint(){const pw=popOpen('학습지를 만드는 중…');W.mode='total';W.dist='weak';W.sets={...W.sets,bank:1};
+ try{const codes=await pickCodes();if(!codes.length){if(pw)pw.close();alert('출제할 문제가 없어요.');return}await ensureCodes(codes);const st=STINFO||{};
+  const rec=mkWs(codes,{title:'내 학습지',subt:SNAME[SUBJ],name:st.name||'',style:'basic',cols:2,qr:true,ans:0});if(!rec){if(pw)pw.close();return}if(pw)WSP={win:pw,rec};openWs(rec,null,{win:pw})}catch(e){if(pw)pw.close();throw e}}
 async function sPractice(){W.mode='total';W.dist='weak';W.sets={...W.sets,bank:1};const codes=await pickCodes();if(!codes.length){alert('출제할 문제가 없어요.');return}practice(codes,'유형 연습')}
 /* ---- 정답률 추이 그래프 ---- */
 function trendSvg(hs,w,h){w=w||640;h=h||170;const pts=hs.slice(-30).map(x=>x.items.length?x.items.filter(i=>i.r).length/x.items.length:0);if(pts.length<2)return '<div class="m">기록이 더 쌓이면 그래프가 나옵니다.</div>';
@@ -2651,7 +2699,7 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,typing=tg==='I
 let PALI=[];
 function openPalette(){$('#cfgBox').innerHTML=`<input id="pal" class="palin" type="search" placeholder="이동할 곳·학습지 이름/번호·학생 이름 검색  (Esc 닫기)" oninput="palFill(this.value)" onkeydown="palKey(event)"><div id="pall" class="pall"></div>`;$('#cfg').classList.add('open');setTimeout(()=>{const e=$('#pal');e&&e.focus()},30);palFill('')}
 function palFill(v){v=v.trim().toLowerCase();const items=[];
- const tabs=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['smap','내 유형 지도'],['shist','기록']]:[['grade','채점'],['weak','취약 유형'],['build','학습지 만들기'],['ws','내 학습지'],['books','교재'],['wrong','오답노트'],['stu','학생'],['stat','누적 분석'],['search','문항 검색']];
+ const tabs=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['smap','학습지 만들기'],['shist','기록']]:[['grade','채점'],['weak','취약 유형'],['build','학습지 만들기'],['ws','내 학습지'],['books','교재'],['wrong','오답노트'],['stu','학생'],['stat','누적 분석'],['search','문항 검색']];
  tabs.forEach(([k,n])=>items.push({l:'이동 · '+n,run:()=>{tab=k;render()}}));
  if(!STUD){items.push({l:'설정 · 단축키 · 데이터 관리',run:openSettings},{l:'내 문제 추가',run:()=>{tab='search';render();myQForm()}},{l:'내 구성 불러오기·저장',run:openPresets});
   WSH.filter(w=>wsSubj(w)===SUBJ||true).slice().sort((a,b)=>b.t-a.t).slice(0,60).forEach(w=>items.push({l:'학습지 · '+w.title+' · '+fmtNo(w.id),run:()=>openByNumber(w.id),x:w.id}));
