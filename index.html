@@ -583,8 +583,22 @@ html[data-theme=dark] .th-hero{background:var(--bl)}
 <style>
 .pkl{display:flex;flex-direction:column;gap:6px}.pki{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--l);border-radius:10px;padding:8px 10px}.pki small{display:block;color:var(--m);font-size:12px}
 </style>
+<style>
+/* 알림 */
+#bellBtn{position:relative;width:38px;height:38px;border-radius:50%;cursor:pointer;padding:0;flex:none;display:grid;place-items:center;background:#ffffff1f;border:1px solid #ffffff55;color:#fff}#bellBtn:hover{background:#ffffff33}
+#bellN{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--no);color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center}#bellN[hidden]{display:none}
+@media(max-width:720px){#bellBtn{order:5;min-width:44px;min-height:44px}#helpBtn{order:5}}
+#notifp{position:fixed;right:8px;z-index:70;width:min(400px,calc(100vw - 16px));max-height:min(78vh,640px);overflow:auto;background:var(--surface);border:1px solid var(--l);border-radius:14px;box-shadow:0 12px 34px #0003;padding:12px}
+#notifp .nh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+#notifp .ncomp{border:1px solid var(--l);border-radius:10px;padding:8px 10px;margin-bottom:10px}#notifp .ncomp summary{cursor:pointer;font-weight:700;min-height:32px}
+#notifp .ncf{display:flex;flex-direction:column;gap:6px;margin-top:8px}#notifp .ncf textarea{font:inherit;padding:8px 10px;border:1px solid var(--l2);border-radius:8px;resize:vertical}
+#notifp .nsent{margin-top:10px;display:flex;flex-direction:column;gap:6px}#notifp .nsent>div{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--l);padding-top:6px}#notifp .nsent small{display:block;color:var(--m)}
+#notifp .ni{border-top:1px solid var(--l);padding:10px 2px}#notifp .ni.new{background:var(--bl);border-radius:8px;padding:10px 8px;margin:2px 0}
+#notifp .nt{display:flex;align-items:center;gap:6px;flex-wrap:wrap}#notifp .nt small{margin-left:auto;color:var(--m);font-size:12px}#notifp .ni p{margin:4px 0 6px;font-size:13.5px;line-height:1.55;white-space:pre-wrap}
+#notifp .ntag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;background:var(--bl);color:var(--bd)}#notifp .ntag.n{background:#fff2e3;color:#8a4b00}
+</style>
 </head><body>
-<header><h1 id="brand"><a class="lgo" onclick="goHome()" title="홈으로" role="link" tabindex="0" onkeydown="if(event.key==='Enter')goHome()"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lgx" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--b,#3b82f6)"/><stop offset="1" style="stop-color:var(--bd,#1d4ed8)"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lgx)"/><path d="M22.5 9.6A9 9 0 1 0 25 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M11.4 16.4l3.6 3.6 7-8.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bn">Solvi</span></a><span class="sjp" onclick="openSubjects()" title="과목 바꾸기"><small id="subj">물질과 에너지</small><b>▾</b></span></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span><span id="saved" title="이 기기에 자동 저장된 마지막 시각"></span><button id="helpBtn" onclick="tourMenu(event)" title="튜토리얼" aria-label="튜토리얼" hidden>?</button><button id="setBtn" onclick="openSettings()" title="설정 · 단축키 · 데이터 관리" aria-label="설정">⚙</button></header>
+<header><h1 id="brand"><a class="lgo" onclick="goHome()" title="홈으로" role="link" tabindex="0" onkeydown="if(event.key==='Enter')goHome()"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lgx" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--b,#3b82f6)"/><stop offset="1" style="stop-color:var(--bd,#1d4ed8)"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lgx)"/><path d="M22.5 9.6A9 9 0 1 0 25 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M11.4 16.4l3.6 3.6 7-8.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bn">Solvi</span></a><span class="sjp" onclick="openSubjects()" title="과목 바꾸기"><small id="subj">물질과 에너지</small><b>▾</b></span></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span><span id="saved" title="이 기기에 자동 저장된 마지막 시각"></span><button id="bellBtn" onclick="notifOpen(event)" title="알림" aria-label="알림"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 2a6 6 0 0 0-6 6v3.6L4.3 15a1 1 0 0 0 .9 1.4h13.6a1 1 0 0 0 .9-1.4L18 11.6V8a6 6 0 0 0-6-6zm-2 17a2 2 0 0 0 4 0h-4z"/></svg><span id="bellN" hidden></span></button><button id="helpBtn" onclick="tourMenu(event)" title="튜토리얼" aria-label="튜토리얼" hidden>?</button><button id="setBtn" onclick="openSettings()" title="설정 · 단축키 · 데이터 관리" aria-label="설정">⚙</button></header>
 <main id="main"></main><aside id="exp"></aside>
 <div class="modal" id="cfg"><div class="box" id="cfgBox"></div></div>
 <div id="scan"><video id="scanV" playsinline muted></video><div id="scanMsg">QR 코드를 화면 가운데에 맞춰 주세요</div><button class="s" onclick="stopScan()">닫기</button></div>
@@ -807,7 +821,7 @@ function pushNav(){const k=navKey();if(_navKey===null){history.replaceState({k},
 window.addEventListener('popstate',e=>{const k=(e.state&&e.state.k)||'';const p=k.split('|');if(!p[0])return;tab=p[0];if(p[1]!=='1')cur=null;if(p[2]!=='1')PR=null;if(p[3]!=='1')$('#wsView').classList.remove('open');_navKey=k;render(true)});
 function resetW(){FL='';FLS=0;W=JSON.parse(JSON.stringify(WDEF));W.sel=new Map();BQ='';BU=[];BD.codes=null;saveW()}
 const FRESHFROM=['build','bdesign','bmake','review','weak','prac','wsedit'];
-function render(skip){tipHide();if((tab==='build'||tab==='weak')&&window._lt!==tab&&!FRESHFROM.includes(window._lt||'')){try{resetW()}catch(e){}}{const m=document.getElementById('main');if(m){if(window._lt!==tab){m.classList.remove('pgin');void m.offsetWidth;m.classList.add('pgin');clearTimeout(window._pgt);window._pgt=setTimeout(()=>m.classList.remove('pgin'),600)}window._lt=tab}}if(teacher()&&tab==='enter'&&!STUD)tab='thome';{const m=$('#qsheet');if(m&&(!cur||cur.done||cur.mark))m.classList.remove('open')}nav();({grade:gradeView,bdesign:bdesignView,mock:mockView,wrong:wrongView,diag:diagView,thome:teacherHome,enter:enterView,weak:weakView,concept:conceptView,books:booksView,ws:wsListView,stu:stuView,stat:statView,search:searchView,prac:pracView,build:buildView,bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();decorate()}
+function render(skip){tipHide();if((tab==='build'||tab==='weak')&&window._lt!==tab&&!FRESHFROM.includes(window._lt||'')){try{resetW()}catch(e){}}{const m=document.getElementById('main');if(m){if(window._lt!==tab){m.classList.remove('pgin');void m.offsetWidth;m.classList.add('pgin');clearTimeout(window._pgt);window._pgt=setTimeout(()=>m.classList.remove('pgin'),600)}window._lt=tab}}if(teacher()&&tab==='enter'&&!STUD)tab='thome';{const m=$('#qsheet');if(m&&(!cur||cur.done||cur.mark))m.classList.remove('open')}nav();({grade:gradeView,bdesign:bdesignView,mock:mockView,wrong:wrongView,diag:diagView,thome:teacherHome,enter:enterView,weak:weakView,concept:conceptView,books:booksView,ws:wsListView,stu:stuView,stat:statView,search:searchView,prac:pracView,build:buildView,bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();try{if(NT.who!==nWho()){NT.who=nWho();nStart();if(STUD)setTimeout(updAuto,2500)}nBadge()}catch(e){}decorate()}
 const lastRes=()=>{const m={};H().forEach(h=>h.items.forEach(x=>{(m[x.c]=m[x.c]||[]).push(x.r)}));return m};
 function statsFrom(hs,keyf,filter){const m={};
  hs.forEach(h=>h.items.forEach(x=>{const q=qMeta(x.c);if(!q||!q.type||(filter&&!filter(q)))return;const k=keyf(q);const o=m[k]=m[k]||{k,n:0,r:0,rec:[],q};o.n++;o.r+=x.r;o.rec.push(x.r)}));
@@ -915,6 +929,20 @@ const TOURS={
   {sel:'.gtabs button:nth-child(2)',text:'교재는 「교재 쪽수」에서 책과 쪽 번호를 골라요. 눌러 보세요.',click:1},
   {sel:'#gp_page',text:'책을 고르고 쪽 번호를 입력해요. 「이 쪽 화면에서 풀기」도 여기 있어요.',next:1},
   {center:1,text:'채점이 끝나면 틀린 문제는 오답노트에 모여요.'}]},
+ ink:{name:'문제 위에 필기하기',desc:'애플펜슬로 문제 위에 바로 써요',steps:[
+  {sel:navSel('smap'),text:'「학습지 만들기」를 눌러 보세요.',click:1},
+  {sel:'.heat .cell',text:'유형을 하나 골라 보세요.',until:()=>W.sel.size>0},
+  {sel:'.stick .p',text:'「화면에서 풀기」를 눌러 보세요.',click:1},
+  {sel:'.inkbar',text:'펜·지우개·색·굵기를 고르고 문제 위에 바로 써 보세요. 애플펜슬로 쓰고 손가락으로는 스크롤해요. 되돌리기와 모두 지우기도 있어요.',next:1},
+  {center:1,text:'필기는 이 문제를 푸는 동안 남아 있어요.'}]},
+ passkey:{name:'패스키로 로그인',desc:'지문·얼굴로 비밀번호 없이 로그인',steps:[
+  {sel:'#setBtn',text:'설정(⚙)을 눌러 보세요.',click:1},
+  {sel:'#pkbox',text:'「이 기기에 패스키 등록」을 누르고 지문·얼굴·기기 암호로 확인하면 끝! 다음부터는 로그인 화면의 「패스키로 로그인」을 누르면 돼요. 자동 로그인도 여기서 켜고 꺼요.',next:1,wait:7000},
+  {center:1,text:'패스키는 기기마다 따로 등록해요.'}]},
+ notif:{name:'알림 확인하기',desc:'선생님 공지와 업데이트 소식',steps:[
+  {sel:'#bellBtn',text:'종 모양 「알림」을 눌러 보세요.',click:1},
+  {sel:'#notifp',text:'선생님이 보낸 공지와 앱 업데이트 소식이 여기 모여요. 새 알림이 오면 화면 위에 알려 줘요.',next:1},
+  {center:1,text:'안 읽은 알림은 종 위의 빨간 숫자로 보여요.'}]},
  stats:{name:'유형 분석 보기',desc:'내 약점과 정답률을 살펴봐요',steps:[
   {sel:navSel('stat'),text:'「유형 분석」을 눌러 보세요.',click:1},
   {sel:'#main .card',text:'소단원별 정답률, 추이, 유형별 정답률(낮은 순)을 볼 수 있어요. 낮은 유형부터 연습하면 효과가 커요.',next:1},
@@ -926,17 +954,19 @@ const tourKey=()=>'omr_tours_'+((STUD&&STUD.login)||'x');
 function tourDone(id){try{return !!(JSON.parse(localStorage.getItem(tourKey())||'{}')[id])}catch(e){return false}}
 function tourMark(id){try{const o=JSON.parse(localStorage.getItem(tourKey())||'{}');o[id]=1;localStorage.setItem(tourKey(),JSON.stringify(o))}catch(e){}}
 function tourEl(s){if(!s.sel)return null;return [...document.querySelectorAll(s.sel)].find(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0})||null}
-function tourStart(id){if(!STUD||!TOURS[id])return;closeCfg&&closeCfg();tourEnd(true);TOUR={id,i:-1,steps:TOURS[id].steps};
+function tourStart(id,opt){if(!STUD||!TOURS[id])return;closeCfg&&closeCfg();tourEnd(true);let steps=TOURS[id].steps;opt=opt||{};
+ if(opt.forced)steps=[{welcome:1,forced:1,text:opt.text||'새 기능이 추가됐어요. 직접 눌러 보며 익혀 볼까요?'},...steps.filter(s=>!s.welcome)];
+ TOUR={id,i:-1,steps,upd:opt.upd||null};
  const o=document.createElement('div');o.id='tour';o.innerHTML='<div class="tspot"></div><div class="tcard" role="dialog" aria-live="polite"></div>';document.body.appendChild(o);
  document.addEventListener('click',tourClick,true);window.addEventListener('resize',tourPlace);document.addEventListener('scroll',tourPlace,true);TOUR.tm=setInterval(tourTick,200);tourNext()}
 function tourEnd(silent){if(TOUR){clearInterval(TOUR.tm);document.removeEventListener('click',tourClick,true);window.removeEventListener('resize',tourPlace);document.removeEventListener('scroll',tourPlace,true)}
- const o=document.getElementById('tour');if(o)o.remove();const id=TOUR&&TOUR.id;TOUR=null;if(id&&!silent){tourMark(id);if(id==='intro')tourMark('offered')}}
+ const o=document.getElementById('tour');if(o)o.remove();const id=TOUR&&TOUR.id,upd=TOUR&&TOUR.upd;TOUR=null;if(id&&!silent){tourMark(id);if(id==='intro')tourMark('offered');if(upd){updSeen(upd);setTimeout(updAuto,800)}}}
 function tourQuit(){tourEnd(false)}
 function tourNext(){if(!TOUR)return;TOUR.i++;const s=TOUR.steps[TOUR.i];if(!s){const id=TOUR.id;tourEnd(false);toast('「'+TOURS[id].name+'」 튜토리얼을 마쳤어요');return}TOUR.t0=Date.now();TOUR.el=null;tourRender()}
 function tourRender(){const s=TOUR.steps[TOUR.i],c=document.querySelector('#tour .tcard');if(!c)return;const n=TOUR.steps.length;
  const free=s.welcome||s.center;
  const nextBtn=(s.next||free)?`<button class="p" onclick="tourNext()">${s.welcome?'시작하기':(TOUR.i===n-1?'마치기':'다음')}</button>`:'';
- c.innerHTML=`<div class="tt1"><b>${esc(TOURS[TOUR.id].name)}</b><span class="m">${TOUR.i+1} / ${n}</span></div><p>${esc(s.text)}</p>${s.click||s.until?'<div class="thint">표시된 곳을 직접 눌러 보세요</div>':''}<div class="tbt">${s.welcome?'<button class="s" onclick="tourQuit()">나중에</button>':'<button class="s" onclick="tourQuit()">그만두기</button>'}${s.click||s.until?'<button class="s" onclick="tourNext()">건너뛰기</button>':''}${nextBtn}</div>`;
+ c.innerHTML=`<div class="tt1"><b>${esc(TOURS[TOUR.id].name)}</b><span class="m">${TOUR.i+1} / ${n}</span></div><p>${esc(s.text)}</p>${s.click||s.until?'<div class="thint">표시된 곳을 직접 눌러 보세요</div>':''}<div class="tbt">${s.forced?'<button class="s" onclick="tourQuit()">건너뛰기</button>':s.welcome?'<button class="s" onclick="tourQuit()">나중에</button>':'<button class="s" onclick="tourQuit()">그만두기</button>'}${s.click||s.until?'<button class="s" onclick="tourNext()">건너뛰기</button>':''}${nextBtn}</div>`;
  document.getElementById('tour').classList.toggle('free',!!free);tourPlace()}
 function tourTick(){if(!TOUR)return;const s=TOUR.steps[TOUR.i];if(!s)return;
  if(s.until&&s.until()&&!TOUR.adv){TOUR.adv=1;setTimeout(()=>{TOUR&&(TOUR.adv=0,tourNext())},350);return}
@@ -955,7 +985,60 @@ function tourMenu(e){e.stopPropagation();const old=document.getElementById('tour
  document.body.appendChild(m);m.style.top=(r.bottom+6)+'px';m.style.right=Math.max(8,innerWidth-r.right)+'px'}
 function tourMenuGo(k){const m=document.getElementById('tourmenu');if(m)m.remove();tourStart(k)}
 document.addEventListener('click',e=>{if(!e.target.closest('#tourmenu,#helpBtn')){const m=document.getElementById('tourmenu');if(m)m.remove()}});
-function tourAuto(){if(!STUD||TOUR||tourDone('offered')||tourDone('intro'))return;tourMark('offered');setTimeout(()=>{if(tab==='home'&&!TOUR)tourStart('intro')},900)}
+function tourAuto(){if(!STUD||TOUR||tourDone('offered')||tourDone('intro'))return;try{if(!localStorage.getItem(updSeenKey()))localStorage.setItem(updSeenKey(),JSON.stringify(UPDATES.map(u=>u.id)))}catch(e){}tourMark('offered');setTimeout(()=>{if(tab==='home'&&!TOUR)tourStart('intro')},900)}
+/* ---------- 알림 · 업데이트 소식 ----------
+   새 기능을 배포할 때 UPDATES 맨 앞에 항목을 추가하세요.
+   tour: 학생이 업데이트 후 처음 접속하면 자동으로 띄울 튜토리얼 이름(TOURS의 키), aud: all | student | teacher */
+const UPDATES=[
+ {id:'2026-10-14-notif',date:'2026-10-14',title:'알림 기능',body:'설정 옆 종 모양에서 선생님 공지와 업데이트 소식을 볼 수 있어요. 새 알림이 오면 화면 위에 알려 줘요.',tour:'notif',aud:'all'},
+ {id:'2026-10-14-passkey',date:'2026-10-14',title:'패스키 로그인 · 자동 로그인',body:'지문·얼굴·기기 암호로 비밀번호 없이 로그인하고, 이 기기에서 로그인 상태를 유지할 수 있어요.',tour:'passkey',aud:'all',needs:'pk'},
+ {id:'2026-10-13-ink',date:'2026-10-13',title:'학습지 만들기 · 문제 위 필기',body:'학생도 학습지를 만들어 화면에서 풀 수 있고, 애플펜슬로 문제 위에 바로 필기할 수 있어요. 교재의 한 쪽만 골라 풀 수도 있고 「유형 분석」도 볼 수 있어요.',tour:'ink',aud:'student'},
+ {id:'2026-10-13-design',date:'2026-10-13',title:'새 디자인',body:'과목색 상단, 문항 코드 칩과 난이도 점으로 화면을 새로 정돈했어요. 교사 홈 배너와 취약 유형의 선택 요약 박스도 달라졌어요.',aud:'all'}
+];
+const updFor=u=>(u.aud==='all'||!u.aud||(u.aud==='student'&&STUD)||(u.aud==='teacher'&&!STUD))&&(u.needs!=='pk'||pkOK());
+const nWho=()=>STUD&&!STUD.preview?'s:'+STUD.login:(sess&&sess.user?'t:'+sess.user.id:'x');
+const nSeenGet=()=>{try{return new Set(JSON.parse(localStorage.getItem('omr_nseen_'+nWho())||'[]'))}catch(e){return new Set()}};
+const nSeenSet=s=>{try{localStorage.setItem('omr_nseen_'+nWho(),JSON.stringify([...s].slice(-300)))}catch(e){}};
+let NT={list:[],sent:[],announced:new Set(),open:false,t:0};
+function updSeenKey(){return 'omr_upd_'+(STUD?STUD.login:'x')}
+function updSeen(id){try{const k=updSeenKey();const a=JSON.parse(localStorage.getItem(k)||'[]');if(!a.includes(id))a.push(id);localStorage.setItem(k,JSON.stringify(a))}catch(e){}}
+function updAuto(){if(!STUD||STUD.preview||TOUR||PR||(cur&&!cur.done))return;
+ const k=updSeenKey();let seen=null;try{seen=JSON.parse(localStorage.getItem(k)||'null')}catch(e){}
+ if(!seen){ // 이 아이디로 처음 접속: 처음 시작하기가 안내하므로 지금까지의 업데이트는 본 것으로 처리 (이미 쓰던 학생이면 모두 새 소식)
+  if(!tourDone('offered')&&!tourDone('intro')){try{localStorage.setItem(k,JSON.stringify(UPDATES.map(u=>u.id)))}catch(e){}return}
+  seen=[]}
+ const p=UPDATES.find(u=>u.tour&&TOURS[u.tour]&&updFor(u)&&!seen.includes(u.id));if(!p)return;
+ setTimeout(()=>{if(!TOUR&&!PR&&!(cur&&!cur.done))tourStart(p.tour,{forced:1,upd:p.id,text:'새 기능이 추가됐어요 — '+p.title+'. '+p.body+' 직접 눌러 보며 익혀 볼까요?'})},1200)}
+function nUnread(){const s=nSeenGet();let n=0;UPDATES.forEach(u=>{if(updFor(u)&&!s.has('u:'+u.id))n++});NT.list.forEach(x=>{if(!s.has('n:'+x.id))n++});return n}
+function nBadge(){const b=document.getElementById('bellN');if(!b)return;const n=nUnread();b.textContent=n>9?'9+':String(n);b.hidden=!n}
+async function nFetch(first){
+ try{if(!cloud())return;
+  if(STUD&&!STUD.preview){const r=await rpc('st_notices',{p_login:STUD.login,p_pw:STUD.pw});NT.list=r.ok?((await r.json())||[]):[]}
+  else if(sess){const r=await sb('/rest/v1/notices?select=id,title,body,t,student_id&order=t.desc&limit=60');NT.sent=r.ok?await r.json():[];NT.list=[]}
+  else NT.list=[]}catch(e){}
+ const s=nSeenGet();const fresh=NT.list.filter(x=>!s.has('n:'+x.id)&&!NT.announced.has(x.id));
+ if(!first&&fresh.length){fresh.slice(0,2).forEach(x=>toast('새 알림 · '+x.title));}
+ else if(first&&fresh.length){toast('새 알림 '+fresh.length+'개가 있어요')}
+ fresh.forEach(x=>NT.announced.add(x.id));nBadge();if(NT.open)nRender()}
+function nStart(){clearInterval(NT.t);NT.t=setInterval(()=>{if(!document.hidden)nFetch(false)},60000);
+ if(!NT.started){NT.started=1;document.addEventListener('visibilitychange',()=>{if(!document.hidden)nFetch(false)})}
+ nFetch(true);
+ const s=nSeenGet(),un=UPDATES.filter(u=>updFor(u)&&!s.has('u:'+u.id));
+ if(un.length&&!NT.upToast){NT.upToast=1;setTimeout(()=>toast('새 업데이트 · '+un[0].title+(un.length>1?' 외 '+(un.length-1)+'건':'')),1500)}}
+function notifOpen(e){if(e)e.stopPropagation();if(document.getElementById('notifp')){nClose();return}NT.open=true;nRender();
+ setTimeout(()=>{const s=nSeenGet();UPDATES.forEach(u=>{if(updFor(u))s.add('u:'+u.id)});NT.list.forEach(x=>s.add('n:'+x.id));nSeenSet(s);nBadge()},800)}
+function nClose(){NT.open=false;const p=document.getElementById('notifp');if(p)p.remove()}
+function nRender(){let p=document.getElementById('notifp');if(!p){p=document.createElement('div');p.id='notifp';p.setAttribute('role','dialog');p.setAttribute('aria-label','알림');document.body.appendChild(p);
+  const b=document.getElementById('bellBtn');if(b){const r=b.getBoundingClientRect();p.style.top=(r.bottom+8)+'px'}}
+ const s=nSeenGet();const items=[...NT.list.map(x=>({k:'n',id:x.id,t:+x.t,title:x.title,body:x.body,tag:'공지'})),...UPDATES.filter(updFor).map(u=>({k:'u',id:u.id,t:new Date(u.date).getTime(),title:u.title,body:u.body,tag:'업데이트',tour:u.tour}))].sort((a,b)=>b.t-a.t);
+ const composer=(!STUD&&sess)?`<details class="ncomp"><summary>공지 보내기</summary><div class="ncf"><input id="nt_t" maxlength="60" placeholder="제목"><textarea id="nt_b" rows="3" maxlength="500" placeholder="내용 (학생 화면 알림에 보여요)"></textarea><select id="nt_s"><option value="">모든 학생</option>${STU.map(x=>`<option value="${x.id}">${esc(x.name)}${x.grade?' · '+esc(x.grade):''}</option>`).join('')}</select><button class="p" onclick="nSend()">보내기</button></div>
+ ${NT.sent.length?`<div class="nsent"><b>보낸 공지</b>${NT.sent.slice(0,8).map(x=>`<div><span>${esc(x.title)}<small>${new Date(+x.t).toLocaleDateString('ko-KR')}${x.student_id?' · '+esc((STU.find(y=>y.id===x.student_id)||{}).name||'한 명'):' · 전체'}</small></span><button class="s sm" onclick="nDel(${x.id})">삭제</button></div>`).join('')}</div>`:''}</details>`:'';
+ p.innerHTML=`<div class="nh"><b>알림</b><button class="s sm" onclick="nClose()" aria-label="닫기">닫기</button></div>${composer}<div class="nl">${items.length?items.map(i=>`<div class="ni ${s.has(i.k+':'+i.id)?'':'new'}"><div class="nt"><span class="ntag ${i.k}">${i.tag}</span><b>${esc(i.title)}</b><small>${new Date(i.t).toLocaleDateString('ko-KR')}</small></div><p>${esc(i.body||'')}</p>${i.tour&&STUD&&TOURS[i.tour]?`<button class="s sm" onclick="nClose();tourStart('${i.tour}')">튜토리얼 보기</button>`:''}</div>`).join(''):'<div class="m" style="padding:14px">알림이 없어요.</div>'}</div>`}
+async function nSend(){const title=($('#nt_t')||{}).value.trim(),body=($('#nt_b')||{}).value.trim(),sid=($('#nt_s')||{}).value;if(!title){toast('제목을 입력하세요');return}
+ try{const r=await sb('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({title,body,student_id:sid||null})});if(!r.ok)throw new Error(r.status===404?'notices 테이블이 없어요. setup.sql을 다시 실행하세요.':'보내지 못했어요 ('+r.status+')');
+  toast('공지를 보냈어요');await nFetch(false)}catch(e){toast(e.message)}}
+async function nDel(id){if(!confirm('이 공지를 삭제할까요? 학생 화면에서도 사라져요.'))return;try{await sb('/rest/v1/notices?id=eq.'+id,{method:'DELETE'});await nFetch(false)}catch(e){toast('삭제하지 못했어요')}}
+document.addEventListener('click',e=>{if(NT.open&&!e.target.closest('#notifp,#bellBtn,#tour'))nClose()});
 /* ---------- 화면 필기 (애플펜슬 · 마우스 · 선택 시 손가락) ---------- */
 const INK=(()=>{let s={};try{s=JSON.parse(localStorage.getItem('omr_ink')||'{}')}catch(e){}return {on:s.on!==false,color:s.color||'#1d1d1f',w:s.w||2.6,tool:'pen',finger:!!s.finger}})();
 let INKC=null;
@@ -2408,7 +2491,7 @@ function stLoginCard(){return `<div class="card enter stl"><div class="stbrand">
 function ringSvg(p,label,sub,col){const r=42,C=2*Math.PI*r;return `<div class="rsv"><svg viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="#e6ebf1" stroke-width="10"/><circle cx="55" cy="55" r="${r}" fill="none" style="stroke:${col||'var(--b)'}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*p} ${C}" transform="rotate(-90 55 55)"/><text x="55" y="56" text-anchor="middle" dominant-baseline="central" font-size="24" font-weight="700" fill="#1f2933">${label}</text></svg><span>${sub}</span></div>`}
 function dayStart(t){const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
 function studHome(){
- tourAuto();
+ tourAuto();updAuto();
  const nm=STINFO?STINFO.name:'';const its=hist.flatMap(h=>h.items);const n=its.length,r=its.filter(x=>x.r).length;
  const today=dayStart(Date.now());const tn=hist.filter(h=>h.t>=today).reduce((a,h)=>a+h.items.length,0);
  const wk=hist.filter(h=>h.t>=today-6*864e5).reduce((a,h)=>a+h.items.length,0);
