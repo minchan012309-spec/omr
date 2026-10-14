@@ -33,6 +33,10 @@ export function makeHandler({ swa, db, cfg }) {
 
   async function handle(body, user) {
     const action = body && body.action;
+    if (action === 'ping') {
+      const info = await db.ping();
+      return { status: 200, json: { ok: true, rpID: cfg.rpID, origins: cfg.origins, ...info } };
+    }
     if (action === 'reg-options') {
       const sub = await subjectOf(body, user);
       if (!sub) return fail(401, 'unauthorized');
