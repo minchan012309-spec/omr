@@ -338,3 +338,29 @@ begin
           from (select * from notices where user_id = s.user_id and (student_id is null or student_id = s.id) order by t desc limit 50) n);
 end $$;
 grant execute on function st_notices(text, text) to anon, authenticated;
+
+-- =====================================================================
+-- 12. 교사 설정 (학생 권한)
+-- =====================================================================
+create table if not exists teacher_settings (
+  user_id    uuid primary key default auth.uid() references auth.users(id) on delete cascade,
+  data       jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+alter table teacher_settings enable row level security;
+drop policy if exists "ts select" on teacher_settings;
+drop policy if exists "ts insert" on teacher_settings;
+drop policy if exists "ts update" on teacher_settings;
+create policy "ts select" on teacher_settings for select using (auth.uid() = user_id);
+create policy "ts insert" on teacher_settings for insert with check (auth.uid() = user_id);
+create policy "ts update" on teacher_settings for update using (auth.uid() = user_id);
+
+create or replace function st_perms(p_login text, p_pw text) returns json
+language plpgsql security definer set search_path = public, extensions as $$
+declare s students%rowtype;
+begin
+  s := _st_auth(p_login, p_pw);
+  if s.id is null then return null; end if;
+  return coalesce((select data->'perms' from teacher_settings where user_id = s.user_id), '{}'::jsonb)::json;
+end $$;
+grant execute on function st_perms(text, text) to anon, authenticated;
