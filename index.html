@@ -565,8 +565,23 @@ html[data-theme=dark] .th-hero{background:var(--bl)}
 .inkbar .isep{width:1px;height:22px;background:var(--l)}.inkbar .ifin{font-size:12.5px;color:var(--m);display:inline-flex;align-items:center;gap:4px;margin-left:auto}
 #qsheet .inkbar{position:static}
 </style>
+<style>
+/* 튜토리얼 */
+#helpBtn{width:38px;height:38px;border-radius:50%;font-size:18px;font-weight:800;cursor:pointer;padding:0;flex:none;line-height:1;background:#ffffff1f;border:1px solid #ffffff55;color:#fff}#helpBtn:hover{background:#ffffff33}#helpBtn[hidden]{display:none}
+#tour{position:fixed;inset:0;z-index:80;pointer-events:none}
+#tour .tspot{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(15,23,42,.55);outline:3px solid #fff;outline-offset:0;transition:left .2s,top .2s,width .2s,height .2s;pointer-events:none}
+#tour.free .tspot{box-shadow:0 0 0 9999px rgba(15,23,42,.6);outline:0}
+#tour .tcard{position:fixed;background:var(--surface);border-radius:14px;padding:14px 16px;box-shadow:0 10px 34px #0004;pointer-events:auto;max-width:calc(100vw - 24px)}
+#tour .tt1{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}#tour .tcard p{margin:4px 0 8px;line-height:1.55;font-size:14.5px}
+#tour .thint{font-size:12.5px;color:var(--bd);font-weight:700;margin-bottom:8px}#tour .tbt{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}#tour .tbt button{min-height:40px}
+@media(max-width:720px){#helpBtn{order:5;min-width:44px;min-height:44px}}
+#tourmenu{position:fixed;z-index:70;background:var(--surface);border:1px solid var(--l);border-radius:12px;box-shadow:0 8px 24px #0002;padding:6px;width:min(300px,calc(100vw - 16px))}
+#tourmenu .tmh{padding:8px 10px;font-size:12.5px;color:var(--m);font-weight:700}
+#tourmenu button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;border:0;background:none;text-align:left;padding:10px;border-radius:8px;font:inherit;cursor:pointer;min-height:44px}
+#tourmenu button:hover{background:var(--bl)}#tourmenu button span{font-size:12.5px;color:var(--m)}#tourmenu button i{font-style:normal;color:var(--b)}
+</style>
 </head><body>
-<header><h1 id="brand"><a class="lgo" onclick="goHome()" title="홈으로" role="link" tabindex="0" onkeydown="if(event.key==='Enter')goHome()"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lgx" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--b,#3b82f6)"/><stop offset="1" style="stop-color:var(--bd,#1d4ed8)"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lgx)"/><path d="M22.5 9.6A9 9 0 1 0 25 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M11.4 16.4l3.6 3.6 7-8.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bn">Solvi</span></a><span class="sjp" onclick="openSubjects()" title="과목 바꾸기"><small id="subj">물질과 에너지</small><b>▾</b></span></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span><span id="saved" title="이 기기에 자동 저장된 마지막 시각"></span><button id="setBtn" onclick="openSettings()" title="설정 · 단축키 · 데이터 관리" aria-label="설정">⚙</button></header>
+<header><h1 id="brand"><a class="lgo" onclick="goHome()" title="홈으로" role="link" tabindex="0" onkeydown="if(event.key==='Enter')goHome()"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lgx" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--b,#3b82f6)"/><stop offset="1" style="stop-color:var(--bd,#1d4ed8)"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lgx)"/><path d="M22.5 9.6A9 9 0 1 0 25 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M11.4 16.4l3.6 3.6 7-8.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bn">Solvi</span></a><span class="sjp" onclick="openSubjects()" title="과목 바꾸기"><small id="subj">물질과 에너지</small><b>▾</b></span></h1><nav id="nav"></nav><button id="qrBtn" onclick="scanQR()" title="QR 스캔" aria-label="QR 스캔"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M18 18h3v3"/></svg></button><select id="stuSel" onchange="setStu(this.value)" style="display:none"></select><span id="sync" onclick="syncClick()"></span><span id="saved" title="이 기기에 자동 저장된 마지막 시각"></span><button id="helpBtn" onclick="tourMenu(event)" title="튜토리얼" aria-label="튜토리얼" hidden>?</button><button id="setBtn" onclick="openSettings()" title="설정 · 단축키 · 데이터 관리" aria-label="설정">⚙</button></header>
 <main id="main"></main><aside id="exp"></aside>
 <div class="modal" id="cfg"><div class="box" id="cfgBox"></div></div>
 <div id="scan"><video id="scanV" playsinline muted></video><div id="scanMsg">QR 코드를 화면 가운데에 맞춰 주세요</div><button class="s" onclick="stopScan()">닫기</button></div>
@@ -771,7 +786,8 @@ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.tar
 let _icoT=0;new MutationObserver(ms=>{if(_icoT)return;_icoT=setTimeout(()=>{_icoT=0;iconize(document.body);try{a11y(document.body)}catch(e){}try{chipify(document.getElementById('main')||document.body)}catch(e){}},60)}).observe(document.body,{childList:true,subtree:true,characterData:true});
 function decorate(){document.body.classList.toggle('hasfab',!!document.querySelector('.fab'));document.querySelectorAll('button').forEach(b=>{if(!b.title){const t=b.textContent.trim();if(t)b.title=t}})}
 function goFull(){bkLoad().then(()=>{tab='books';bkGoFull();render();scrollTo(0,0)}).catch(()=>alert('교재를 불러오지 못했습니다.'))}
-function nav(){const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['stat','유형 분석'],['concept','개념학습'],['books','교재'],['smap','학습지 만들기'],['shist','기록']]:teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'],['stat','누적 분석'],['search','문항 검색']]:[['enter','번호 채점']];
+function nav(){const hb=document.getElementById('helpBtn');if(hb)hb.hidden=!STUD;
+const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['stat','유형 분석'],['concept','개념학습'],['books','교재'],['smap','학습지 만들기'],['shist','기록']]:teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'],['stat','누적 분석'],['search','문항 검색']]:[['enter','번호 채점']];
  if(!T.find(x=>x[0]===tab)&&!(tab==='grade'&&cur)&&!(tab==='prac'&&PR)&&!((tab==='build'||tab==='bdesign'||tab==='bmake'||tab==='wsedit'||tab==='review')&&teacher())&&!(tab==='prac'&&STUD)&&!(tab==='mock'&&teacher()))tab=T[0][0];$('#nav').innerHTML=T.map(([k,v])=>`<button class="${tab===k||(k==='ws'&&['build','bdesign','review'].includes(tab))||(k==='books'&&tab==='mock')||(k==='enter'&&tab==='grade'&&STUD)?'on':''}" onclick="navGo('${k}')">${v}</button>`).join('')}
 let _navKey=null;
 function goHome(){const k=STUD?'home':(teacher()?'thome':'enter');if(cur&&tab==='grade'&&!cur.done&&!confirm('채점을 그만둘까요? 입력한 내용은 저장되지 않습니다.'))return;if(cur&&tab==='grade'){clearInterval(_tm);if(!cur.done)gdraftClear();cur=null}PR=null;$('#exp').classList.remove('open');tab=k;render();scrollTo(0,0)}
@@ -862,6 +878,74 @@ async function scanQR(){const box=$('#scan'),v=$('#scanV');box.classList.add('op
 function stopScan(){_scanOn=false;if(_stream){_stream.getTracks().forEach(t=>t.stop());_stream=null}$('#scan').classList.remove('open')}
 /* ---------- 유형 반복 학습 (화면에서 바로) ---------- */
 async function practice(codes,title){await ensureCodes(codes);let qs=codes.map(c=>byCode[c]).filter(Boolean);const q2=qs.filter(q=>!isMulti(q)&&q.set!=='noxq');if(q2.length)qs=q2;if(!qs.length)return;PR={qs,i:0,ans:[],shown:false,title:title||'유형 반복 학습'};tab='prac';render()}
+/* ---------- 학생 튜토리얼: 실제 화면을 눌러 보며 익히기 ---------- */
+const navSel=k=>`#nav button[onclick*="'${k}'"]`;
+const TOURS={
+ intro:{name:'처음 시작하기',desc:'학습지를 만들고 화면에서 풀어 봐요',steps:[
+  {welcome:1,text:'Solvi에 온 걸 환영해요! 직접 눌러 보며 기능을 익혀 볼까요? 1분이면 끝나요.'},
+  {sel:'#nav',text:'메뉴로 화면을 옮겨 다녀요. 옆으로 밀면 더 보여요.',next:1},
+  {sel:navSel('smap'),text:'「학습지 만들기」를 눌러 보세요.',click:1},
+  {sel:'.heat .cell',text:'풀고 싶은 유형을 눌러 고르세요. 해골·빨강 표시가 먼저 보강할 유형이에요.',until:()=>W.sel.size>0},
+  {sel:'.stick .p',text:'「화면에서 풀기」를 누르면 바로 풀 수 있어요. 인쇄가 필요하면 왼쪽 「인쇄용으로 만들기」를 쓰세요.',click:1},
+  {sel:'.inkbar',text:'문제 위에 애플펜슬로 바로 필기할 수 있어요. 펜·지우개·색을 바꿔 써 보세요. (손가락은 스크롤)',next:1},
+  {sel:'.chs2 button',text:'답을 하나 눌러 보세요.',click:1},
+  {sel:'#main .card > button.p',text:'정답과 해설을 확인하고 다음 문제로 넘어가요.',next:1},
+  {sel:'#main .card .row button.s.sm',text:'그만두려면 「그만두기」를 눌러요. 푼 기록은 자동으로 남아요.',click:1},
+  {sel:navSel('stat'),text:'풀수록 「유형 분석」에 내 약점이 쌓여요. 눌러서 구경해 보세요.',click:1},
+  {center:1,text:'끝! 오른쪽 위 「?」에서 다른 튜토리얼도 볼 수 있어요.'}]},
+ books:{name:'교재에서 쪽 풀기',desc:'교재의 한 쪽만 골라 화면에서 풀어요',steps:[
+  {sel:navSel('books'),text:'「교재」를 눌러 보세요.',click:1},
+  {sel:'.bkcard .bt2 .p',text:'책의 「열기」를 눌러 보세요.',click:1},
+  {sel:'.bkbar .s',text:'각 쪽 아래에 「이 쪽 풀기」가 있어요. 그 쪽의 문제만 화면에서 풀 수 있어요.',next:1,wait:5000},
+  {sel:'.bkbar .p',text:'다 풀고 종이로 푼 것은 「이 쪽 채점하기」로 채점해요.',next:1},
+  {center:1,text:'교재 속 QR을 스캔해도 그 쪽이 바로 열려요.'}]},
+ grade:{name:'채점하기',desc:'번호·QR·쪽수로 채점하는 법',steps:[
+  {sel:navSel('enter'),text:'「채점」을 눌러 보세요.',click:1},
+  {sel:'#gp_no, .gtabs',text:'학습지 번호 8자리를 입력하거나 QR을 스캔하면 채점이 시작돼요.',next:1},
+  {sel:'.gtabs button:nth-child(2)',text:'교재는 「교재 쪽수」에서 책과 쪽 번호를 골라요. 눌러 보세요.',click:1},
+  {sel:'#gp_page',text:'책을 고르고 쪽 번호를 입력해요. 「이 쪽 화면에서 풀기」도 여기 있어요.',next:1},
+  {center:1,text:'채점이 끝나면 틀린 문제는 오답노트에 모여요.'}]},
+ stats:{name:'유형 분석 보기',desc:'내 약점과 정답률을 살펴봐요',steps:[
+  {sel:navSel('stat'),text:'「유형 분석」을 눌러 보세요.',click:1},
+  {sel:'#main .card',text:'소단원별 정답률, 추이, 유형별 정답률(낮은 순)을 볼 수 있어요. 낮은 유형부터 연습하면 효과가 커요.',next:1},
+  {sel:navSel('smap'),text:'약한 유형을 골라 바로 학습지를 만들 수도 있어요. 눌러 보세요.',click:1},
+  {center:1,text:'기록이 쌓일수록 분석이 정확해져요.'}]}
+};
+let TOUR=null;
+const tourKey=()=>'omr_tours_'+((STUD&&STUD.login)||'x');
+function tourDone(id){try{return !!(JSON.parse(localStorage.getItem(tourKey())||'{}')[id])}catch(e){return false}}
+function tourMark(id){try{const o=JSON.parse(localStorage.getItem(tourKey())||'{}');o[id]=1;localStorage.setItem(tourKey(),JSON.stringify(o))}catch(e){}}
+function tourEl(s){if(!s.sel)return null;return [...document.querySelectorAll(s.sel)].find(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0})||null}
+function tourStart(id){if(!STUD||!TOURS[id])return;closeCfg&&closeCfg();tourEnd(true);TOUR={id,i:-1,steps:TOURS[id].steps};
+ const o=document.createElement('div');o.id='tour';o.innerHTML='<div class="tspot"></div><div class="tcard" role="dialog" aria-live="polite"></div>';document.body.appendChild(o);
+ document.addEventListener('click',tourClick,true);window.addEventListener('resize',tourPlace);document.addEventListener('scroll',tourPlace,true);TOUR.tm=setInterval(tourTick,200);tourNext()}
+function tourEnd(silent){if(TOUR){clearInterval(TOUR.tm);document.removeEventListener('click',tourClick,true);window.removeEventListener('resize',tourPlace);document.removeEventListener('scroll',tourPlace,true)}
+ const o=document.getElementById('tour');if(o)o.remove();const id=TOUR&&TOUR.id;TOUR=null;if(id&&!silent){tourMark(id);if(id==='intro')tourMark('offered')}}
+function tourQuit(){tourEnd(false)}
+function tourNext(){if(!TOUR)return;TOUR.i++;const s=TOUR.steps[TOUR.i];if(!s){const id=TOUR.id;tourEnd(false);toast('「'+TOURS[id].name+'」 튜토리얼을 마쳤어요');return}TOUR.t0=Date.now();TOUR.el=null;tourRender()}
+function tourRender(){const s=TOUR.steps[TOUR.i],c=document.querySelector('#tour .tcard');if(!c)return;const n=TOUR.steps.length;
+ const free=s.welcome||s.center;
+ const nextBtn=(s.next||free)?`<button class="p" onclick="tourNext()">${s.welcome?'시작하기':(TOUR.i===n-1?'마치기':'다음')}</button>`:'';
+ c.innerHTML=`<div class="tt1"><b>${esc(TOURS[TOUR.id].name)}</b><span class="m">${TOUR.i+1} / ${n}</span></div><p>${esc(s.text)}</p>${s.click||s.until?'<div class="thint">표시된 곳을 직접 눌러 보세요</div>':''}<div class="tbt">${s.welcome?'<button class="s" onclick="tourQuit()">나중에</button>':'<button class="s" onclick="tourQuit()">그만두기</button>'}${s.click||s.until?'<button class="s" onclick="tourNext()">건너뛰기</button>':''}${nextBtn}</div>`;
+ document.getElementById('tour').classList.toggle('free',!!free);tourPlace()}
+function tourTick(){if(!TOUR)return;const s=TOUR.steps[TOUR.i];if(!s)return;
+ if(s.until&&s.until()&&!TOUR.adv){TOUR.adv=1;setTimeout(()=>{TOUR&&(TOUR.adv=0,tourNext())},350);return}
+ const e=tourEl(s);if(e!==TOUR.el){TOUR.el=e;if(e){try{e.scrollIntoView({block:'center',inline:'center',behavior:'smooth'})}catch(x){}}tourPlace()}
+ if(!e&&s.sel&&Date.now()-TOUR.t0>(s.wait||3500)&&!TOUR.lost){TOUR.lost=1;const c=document.querySelector('#tour .tcard p');if(c)c.textContent='이 화면에서는 아직 표시할 곳이 없어요. 「건너뛰기」를 눌러 다음으로 가세요.'}}
+function tourPlace(){if(!TOUR)return;const s=TOUR.steps[TOUR.i];const sp=document.querySelector('#tour .tspot'),c=document.querySelector('#tour .tcard');if(!sp||!c||!s)return;
+ const free=s.welcome||s.center;const e=free?null:TOUR.el;
+ if(!e){sp.style.cssText='left:50%;top:50%;width:0;height:0';c.style.cssText='left:50%;top:50%;transform:translate(-50%,-50%)';return}
+ const r=e.getBoundingClientRect(),pd=6;sp.style.cssText=`left:${r.left-pd}px;top:${r.top-pd}px;width:${r.width+pd*2}px;height:${r.height+pd*2}px`;
+ const ch=c.offsetHeight||140,cw=Math.min(340,innerWidth-24);c.style.width=cw+'px';
+ let top=r.bottom+14;if(top+ch>innerHeight-8)top=Math.max(8,r.top-ch-14);if(top<8)top=Math.min(innerHeight-ch-8,r.bottom+14);
+ let left=Math.min(Math.max(12,r.left+r.width/2-cw/2),innerWidth-cw-12);c.style.cssText+=`;top:${top}px;left:${left}px;transform:none;width:${cw}px`}
+function tourClick(e){if(!TOUR)return;const s=TOUR.steps[TOUR.i];if(!s||!s.click||!TOUR.el)return;if(TOUR.el.contains(e.target)||e.target===TOUR.el){if(TOUR.adv)return;TOUR.adv=1;setTimeout(()=>{TOUR&&(TOUR.adv=0,tourNext())},450)}}
+function tourMenu(e){e.stopPropagation();const old=document.getElementById('tourmenu');if(old){old.remove();return}const r=e.currentTarget.getBoundingClientRect();
+ const m=document.createElement('div');m.id='tourmenu';m.setAttribute('role','menu');m.innerHTML='<div class="tmh">튜토리얼</div>'+Object.entries(TOURS).map(([k,v])=>`<button role="menuitem" onclick="tourMenuGo('${k}')"><b>${esc(v.name)}${tourDone(k)?' <i>✓</i>':''}</b><span>${esc(v.desc)}</span></button>`).join('');
+ document.body.appendChild(m);m.style.top=(r.bottom+6)+'px';m.style.right=Math.max(8,innerWidth-r.right)+'px'}
+function tourMenuGo(k){const m=document.getElementById('tourmenu');if(m)m.remove();tourStart(k)}
+document.addEventListener('click',e=>{if(!e.target.closest('#tourmenu,#helpBtn')){const m=document.getElementById('tourmenu');if(m)m.remove()}});
+function tourAuto(){if(!STUD||TOUR||tourDone('offered')||tourDone('intro'))return;tourMark('offered');setTimeout(()=>{if(tab==='home'&&!TOUR)tourStart('intro')},900)}
 /* ---------- 화면 필기 (애플펜슬 · 마우스 · 선택 시 손가락) ---------- */
 const INK=(()=>{let s={};try{s=JSON.parse(localStorage.getItem('omr_ink')||'{}')}catch(e){}return {on:s.on!==false,color:s.color||'#1d1d1f',w:s.w||2.6,tool:'pen',finger:!!s.finger}})();
 let INKC=null;
@@ -2280,6 +2364,7 @@ function stLoginCard(){return `<div class="card enter stl"><div class="stbrand">
 function ringSvg(p,label,sub,col){const r=42,C=2*Math.PI*r;return `<div class="rsv"><svg viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="#e6ebf1" stroke-width="10"/><circle cx="55" cy="55" r="${r}" fill="none" style="stroke:${col||'var(--b)'}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*p} ${C}" transform="rotate(-90 55 55)"/><text x="55" y="56" text-anchor="middle" dominant-baseline="central" font-size="24" font-weight="700" fill="#1f2933">${label}</text></svg><span>${sub}</span></div>`}
 function dayStart(t){const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
 function studHome(){
+ tourAuto();
  const nm=STINFO?STINFO.name:'';const its=hist.flatMap(h=>h.items);const n=its.length,r=its.filter(x=>x.r).length;
  const today=dayStart(Date.now());const tn=hist.filter(h=>h.t>=today).reduce((a,h)=>a+h.items.length,0);
  const wk=hist.filter(h=>h.t>=today-6*864e5).reduce((a,h)=>a+h.items.length,0);
@@ -2690,6 +2775,7 @@ function openSettings(){const rp=jget('omr_rep_v1',[]),mk=jget('omr_mock_v1',[])
  <div class="setr"><b>난이도 자동 보정</b><label class="m"><input type="checkbox" ${CALIB_ON?'checked':''} onchange="setCalib(this.checked)"> 풀이 5회 이상인 문항은 실제 정답률로 난이도(하·중·상·최)를 조정</label></div>
  <div class="setr"><b>즐겨찾기</b><span class="m">${FAV.length}문항 · <a href="#" onclick="closeCfg();SP.src='fav';SP.sub='';tab='search';render();return false">검색에서 보기</a></span></div>
  <div class="setr"><b>신고 내역</b><span class="m">${rp.length}건 · <a href="#" onclick="reportExport();return false">내려받기</a>${rp.length?' · <a href="#" onclick="if(confirm(\'신고 내역을 지울까요?\')){jset(\'omr_rep_v1\',[]);openSettings()}return false">비우기</a>':''}</span></div>
+ ${STUD?`<h3>튜토리얼</h3><div class="m" style="margin-bottom:6px">직접 눌러 보며 기능을 익혀요. 오른쪽 위 「?」에서도 열 수 있어요.</div><div class="row">${Object.entries(TOURS).map(([k,v])=>`<button class="s" onclick="tourStart('${k}')">${esc(v.name)}${tourDone(k)?' ✓':''}</button>`).join('')}</div>`:''}
  <h3>단축키</h3><div class="keys">${KEYS.map(k=>`<div><kbd>${k[0]}</kbd><span>${k[1]}</span></div>`).join('')}</div>
  <h3>데이터 관리</h3><div class="row"><button class="s" onclick="healthView()">시스템 점검</button><button class="s" onclick="backupAll()">백업 내려받기</button><label class="s" style="cursor:pointer;display:inline-block;padding:8px 14px">백업 불러오기<input type="file" accept="application/json" hidden onchange="restoreAll(this)"></label></div>
  <div class="dz"><b>전체 초기화</b><div class="m">학생·채점 기록·학습지·모의고사(${mk.length}개)·즐겨찾기·신고·설정을 모두 지웁니다. 로그인과 선택한 과목만 남습니다.</div><button class="s dgr" onclick="wipeAll()">모든 데이터 초기화…</button></div>
