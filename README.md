@@ -115,7 +115,7 @@ git push origin <브랜치>
 - **서버 설정(한 번만)**: 패스키는 서버가 서명을 검증해야 하므로 Supabase Edge Function이 필요합니다.
   1. Supabase SQL Editor에서 `setup.sql`을 다시 실행합니다(맨 아래 10번 항목: passkeys·st_tokens 테이블과 학생 토큰 인증).
   2. `supabase functions deploy passkey --no-verify-jwt` (게시 가능 키 `sb_publishable_…`는 JWT가 아니라서 `--no-verify-jwt`가 필요합니다. 함수가 직접 인증을 확인합니다.)
-  3. `supabase secrets set SITE_URL=https://ssolvi.kro.kr` (사이트 주소, 경로 없이. 커스텀 도메인을 쓰면 그 주소)
+  3. `supabase secrets set SITE_URL=https://solvi.p-e.kr` (사이트 주소, 경로 없이. 커스텀 도메인을 쓰면 그 주소)
   - 코드: `supabase/functions/passkey/` (`handler.js`가 검증 로직, `index.ts`가 Supabase 연결). 사이트 도메인이 바뀌면 패스키를 다시 등록해야 합니다.
   - SQL을 아직 적용하지 않은 상태에서는 학생 자동 로그인이 예전 방식(비밀번호 저장)으로 동작하고, 패스키 버튼은 「패스키 서버가 아직 설정되지 않았어요」라고 안내합니다.
 
@@ -140,6 +140,6 @@ git push origin <브랜치>
 - **새로고침**: 모바일 헤더(또는 설정)의 새로고침 버튼이 앱 캐시를 비우고 다시 불러옵니다.
 - **학습지 만들기 중 학생 배정**: 학습지 만들기 8번 「학생 배정」에서 학생·마감일·메모를 고르면 만들자마자 과제로 배정됩니다(온라인 로그인 필요).
 
-- **주소**: 사이트는 `https://ssolvi.kro.kr`(저장소 루트의 `CNAME` 파일)에서 열리고, 쪽 QR·학생 로그인 링크의 기본 주소(`index.html`의 `pub`)도 이 주소입니다. 주소 변경 안내 팝업(`domNotice`)은 2026-10-16(금)까지만 뜹니다.
+- **주소**: 사이트는 `https://solvi.p-e.kr`(저장소 루트의 `CNAME` 파일)에서 열리고, 쪽 QR·학생 로그인 링크의 기본 주소(`index.html`의 `pub`)도 이 주소입니다. 주소 변경 안내 팝업(`domNotice`)은 2026-10-16(금)까지만 뜹니다.
 
 - **학생 회원가입 · 승인**: 로그인 화면의 「회원가입」(또는 선생님이 공유한 `…/#join=코드` 링크)으로 신청하면 「승인 대기 중」 화면이 뜨고, 선생님이 학생 탭·설정 탭에서 승인하면 알림과 함께 바로 로그인할 수 있습니다. 계정은 과목과 무관한 하나의 계정이라 모든 과목(앞으로 추가될 과목 포함)에서 그대로 씁니다. `setup.sql` 14번 필요. 승인 대기 중에는 아이디·비밀번호가 신청한 기기에만 임시 저장됩니다.

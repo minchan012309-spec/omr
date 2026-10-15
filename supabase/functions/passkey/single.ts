@@ -119,10 +119,10 @@ function makeHandler({ swa, db, cfg }) {
 
 // Supabase Edge Function: 패스키 등록·로그인
 // 배포: supabase functions deploy passkey
-// 비밀값(선택): supabase secrets set SITE_URL=https://ssolvi.kro.kr  (패스키를 쓰는 사이트 주소, 경로 제외)
-// 설정하지 않으면 기본값 https://ssolvi.kro.kr 을 씁니다. 도메인을 바꾸면 SITE_URL 비밀값을 바꾸세요.
+// 비밀값(선택): supabase secrets set SITE_URL=https://solvi.p-e.kr  (패스키를 쓰는 사이트 주소, 경로 제외)
+// 설정하지 않으면 기본값 https://solvi.p-e.kr 을 씁니다. 도메인을 바꾸면 SITE_URL 비밀값을 바꾸세요.
 
-const DEFAULT_SITE = 'https://ssolvi.kro.kr';
+const DEFAULT_SITE = 'https://solvi.p-e.kr';
 const SITE = (Deno.env.get('SITE_URL') || DEFAULT_SITE).replace(/\/+$/, '');
 const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
 const cfg = { rpID: SITE ? new URL(SITE).hostname : 'localhost', rpName: 'Solvi', origins: SITE ? [SITE] : ['http://localhost:8765'] };
