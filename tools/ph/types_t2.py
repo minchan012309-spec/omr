@@ -105,7 +105,7 @@ def g078(r, k):
         if form == 'a':
             ans = {'Q1': Q1, 'W': W, 'Q2': Q2}[unk]
             name = {'Q1': '고열원에서 흡수하는 열량 Q₁', 'W': '열기관이 한 일 W', 'Q2': '저열원으로 방출하는 열량 Q₂'}[unk]
-            body = P('그림은 한 열기관이 한 번 순환하는 동안의 에너지 흐름을 나타낸 것이다. %s은(는)?' % name) + fig
+            body = P('그림은 한 열기관이 한 번 순환하는 동안의 에너지 흐름을 나타낸 것이다. %s의 값은?' % name) + fig
             known = [x for x in ('Q1', 'W', 'Q2') if x != unk]
             wr = [Q1 + W if unk != 'Q1' else Q2 + W + 50, abs(Q2 - W) if abs(Q2 - W) != ans else ans + 100, Q1 if unk != 'Q1' else W, W if unk != 'W' else Q2, Q2 if unk != 'Q2' else Q1, ans + 100, ans // 2 + 20]
             ex = {'Q1': 'Q₁ = W + Q₂ = %d + %d = %d J' % (W, Q2, Q1), 'W': 'W = Q₁ − Q₂ = %d − %d = %d J' % (Q1, Q2, W), 'Q2': 'Q₂ = Q₁ − W = %d − %d = %d J' % (Q1, W, Q2)}[unk]

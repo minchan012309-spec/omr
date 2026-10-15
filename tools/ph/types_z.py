@@ -1490,8 +1490,8 @@ def fig_sp_h(ktxt='k', mtxt='m', Atxt=None, xtxt=None, xfrac=None, w=330, hh=150
     for v in range(fy - 50, fy, 8):
         f.line(20, v, 14, v + 6, GR, 1)
     xe = 190
-    f.spring(20, fy - 15, xe - 20, 8, 8)
-    f.rect(xe - 20, fy - 30, 40, 30, '#cfe2f7', INK, 1.7)
+    f.spring(20, fy - 15, xe - 28, 8, 8)
+    f.rect(xe - 28, fy - 30, 56, 30, '#cfe2f7', INK, 1.7)
     f.text(xe, fy - 10, mtxt, 13, bold=True, italic=True)
     f.text(112, fy - 38, ktxt, 12.5, bold=True, c=BL)
     f.line(xe, fy - 62, xe, fy + 22, GR, 1, '4 3')
@@ -1528,7 +1528,7 @@ def fig_sp_v(ktxt='k', mtxt='m', x0txt=None, Atxt=None, w=300, hh=215):
     yn = 80     # 원래 길이에서 아래 끝
     ye = 130    # 평형 위치에서 블록 윗면
     _vspring(f, 115, 16, ye, 8, 9)
-    f.rect(95, ye, 40, 30, '#cfe2f7', INK, 1.7)
+    f.rect(87, ye, 56, 30, '#cfe2f7', INK, 1.7)
     f.text(115, ye + 20, mtxt, 13, bold=True, italic=True)
     f.text(150, 70, ktxt, 12.5, 'start', True, BL)
     f.line(70, yn, 100, yn, GR, 1.2, '4 3')
@@ -1536,7 +1536,7 @@ def fig_sp_v(ktxt='k', mtxt='m', x0txt=None, Atxt=None, w=300, hh=215):
     f._head(80, yn, 80, ye, GR, 1.2, 7)
     f._head(80, ye, 80, yn, GR, 1.2, 7)
     if x0txt: f.text(74, (yn + ye) / 2 + 4, x0txt, 12.5, 'end', True, GR)
-    f.line(95, ye + 15, 200, ye + 15, GR, 1, '4 3')
+    f.line(87, ye + 15, 200, ye + 15, GR, 1, '4 3')
     f.text(206, ye + 19, 'O (평형)', 12, 'start', True, GR)
     if Atxt:
         s = 34
@@ -1793,3 +1793,265 @@ def _fqs(q):
 
 def _wordlist_ok(wl):
     return len(wl) >= 4
+
+
+# ================================================================== ph112 도플러 효과와 단진동 · 원운동
+def fig_dop_shm(Atxt, f0txt, w=340, hh=150, who='source'):
+    """용수철에 매달려 단진동하는 음원(스피커)과 멀리 정지한 관측자."""
+    f = Fig(w, hh)
+    fy = 92
+    f.line(10, fy, w - 8, fy, INK, 1.6)
+    for i in range(10, w - 8, 8):
+        f.line(i, fy, i - 5, fy + 6, GR, 1)
+    f.line(20, fy - 52, 20, fy, GR, 3)
+    for v in range(fy - 50, fy, 8):
+        f.line(20, v, 14, v + 6, GR, 1)
+    xe = 120
+    f.spring(20, fy - 15, xe - 26, 7, 8)
+    f.rect(xe - 26, fy - 30, 52, 30, '#cfe2f7', INK, 1.7)
+    f.text(xe, fy - 10, '음원', 12.5, bold=True)
+    f.line(xe, fy - 56, xe, fy + 20, GR, 1, '4 3')
+    f.text(xe, fy + 36, 'O', 12.5, bold=True, c=GR)
+    s = 44
+    f.line(xe - s, fy + 12, xe + s, fy + 12, GR, 1.2)
+    for sg in (-1, 1):
+        f.line(xe + sg * s, fy + 6, xe + sg * s, fy + 18, INK, 1.4)
+    f.text(xe + s + 4, fy + 34, 'A = ' + Atxt, 12.5, 'start', True, RD)
+    # 관측자
+    ox = w - 40
+    f.circ(ox, fy - 44, 8, '#f6d9d6', INK, 1.5)
+    f.line(ox, fy - 36, ox, fy - 12, INK, 1.8)
+    f.line(ox, fy - 30, ox - 9, fy - 20, INK, 1.5)
+    f.line(ox, fy - 30, ox + 9, fy - 20, INK, 1.5)
+    f.line(ox, fy - 12, ox - 7, fy, INK, 1.5)
+    f.line(ox, fy - 12, ox + 7, fy, INK, 1.5)
+    f.text(ox, fy + 18, '관측자', 12, bold=True, c=GR)
+    f.text(xe + 62, fy - 40, f0txt, 12.5, 'start', True, BL)
+    f.arrow(xe + 62, fy - 30, xe + 100, fy - 30, BL, 1.8)
+    return f.svg()
+
+
+def fig_dop_circ(Rtxt, f0txt=None, mover='source', w=340, hh=180):
+    """위에서 본 원운동 + 같은 평면에서 멀리 있는 관측자(또는 음원)."""
+    f = Fig(w, hh)
+    cx, cy, R = 110, 90, 58
+    f.circ(cx, cy, R, 'none', BL, 1.8, '5 3')
+    f.circ(cx, cy, 2.5, GR, GR, 1)
+    ang = math.radians(-40)
+    px, py = cx + R * math.cos(ang), cy + R * math.sin(ang)
+    f.line(cx, cy, px, py, GR, 1.2)
+    f.circ(px, py, 9, '#cfe2f7', INK, 1.7)
+    f.text(px, py + 4, 'S' if mover == 'source' else 'P', 11.5, bold=True)
+    f.text((cx + px) / 2 - 4, (cy + py) / 2 + 14, Rtxt, 12.5, 'end', True, GR)
+    # 회전 화살표(반시계)
+    a = math.radians(-40)
+    f.arrow(px - 4, py + 16, px + 18, py + 34 - 12, RD, 2)
+    f.line(cx - R - 14, cy, w - 10, cy, GR, 1, '4 3')
+    ox = w - 52
+    if mover == 'source':
+        f.circ(ox, cy, 9, '#f6d9d6', INK, 1.7)
+        f.text(ox, cy + 4, 'P', 11.5, bold=True)
+        f.text(ox, cy + 26, '관측자', 12, bold=True, c=GR)
+        if f0txt: f.text(cx, cy + R + 22, '음원 ' + f0txt, 12.5, bold=True, c=BL)
+    else:
+        f.circ(ox, cy, 9, '#d5eedf', INK, 1.7)
+        f.text(ox, cy + 4, 'S', 11.5, bold=True)
+        f.text(ox, cy + 26, '음원(정지)', 12, bold=True, c=GR)
+        if f0txt: f.text(ox, cy - 18, f0txt, 12.5, bold=True, c=BL)
+    f.text(cx, cy + R + 22, '위에서 본 그림', 12, bold=False, c=GR) if mover != 'source' else None
+    return f.svg()
+
+
+def fig_dop_graph(f0, v, vs, T, w=330, hh=200):
+    fmax = f0 * v / (v - vs)
+    fmin = f0 * v / (v + vs)
+    lo, hi = fmin - (fmax - fmin) * 0.6, fmax + (fmax - fmin) * 0.5
+    p = Plot(w, hh, T * 1.25, hi, 0, lo, ml=56, mr=16, mt=16, mb=28)
+    p.axes('t (s)', 'f (Hz)', xticks=[T / 2, T], yticks=[], xfmt=lambda v_: num(v_, 3))
+    pts = [(T * i / 100.0, f0 * v / (v - vs * math.sin(2 * math.pi * i / 100.0))) for i in range(0, 101)]
+    p.pl(pts, BL, 2.4)
+    for val in (fmax, fmin):
+        p.line(p.px(0), p.py(val), p.px(T * 1.2), p.py(val), GR, 1, '4 3')
+        p.text(p.px(0) - 6, p.py(val) + 4, num(round(val, 1), 1), 11.5, 'end', c=GR)
+    return p.svg()
+
+
+VS_OPTS = [5, 10, 17, 20, 30, 34, 40, 50, 60, 68, 85]
+
+
+def _f0_for(r, v, vs, extra=None):
+    cs = list(range(200, 1101, 10)); r.shuffle(cs)
+    for f0 in cs:
+        a, b = F(f0 * v, v - vs), F(f0 * v, v + vs)
+        if cl(a, 1) and cl(b, 1) and a.denominator in (1, 2, 5, 10) and b.denominator in (1, 2, 5, 10):
+            return f0
+    return None
+
+
+@T('ph112')
+@balanced
+def g112(r, k):
+    form = pick(r, ['shm', 'shm', 'shm', 'circ', 'circ', 'circ', 'obs', 'obs', 'inv', 'inv', 'bogi', 'bogi'])
+    v = r.choice([340, 340, 340, 300, 350, 330])
+    tail = ' (단, 소리의 속력은 %d m/s이고, 관측자는 정지해 있다.)' % v
+    if form in ('shm', 'bogi'):
+        vs = r.choice(VS_OPTS)
+        if vs >= v / 4: return None
+        mode = r.choice(['om', 'T'])
+        if mode == 'om':
+            A = r.choice([0.05, 0.1, 0.2, 0.25, 0.5, 1, 2])
+            om = vs / A
+            if not cl(om, 2) or om < 2: return None
+            spec = '각진동수 %s rad/s' % fs(om)
+        else:
+            A = r.choice([0.05, 0.1, 0.2, 0.25, 0.5, 1, 2])
+            T = 6 * A / vs
+            if not cl(T, 3) or T < 0.01: return None
+            om = 6 / T
+            spec = '주기 %s s' % fs(T, 3)
+        assert abs(om * A - vs) < 1e-6
+        f0 = _f0_for(r, v, vs)
+        if f0 is None: return None
+        fmax = f0 * v / (v - vs); fmin = f0 * v / (v + vs)
+        # 교차 검증 : 파장·속력 관계
+        lam_min = (v - vs) / f0
+        assert abs(fmax * lam_min - v) < 1e-6
+        fig = FIG(fig_dop_shm('%s m' % fs(A), 'f₀ = %d Hz' % f0), '66%')
+        base = '그림은 용수철에 연결되어 진폭 %s m, %s로 직선 위를 단진동하는 음원(진동수 %d Hz)과, 이 직선의 연장선 위 멀리 정지해 있는 관측자를 나타낸 것이다. ' % (fs(A), spec, f0)
+        pi_ = ' (단, π = 3이다.)' if mode == 'T' else ''
+        tail_ = ' (단, 소리의 속력은 %d m/s이고, 관측자는 정지해 있다.)' % v if mode == 'om' else ' (단, 소리의 속력은 %d m/s이고 π = 3이며, 관측자는 정지해 있다.)' % v
+        if form == 'bogi':
+            tops = [
+                ('음원이 평형 위치 O를 관측자 쪽으로 지날 때 관측자가 듣는 진동수가 가장 크다.', '음원이 진폭 끝에 있을 때 관측자가 듣는 진동수가 가장 크다.', '음원의 속력이 최대인 평형 위치에서 관측자 쪽으로 움직일 때 f = f₀v/(v - vs)가 최대이다.', '진폭 끝에서는 음원의 속력이 0이므로 f₀ 와 같은 진동수를 듣는다.'),
+                ('관측자가 듣는 소리의 최대 진동수는 %s Hz이다.' % fs(fmax), '관측자가 듣는 소리의 최대 진동수는 %s Hz이다.' % fs(fmax - (fmax - f0) * 0.5 if False else f0 * (v + vs) / v), 'vs = ωA = %s m/s, f max = f₀v/(v - vs) = %s Hz 이다.' % (fs(vs), fs(fmax)), 'f max = f₀v/(v - vs) = %s Hz 이다.(f₀(v+vs)/v 가 아니다)' % fs(fmax)),
+                ('관측자가 듣는 소리의 최소 진동수는 %s Hz이다.' % fs(fmin), '관측자가 듣는 소리의 최소 진동수는 %s Hz이다.' % fs(f0 * (v - vs) / v), 'f min = f₀v/(v + vs) = %s Hz 이다.' % fs(fmin), 'f min = f₀v/(v + vs) = %s Hz 이다.' % fs(fmin)),
+                ('진폭을 크게 하면(진동수는 그대로) 관측자가 듣는 최대 진동수는 커진다.', '진폭을 크게 하면(진동수는 그대로) 관측자가 듣는 최대 진동수는 작아진다.', '음원의 최대 속력 vs = ωA 가 커져 f max = f₀v/(v - vs)가 커진다.', 'vs 가 커지면 f max 가 커진다.'),
+                ('관측자가 듣는 진동수는 f₀ 보다 큰 값과 작은 값을 모두 가진다.', '관측자가 듣는 진동수는 항상 f₀ 보다 크다.', '음원이 다가올 때는 f₀ 보다 크고 멀어질 때는 f₀ 보다 작다.', '음원이 멀어지는 동안에는 f₀ 보다 작은 진동수가 들린다.'),
+                ('음원의 최대 속력은 %s m/s이다.' % fs(vs), '음원의 최대 속력은 %s m/s이다.' % fs(vs * 2), 'vs = ωA = %s m/s 이다.' % fs(vs), 'vs = ωA = %s m/s 이다.' % fs(vs)),
+                ('음원이 진폭 끝에 있는 순간 관측자는 진동수 f₀ 의 소리를 듣는다.', '음원이 진폭 끝에 있는 순간 관측자는 진동수가 가장 작은 소리를 듣는다.', '진폭 끝에서는 속력이 0이므로 도플러 효과가 없다.', '최소 진동수는 평형 위치를 관측자에서 멀어지며 지날 때 나타난다.'),
+            ]
+            return topics_bogi(r, tops, base + '이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?' + tail_, pre=fig, fam='e', lv='중', core='단진동하는 음원은 평형 위치에서 속력이 최대이고, 이때 도플러 효과의 변화가 가장 크다.', point='단진동의 속도 변화와 도플러 효과를 연결한다.')
+        ask = r.choice(['vs', 'vs', 'fmax', 'fmax', 'fmin', 'fmin', 'ratio', 'lam'])
+        if ask == 'vs':
+            body = P(base + '음원의 최대 속력은?' + pi_) + fig
+            return mc(body, U(vs, 'm/s'), wr(vs, [om, A, vs * 2, vs / 2, om * A * 2, om / A if False else vs + 10], 'm/s'), r=r, lv='하', fam='a',
+                      steps=['각진동수 ω = %s rad/s%s' % (fs(om), '' if mode == 'om' else ' (ω = 2π/T = 6/%s)' % fs(T, 3)), '단진동의 최대 속력 vs = ωA = %s × %s = %s m/s' % (fs(om), fs(A), fs(vs))],
+                      core='단진동의 최대 속력은 vs = ωA 이고 평형 위치에서 나타난다.', point='단진동 식으로 음원의 속력을 구한다.')
+        if ask == 'fmax':
+            body = P(base + '관측자가 듣는 소리의 최대 진동수는?' + tail_) + fig
+            return mc(body, U(fmax, 'Hz', 1), wr(fmax, [f0 * (v + vs) / v, f0 * v / (v + vs), f0 + vs, f0 * v / (v - 2 * vs), f0 * (v - vs) / v, f0 * (v + 2 * vs) / v], 'Hz', 1), r=r, lv='중', fam='a',
+                      steps=['음원의 최대 속력 vs = ωA = %s m/s (평형 위치)' % fs(vs), '다가올 때 f max = f₀v/(v - vs) = %d × %d / (%d - %s) = %s Hz' % (f0, v, v, fs(vs), fs(fmax, 1)), '(검산) 파장 λ = (v - vs)/f₀ = %s m, f = v/λ = %s Hz' % (fs(lam_min, 4), fs(v / lam_min, 1))],
+                      core='음원이 속력 vs 로 관측자에게 다가올 때 f = f₀v/(v - vs) 이다.', point='단진동의 최대 속력과 도플러 공식을 연결한다.')
+        if ask == 'fmin':
+            body = P(base + '관측자가 듣는 소리의 최소 진동수는?' + tail_) + fig
+            return mc(body, U(fmin, 'Hz', 1), wr(fmin, [f0 * (v - vs) / v, f0 * v / (v - vs), f0 - vs, f0 * v / (v + 2 * vs), f0 * (v + vs) / v, f0 * (v - 2 * vs) / v], 'Hz', 1), r=r, lv='중', fam='a',
+                      steps=['음원의 최대 속력 vs = ωA = %s m/s' % fs(vs), '멀어질 때 f min = f₀v/(v + vs) = %d × %d / (%d + %s) = %s Hz' % (f0, v, v, fs(vs), fs(fmin, 1)), '(검산) 파장 λ = (v + vs)/f₀ = %s m, f = v/λ = %s Hz' % (fs((v + vs) / f0, 4), fs(v / ((v + vs) / f0), 1))],
+                      core='음원이 속력 vs 로 멀어질 때 f = f₀v/(v + vs) 이다.', point='멀어지는 경우는 분모가 v + vs 이다.')
+        if ask == 'ratio':
+            q = F(v + vs, v - vs)
+            body = P(base + '관측자가 듣는 최대 진동수는 최소 진동수의 몇 배인가?' + tail_) + fig
+            qs = '%d/%d배' % (q.numerator, q.denominator) if q.denominator != 1 else '%d배' % q.numerator
+            wl = []
+            for c in [F(v - vs, v + vs), F(v, v - vs), F(v + vs, v), F(v, v + vs), q * q, F(v, vs)]:
+                s_ = '%d/%d배' % (c.numerator, c.denominator) if c.denominator != 1 else '%d배' % c.numerator
+                if s_ != qs: wl.append(s_)
+            assert abs(fmax / fmin - float(q)) < 1e-9
+            return mc(body, qs, wl, r=r, lv='상', fam='a', sort='shuf',
+                      steps=['vs = ωA = %s m/s' % fs(vs), 'f max / f min = [v/(v - vs)] / [v/(v + vs)] = (v + vs)/(v - vs) = %d/%d = %s' % (v + vs, v - vs, qs), '(검산) %s / %s = %s' % (fs(fmax, 1), fs(fmin, 1), fs(fmax / fmin, 3))],
+                      core='단진동하는 음원의 최대·최소 진동수 비는 (v + vs)/(v - vs) 이다(f₀ 와 무관).', point='f₀ 가 소거되는 비를 이용한다.')
+        lam = lam_min
+        body = P(base + '관측자가 듣는 소리의 파장 중 가장 짧은 파장은?' + tail_) + fig
+        return mc(body, U(lam, 'm', 3), wr(lam, [v / f0, (v + vs) / f0, v / fmin, lam * 2, (v - vs) / (f0 * 2), vs / f0], 'm', 3), r=r, lv='상', fam='a',
+                  steps=['vs = ωA = %s m/s' % fs(vs), '음원이 다가오는 쪽으로 진행하는 소리의 파장 λ = (v - vs)/f₀ = (%d - %s)/%d = %s m' % (v, fs(vs), f0, fs(lam, 4)), '(검산) f max = v/λ = %s Hz = f₀v/(v - vs)' % fs(v / lam, 1)],
+                  core='음원이 다가오면 파장이 (v - vs)/f₀ 로 짧아진다.', point='도플러 효과는 음원 앞쪽 파장의 변화로 설명된다.')
+    if form in ('circ', 'obs'):
+        vs = r.choice(VS_OPTS)
+        if vs >= v / 4: return None
+        Rr = r.choice([0.5, 1, 2, 3, 4, 5, 10])
+        T = 6 * Rr / vs
+        if not cl(T, 3) or T < 0.02: return None
+        f0 = _f0_for(r, v, vs) if form == 'circ' else r.choice(range(200, 1001, 20))
+        if f0 is None: return None
+        om = 2 * 3 / T
+        assert abs(om * Rr - vs) < 1e-6
+        if form == 'circ':
+            fmax = f0 * v / (v - vs); fmin = f0 * v / (v + vs)
+            ask = r.choice(['vs', 'fmax', 'fmax', 'fmin', 'fmin', 'dpos'])
+            fig = FIG(fig_dop_circ('R = %s m' % fs(Rr), 'f₀ = %d Hz' % f0), '64%')
+            base = '그림은 위에서 본 모습으로, 진동수 %d Hz의 소리를 내는 음원이 반지름 %s m인 원 둘레를 주기 %s s로 등속 원운동하고, 같은 평면에서 원으로부터 멀리 떨어진 곳에 관측자가 정지해 있는 것을 나타낸 것이다. ' % (f0, fs(Rr), fs(T, 3))
+            tl = ' (단, 소리의 속력은 %d m/s이고 π = 3이며, 관측자까지의 거리는 원의 반지름보다 매우 크다.)' % v
+            if ask == 'vs':
+                body = P(base + '음원의 속력은?' + ' (단, π = 3이다.)') + fig
+                return mc(body, U(vs, 'm/s'), wr(vs, [2 * 3 * Rr, Rr / T, vs * 2, vs / 2, Rr * T, 3 * Rr / T * 4], 'm/s'), r=r, lv='하', fam='b',
+                          steps=['한 바퀴 2πR = 2 × 3 × %s = %s m 를 주기 %s s 에 돈다.' % (fs(Rr), fs(6 * Rr), fs(T, 3)), 'vs = 2πR/T = %s / %s = %s m/s' % (fs(6 * Rr), fs(T, 3), fs(vs)), '(검산) vs = ωR = %s × %s = %s m/s' % (fs(om), fs(Rr), fs(om * Rr))],
+                          core='등속 원운동의 속력은 v = 2πR/T = ωR 이다.', point='주기와 반지름으로 속력을 구한다.')
+            if ask == 'dpos':
+                body = P(base + '관측자가 듣는 소리의 최대 진동수와 최소 진동수의 차는?' + tl) + fig
+                d = fmax - fmin
+                return mc(body, U(d, 'Hz', 1), wr(d, [fmax - f0, f0 - fmin, 2 * vs, d / 2, f0 * 2 * vs / v, (fmax + fmin) / 2], 'Hz', 1), r=r, lv='상', fam='b',
+                          steps=['vs = 2πR/T = %s m/s' % fs(vs), 'f max = f₀v/(v - vs) = %s Hz, f min = f₀v/(v + vs) = %s Hz' % (fs(fmax, 1), fs(fmin, 1)), '차 = %s - %s = %s Hz' % (fs(fmax, 1), fs(fmin, 1), fs(d, 1)), '(검산) f max - f min = 2f₀vvs/(v² - vs²) = %s Hz' % fs(2 * f0 * v * vs / (v * v - vs * vs), 1)],
+                          core='원운동하는 음원은 관측자 방향 속도 성분이 변하므로 진동수가 최대와 최소 사이를 오간다.', point='최대·최소 진동수를 각각 구해 차를 계산한다.')
+            if ask == 'fmax':
+                body = P(base + '관측자가 듣는 소리의 최대 진동수는?' + tl) + fig
+                return mc(body, U(fmax, 'Hz', 1), wr(fmax, [f0 * (v + vs) / v, f0 * v / (v + vs), f0 * v / (v - 2 * vs), f0 + vs, f0 * (v - vs) / v, f0 * v / (v - vs / 2)], 'Hz', 1), r=r, lv='중', fam='b',
+                          steps=['음원의 속력 vs = 2πR/T = 2 × 3 × %s / %s = %s m/s' % (fs(Rr), fs(T, 3), fs(vs)), '관측자 쪽으로 향하는 순간 f max = f₀v/(v - vs) = %d × %d / (%d - %s) = %s Hz' % (f0, v, v, fs(vs), fs(fmax, 1)), '(검산) 파장 (v - vs)/f₀ = %s m, v/λ = %s Hz' % (fs((v - vs) / f0, 4), fs(v * f0 / (v - vs), 1))],
+                          core='원운동하는 음원이 관측자를 향해 움직이는 순간 진동수가 최대이다.', point='원운동의 속력과 도플러 공식을 연결한다.')
+            body = P(base + '관측자가 듣는 소리의 최소 진동수는?' + tl) + fig
+            return mc(body, U(fmin, 'Hz', 1), wr(fmin, [f0 * (v - vs) / v, f0 * v / (v - vs), f0 * v / (v + 2 * vs), f0 - vs, f0 * (v + vs) / v], 'Hz', 1), r=r, lv='중', fam='b',
+                      steps=['음원의 속력 vs = 2πR/T = %s m/s' % fs(vs), '관측자에서 멀어지는 순간 f min = f₀v/(v + vs) = %d × %d / (%d + %s) = %s Hz' % (f0, v, v, fs(vs), fs(fmin, 1)), '(검산) 파장 (v + vs)/f₀ = %s m, v/λ = %s Hz' % (fs((v + vs) / f0, 4), fs(v * f0 / (v + vs), 1))],
+                      core='원운동하는 음원이 관측자에게서 멀어지는 순간 진동수가 최소이다.', point='멀어질 때는 v + vs 를 쓴다.')
+        # obs : 원운동하는 관측자, 음원 정지
+        fmax = F(f0 * (v + vs), v); fmin = F(f0 * (v - vs), v)
+        if not (cl(fmax, 1) and cl(fmin, 1)): return None
+        fmax, fmin = float(fmax), float(fmin)
+        assert abs(fmax - f0 - (f0 - fmin)) < 1e-9
+        ask = r.choice(['fmax', 'fmin', 'diff'])
+        fig = FIG(fig_dop_circ('R = %s m' % fs(Rr), 'f₀ = %d Hz' % f0, mover='obs'), '64%')
+        base = '그림은 위에서 본 모습으로, 반지름 %s m인 원 둘레를 주기 %s s로 등속 원운동하는 관측자 P와, 같은 평면에서 멀리 정지해 있는 진동수 %d Hz의 음원 S를 나타낸 것이다. ' % (fs(Rr), fs(T, 3), f0)
+        tl = ' (단, 소리의 속력은 %d m/s이고 π = 3이며, 음원까지의 거리는 원의 반지름보다 매우 크다.)' % v
+        if ask == 'fmax':
+            body = P(base + 'P가 측정하는 소리의 최대 진동수는?' + tl) + fig
+            return mc(body, U(fmax, 'Hz', 1), wr(fmax, [f0 * v / (v - vs), fmin, f0 + vs, f0 * v / (v + vs), f0 * (v + 2 * vs) / v], 'Hz', 1), r=r, lv='중', fam='c',
+                      steps=['관측자의 속력 vo = 2πR/T = 2 × 3 × %s / %s = %s m/s' % (fs(Rr), fs(T, 3), fs(vs)), '음원 쪽으로 향하는 순간 f max = f₀(v + vo)/v = %d × (%d + %s)/%d = %s Hz' % (f0, v, fs(vs), v, fs(fmax, 1)), '(검산) 1초에 만나는 파면 수 = (v + vo)/λ, λ = v/f₀ = %s m → %s Hz' % (fs(v / f0, 4), fs((v + vs) / (v / f0), 1))],
+                      core='관측자가 음원 쪽으로 움직이면 f = f₀(v + vo)/v 이다.', point='음원이 정지한 경우의 도플러 공식은 분모가 v 이다.')
+        if ask == 'fmin':
+            body = P(base + 'P가 측정하는 소리의 최소 진동수는?' + tl) + fig
+            return mc(body, U(fmin, 'Hz', 1), wr(fmin, [f0 * v / (v + vs), fmax, f0 - vs, f0 * v / (v - vs), f0 * (v - 2 * vs) / v], 'Hz', 1), r=r, lv='중', fam='c',
+                      steps=['관측자의 속력 vo = 2πR/T = %s m/s' % fs(vs), '음원에서 멀어지는 순간 f min = f₀(v - vo)/v = %d × (%d - %s)/%d = %s Hz' % (f0, v, fs(vs), v, fs(fmin, 1)), '(검산) λ = v/f₀ = %s m, (v - vo)/λ = %s Hz' % (fs(v / f0, 4), fs((v - vs) / (v / f0), 1))],
+                      core='관측자가 음원에서 멀어지면 f = f₀(v - vo)/v 이다.', point='움직이는 쪽이 관측자이면 분자에 v ± vo 가 온다.')
+        d = fmax - fmin
+        body = P(base + 'P가 측정하는 소리의 최대 진동수와 최소 진동수의 차는?' + tl) + fig
+        return mc(body, U(d, 'Hz', 1), wr(d, [d / 2, fmax - f0 + 0 if False else d * 2, f0 * vs / v, 2 * vs, f0 * 2 * vs / (v - vs)], 'Hz', 1), r=r, lv='상', fam='c',
+                  steps=['vo = 2πR/T = %s m/s' % fs(vs), 'f max = f₀(v + vo)/v = %s Hz, f min = f₀(v - vo)/v = %s Hz' % (fs(fmax, 1), fs(fmin, 1)), '차 = 2f₀vo/v = 2 × %d × %s / %d = %s Hz' % (f0, fs(vs), v, fs(d, 1)), '(검산) %s - %s = %s Hz' % (fs(fmax, 1), fs(fmin, 1), fs(d, 1))],
+                  core='관측자가 원운동하면 음원과의 상대 속도 성분이 ±vo 사이에서 변한다.', point='최대·최소 진동수의 차를 구한다.')
+    # inv : 그래프(또는 표)의 최대·최소 진동수로부터 vs, f₀, A 를 구한다
+    vs = r.choice(VS_OPTS)
+    if vs >= v / 4: return None
+    f0 = _f0_for(r, v, vs)
+    if f0 is None: return None
+    fmax = f0 * v / (v - vs); fmin = f0 * v / (v + vs)
+    vs2 = v * (fmax - fmin) / (fmax + fmin)
+    f02 = 2 / (1 / fmax + 1 / fmin)
+    assert abs(vs2 - vs) < 1e-6 and abs(f02 - f0) < 1e-6
+    T = r.choice([0.5, 1, 2, 3, 0.6, 1.2])
+    A = vs * T / 6
+    ask = r.choice(['vs', 'vs', 'f0', 'A'])
+    if ask == 'A' and not cl(A, 3): return None
+    fig = FIG(fig_dop_graph(f0, v, vs, T), '64%')
+    base = '그림은 용수철에 연결되어 직선 위를 단진동하는 음원이 내는 소리를, 이 직선의 연장선 위 멀리 정지한 관측자가 측정한 진동수를 시간에 따라 나타낸 것이다(점선은 최댓값, 최솟값). 최대 진동수는 %s Hz, 최소 진동수는 %s Hz이고 단진동의 주기는 %s s이다. ' % (fs(fmax, 1), fs(fmin, 1), fs(T))
+    tl = ' (단, 소리의 속력은 %d m/s이다.)' % v
+    if ask == 'vs':
+        body = P(base + '음원의 최대 속력은?' + tl) + fig
+        return mc(body, U(vs, 'm/s'), wr(vs, [v * (fmax - fmin) / fmax, v * (fmax - fmin) / fmin, (fmax - fmin) / 2, v * (fmax - fmin) / (2 * (fmax + fmin)), vs * 2, vs / 2], 'm/s'), r=r, lv='상', fam='d',
+                  steps=['f max = f₀v/(v - vs), f min = f₀v/(v + vs) 를 이용한다.', 'f max / f min = (v + vs)/(v - vs) = %s/%s → vs = v(f max - f min)/(f max + f min)' % (fs(fmax, 1), fs(fmin, 1)),
+                         'vs = %d × (%s - %s)/(%s + %s) = %s m/s' % (v, fs(fmax, 1), fs(fmin, 1), fs(fmax, 1), fs(fmin, 1), fs(vs)), '(검산) f₀ = %d Hz 로 f₀v/(v - vs) = %s Hz' % (f0, fs(f0 * v / (v - vs), 1))],
+                  core='최대·최소 진동수의 비 (v + vs)/(v - vs) 로 음원의 속력을 구한다.', point='그래프의 두 값에서 속력을 역으로 구한다.')
+    if ask == 'f0':
+        body = P(base + '음원이 내는 소리의 진동수 f₀는?' + tl) + fig
+        return mc(body, U(f0, 'Hz'), wr(f0, [(fmax + fmin) / 2, math.sqrt(fmax * fmin), fmax - vs, fmin + vs, fmax / 2 + fmin / 2 + 10, f0 * 2], 'Hz'), r=r, lv='상', fam='d',
+                  steps=['vs = v(f max - f min)/(f max + f min) = %s m/s' % fs(vs), 'f₀ = f max(v - vs)/v = %s × (%d - %s)/%d = %s Hz' % (fs(fmax, 1), v, fs(vs), v, fs(f0)), '(검산) f min(v + vs)/v = %s × (%d + %s)/%d = %s Hz' % (fs(fmin, 1), v, fs(vs), v, fs(fmin * (v + vs) / v))],
+                  core='f₀ 는 최대·최소 진동수의 조화 평균 2/(1/f max + 1/f min) 이다(산술 평균이 아님).', point='속력을 구한 뒤 f₀ 를 역산한다.')
+    body = P(base + '단진동의 진폭은? (단, π = 3이다.)' + ' (소리의 속력은 %d m/s이다.)' % v) + fig
+    return mc(body, U(A, 'm', 3), wr(A, [vs * T, vs * T / 2, vs * T / 3, vs / T, A * 2, A / 2], 'm', 3), r=r, lv='상', fam='d',
+              steps=['vs = v(f max - f min)/(f max + f min) = %s m/s' % fs(vs), 'ω = 2π/T = 6/%s = %s rad/s' % (fs(T), fs(6 / T)), '진폭 A = vs/ω = %s / %s = %s m' % (fs(vs), fs(6 / T), fs(A, 3)), '(검산) ωA = %s × %s = %s m/s = vs' % (fs(6 / T), fs(A, 3), fs(6 / T * A))],
+              core='단진동의 최대 속력 vs = ωA = 2πA/T 로 진폭을 구한다.', point='도플러 → 속력 → 단진동 진폭으로 연결한다.')
