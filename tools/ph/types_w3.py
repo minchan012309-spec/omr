@@ -7,6 +7,24 @@ from fractions import Fraction as Fr
 V = 340  # 소리 속력 (m/s)
 
 
+import hashlib as _hl
+_mc0 = mc
+
+
+def mc(body, right, wrongs, **kw):
+    """오답을 본문(그림 포함)에서 정해지는 방식으로 고른다: 같은 문항이 선택지만 달리 중복되지 않게."""
+    seen = {re.sub(r'\s+', '', plain(str(right)))}
+    ws = []
+    for w in wrongs:
+        k = re.sub(r'\s+', '', plain(str(w)))
+        if k in seen: continue
+        seen.add(k); ws.append(w)
+    if len(ws) > 4:
+        rr = random.Random(int(_hl.md5((body + str(right)).encode('utf-8')).hexdigest()[:8], 16))
+        ws = rr.sample(ws, 4)
+    return _mc0(body, right, ws, **kw)
+
+
 # ------------------------------------------------------------------ 공용 도구
 def fn(x, nd=2):
     return num(float(x), nd)
@@ -50,7 +68,7 @@ def tr_fig(traces, nx=16, cell=14, H=3, w=330, xlab='t (ms)', ytick=True, title=
     band = 2 * H * cell + 8
     h = n * band + 36
     f = Fig(w, h)
-    ox = 40
+    ox = 62 if max(len(t[0]) for t in traces) > 1 else 40
     for i, (nm, shape, A, T, ph, col) in enumerate(traces):
         cy = 12 + i * band + H * cell + 4
         for c in range(nx + 1):
@@ -143,30 +161,31 @@ def scene_fig(dlab, car=None, two=None, w=330, h=120):
     if car:
         f.rect(cx - 22, 66, 44, 20, '#cfe2f7', INK, 1.6)
         f.circ(cx - 12, 88, 5, INK, INK, 1); f.circ(cx + 12, 88, 5, INK, INK, 1)
-        f.arrow(cx + 26, 52, cx + 26 + car[0], 52, RD, 2.2)
-        f.text(cx + 26, 44, car[1], 12.5, 'start', True, RD)
+        f.arrow(cx + 26, 56, cx + 26 + car[0], 56, RD, 2.2)
+        f.text(cx + 26, 50, car[1], 12.5, 'start', True, RD)
     else:
         f.circ(cx, 64, 7, '#f0c9a0', INK, 1.5)
         f.line(cx, 71, cx, 88, INK, 2.2)
     xe = cw - 6
-    f.arrow(cx + 50, 40, xe, 40, BL, 1.8); f.arrow(xe, 40, cx + 50, 40, BL, 1.8)
-    f.text((cx + 50 + xe) / 2, 32, dlab, 13, 'middle', True, BL)
+    f.arrow(cx + 50, 26, xe, 26, BL, 1.8); f.arrow(xe, 26, cx + 50, 26, BL, 1.8)
+    f.text((cx + 50 + xe) / 2, 18, dlab, 13, 'middle', True, BL)
     return f.svg()
 
 
-def dop_fig(src_dir, vs_lab, obs, w=340, h=175, moving=True):
+def dop_fig(src_dir, vs_lab, obs, w=340, h=200, moving=True):
     """도플러 개략도. src_dir: +1(오른쪽)/-1(왼쪽). obs: [(x, 이름, 방향(0 정지, +1/-1), 속도 글자)]."""
     f = Fig(w, h)
-    cy = 92
+    cy = 118
     xs = 170
-    step, u = 24, (0.33 * 24 if moving else 0)
+    step, u = 20, (0.33 * 20 if moving else 0)
     for k in range(1, 5):
         f.circ(xs - src_dir * u * k, cy, step * k, 'none', BL, 1.5)
     f.circ(xs, cy, 6, RD, RD, 1)
     f.text(xs, cy + 20, 'S', 13, 'middle', True, RD)
     if moving:
-        f.arrow(xs, cy - 12, xs + src_dir * 44, cy - 12, RD, 2.4)
-        f.text(xs + src_dir * 22, cy - 18, vs_lab, 12.5, 'middle', True, RD)
+        f.arrow(xs, 30, xs + src_dir * 44, 30, RD, 2.4)
+        f.text(xs + src_dir * 22, 20, vs_lab, 12.5, 'middle', True, RD)
+        f.line(xs, 30, xs, cy - 8, RD, 1, '3 3')
     for (x, nm, d, lab) in obs:
         f.rect(x - 7, cy - 7, 14, 14, GN, INK, 1.4)
         f.text(x, cy + 28, nm, 14, 'middle', True, GN)
@@ -222,7 +241,7 @@ _B98 = [
 
 @T('ph098')
 def ph098(r, k):
-    form = r.choice(['bogi', 'bogi', 'cmp', 'cmp', 'cmp', 'shape', 'shape', 'rat'])
+    form = r.choice(['bogi', 'cmp', 'cmp', 'rat', 'shape', 'shape', 'shape'])
     if form == 'bogi':
         s = pick3(r, _B98)
         if not s: return None
@@ -230,7 +249,7 @@ def ph098(r, k):
                     core='소리는 매질이 필요한 종파이며, 높낮이는 진동수, 세기는 진폭, 음색은 파형으로 결정된다.', point='소리의 세 요소와 결정 요인을 구분한다.')
     if form in ('cmp', 'rat'):
         TA, TB = r.sample([2, 4, 8], 2) if r.random() < .8 else (4, 4)
-        aA, aB = r.sample([1, 1.5, 2, 2.5], 2) if r.random() < .8 else (2, 2)
+        aA, aB = r.sample([1, 1.5, 2, 2.5, 3], 2) if r.random() < .8 else (2, 2)
         if (TA, aA) == (TB, aB): return None
         tr = [('A', 'sin', aA, TA, 0.0, BL), ('B', 'sin', aB, TB, 0.0, RD)]
         fig = FIG(tr_fig(tr, nx=16, H=3), '72%')
@@ -257,23 +276,26 @@ def ph098(r, k):
                   core='진동수는 주기의 역수이다.', point='파형에서 주기를 읽어 진동수의 비를 구한다.')
     # shape: 세 파형의 음색/높이 비교
     shapes = ['sin', 'tri', 'sq']
-    items = []
-    for i in range(3):
-        items.append((r.choice(shapes), r.choice([4, 8])))
     names = 'ABC'
     cols = [BL, RD, GN]
-    tr = [(names[i], items[i][0], 1.5, items[i][1], 0.0, cols[i]) for i in range(3)]
-    ask = r.choice(['samepitch', 'sametone'])
     pairs = list(itertools.combinations(range(3), 2))
+    ask = r.choice(['samepitch', 'sametone'])
+    for _try in range(60):
+        items = [(r.choice(shapes), r.choice([2, 4, 8])) for _ in range(3)]
+        if ask == 'samepitch':
+            good = [p for p in pairs if items[p[0]][1] == items[p[1]][1] and items[p[0]][0] != items[p[1]][0]]
+        else:
+            good = [p for p in pairs if items[p[0]][0] == items[p[1]][0] and items[p[0]][1] != items[p[1]][1]]
+        if len(good) == 1 or (len(good) == 0 and r.random() < 0.15): break
+    else:
+        return None
+    tr = [(names[i], items[i][0], 1.5, items[i][1], 0.0, cols[i]) for i in range(3)]
     if ask == 'samepitch':
-        good = [p for p in pairs if items[p[0]][1] == items[p[1]][1] and items[p[0]][0] != items[p[1]][0]]
         txt = '높이가 같고 음색이 다른 두 소리'
         why = lambda p: '주기가 같아 높이가 같고 파형이 달라 음색이 다르다.'
     else:
-        good = [p for p in pairs if items[p[0]][0] == items[p[1]][0] and items[p[0]][1] != items[p[1]][1]]
         txt = '음색이 같고 높이가 다른 두 소리'
         why = lambda p: '파형이 같아 음색이 같고 주기가 달라 높이가 다르다.'
-    if len(good) > 1: return None
     fig = FIG(tr_fig(tr, nx=16, H=2), '72%')
     pn = lambda p: '%s와 %s' % (names[p[0]], names[p[1]])
     base = '그림은 세 소리 A, B, C를 오실로스코프로 측정한 파형이다. 가로 한 칸은 1 ms이고, 세 소리의 진폭은 같다. '
@@ -293,9 +315,9 @@ def ph098(r, k):
 # ================================================================== ph099 소리의 속력과 반사(메아리)
 @T('ph099')
 def ph099(r, k):
-    form = r.choice(['echo', 'echo', 'rev', 'two', 'thunder', 'lam', 'car', 'temp'])
+    form = r.choice(['echo', 'echo', 'rev', 'two', 'thunder', 'lam', 'car', 'temp', 'temp'])
     if form == 'echo':
-        t = Fr(str(r.choice([0.2, 0.4, 0.5, 0.6, 1, 1.5, 2, 3, 4])))
+        t = Fr(r.randint(1, 50), 10)
         d = Fr(V) * t / 2
         if not term(d): return None
         fig = FIG(scene_fig('d'), '70%') if r.random() < 0.6 else ''
@@ -305,18 +327,18 @@ def ph099(r, k):
                   steps=['소리는 절벽까지 갔다가 되돌아오므로 왕복 거리 = 340 × %s = %s m 이다.' % (fn(t), fn(Fr(V) * t)), '사람과 절벽 사이의 거리 = %s / 2 = %s m 이다.' % (fn(Fr(V) * t), fn(d))],
                   core='메아리는 소리가 왕복한 것이므로 거리 = vt/2 이다.', point='왕복 거리의 절반이 절벽까지의 거리임을 이용한다.')
     if form == 'rev':
-        d = r.choice([34, 51, 85, 102, 136, 170, 255, 340, 425, 510, 680])
+        d = 17 * r.randint(1, 60)
         t = Fr(2 * d, V)
         if not term(t): return None
         fig = FIG(scene_fig('%d m' % d), '70%') if r.random() < 0.7 else ''
         body = P('소리의 속력이 340 m/s일 때, 절벽에서 %d m 떨어진 곳에서 손뼉을 쳤다. 메아리가 들리기까지 걸리는 시간은?' % d) + fig
-        wr = [t / 2, t * 2, Fr(d, V), Fr(d * 2, V) * 10 if False else t + Fr(1, 2), Fr(V, d)]
-        return mc(body, '%s s' % fn(t), ['%s s' % fn(w) for w in wr], r=r, lv='하', fam='a',
+        wr = [t / 2, t * 2, Fr(d, V), t + Fr(1, 2), t + 1]
+        return mc(body, '%s s' % fn(t), ['%s s' % fn(w) for w in wr], r=r, lv='중', fam='a',
                   steps=['소리는 왕복 2 × %d = %d m 를 진행한다.' % (d, 2 * d), 't = 2d/v = %d / 340 = %s s 이다.' % (2 * d, fn(t))],
                   core='메아리가 들리는 시간 t = 2d/v.', point='왕복 거리를 속력으로 나눈다.')
     if form == 'two':
-        t1 = Fr(str(r.choice([0.2, 0.4, 0.6, 0.8, 1, 1.2, 2])))
-        t2 = t1 + Fr(str(r.choice([0.2, 0.4, 0.6, 0.8, 1, 1.2])))
+        t1 = Fr(r.randint(1, 20), 10)
+        t2 = t1 + Fr(r.randint(1, 15), 10)
         d1, d2 = Fr(V) * t1 / 2, Fr(V) * t2 / 2
         if not term(d1) or not term(d2): return None
         ask = r.choice(['sum', 'diff'])
@@ -334,7 +356,7 @@ def ph099(r, k):
                   steps=['d₁ = %s m, d₂ = %s m 이다.' % (fn(d1), fn(d2)), '거리의 차 = %s - %s = %s m 이다.' % (fn(d2), fn(d1), fn(right))],
                   core='거리 = vt/2.', point='시간차의 절반에 속력을 곱해도 같다.')
     if form == 'thunder':
-        t = r.choice([1, 2, 3, 4, 5, 6, 8, 10])
+        t = r.randint(1, 15)
         d = V * t
         body = P('번개가 친 것을 본 뒤 %d초 후에 천둥소리를 들었다. 소리의 속력을 340 m/s로 하고 빛이 도달하는 시간은 무시할 때, 번개가 친 곳까지의 거리는?' % t)
         wr = [d / 2, d * 2, V / t if False else d + 340, d - 340 if d > 340 else d + 680, d * 3]
@@ -342,16 +364,16 @@ def ph099(r, k):
                   steps=['빛은 매우 빠르므로 도달 시간을 무시하면 소리가 이동한 시간이 %d s 이다.' % t, '거리 = vt = 340 × %d = %d m 이다. (왕복이 아닌 편도이다)' % (t, d)],
                   core='천둥소리는 편도이므로 거리 = vt 이다.', point='메아리(왕복)와 천둥(편도)을 구분한다.')
     if form == 'lam':
-        f = r.choice([170, 340, 425, 500, 680, 850, 1020, 1700])
+        f = r.choice([34 * i for i in range(1, 60)] + [170, 340, 425, 500, 680, 850, 1020, 1700])
         lam = Fr(V, f)
         if not term(lam): return None
         body = P('진동수가 %d Hz인 소리가 공기 중(소리의 속력 340 m/s)에서 진행한다. 이 소리의 파장은?' % f)
         wr = [lam * 2, lam / 2, Fr(f * V), Fr(f, V), lam * 10]
-        return mc(body, '%s m' % fn(lam), ['%s m' % fn(w) for w in wr], r=r, lv='하', fam='d',
+        return mc(body, '%s m' % fn(lam), ['%s m' % fn(w) for w in wr], r=r, lv='중', fam='d',
                   steps=['v = fλ 에서 λ = v/f = 340 / %d = %s m 이다.' % (f, fn(lam))], core='λ = v/f.', point='소리의 속력과 진동수로 파장을 구한다.')
     if form == 'car':
-        u = r.choice([10, 20, 17, 34])
-        t = Fr(str(r.choice([1, 2, 3, 4, 5])))
+        u = r.choice([5, 10, 15, 20, 17, 34, 30, 25])
+        t = Fr(r.randint(1, 12), 2)
         way = r.choice(['to', 'away'])
         if way == 'to':
             L = (V + u) * t / 2
@@ -380,7 +402,7 @@ def ph099(r, k):
     if sub_ == 'v':
         body = P('공기 중 소리의 속력은 기온이 t(℃)일 때 v = 331 + 0.6t (m/s)로 나타낼 수 있다. 기온이 %d℃일 때 소리의 속력은?' % T_)
         wr = [v + 6, v - 6, Fr(331) + T_, Fr(340), v + 12, Fr(331) * Fr(6, 5)]
-        return mc(body, '%s m/s' % fn(v), ['%s m/s' % fn(w) for w in wr], r=r, lv='하', fam='f',
+        return mc(body, '%s m/s' % fn(v), ['%s m/s' % fn(w) for w in wr], r=r, lv='중', fam='f',
                   steps=['v = 331 + 0.6 × (%d) = %s m/s 이다.' % (T_, fn(v))], core='공기 중 소리의 속력은 온도가 높을수록 빠르다(v = 331 + 0.6t).', point='식에 온도를 대입한다.')
     t = Fr(2)
     d = v * t / 2
@@ -438,7 +460,7 @@ def _dop_pick(r, mode):
 
 @T('ph100')
 def ph100(r, k):
-    form = r.choice(['src', 'obs', 'both', 'fig', 'fig', 'inv', 'bogi'])
+    form = r.choice(['src', 'obs', 'obs', 'both', 'fig', 'fig', 'fig', 'inv', 'bogi'])
     if form == 'bogi':
         s = pick3(r, _B100)
         if not s: return None
@@ -470,7 +492,9 @@ def ph100(r, k):
         stp = ['도플러 효과: f′ = f (v ± v_o)/(v ∓ v_s). 관찰자가 음원 쪽이면 분자에 +, 음원이 관찰자 쪽이면 분모에 -를 쓴다.',
                'f′ = %d × %d / %d = %d Hz 이다.' % (f, nv, dv, fp)]
         assert Fr(f * nv, dv) == fp
-        return mc(body, right, wr, r=r, lv='중' if form != 'both' else '상', fam='a' if form == 'src' else ('b' if form == 'obs' else 'c'), sort='num' if False else 'shuf', steps=stp,
+        wi = [w for w in wr if Fr(w.split()[0]).denominator == 1]
+        if len(wi) >= 4: wr = wi
+        return mc(body, right, wr, r=r, lv={'src': '하', 'obs': '중', 'both': '상'}[form], fam='a' if form == 'src' else ('b' if form == 'obs' else 'c'), sort='shuf', steps=stp,
                   core='f′ = f (v ± v_o)/(v ∓ v_s) (가까워지면 f′ 증가).', point='이동 방향에 따라 부호를 정해 f′을 구한다.')
     if form == 'fig':
         vs = r.choice([17, 20, 34, 68, 85])
@@ -531,13 +555,13 @@ def ph100(r, k):
         # 풀이: f' = f v/(v - vs) -> vs = v (1 - f/f')
         assert Fr(V) * (1 - Fr(f, fp)) == vs
         wr = [Fr(V) * (fp - f) / f, Fr(V) * f / fp, Fr(fp - f), vs * 2, Fr(V) * (fp - f) / (fp + f)]
-        return mc(body, '%d m/s' % vs, ['%s m/s' % fn(w) for w in wr], r=r, lv='상', fam='e',
+        return mc(body, '%d m/s' % vs, ['%s m/s' % fn(w) for w in wr], r=r, lv='중', fam='e',
                   steps=['f′ = f v/(v - v_s) 에서 v_s = v (1 - f/f′) 이다.', 'v_s = 340 × (1 - %d/%d) = %d m/s 이다.' % (f, fp, vs)],
                   core='음원이 다가올 때 f′ = f v/(v - v_s).', point='도플러 식을 변형해 음원의 속력을 구한다.')
     body = P('진동수 %d Hz인 소리를 내는 정지한 음원을 향해 관찰자가 일정한 속력으로 다가가고 있다. 관찰자가 측정한 진동수가 %d Hz일 때 관찰자의 속력은? (단, 소리의 속력은 340 m/s이다.)' % (f, fp))
     assert Fr(V) * (Fr(fp, f) - 1) == vo
     wr = [Fr(V) * (fp - f) / fp, Fr(V) * f / fp, Fr(fp - f), vo * 2, Fr(V) * (fp - f) / (fp + f)]
-    return mc(body, '%d m/s' % vo, ['%s m/s' % fn(w) for w in wr], r=r, lv='상', fam='e',
+    return mc(body, '%d m/s' % vo, ['%s m/s' % fn(w) for w in wr], r=r, lv='중', fam='e',
               steps=['f′ = f (v + v_o)/v 에서 v_o = v (f′/f - 1) 이다.', 'v_o = 340 × (%d/%d - 1) = %d m/s 이다.' % (fp, f, vo)],
               core='관찰자가 다가갈 때 f′ = f (v + v_o)/v.', point='도플러 식을 변형해 관찰자의 속력을 구한다.')
 
@@ -567,7 +591,7 @@ _B101 = [
 
 @T('ph101')
 def ph101(r, k):
-    form = r.choice(['calc', 'calc', 'graph', 'graph', 'tune', 'tune', 'bogi'])
+    form = r.choice(['calc', 'calc', 'calc', 'graph', 'graph', 'tune', 'bogi'])
     if form == 'bogi':
         s = pick3(r, _B101)
         if not s: return None
@@ -594,8 +618,8 @@ def ph101(r, k):
             d = r.choice([1, 2, 4, 5, 8, 10, 20, 25])
             body = P('진동수가 %d Hz, %d Hz인 두 소리를 동시에 낼 때 맥놀이의 주기는?' % (f1, f1 + d))
             tb = Fr(1, d)
-            wr = [Fr(d), tb * 2, tb / 2, Fr(1, f1), Fr(1, 2 * f1 + d) * 2]
-            return mc(body, '%s s' % fn(tb), [('%s s' % fn(w)) if i != 0 else '%s s' % fn(w) for i, w in enumerate(wr)], r=r, lv='중', fam='a', sort='shuf',
+            wr = [Fr(d), tb * 2, tb / 2, tb * 4, tb + Fr(1, 2)]
+            return mc(body, '%s s' % fn(tb), ['%s s' % fn(w) for w in wr], r=r, lv='중', fam='a', sort='shuf',
                       steps=['맥놀이 진동수 = %d Hz 이다.' % d, '맥놀이 주기 = 1/f_b = 1/%d = %s s 이다.' % (d, fn(tb))],
                       core='맥놀이 주기 = 1/|f₁ - f₂|.', point='맥놀이 진동수의 역수가 맥놀이 주기이다.')
         t = r.choice([2, 3, 5, 10, 20])
@@ -847,7 +871,7 @@ def ph103(r, k):
                   steps=['%s: %s 에서 L = v/%sf₁ 이다.' % (nm, fm, '4' if kind == 'closed' else '2'), 'L = 340 / (%s × %s) = %s m 이다.' % ('4' if kind == 'closed' else '2', fn(f1), fn(L))],
                   core='닫힌 관 L = λ/4, 열린 관 L = λ/2 (기본음).', point='기본 진동수로 관의 길이를 구한다.')
     if form == 'exp':
-        f = r.choice([256, 340, 400, 425, 500, 512, 680, 850])
+        f = r.choice([25, 50, 85, 100, 125, 170, 250, 340, 500, 850, 1700])
         lam = Fr(V, f)
         L1 = lam / 4
         L2 = 3 * lam / 4
@@ -981,11 +1005,11 @@ _B104 = [
 
 @T('ph104')
 def ph104(r, k):
-    form = r.choice(['sonar', 'sonar', 'nc', 'nc', 'lam', 'spk', 'bogi', 'bogi'])
+    form = r.choice(['sonar', 'nc', 'nc', 'lam', 'spk', 'bogi'])
     if form == 'bogi':
         s = pick3(r, _B104)
         if not s: return None
-        return bogi('초음파와 소리의 간섭의 응용에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', s, ask='', lv='하', fam='d', r=r,
+        return bogi('초음파와 소리의 간섭의 응용에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', s, ask='', lv=r.choice(['하', '중']), fam='d', r=r,
                     core='초음파는 20000 Hz 이상의 소리로 반사를 이용한 거리 측정에 쓰이고, 노이즈 캔슬링은 반대 위상의 소리로 상쇄 간섭을 일으킨다.', point='초음파와 간섭 기술의 원리를 판단한다.')
     if form == 'sonar':
         medium = r.choice([('바닷물', 1500), ('물속', 1500), ('공기', 340), ('인체 조직', 1500)])
@@ -1052,7 +1076,7 @@ def ph104(r, k):
 # ================================================================== ph105 정상파 그림 해석
 @T('ph105')
 def ph105(r, k):
-    form = r.choice(['str', 'str', 'two', 'two', 'pipe', 'pipe', 'cnt'])
+    form = r.choice(['str', 'str', 'two', 'two', 'pipe', 'cnt', 'cnt'])
     if form == 'str':
         n = r.choice([2, 3, 4, 5, 6])
         L = Fr(str(r.choice([0.6, 0.9, 1.2, 1.5, 1.8, 2.4, 3])))

@@ -925,7 +925,7 @@ def g116(r, k):
         dUj = dUk * KCAL
         W = Qj - dUj
         dV = W / (Pn * 100)
-        if abs(dV - round(dV)) > 1e-9 or dV < 1 or dV > 200: return None
+        if abs(dV - round(dV)) > 1e-9 or dV < 1 or dV > 60: return None
         dV = int(round(dV))
         body = P('압력이 %d × 10⁵ Pa 로 일정한 상태에서 이상 기체가 %d kcal 의 열을 흡수하여 내부 에너지가 %s kcal 증가하였다. 기체의 부피 증가량은? (단, 1 kcal = 4200 J, 1 L = 1.0 × 10⁻³ m³ 이다.)' % (Pn, Qk, num(dUk)))
         right = '%d L' % dV
@@ -1407,7 +1407,7 @@ def g119(r, k):
             j2 = r.randrange(3)
             c[j2] = r.choice([x for x in allk if x != c[j2]])
         wr.append(', '.join(c))
-    body = P('(가) %s, (나) %s, (다) %s 에서 기체가 겪는 과정을 순서대로 옳게 짝지은 것은?' % (ths[0]['desc'].rstrip('.'), ths[1]['desc'].rstrip('.'), ths[2]['desc'].rstrip('.')))
+    body = P('다음은 일상 속에서 볼 수 있는 세 가지 현상이다.') + BOX(['(가) %s' % ths[0]['desc'], '(나) %s' % ths[1]['desc'], '(다) %s' % ths[2]['desc']]) + P('(가)~(다)에서 기체가 겪는 과정을 순서대로 옳게 짝지은 것은?')
     steps = ['(가) %s : %s' % (ths[0]['name'], ths[0]['kind']), '(나) %s : %s' % (ths[1]['name'], ths[1]['kind']), '(다) %s : %s' % (ths[2]['name'], ths[2]['kind']), '따라서 %s' % right]
     return mco(body, right, wr, steps=steps, lv='상', fam='d', r=r, core='현상의 조건(밀폐·급격·느림·대기압)으로 과정의 종류를 판단한다.', point='일상 현상과 열역학 과정을 짝짓는다.')
 
@@ -1658,3 +1658,326 @@ def g120(r, k):
     if not sel: return None
     return bogi(intro_b + ' 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, pre=fig, ask='', r=r, lv='중' if not stir else '상', fam='f',
                 core='카르노 순환은 등온 팽창·단열 팽창·등온 압축·단열 압축이고 e = 1 - T_L/T_H 이다. 스털링 순환은 두 등온과 두 등적 과정이다.', point='각 과정에서 ΔU, W, Q 부호와 열효율 식으로 판단한다.')
+
+
+# ============================================================ ph121 엔트로피 변화량 ΔS = Q/T
+def _dS(x):
+    """J/K 값 문자열(부호 포함)."""
+    if abs(x) < 1e-9: return '0 J/K'
+    return ('+' if x > 0 else '−') + num(abs(x), 3) + ' J/K'
+
+
+def _entropy_pair(r):
+    TH = r.choice([300, 400, 500, 600, 800, 1000])
+    TL = r.choice([100, 200, 250, 300, 400, 500, 600])
+    if TL >= TH: return None
+    l = TH * TL // math.gcd(TH, TL)
+    Q = l * r.choice([1, 2, 3, 4, 5]) if l <= 2000 else None
+    if Q is None: return None
+    return TH, TL, Q
+
+
+def _heat_fig(TH, TL, Q, rev=False):
+    f = Fig(300, 120)
+    f.rect(20, 25, 90, 70, '#fdecea', INK, 2, 6)
+    f.rect(190, 25, 90, 70, '#e8f1fb', INK, 2, 6)
+    f.text(65, 56, '물체 H' if not rev else '물체 H', 13, 'middle', True, RD)
+    f.text(65, 78, '%d K' % TH, 13, 'middle', False, INK)
+    f.text(235, 56, '물체 L', 13, 'middle', True, BL)
+    f.text(235, 78, '%d K' % TL, 13, 'middle', False, INK)
+    if not rev:
+        f.arrow(116, 60, 184, 60, RD, 3)
+    else:
+        f.arrow(184, 60, 116, 60, BL, 3)
+    f.text(150, 48, 'Q = %d J' % Q, 12.5, 'middle', True, INK)
+    return f.svg()
+
+
+@T('ph121')
+@REF([2])
+def g121(r, k):
+    form = r.choice(['pair', 'pair', 'pair', 'rev', 'iso', 'phase', 'engine', 'bogi', 'bogi'])
+    if form in ('pair', 'rev'):
+        got = _entropy_pair(r)
+        if not got: return None
+        TH, TL, Q = got
+        sH, sL = Fraction(-Q, TH), Fraction(Q, TL)
+        if form == 'pair':
+            ask = r.choice(['H', 'L', 'tot', 'tot'])
+            fig = FIG(_heat_fig(TH, TL, Q), '70%')
+            body0 = '그림과 같이 단열된 용기 속에서 온도가 %d K 인 물체 H 에서 온도가 %d K 인 물체 L 로 열 %d J 이 이동하였다. 두 물체의 온도는 열이 이동하는 동안 변하지 않는다고 본다. ' % (TH, TL, Q)
+            if ask == 'H':
+                right = _dS(float(sH))
+                wr = [_dS(float(sL)), _dS(-float(sL)), _dS(float(-sH)), _dS(float(sH + sL)), _dS(-Q / (TH + TL)), _dS(float(sH) * 2)]
+                body = P(body0 + '물체 H 의 엔트로피 변화량은?') + fig
+                steps = ['ΔS = Q/T 에서 열을 잃은 H 는 Q = -%d J 이다.' % Q, 'ΔS<sub>H</sub> = -%d J / %d K = %s' % (Q, TH, right)]
+                lv = '하'
+            elif ask == 'L':
+                right = _dS(float(sL))
+                wr = [_dS(float(sH)), _dS(-float(sL)), _dS(float(sH + sL)), _dS(Q / TH), _dS(Q / (TH + TL)), _dS(float(sL) * 2)]
+                body = P(body0 + '물체 L 의 엔트로피 변화량은?') + fig
+                steps = ['열을 얻은 L 의 Q = +%d J 이다.' % Q, 'ΔS<sub>L</sub> = +%d J / %d K = %s' % (Q, TL, right)]
+                lv = '하'
+            else:
+                tot = sH + sL
+                right = _dS(float(tot))
+                wr = [_dS(float(sH)), _dS(float(sL)), _dS(-float(tot)), _dS(0), _dS(Q / (TH - TL)), _dS(float(sL - sH) * 2)]
+                body = P(body0 + '두 물체의 엔트로피 변화량의 합은?') + fig
+                steps = ['ΔS<sub>H</sub> = -%d/%d = %s, ΔS<sub>L</sub> = +%d/%d = %s' % (Q, TH, _dS(float(sH)), Q, TL, _dS(float(sL))), '합 = %s + %s = %s' % (_dS(float(sH)), _dS(float(sL)), right), '엔트로피가 증가하므로 자연스럽게 일어나는 (비가역) 과정이다.']
+                lv = '중'
+            assert tot_check(sH, sL)
+            return mco(body, right, wr, steps=steps, lv=lv, fam='a', r=r, core='열 Q 가 온도 T 인 물체로 출입할 때 엔트로피 변화량은 ΔS = Q/T 이다(들어오면 +, 나가면 −).', point='고온 물체의 감소량보다 저온 물체의 증가량이 커서 전체 엔트로피는 증가한다.')
+        # rev: 저온 → 고온 자발적 이동이 가능한가
+        fig = FIG(_heat_fig(TH, TL, Q, rev=True), '70%')
+        tot = float(sH + sL)
+        body = P('그림과 같이 단열된 용기 속에서 온도가 %d K 인 물체 L 에서 온도가 %d K 인 물체 H 로 열 %d J 이 저절로 이동하였다고 한다. 두 물체의 온도는 변하지 않는다고 본다. 이 현상에 대한 설명으로 옳은 것은?' % (TL, TH, Q)) + fig
+        right = '두 물체의 엔트로피 변화량의 합이 %s 이므로 일어날 수 없다.' % _dS(-tot)
+        wr = ['두 물체의 엔트로피 변화량의 합이 %s 이므로 일어날 수 있다.' % _dS(-tot), '두 물체의 엔트로피 변화량의 합이 %s 이므로 일어날 수 있다.' % _dS(tot), '두 물체의 엔트로피 변화량의 합이 %s 이므로 일어날 수 없다.' % _dS(tot), '두 물체의 엔트로피 변화량의 합이 0 이므로 일어날 수 있다.', '에너지가 보존되지 않으므로 일어날 수 없다.']
+        steps = ['저온 L 에서 열을 잃음 : ΔS<sub>L</sub> = -%d/%d = %s' % (Q, TL, _dS(float(-sL))), '고온 H 가 열을 얻음 : ΔS<sub>H</sub> = +%d/%d = %s' % (Q, TH, _dS(float(-sH))),
+                 '합 = %s < 0 이므로 열역학 제2법칙(고립계의 엔트로피는 감소하지 않는다)에 어긋나 저절로 일어날 수 없다.' % _dS(-tot)]
+        assert -tot < 0
+        return mco(body, right, wr, steps=steps, lv='상', fam='b', r=r, core='고립계에서 자발적으로 일어나는 변화는 전체 엔트로피가 증가하는 방향이다.', point='열이 저온에서 고온으로 저절로 이동할 때의 ΔS 합의 부호를 구한다.')
+    if form == 'iso':
+        T = r.choice([200, 250, 300, 400, 500, 600])
+        dS = r.choice([1, 2, 3, 4, 5, 6, 8, 10])
+        Q = T * dS
+        ask = r.choice(['gas', 'res', 'tot'])
+        body0 = '일정한 온도 %d K 의 열원과 접촉한 실린더 속 이상 기체가 천천히 팽창하면서 열원으로부터 %d J 의 열을 흡수하였다. ' % (T, Q)
+        if ask == 'gas':
+            right = _dS(dS)
+            wr = [_dS(-dS), _dS(0), _dS(dS * 2), _dS(Q), _dS(dS / 2), _dS(T / Q)]
+            body = P(body0 + '기체의 엔트로피 변화량은?')
+            steps = ['등온 과정에서 기체가 흡수한 열 Q = %d J' % Q, 'ΔS = Q/T = %d / %d = %s' % (Q, T, right)]
+            lv = '하'
+        elif ask == 'res':
+            right = _dS(-dS)
+            wr = [_dS(dS), _dS(0), _dS(-dS * 2), _dS(-Q), _dS(-dS / 2)]
+            body = P(body0 + '열원의 엔트로피 변화량은?')
+            steps = ['열원은 열 %d J 을 잃는다 : Q = -%d J' % (Q, Q), 'ΔS = -%d / %d = %s' % (Q, T, right)]
+            lv = '중'
+        else:
+            right = _dS(0)
+            wr = [_dS(dS), _dS(-dS), _dS(2 * dS), _dS(Q / T / 2), _dS(Q)]
+            body = P(body0 + '기체와 열원의 엔트로피 변화량의 합은? (단, 천천히 일어나는 가역 과정이다.)')
+            steps = ['기체 : ΔS = +%d/%d = %s, 열원 : ΔS = -%d/%d = %s' % (Q, T, _dS(dS), Q, T, _dS(-dS)), '합 = 0 (가역 과정에서는 전체 엔트로피가 변하지 않는다)']
+            lv = '중'
+        return mco(body, right, wr, steps=steps, lv=lv, fam='c', r=r, core='가역 등온 과정에서 열 Q 를 흡수하면 ΔS = Q/T 이고, 열원과 합하면 전체 ΔS 는 0 이다.', point='ΔS = Q/T 를 부호와 함께 쓴다.')
+    if form == 'phase':
+        which = r.choice([('얼음이 0 °C 에서 녹는 동안', 273, '융해'), ('물이 100 °C 에서 끓어 수증기가 되는 동안', 373, '기화')])
+        T = which[1]
+        n = r.choice([2, 3, 4, 5, 6, 8, 10])
+        Q = T * n
+        body = P('%s %d J 의 열을 흡수하였다. 온도는 일정하다고 할 때 이 물질의 엔트로피 변화량은? (단, 0 °C = 273 K 이다.)' % (which[0], Q))
+        right = _dS(n)
+        wr = [_dS(-n), _dS(Q / 100 if T == 373 else Q / 273.0 * 373 / 373 * 0 + Q / 100), _dS(Q / (T - 273) if T != 273 else Q), _dS(n + 1), _dS(Q / (T + 273))]
+        steps = ['상태 변화 중 온도는 %d K 로 일정하다.' % T, 'ΔS = Q/T = %d / %d = %s' % (Q, T, right)]
+        return mco(body, right, wr, steps=steps, lv='중', fam='d', r=r, core='상태가 변하는 동안 온도가 일정하면 ΔS = Q/T 이다(T 는 절대 온도).', point='섭씨온도를 절대 온도로 바꾸어 대입한다.')
+    if form == 'engine':
+        TH = r.choice([400, 500, 600, 800, 900, 1200]); TL = r.choice([200, 250, 300, 400, 450, 600])
+        if TL >= TH: return None
+        QH = r.choice([600, 800, 1200, 1500, 1800, 2400, 3000])
+        QLc = Fraction(QH * TL, TH)
+        if QLc.denominator != 1 or QH % TH or int(QLc) % TL: return None
+        QLc = int(QLc)
+        real = r.random() < 0.5
+        extra = r.choice([100, 200, 300]) if real else 0
+        QL = QLc + extra
+        if QL % TL: return None
+        W = QH - QL
+        sH, sL = Fraction(-QH, TH), Fraction(QL, TL)
+        tot = sH + sL
+        ask = r.choice(['tot', 'sign'])
+        eng = '열기관이 고열원(%d K)에서 한 번 순환하는 동안 %d J 의 열을 흡수하여 %d J 의 일을 하고, 저열원(%d K)으로 %d J 의 열을 방출한다. ' % (TH, QH, W, TL, QL)
+        if ask == 'tot':
+            body = P(eng + '한 번 순환하는 동안 열기관 자체의 엔트로피 변화는 0 이다. 두 열원의 엔트로피 변화량의 합은?')
+            right = _dS(float(tot))
+            wr = [_dS(float(sH)), _dS(float(sL)), _dS(-float(tot)) if tot != 0 else _dS(1), _dS(float(sL - sH)), _dS(0 if tot != 0 else 2), _dS(float(tot) + 1)]
+            steps = ['고열원 : ΔS = -%d/%d = %s' % (QH, TH, _dS(float(sH))), '저열원 : ΔS = +%d/%d = %s' % (QL, TL, _dS(float(sL))), '합 = %s' % right]
+            lv = '중'
+        else:
+            body = P(eng + '이 열기관에 대한 설명으로 옳은 것은?')
+            kind = '카르노 기관(가역 기관)이다' if tot == 0 else '비가역 기관이다'
+            right = '두 열원의 엔트로피 변화량의 합이 %s 이므로 %s.' % (_dS(float(tot)), kind)
+            wr = ['두 열원의 엔트로피 변화량의 합이 %s 이므로 %s.' % (_dS(float(tot)), '비가역 기관이다' if tot == 0 else '카르노 기관(가역 기관)이다'),
+                  '두 열원의 엔트로피 변화량의 합이 %s 이므로 제2법칙에 어긋나 불가능하다.' % _dS(float(tot)),
+                  '두 열원의 엔트로피 변화량의 합이 %s 이므로 열효율이 100 %% 이다.' % _dS(float(tot)),
+                  '두 열원의 엔트로피 변화량의 합이 %s 이므로 에너지가 보존되지 않는다.' % _dS(float(tot)),
+                  '두 열원의 엔트로피 변화량의 합이 %s 이므로 저열원의 온도가 올라간다.' % _dS(-float(tot) if tot != 0 else 1)]
+            steps = ['ΔS<sub>H</sub> = -%d/%d = %s, ΔS<sub>L</sub> = +%d/%d = %s' % (QH, TH, _dS(float(sH)), QL, TL, _dS(float(sL))), '합 = %s 이므로 %s.' % (_dS(float(tot)), kind),
+                     '(제2법칙 : 합 ≥ 0, 같으면 가역 과정)']
+            lv = '상'
+        assert tot >= 0
+        return mco(body, right, wr, steps=steps, lv=lv, fam='e', r=r, core='열기관이 한 순환하는 동안 두 열원의 ΔS 의 합은 0 이상이며, 카르노 기관(가역)이면 0 이다.', point='ΔS = Q/T 를 고열원(−)·저열원(+)에 적용한다.')
+    # bogi
+    got = _entropy_pair(r)
+    if not got: return None
+    TH, TL, Q = got
+    sH, sL = Fraction(Q, TH), Fraction(Q, TL)
+    bank = [
+        ('고온 물체에서 저온 물체로 열이 이동할 때 고온 물체의 엔트로피는 감소한다.', True, '열을 잃으므로 ΔS = -Q/T<sub>H</sub> < 0 이다.', 'h'),
+        ('고온 물체에서 저온 물체로 열이 이동할 때 저온 물체의 엔트로피는 감소한다.', False, '열을 얻으므로 ΔS = +Q/T<sub>L</sub> > 0 으로 증가한다.', 'h'),
+        ('같은 열량이 출입할 때 엔트로피 변화량의 크기는 온도가 낮은 쪽이 더 크다.', True, 'ΔS = Q/T 에서 Q 가 같으면 T 가 작을수록 |ΔS| 가 크다.', 'cmp'),
+        ('같은 열량이 출입할 때 엔트로피 변화량의 크기는 온도가 높은 쪽이 더 크다.', False, 'ΔS = Q/T 에서 T 가 클수록 |ΔS| 는 작다.', 'cmp'),
+        ('고온 물체에서 저온 물체로 열이 이동할 때 두 물체의 엔트로피 변화량의 합은 0보다 크다.', True, '|ΔS<sub>L</sub>| = Q/T<sub>L</sub> > Q/T<sub>H</sub> = |ΔS<sub>H</sub>| 이다.', 'tot'),
+        ('고온 물체에서 저온 물체로 열이 이동할 때 두 물체의 엔트로피 변화량의 합은 0이다.', False, '두 물체의 ΔS 크기가 다르므로 합은 0보다 크다.', 'tot'),
+        ('열이 저온 물체에서 고온 물체로 저절로 이동하면 전체 엔트로피가 감소하므로 일어나지 않는다.', True, '합 = -Q/T<sub>L</sub> + Q/T<sub>H</sub> < 0 이어서 제2법칙에 어긋난다.', 'rev'),
+        ('열이 저온 물체에서 고온 물체로 저절로 이동해도 에너지가 보존되므로 제2법칙에 어긋나지 않는다.', False, '에너지 보존(제1법칙)과 별개로 전체 엔트로피가 감소하므로 제2법칙에 어긋난다.', 'rev'),
+        ('가역 과정에서는 고립계의 전체 엔트로피가 변하지 않는다.', True, '가역 과정에서는 ΔS<sub>전체</sub> = 0 이다.', 'revp'),
+        ('자연에서 일어나는 대부분의 과정은 고립계의 전체 엔트로피가 증가하는 방향이다.', True, '비가역 과정에서는 ΔS<sub>전체</sub> > 0 이다.', 'revp'),
+        ('고립계의 전체 엔트로피는 시간이 지나면 감소하는 방향으로 변한다.', False, '고립계의 엔트로피는 감소하지 않고 증가하거나 일정하다.', 'revp'),
+        ('엔트로피의 단위는 J/K 이다.', True, 'ΔS = Q/T 이므로 단위는 J/K 이다.', 'u'),
+        ('엔트로피 변화량은 물체가 흡수한 열을 섭씨온도로 나누어 구한다.', False, '절대 온도(K)로 나누어야 한다.', 'u'),
+        ('얼음이 녹는 동안 얼음의 엔트로피는 증가한다.', True, '열을 흡수하고 질서 있던 상태가 무질서해지므로 엔트로피가 증가한다.', 'melt'),
+        ('물이 얼면서 열을 방출할 때 물의 엔트로피는 감소한다.', True, '열을 방출하므로 ΔS = Q/T < 0 이다. (주변은 증가하여 전체는 증가한다.)', 'melt'),
+        ('뜨거운 커피가 식어 주변과 같은 온도가 될 때 전체(커피+주변) 엔트로피는 증가한다.', True, '열이 고온에서 저온으로 이동하므로 전체 엔트로피가 증가한다.', 'cool'),
+        ('뜨거운 커피가 식는 동안 커피의 엔트로피는 감소하지만 주변의 엔트로피 증가량이 더 크다.', True, '|ΔS<sub>주변</sub>| = Q/T<sub>주변</sub> > Q/T<sub>커피</sub>.', 'cool'),
+        ('섞여 있던 두 종류의 기체가 저절로 분리되는 것은 엔트로피 증가 방향이다.', False, '분리는 엔트로피가 감소하는 방향이라 저절로 일어나지 않는다.', 'mix'),
+    ]
+    sel = pick_stmts(r, bank)
+    if not sel: return None
+    return bogi('엔트로피와 열역학 제2법칙에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, ask='', r=r, lv='하' if r.random() < 0.5 else '중', fam='f',
+                core='ΔS = Q/T. 고립계의 전체 엔트로피는 감소하지 않으며 가역 과정에서만 일정하다.', point='열의 이동 방향과 엔트로피 변화의 부호를 판단한다.')
+
+
+def tot_check(sH, sL):
+    return sH + sL > 0
+
+
+# ============================================================ ph122 기체의 확산과 엔트로피(확률)
+def box_fig(cfgs, N, w=330, h=None, split=Fraction(1, 2), labels=True):
+    """cfgs: [(왼쪽 입자 수, ...)]. 칸막이로 나뉜 용기 그림(여러 개 가로로)."""
+    n = len(cfgs)
+    cw = 98 if n >= 3 else 130
+    h = h or (132 if labels else 100)
+    f = Fig(w, h)
+    gap = (w - n * cw) / (n + 1)
+    for gi, kL in enumerate(cfgs):
+        x0 = gap + gi * (cw + gap)
+        y0 = 18
+        bh = 70
+        xm = x0 + cw * float(split)
+        f.rect(x0, y0, cw, bh, '#f7f9fc', INK, 2)
+        f.line(xm, y0, xm, y0 + bh, INK, 2, '5 3')
+        Lw, Rw = xm - x0, x0 + cw - xm
+        for side, cnt, xs, ws_ in (('L', kL, x0, Lw), ('R', N - kL, xm, Rw)):
+            cols = max(1, int(math.ceil(math.sqrt(cnt * ws_ / bh * 1.2)))) if cnt else 1
+            rows = int(math.ceil(cnt / cols)) if cnt else 1
+            for i in range(cnt):
+                cx = xs + ws_ * ((i % cols) + 0.5) / cols + (3 if (i // cols) % 2 else -3) * 0.5
+                cy = y0 + bh * ((i // cols) + 0.5) / rows
+                f.circ(cx, cy, 4.2, BL if side == 'L' else RD, 'none', 0)
+        if labels:
+            f.text(x0 + cw / 2, y0 + bh + 17, CAP[gi], 12.5, 'middle', True, INK)
+    return f.svg()
+
+
+def _fr(p, q):
+    f = Fraction(p, q)
+    return '%d/%d' % (f.numerator, f.denominator) if f.denominator != 1 else str(f.numerator)
+
+
+@T('ph122')
+@REF([2])
+def g122(r, k):
+    form = r.choice(['allone', 'allone', 'count', 'count', 'fig', 'fig', 'third', 'bogi', 'bogi'])
+    if form == 'allone':
+        N = r.choice([2, 3, 4, 5, 6, 7, 8, 10])
+        either = r.random() < 0.4
+        exp = N - 1 if either else N
+        right = '(1/2)<sup>%d</sup> = 1/%d' % (exp, 2 ** exp) if exp > 1 else '1/2'
+        body = P('그림과 같이 칸막이로 부피가 같은 두 부분으로 나뉜 용기의 한쪽에 서로 구별되지 않는 기체 입자 %d개가 모여 있다. 칸막이를 제거하여 충분한 시간이 지났을 때, 입자 %d개가 %s 있을 확률은? (단, 각 입자가 어느 쪽에 있을 확률은 같고 서로 독립이다.)' % (N, N, '모두 한쪽에만(왼쪽 또는 오른쪽)' if either else '모두 왼쪽에만')) + FIG(box_fig([N], N, labels=False), '48%')
+        ws = ['(1/2)<sup>%d</sup> = 1/%d' % (N + 1, 2 ** (N + 1)) if (N + 1) != exp else '1/%d' % (2 ** (N + 2)), '1/%d' % (2 * N), '1/%d' % (N * N), '1/%d' % N, '1/2', '(1/2)<sup>%d</sup> = 1/%d' % (N - 1 if not either else N, 2 ** (N - 1 if not either else N)) if N - 1 > 1 else '1/4']
+        if exp == 1: right = '1/2'
+        steps = ['입자 1개가 왼쪽에 있을 확률은 1/2 이다.', '%d개 모두 %s : (1/2)<sup>%d</sup> = 1/%d%s' % (N, '왼쪽' if not either else '왼쪽에 있을 확률', N, 2 ** N, ' → 오른쪽에 모두 있을 경우까지 2배하면 2 × 1/%d = 1/%d' % (2 ** N, 2 ** (N - 1)) if either else '')]
+        return mco(body, right, ws, steps=steps, lv='하' if not either else '중', fam='a', r=r, core='N 개 입자가 모두 한쪽에 모일 확률은 (1/2)^N 이다.', point='입자 하나하나의 확률 1/2 을 N 번 곱한다.')
+    if form == 'count':
+        N = r.choice([4, 5, 6])
+        kk = r.randrange(0, N + 1)
+        ask = r.choice(['ways', 'prob', 'total', 'best'])
+        c = math.comb(N, kk)
+        fig = FIG(box_fig([kk], N, labels=False), '48%')
+        desc = '구별되는 입자 A, B, … 로 보고' if True else ''
+        base = '칸막이로 부피가 같은 두 부분으로 나뉜 용기 안에 서로 구별되는 기체 입자 %d개가 자유롭게 움직인다. 각 입자는 두 부분 중 어느 쪽에나 같은 확률로 있을 수 있다. ' % N
+        if ask == 'ways':
+            body = P(base + '왼쪽에 %d개, 오른쪽에 %d개가 있는 경우의 수는?' % (kk, N - kk)) 
+            right = '%d가지' % c
+            wr = ['%d가지' % (2 ** N), '%d가지' % (N * kk if kk else N), '%d가지' % (c + 1), '%d가지' % math.perm(N, kk), '%d가지' % (N - kk + 1), '%d가지' % (c * 2)]
+            steps = ['N = %d 개 중 왼쪽에 놓일 %d개를 고르는 방법의 수 : C(%d, %d) = %d' % (N, kk, N, kk, c)]
+            lv = '중'
+            return mco(body, right, wr, steps=steps, lv=lv, fam='b', r=r, sort='num', core='왼쪽에 k개가 있는 경우의 수는 조합 C(N, k) 이다.', point='조합으로 경우의 수를 센다.')
+        if ask == 'prob':
+            body = P(base + '왼쪽에 %d개, 오른쪽에 %d개가 있을 확률은?' % (kk, N - kk))
+            right = _fr(c, 2 ** N)
+            wr = [_fr(1, 2 ** N), _fr(1, N + 1), _fr(c, 2 ** (N + 1)), _fr(c + 1, 2 ** N), _fr(N, 2 ** N), _fr(math.comb(N, kk) * 2, 2 ** N), _fr(c, N * N)]
+            steps = ['전체 경우의 수 = 2<sup>%d</sup> = %d' % (N, 2 ** N), '왼쪽에 %d개 있는 경우의 수 C(%d, %d) = %d' % (kk, N, kk, c), '확률 = %d/%d = %s' % (c, 2 ** N, right)]
+            return mco(body, right, wr, steps=steps, lv='중', fam='b', r=r, core='확률 = (해당 경우의 수) / 2^N.', point='전체 경우의 수 2^N 과 조합을 쓴다.')
+        if ask == 'total':
+            body = P(base + '입자가 두 부분에 나뉘어 있는 전체 경우의 수는?')
+            right = '%d가지' % (2 ** N)
+            wr = ['%d가지' % (N * N), '%d가지' % (2 * N), '%d가지' % math.factorial(N), '%d가지' % (2 ** N - 1), '%d가지' % (2 ** (N - 1)), '%d가지' % (N + 1)]
+            steps = ['각 입자가 왼쪽·오른쪽 2가지 중 하나이므로 2 × 2 × … = 2<sup>%d</sup> = %d' % (N, 2 ** N)]
+            return mco(body, right, wr, steps=steps, lv='하', fam='b', r=r, sort='num', core='N 개 입자의 배치 경우의 수는 2^N 이다.', point='입자마다 2가지 선택.')
+        # best: 가장 경우의 수 많은 배열
+        right = '왼쪽 %d개, 오른쪽 %d개' % (N // 2, N - N // 2)
+        cand = [(j, N - j) for j in range(0, N + 1) if (j, N - j) != (N // 2, N - N // 2)]
+        if N % 2 == 0:
+            cand = [x for x in cand]
+        ws = ['왼쪽 %d개, 오른쪽 %d개' % x for x in cand]
+        if N % 2 == 1:
+            # N//2 와 N-N//2 대칭인 배열도 같은 경우의 수라서 제외
+            ws = ['왼쪽 %d개, 오른쪽 %d개' % x for x in cand if x != (N - N // 2, N // 2)]
+            right = '왼쪽 %d개, 오른쪽 %d개' % (N // 2, N - N // 2)
+            body = P(base + '다음 중 일어날 확률이 가장 큰 배열은? (단, 왼쪽 %d개·오른쪽 %d개와 왼쪽 %d개·오른쪽 %d개는 같은 확률이므로 보기에 한 가지만 들어 있다.)' % (N // 2, N - N // 2, N - N // 2, N // 2))
+        else:
+            body = P(base + '다음 중 일어날 확률이 가장 큰 배열은?')
+        steps = ['왼쪽에 j개 있는 경우의 수는 C(%d, j) 이다 : ' % N + ', '.join('j=%d → %d' % (j, math.comb(N, j)) for j in range(0, N + 1))] + ['경우의 수가 가장 많은 배열은 %s 이다.' % right]
+        return mco(body, right, ws, steps=steps, lv='중', fam='b', r=r, core='입자가 고르게 퍼진 배열이 경우의 수가 가장 많아 가장 일어나기 쉽다.', point='C(N, k) 가 최대인 배열을 찾는다.')
+    if form == 'fig':
+        N = r.choice([6, 8])
+        ks = r.sample(range(0, N + 1), 3)
+        cs = [math.comb(N, kk) for kk in ks]
+        if len(set(cs)) < 3: return None
+        ask = r.choice(['max', 'min'])
+        best = cs.index(max(cs)) if ask == 'max' else cs.index(min(cs))
+        fig = FIG(box_fig(ks, N), '96%')
+        body = P('그림 (가)~(다)는 칸막이로 부피가 같은 두 부분으로 나뉜 용기 안에 서로 구별되지 않는 기체 입자 %d개가 나뉘어 있는 서로 다른 세 상태를 나타낸 것이다. 각 입자는 어느 쪽에나 같은 확률로 있을 수 있다. %s' % (N, '엔트로피가 가장 큰 상태는?' if ask == 'max' else '엔트로피가 가장 작은 상태는?')) + fig
+        wr_ = [CAP[i] for i in range(3) if i != best] + ['(가), (나)', '(나), (다)', '(가), (다)']
+        right = CAP[best]
+        steps = ['각 상태에서 (왼쪽, 오른쪽) 입자 수 : ' + ', '.join('%s (%d, %d)' % (CAP[i], ks[i], N - ks[i]) for i in range(3)),
+                 '나타날 수 있는 경우의 수 C(%d, k) : ' % N + ', '.join('%s %d' % (CAP[i], cs[i]) for i in range(3)),
+                 '엔트로피는 경우의 수가 %s 상태가 %s : %s' % ('많은' if ask == 'max' else '적은', '크다' if ask == 'max' else '작다', right)]
+        return mco(body, right, wr_[:4] + [wr_[4]], steps=steps, lv='중', fam='c', r=r, core='경우의 수(무질서한 정도)가 클수록 엔트로피가 크다. 입자가 고르게 퍼진 상태가 엔트로피가 가장 크다.', point='그림에서 입자 수를 세어 경우의 수 C(N, k) 를 비교한다.')
+    if form == 'third':
+        N = r.choice([2, 3, 4, 5])
+        b = r.choice([2, 3, 4])
+        # 용기 전체 부피 중 처음 부분 부피비 1/b
+        body = P('그림과 같이 칸막이가 전체 용기를 부피 비 1 : %d 로 나누고 있다. 작은 쪽 용기에만 기체 입자 %d개가 들어 있다. 칸막이를 제거하여 충분한 시간이 지난 뒤, 입자 %d개가 모두 처음의 작은 쪽 부분(전체 부피의 1/%d)에 다시 모여 있을 확률은? (단, 입자가 있을 확률은 부피에 비례하고 서로 독립이다.)' % (b - 1, N, N, b)) + FIG(box_fig([N], N, labels=False, split=Fraction(1, b)), '48%')
+        right = '(1/%d)<sup>%d</sup> = 1/%d' % (b, N, b ** N)
+        ws = ['(1/2)<sup>%d</sup> = 1/%d' % (N, 2 ** N), '1/%d' % (b * N), '(1/%d)<sup>%d</sup> = 1/%d' % (b, N + 1, b ** (N + 1)), '1/%d' % b, '(%d/%d)<sup>%d</sup>' % (b - 1, b, N)]
+        steps = ['입자 1개가 작은 쪽에 있을 확률 = 부피비 = 1/%d' % b, '%d개 모두 : (1/%d)<sup>%d</sup> = 1/%d' % (N, b, N, b ** N)]
+        return mco(body, right, ws, steps=steps, lv='상', fam='d', r=r, core='입자 1개가 어떤 부분에 있을 확률은 그 부분의 부피 비율이고, N 개가 모두 있을 확률은 N 제곱이다.', point='부피 비를 확률로 바꾸어 거듭제곱한다.')
+    # bogi
+    N = r.choice([2, 4, 6, 10, 20, 100])
+    bank = [
+        ('칸막이를 제거하면 한쪽에만 있던 기체는 용기 전체로 퍼져 나간다. 이 확산은 엔트로피가 증가하는 방향이다.', True, '입자가 더 많은 배치(경우의 수)를 가지게 되므로 엔트로피가 증가한다.', 'dir'),
+        ('확산한 기체가 저절로 다시 한쪽으로 모여 처음 상태로 돌아가는 것은 에너지 보존 법칙에 어긋나므로 일어날 수 없다.', False, '에너지 보존에는 어긋나지 않으며 엔트로피가 감소하는 방향이라 일어날 확률이 극히 작을 뿐이다.', 'back'),
+        ('입자 수가 많을수록 입자 전체가 한쪽에 다시 모일 확률은 작아진다.', True, '확률 (1/2)<sup>N</sup> 은 N 이 클수록 작아진다.', 'N'),
+        ('입자 %d개가 모두 한쪽(정해진 쪽)에 모일 확률은 (1/2)<sup>%d</sup> 이다.' % (N, N), True, '각 입자가 정해진 쪽에 있을 확률 1/2 을 %d번 곱한다.' % N, 'prob'),
+        ('입자 %d개가 모두 한쪽(정해진 쪽)에 모일 확률은 1/%d 이다.' % (N, 2 * N), False, '확률은 (1/2)<sup>%d</sup> 이다.' % N, 'prob'),
+        ('기체의 확산은 비가역 과정이다.', True, '저절로 처음 상태로 되돌아가지 않으므로 비가역 과정이다.', 'irr'),
+        ('기체가 진공 속으로 단열 자유 팽창하는 과정은 가역 과정이다.', False, '자유 팽창은 저절로 되돌아가지 않는 비가역 과정이다.', 'irr'),
+        ('입자가 양쪽 용기에 고르게 퍼진 상태는 한쪽에 모여 있는 상태보다 경우의 수가 많다.', True, '고르게 퍼진 배열의 경우의 수 C(N, N/2) 가 모두 한쪽에 있는 경우의 수 1 보다 크다.', 'cnt'),
+        ('입자가 한쪽에 모두 모여 있는 상태는 고르게 퍼진 상태보다 엔트로피가 크다.', False, '한쪽에 모인 상태는 경우의 수가 가장 적어 엔트로피가 가장 작다.', 'cnt'),
+        ('엔트로피가 큰 상태일수록 그 상태가 나타날 확률은 대체로 크다.', True, '엔트로피는 경우의 수의 로그에 비례하며 경우의 수가 많을수록 일어날 확률이 크다.', 'S'),
+        ('칸막이 제거 후 이상 기체가 외부에 일을 하지 않고 열도 출입하지 않으면 기체의 온도는 변하지 않는다.', True, 'Q = 0, W = 0 이므로 ΔU = 0 이고 이상 기체는 온도가 변하지 않는다.', 'T'),
+        ('칸막이 제거 후 이상 기체가 진공으로 확산하면 외부에 일을 하므로 내부 에너지가 감소한다.', False, '진공으로의 자유 팽창에서는 외부에 일을 하지 않으므로 내부 에너지가 변하지 않는다.', 'T'),
+        ('확산 과정에서 기체의 엔트로피는 증가한다.', True, '입자가 가질 수 있는 배치가 늘어나므로 엔트로피가 증가한다.', 'dS'),
+        ('잉크 한 방울을 물에 떨어뜨리면 저절로 퍼지는 것은 엔트로피가 증가하는 방향의 변화이다.', True, '퍼진 상태가 더 무질서(경우의 수가 많음)하다.', 'ink'),
+        ('퍼진 잉크가 저절로 한 방울로 다시 모이는 것은 엔트로피가 증가하는 변화이다.', False, '다시 모이면 엔트로피가 감소하므로 저절로 일어나지 않는다.', 'ink'),
+        ('입자 수가 매우 적으면(예 : 2개) 한쪽에 모두 모이는 일이 비교적 자주 일어날 수 있다.', True, '입자 2개라면 모두 한쪽에 있을 확률은 (1/2)<sup>2</sup> = 1/4 로 작지 않다.', 'few'),
+        ('엔트로피가 증가하는 방향으로의 변화는 확률이 높은 방향으로의 변화이다.', True, '경우의 수가 많은 상태로 변하는 것이 확률적으로 훨씬 일어나기 쉽다.', 'S2'),
+    ]
+    sel = pick_stmts(r, bank)
+    if not sel: return None
+    return bogi('칸막이로 나뉜 용기의 한쪽에 들어 있던 기체를 칸막이를 제거하여 용기 전체로 확산시키는 현상에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, pre=FIG(box_fig([N], N, labels=False), '48%') if N <= 12 else '', ask='', r=r, lv='하' if r.random() < 0.5 else '중', fam='e',
+                core='확산은 엔트로피가 증가하는(경우의 수가 많아지는) 방향이며, N 개 입자가 모두 한쪽에 모일 확률은 (1/2)^N 이다.', point='확산·비가역·확률의 관계를 설명한다.')
