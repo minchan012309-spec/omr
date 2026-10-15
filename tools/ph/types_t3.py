@@ -1452,10 +1452,10 @@ def carnot_fig(sts, stirling=False, th='T_H', tl='T_L', w=300, h=230, marks=True
         def onc(sa, sb, f):
             v = sa[1] + (sb[1] - sa[1]) * f
             return (v, sa[0] * sa[1] / v)
-        a1 = onc(sts[0], sts[1], 0.3); c1 = onc(sts[2], sts[3], 0.28)
-        p.text(p.px(a1[0]) + 20, p.py(a1[1]) - 8, th, 13, 'middle', True, RD, True)
+        a1 = onc(sts[0], sts[1], 0.22); c1 = onc(sts[2], sts[3], 0.82)
+        p.text(p.px(a1[0]) + 22, p.py(a1[1]) - 10, th, 13, 'middle', True, RD, True)
         p.text(p.px(c1[0]) - 14, p.py(c1[1]) + 22, tl, 13, 'middle', True, BL, True)
-        a2 = onc(sts[0], sts[1], 0.72); c2 = onc(sts[2], sts[3], 0.6)
+        a2 = onc(sts[0], sts[1], 0.78); c2 = onc(sts[2], sts[3], 0.4)
         p.arrow(p.px(a2[0]), p.py(a2[1]) - 30, p.px(a2[0]), p.py(a2[1]) - 4, RD, 2.4)
         p.text(p.px(a2[0]) - 6, p.py(a2[1]) - 36, 'Q_H', 12.5, 'middle', True, RD, True)
         p.arrow(p.px(c2[0]), p.py(c2[1]) + 4, p.px(c2[0]), p.py(c2[1]) + 30, BL, 2.4)
@@ -1464,7 +1464,7 @@ def carnot_fig(sts, stirling=False, th='T_H', tl='T_L', w=300, h=230, marks=True
 
 
 def new_carnot(r, stirling=False):
-    l1 = r.choice([0.6, 0.8, 1.0]); l2 = r.choice([1.2, 1.4, 1.6]) if not stirling else r.choice([0.8, 1.0, 1.2])
+    l1 = r.choice([1.5, 1.7, 1.9]); l2 = r.choice([0.6, 0.8]) if not stirling else r.choice([0.8, 1.0, 1.2])
     sts = carnot_cycle_pts(l1, l2, stirling)
     kinds = ['T', 'V', 'T', 'V'] if stirling else ['T', 'A', 'T', 'A']
     for i in range(4):

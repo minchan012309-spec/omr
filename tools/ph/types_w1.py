@@ -317,7 +317,7 @@ def ph084(r, k):
         # 정답 교차 검증: A = d/2, 반주기마다 d 이동
         T_ = 1 / f_
         assert (t / (T_ / 2)) == nh and path == nh * d == int(4 * Fr(d, 2) * f_ * t)
-        return mc(body, '%d cm' % path, ['%d cm' % w for w in wr], r=r, lv='중', fam='b',
+        return mc(body, '%d cm' % path, ['%d cm' % w for w in wr], r=r, lv='상' if nh % 2 else '중', fam='b',
                   steps=['양 끝점 사이 거리가 %d cm 이므로 진폭 A = %d cm 이다.' % (d, d // 2), '주기 T = 1/f = %s s 이고, %s초 = %d × (T/2) 이다.' % (fn(T_), fn(t), nh),
                          '반 주기마다 한쪽 끝에서 반대쪽 끝까지 %d cm 를 이동하므로 총 이동 거리는 %d × %d = %d cm 이다.' % (d, nh, d, path)],
                   core='반 주기 동안 이동 거리는 2A(양 끝점 사이 거리)이고, 한 주기 동안은 4A이다.', point='끝점 사이 거리에서 진폭을 구하고 시간을 주기로 환산한다.')
@@ -355,7 +355,7 @@ def ph084(r, k):
     assert path.denominator == 1
     body = P(base + 't = 0 부터 t = %s s 까지 물체가 이동한 거리는?' % fn(tt)) + fig
     wr = ['%d cm' % (2 * A * mul if (2 * A * mul).denominator == 1 else 2 * A), '%d cm' % (A * mul if (A * mul).denominator == 1 else A), '%d cm' % (8 * A * mul), '%d cm' % (path + 2 * A), '%d cm' % (path - 2 * A if path > 2 * A else path + A)]
-    return mc(body, '%d cm' % path, wr, r=r, lv='중', fam='c',
+    return mc(body, '%d cm' % path, wr, r=r, lv='상' if mul in (Fr(3, 2), Fr(5, 2)) else '중', fam='c',
               steps=['진폭 A = %d cm, 주기 T = %s s 이다.' % (A, fn(Tv)), '%s s = %s T 이고, 한 주기 동안 이동 거리는 4A = %d cm 이므로 %s × %d = %d cm 이다.' % (fn(tt), fn(mul), 4 * A, fn(mul), 4 * A, path)],
               core='한 주기 동안 이동 거리는 4A이고, 반 주기 동안은 2A이다.', point='그래프에서 진폭과 주기를 읽어 이동 거리를 구한다.')
 
@@ -643,7 +643,7 @@ def ph086(r, k):
     Tchk = 2 * PI * math.sqrt(float(Fr(str(m)) / kk))
     assert abs(Tchk - float(Tv)) < 1e-9
     wr = [Tv / 2, Tv * 2, Tv / 6, Tv * 6 if Tv * 6 < 60 else Tv * 3, 2 * PI * float(x0) if False else Tv * Fr(3, 2)]
-    return mc(body, '%s s' % fn(Tv), ['%s s' % fn(w) for w in wr], r=r, lv='상', fam='e',
+    return mc(body, '%s s' % fn(Tv), ['%s s' % fn(w) for w in wr], r=r, lv='중', fam='e',
               steps=['정지했을 때 힘의 평형: kx₀ = mg 이므로 k = mg/x₀ = %s × 10 / %s = %s N/m 이다.' % (fn(Fr(str(m))), fn(x0), fn(kk)),
                      'T = 2π√(m/k) = 2 × 3 × √(%s/%s) = %s s 이다.' % (fn(Fr(str(m))), fn(kk), fn(Tv)), '(참고: T = 2π√(x₀/g) 로도 구해진다.)'],
               core='정지 상태에서 kx₀ = mg 이고, 주기는 T = 2π√(m/k) = 2π√(x₀/g) 이다.', point='늘어난 길이로 k를 구한 뒤 주기를 계산한다.')
@@ -826,7 +826,7 @@ _B88 = [
 
 @T('ph088')
 def ph088(r, k):
-    form = r.choice(['calc', 'calc', 'graph', 'graph', 'hang', 'cut', 'cut', 'bogi'])
+    form = r.choice(['calc', 'calc', 'graph', 'graph', 'hang', 'cut', 'cut', 'cut', 'bogi'])
     if form == 'bogi':
         s = pick3(r, _B88)
         if not s: return None
