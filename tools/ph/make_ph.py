@@ -11,7 +11,7 @@ sys.path.insert(0, HERE)
 import build
 import phlib
 from phlib import render, pts_for, sig, plain, CIR, esc, REGISTRY
-from outline import TYPES, BYTAG, SUBS, SUB_ORDER, BUNDLE
+from outline import TYPES, TYPES_ORD, BYTAG, SUBS, SUB_ORDER, BUNDLE, DEFAULT_SCOPE
 
 OUT = os.path.abspath(os.path.join(HERE, '..', '..', 'ph'))
 PAL = {'p': '#6d4cc4', 'pd': '#5a3bad', 'pl': '#f3effc', 'pl2': '#e4dbf8', 'line': '#cdbfef'}
@@ -38,7 +38,7 @@ def make_bank(n):
     os.makedirs(OUT, exist_ok=True)
     index, bank_sigs = {}, {}
     tot = 0
-    for ty in TYPES:
+    for ty in TYPES_ORD:
         tag = ty['tag']
         if tag not in REGISTRY:
             print(tag, '생성기 없음'); continue
@@ -59,7 +59,7 @@ def make_bank(n):
 def book_pool(bank_sigs, per=16):
     """유형마다 은행과 겹치지 않는 별도 문항(교재용)을 만든다."""
     pool = collections.defaultdict(list)
-    for ty in TYPES:
+    for ty in TYPES_ORD:
         tag = ty['tag']
         if tag not in REGISTRY: continue
         items, _ = build.gen_tag(tag, per, seed_extra='|book', exclude=bank_sigs.get(tag, ()))
@@ -104,13 +104,15 @@ def book_items(bank_sigs, n_basic=8, n_std=12, n_top=21):
             used_fam.add((x._tag, x.fam)); x._top = True
             chosen_top.append(x)
     topset = {id(x) for x in chosen_top}
+    tord = {t['tag']: i for i, t in enumerate(TYPES_ORD)}
     for s in SUB_ORDER:
         bundle = BUNDLE[s]
         rest = [i for i in pool[s] if id(i) not in topset]
         basic = pick_round(rest, n_basic, ('하',), used_fam)
         bset = {id(x) for x in basic}
         std = pick_round([i for i in rest if id(i) not in bset], n_std, ('중', '상'), used_fam)
-        for it in basic + std:
+        sel = sorted(basic + std, key=lambda x: (tord[x._tag], LVI[x.lv]))   # 유형 순서 → 난이도
+        for it in sel:
             seq[s] += 1
             code = 'P%d-%03d' % (bundle, seq[s])
             ty = BYTAG[it._tag]
@@ -142,7 +144,7 @@ def ox_blank_items(P, n_ox=10, n_bl=10):
     for s in SUB_ORDER:
         pairs = P.get(s, [])
         if not pairs: continue
-        types = [t['label'] for t in TYPES if t['sub'] == s]
+        types = [t['label'] for t in TYPES_ORD if t['sub'] == s]
         bytype = collections.OrderedDict((t, []) for t in types)
         for k, (tr, fa, ty) in enumerate(pairs):
             bytype.setdefault(ty, []).append(k)
@@ -232,7 +234,7 @@ def make_concept(P, pools, sec_ox, sec_bl):
             for t in types:
                 ox += sec_ox.get((s, t), []); bl += sec_bl.get((s, t), [])
             secs.append({'id': 'c-%s%d' % (SUBID[s], no), 'sub': s, 'no': str(no), 'title': sec['title'], 'html': sec['html'], 'types': types, 'ox': ox[:4], 'blank': bl[:5]})
-    conc = {'pal': PAL, 'subs': subs, 'secs': secs, 'summary': SUMMARY, 'pools': pools}
+    conc = {'pal': PAL, 'scope': DEFAULT_SCOPE, 'subs': subs, 'secs': secs, 'summary': SUMMARY, 'pools': pools}
     dump(os.path.join(OUT, 'concept.json'), conc)
     print('개념서: 절 %d개, 요약 %d개, 풀 %d개' % (len(secs), len(SUMMARY), len(pools)))
 
@@ -247,7 +249,7 @@ def main():
     if a.skip_bank:
         # 은행 서명은 재생성으로 얻는다(결정적)
         bank_sigs = {}
-        for ty in TYPES:
+        for ty in TYPES_ORD:
             if ty['tag'] in REGISTRY:
                 items, _ = build.gen_tag(ty['tag'], a.n)
                 bank_sigs[ty['tag']] = {sig(i) for i in items}
