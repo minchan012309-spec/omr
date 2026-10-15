@@ -65,6 +65,8 @@ def wf(shape, A, T, phase=0.0):
 def tr_fig(traces, nx=16, cell=14, H=3, w=330, xlab='t (ms)', ytick=True, title=None, u=1):
     """여러 개의 소리 파형(오실로스코프 모양). traces: [(이름, 모양, 진폭(칸), 주기(칸), 위상, 색)]. 세로·가로 한 칸은 1 단위."""
     n = len(traces)
+    ox0 = 62 if max(len(t[0]) for t in traces) > 1 else 40
+    cell = min(cell, (w - ox0 - 58) / nx)
     band = 2 * H * cell + 8
     h = n * band + 36
     f = Fig(w, h)
@@ -91,7 +93,7 @@ def tr_fig(traces, nx=16, cell=14, H=3, w=330, xlab='t (ms)', ytick=True, title=
     yb = n * band + 16
     for c in range(0, nx + 1, 2):
         f.text(ox + c * cell, yb + 14, fn(c * u), 11.5, 'middle', c=GR)
-    f.text(ox + nx * cell + 8, yb + 14, xlab, 12, 'start', True, GR)
+    f.text(ox + nx * cell + 20, yb + 14, xlab, 12, 'start', True, GR)
     return f.svg()
 
 
@@ -335,7 +337,7 @@ def ph099(r, k):
         if not term(d): return None
         fig = FIG(scene_fig('d'), '70%') if r.random() < 0.6 else ''
         body = P('소리의 속력을 340 m/s라 할 때, 절벽을 향해 소리를 지르고 %s초 후에 메아리를 들었다. 사람과 절벽 사이의 거리는?' % fn(t)) + fig
-        wr = [d * 2, d / 2, Fr(V) * t, Fr(V) / t, d + 100]
+        wr = [d * 2, d / 2, Fr(V) * t, d + 100, d - 85, d + 85]
         return mc(body, '%s m' % fn(d), ['%s m' % fn(w) for w in wr], r=r, lv='하', fam='a',
                   steps=['소리는 절벽까지 갔다가 되돌아오므로 왕복 거리 = 340 × %s = %s m 이다.' % (fn(t), fn(Fr(V) * t)), '사람과 절벽 사이의 거리 = %s / 2 = %s m 이다.' % (fn(Fr(V) * t), fn(d))],
                   core='메아리는 소리가 왕복한 것이므로 거리 = vt/2 이다.', point='왕복 거리의 절반이 절벽까지의 거리임을 이용한다.')

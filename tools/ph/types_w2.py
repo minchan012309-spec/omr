@@ -388,7 +388,7 @@ def ph091(r, k):
     right = Fr(a, b)
     wr = [Fr(b, a), Fr(a * b), Fr(1, a * b), Fr(a + b), Fr(a, b) * 2]
     return mc(body, times_str(right), [times_str(w) for w in wr], r=r, lv='상', fam='d', sort='shuf',
-              steps=['v = fλ 에서 λ = v/f 이다.', '파장은 %d/%d 배가 된다.' % (a, b) if True else ''],
+              steps=['v = fλ 에서 λ = v/f 이다.', '속력이 %d배, 진동수가 %d배이므로 파장은 %s 가 된다.' % (a, b, times_str(Fr(a, b)))],
               core='λ = v/f 이므로 속력에 비례하고 진동수에 반비례한다.', point='두 양이 동시에 변할 때 비로 계산한다.')
 
 
