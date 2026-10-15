@@ -465,3 +465,387 @@ def oblique_top(r, k):
 
 def float_to_fr(x):
     return Fr(x).limit_denominator(1000)
+
+
+# ================================================================ ph030
+SIN2 = {30: Q(Fr(1, 2), 3), 37: Q(Fr(24, 25)), 45: Q(1), 53: Q(Fr(24, 25)), 60: Q(Fr(1, 2), 3)}
+
+
+def two_traj_fig(a1, a2, w=310, h=195):
+    """같은 속력, 각도 a1, a2(=90-a1) 두 궤도. 사거리는 같다."""
+    f = Fig(w, h)
+    gy = h - 28; x0 = 30; R = 250
+    f.hatch(14, gy, w - 28)
+    for deg, c, nm in ((a1, BL, 'A'), (a2, RD, 'B')):
+        H = min(R / 4 * math.tan(math.radians(deg)), 125)
+        pts = [(x0 + R * u / 50, gy - 4 * H * (u / 50) * (1 - u / 50)) for u in range(51)]
+        f.poly(pts, 'none', c, 2.2, close=False)
+        f.text(x0 + R / 2 + 6, gy - H - 4, nm, 14, 'start', True, c, True)
+        th = math.radians(deg)
+        f.arrow(x0, gy, x0 + 44 * math.cos(th), gy - 44 * math.sin(th), c, 2)
+        arc_label(f, x0, gy, 20 if deg < 45 else 30, deg, '%d°' % deg)
+    f.circ(x0, gy, 4, INK, INK, 1)
+    f.text(x0 + R / 2, gy + 20, '같은 속력 v₀ 로 던짐', 12, c=GR)
+    return f.svg()
+
+
+def ratio_str(a, b):
+    a, b = Fr(a), Fr(b)
+    q = a / b
+    n, d = q.numerator, q.denominator
+    return '%d : %d' % (n, d)
+
+
+@T('ph030')
+def oblique_range(r, k):
+    """비스듬히 던진 물체의 수평 도달 거리."""
+    form = r.choice(['R', 'R', 'R', 'pair', 'pair', 'ratio', 'fig_ratio', 'fig_ratio', 'rev', 'comp', 'sameang', 'sameang', 'maxang', 'maxang', 'maxR'])
+    ob = r.choice(['공', '돌멩이', '창', '야구공'])
+    th = r.choice(ANG_OK); v0 = r.choice([10, 15, 20, 25, 30, 40, 50])
+    Rq = SIN2[th] * Fr(v0 * v0, 10)
+    assert abs(float(Rq) - 2 * float(SIN[th]) * float(COS[th]) * v0 * v0 / 10) < 1e-9
+    note = lambda t_: '(단, sin%d° = %s, cos%d° = %s 이고, 공기 저항은 무시하며 중력 가속도는 10 m/s²이다.)' % (t_, SINS[t_], t_, COSS[t_])
+    if form == 'R':
+        right = qs(Rq, 'm')
+        if not right: return None
+        body = PP('평평한 지면에서 %s을(를) 수평면과 %d°의 각으로 %s의 속력으로 던졌다. %s이(가) 지면에 떨어질 때까지 수평으로 이동한 거리는? %s' % (ob, th, U(v0, 'm/s'), ob, note(th)))
+        vx, vy = COS[th] * v0, SIN[th] * v0
+        wr = wlq(Rq, [Q(Fr(v0 * v0, 10)), Rq * Fr(1, 2), Rq * 2, vx * vy * Fr(1, 10), vx * (vy * Fr(1, 10)), Q(Fr(v0 * v0, 20)), vx * Fr(1, 1) * 2], 'm')
+        T_ = vy * Fr(1, 5)
+        return mc(body, right, wr, r=r, lv='중', fam='a', sort='num',
+                  steps=['v_x = v₀ cos%d° = %s m/s, v_y = v₀ sin%d° = %s m/s' % (th, qs(vx), th, qs(vy)), '체공 시간 T = 2v_y/g = %s s' % qs(T_), 'R = v_x T = %s × %s = %s m' % (qs(vx), qs(T_), qs(Rq)), '(R = v₀² sin2θ/g = %s²×%s/10 = %s m 로 확인)' % (num(v0), qs(SIN2[th]), qs(Rq))],
+                  core='사거리 R = v₀² sin2θ / g = 2v_x v_y / g 이다.', point='수평 성분과 체공 시간의 곱으로 사거리를 구한다.')
+    if form == 'rev':
+        if th == 30 or th == 60: return None
+        Rs = qs(Rq)
+        if not Rs: return None
+        body = PP('평평한 지면에서 %s을(를) 수평면과 %d°의 각으로 던졌더니 %s 떨어진 곳에 떨어졌다. %s을(를) 던진 속력은? %s' % (ob, th, U(float(Rq), 'm'), ob, note(th)))
+        wr = wl(v0, [math.sqrt(10 * float(Rq)), math.sqrt(20 * float(Rq)), float(Rq) / 2, v0 * 2, v0 / 2, math.sqrt(float(Rq) * 10 * 0.96), v0 + 5], 'm/s')
+        return mc(body, ans(v0, 'm/s'), wr, r=r, lv='상', fam='b',
+                  steps=['R = v₀² sin2θ / g 에서 sin%d° = %s 이므로 sin2θ = 2 sin%d° cos%d° = %s' % (th, SINS[th], th, th, qs(SIN2[th])), 'v₀² = gR / sin2θ = 10 × %s / %s = %s' % (Rs, qs(SIN2[th]), num(v0 * v0)), 'v₀ = %s m/s' % num(v0)],
+                  core='사거리 공식 R = v₀² sin2θ/g 를 거꾸로 풀어 처음 속력을 구한다.', point='sin2θ 의 값을 이용해 v₀² 를 구한다.')
+    if form == 'pair':
+        a1 = r.choice([37, 30]); a2 = 90 - a1
+        kind = r.choice(['H', 'T', 'R'])
+        s1, s2 = SIN[a1], SIN[a2]
+        if kind == 'H':
+            right = ratio_str((s1 * s1).c * (s1 * s1).r, (s2 * s2).c * (s2 * s2).r); nm = '최고점의 높이'
+            core = '최고점의 높이는 sin²θ 에 비례한다.'; st = ['H ∝ v₀² sin²θ 이므로 H_A : H_B = sin²%d° : sin²%d° = %s : %s = %s' % (a1, a2, '(%s)²' % SINS[a1], '(%s)²' % SINS[a2], right)]
+        elif kind == 'T':
+            q = (s1.c * (1 if True else 0)) / (s2.c)
+            if s1.r != s2.r:
+                q = Fr(s1.c) / Fr(s2.c) / 1
+                right = None
+                # 근호 비
+                right = ('%s : %s' % (SINS[a1], SINS[a2]))
+            right = None
+            # 정수비
+            if s1.r == 1 and s2.r == 1: right = ratio_str(s1.c, s2.c)
+            else: return None
+            nm = '체공 시간'; core = '체공 시간은 sinθ 에 비례한다.'; st = ['T ∝ v₀ sinθ 이므로 T_A : T_B = sin%d° : sin%d° = %s : %s = %s' % (a1, a2, SINS[a1], SINS[a2], right)]
+        else:
+            right = '1 : 1'; nm = '수평 도달 거리'; core = '각도 θ 와 90°-θ 로 던진 사거리는 같다(sin2θ = sin(180°-2θ)).'
+            st = ['R ∝ sin2θ 이고 sin%d° = sin%d° 이므로 R_A : R_B = 1 : 1' % (2 * a1, 2 * a2 if 2 * a2 <= 180 else 180)]
+            st = ['R = v₀² sin2θ / g 이고 sin(2 × %d°) = sin(2 × %d°) = sin%d° 이다.' % (a1, a2, 2 * a1), '따라서 R_A : R_B = 1 : 1 이다.']
+        body = PP('평평한 지면에서 같은 속력으로 %s을(를) 각각 수평면과 %d°(A), %d°(B)의 각으로 던졌다. 두 경우 %s의 비 A : B 는? (단, 공기 저항은 무시한다.)' % (ob, a1, a2, nm))
+        opts = ['1 : 1', '3 : 4', '4 : 3', '9 : 16', '16 : 9', '1 : 2', '2 : 1', '3 : 5', '5 : 3']
+        if a1 == 30: opts = ['1 : 1', '1 : 2', '2 : 1', '1 : 3', '3 : 1', '1 : 4', '4 : 1']
+        wr = [o for o in opts if o != right]
+        return mc(body, right, wr[:6], r=r, lv='중', fam='c', sort='shuf', steps=st, core=core, point='같은 속력일 때 각도에 따른 비를 구한다.')
+    if form == 'maxR':
+        a1 = r.choice([37, 53]); v = r.choice([10, 20, 25, 30, 40, 50]); R1 = 0.96 * v * v / 10; Rmax = v * v / 10
+        if not two(R1) or not two(Rmax): return None
+        body = PP('평평한 지면에서 %s을(를) 수평면과 %d°의 각으로 던졌더니 수평 도달 거리가 %s이었다. 같은 속력으로 던질 때 얻을 수 있는 수평 도달 거리의 최댓값은? (단, 공기 저항은 무시하고, sin%d° = %s, cos%d° = %s 이다.)' % (ob, a1, U(R1, 'm'), a1, SINS[a1], a1, COSS[a1]))
+        wr = wl(Rmax, [R1, R1 * 2, R1 * 0.5, Rmax * 2, Rmax / 2, R1 / 0.96 * 1.2, R1 * 1.2], 'm')
+        return mc(body, ans(Rmax, 'm'), wr, r=r, lv='상', fam='d',
+                  steps=['R = v₀² sin2θ / g 이고 sin%d° = %s 이므로 v₀² sin2θ/g = %s m' % (2 * a1 if 2 * a1 <= 90 else 180 - 2 * a1, '24/25', num(R1)), '사거리 최대는 θ = 45°(sin90° = 1)일 때이다.', 'R_max = R / (24/25) = %s / 0.96 = %s m' % (num(R1), num(Rmax))],
+                  core='같은 속력일 때 사거리는 θ = 45° 에서 최대이며 R_max = v₀²/g 이다.', point='sin2θ 의 값을 비교하여 최대 사거리를 구한다.')
+    if form == 'ratio':
+        a1 = r.choice([37, 45, 53]); v = r.choice([10, 20, 30]); n = r.choice([2, 3, 0.5, 1.5])
+        R1 = float(SIN2[a1]) * v * v / 10; R2 = R1 * n * n
+        if not two(R1) or not two(R2) or not two(v * n): return None
+        body = PP('평평한 지면에서 %s을(를) 수평면과 %d°의 각으로 %s의 속력으로 던졌더니 수평 도달 거리가 %s이었다. 같은 각으로 속력을 %s로 던질 때의 수평 도달 거리는? (단, 공기 저항은 무시한다.)' % (ob, a1, U(v, 'm/s'), U(R1, 'm'), U(v * n, 'm/s')))
+        wr = wl(R2, [R1 * n, R1 * n * 2, R1 * n * n * 2, R1 / n, R1 / (n * n), R1 * math.sqrt(n), R2 + 10], 'm')
+        return mc(body, ans(R2, 'm'), wr, r=r, lv='중', fam='e',
+                  steps=['R = v₀² sin2θ / g 이므로 각이 같으면 R ∝ v₀² 이다.', '속력이 %s배이므로 R 은 %s배 : %s × %s = %s m' % (num(n), num(n * n), num(R1), num(n * n), num(R2))],
+                  core='각이 같으면 사거리는 처음 속력의 제곱에 비례한다.', point='속력이 n배이면 사거리는 n²배이다.')
+    if form == 'fig_ratio':
+        a1 = r.choice([30, 37]); a2 = 90 - a1
+        fig = two_traj_fig(a1, a2)
+        kind = r.choice(['H', 'R', 'T'])
+        s1, s2 = SIN[a1], SIN[a2]
+        if kind == 'R':
+            body = PP('그림은 평평한 지면에서 같은 속력으로 던진 %s의 두 경로 A(%d°), B(%d°)를 나타낸 것이다. 수평 도달 거리의 비 R_A : R_B 는? (단, 공기 저항은 무시한다.)' % (ob, a1, a2)) + FIG(fig, '66%')
+            right = '1 : 1'
+            opts = ['1 : 1', '1 : 2', '2 : 1', '3 : 4', '4 : 3', '9 : 16', '16 : 9']
+            return mc(body, right, [o for o in opts if o != right][:5], r=r, lv='중', fam='f', sort='shuf',
+                      steps=['R = v₀² sin2θ / g 이고 sin%d° = sin%d° 이므로 R_A = R_B' % (2 * a1, 2 * a2 - 180 + 180 if False else 2 * a2), '비는 1 : 1 이다.'],
+                      core='같은 속력으로 θ 와 90°-θ 로 던진 물체의 사거리는 같다.', point='보각 관계의 사거리가 같음을 이용한다.')
+        if kind == 'H':
+            if a1 == 37: ra, rb = '9 : 16', None
+            else: ra = '1 : 3'
+            body = PP('그림은 평평한 지면에서 같은 속력으로 던진 %s의 두 경로 A(%d°), B(%d°)를 나타낸 것이다. 최고점의 높이의 비 H_A : H_B 는? (단, 공기 저항은 무시한다.)' % (ob, a1, a2)) + FIG(fig, '66%')
+            right = ra
+            opts = ['1 : 1', '1 : 2', '1 : 3', '3 : 4', '4 : 3', '9 : 16', '16 : 9', '3 : 1']
+            return mc(body, right, [o for o in opts if o != right][:5], r=r, lv='중', fam='f', sort='shuf',
+                      steps=['H = (v₀ sinθ)²/2g ∝ sin²θ', 'H_A : H_B = sin²%d° : sin²%d° = (%s)² : (%s)² = %s' % (a1, a2, SINS[a1], SINS[a2], right)],
+                      core='최고점의 높이는 sin²θ 에 비례한다.', point='각도에 따른 sin²θ 의 비를 구한다.')
+        if a1 == 30: return None
+        body = PP('그림은 평평한 지면에서 같은 속력으로 던진 %s의 두 경로 A(%d°), B(%d°)를 나타낸 것이다. 체공 시간의 비 T_A : T_B 는? (단, 공기 저항은 무시한다.)' % (ob, a1, a2)) + FIG(fig, '66%')
+        right = '3 : 4'
+        opts = ['1 : 1', '1 : 2', '4 : 3', '9 : 16', '16 : 9', '2 : 1']
+        return mc(body, right, opts[:5], r=r, lv='중', fam='f', sort='shuf',
+                  steps=['T = 2v₀ sinθ / g ∝ sinθ', 'T_A : T_B = sin37° : sin53° = 3/5 : 4/5 = 3 : 4'],
+                  core='체공 시간은 sinθ 에 비례한다.', point='체공 시간이 수평 거리가 아니라 연직 성분으로 정해짐을 이해한다.')
+    if form == 'comp':
+        vx, vy, v = r.choice([(24, 10, 26), (15, 20, 25), (40, 30, 50), (30, 40, 50), (20, 15, 25), (12, 16, 20), (16, 12, 20), (9, 12, 15)])
+        T_ = 2 * vy / 10; Rr = vx * T_
+        if not two(T_) or not two(Rr): return None
+        body = PP('평평한 지면에서 %s을(를) 비스듬히 던졌더니 %s 후에 던진 지점으로부터 수평으로 %s 떨어진 곳에 떨어졌다. %s을(를) 던진 속력은? (단, 공기 저항은 무시하고, 중력 가속도는 10 m/s²이다.)' % (ob, U(T_, '초'), U(Rr, 'm'), ob))
+        wr = wl(v, [vx + vy, vx, vy, Rr / T_ + 5 * T_, abs(vx - vy), (vx + vy) / 2, v + 5], 'm/s')
+        assert abs(math.hypot(Rr / T_, 5 * T_) - v) < 1e-9
+        return mc(body, ans(v, 'm/s'), wr, r=r, lv='상', fam='g',
+                  steps=['수평 속도 v_x = R/T = %s/%s = %s m/s' % (num(Rr), num(T_), num(vx)), '올라가는 시간 %s s 이므로 v_y = g × %s = %s m/s' % (num(T_ / 2), num(T_ / 2), num(vy)), 'v₀ = √(v_x² + v_y²) = √(%s² + %s²) = %s m/s' % (num(vx), num(vy), num(v))],
+                  core='수평 성분은 R/T, 연직 성분은 gT/2 이며 처음 속력은 두 성분의 합성이다.', point='사거리와 체공 시간에서 두 성분을 구해 합성한다.')
+    if form == 'sameang':
+        a1 = r.choice([30, 37, 53, 60, 20, 25, 35, 40]); a2 = 90 - a1
+        body = PP('평평한 지면에서 %s을(를) 같은 속력으로 수평면과 %d°의 각으로 던질 때와 같은 사거리를 얻으려면 수평면과 이루는 각을 몇 °로 해야 하는가? (단, 던지는 각 %d°가 아닌 다른 각이다.)' % (ob, a1, a1))
+        wr = ['%d°' % a_ for a_ in (15, 30, 37, 45, 53, 60, 75, 20, 40, 25, 35, 50, 65, 70) if a_ not in (a2, a1)]
+        return mc(body, '%d°' % a2, wr[:6], r=r, lv='하', fam='h', sort='shuf',
+                  steps=['사거리 R ∝ sin2θ 이고 sin2θ = sin(180° - 2θ) 이므로 θ 와 90° - θ 에서 사거리가 같다.', '90° - %d° = %d°' % (a1, a2)],
+                  core='같은 속력으로 θ 와 90°-θ 로 던진 물체는 사거리가 같다.', point='사거리가 같은 두 각은 서로 합이 90°이다.')
+    body = PP('평평한 지면에서 같은 속력으로 %s을(를) 비스듬히 던질 때 수평 도달 거리가 가장 커지는 던지는 각(수평면과 이루는 각)은? (단, 공기 저항은 무시한다.)' % ob)
+    return mc(body, '45°', ['15°', '30°', '37°', '53°', '60°', '75°', '90°'][:5] if False else ['30°', '37°', '53°', '60°', '90°'], r=r, lv='하', fam='h', sort='shuf',
+              steps=['R = v₀² sin2θ / g 는 sin2θ = 1, 즉 2θ = 90° 일 때 최대이다.', '따라서 θ = 45° 이다.'],
+              core='같은 속력일 때 사거리는 θ = 45° 에서 최대이다.', point='sin2θ 가 최대가 되는 각을 찾는다.')
+
+
+# ================================================================ ph031 (<보기>)
+def pts_fig(deg=45, labels=True, kind='oblique', w=310, h=200):
+    """궤도 위에 점 P(출발), A(상승), B(최고점), C(하강, A 와 같은 높이), Q(착지)."""
+    f = Fig(w, h)
+    gy = h - 30; x0 = 30; R = 250
+    H = min(R / 4 * math.tan(math.radians(deg)), 120)
+    f.hatch(14, gy, w - 28)
+    pts = [(x0 + R * u / 50, gy - 4 * H * (u / 50) * (1 - u / 50)) for u in range(51)]
+    f.poly(pts, 'none', BL, 2.2, close=False, dash='5 3')
+    def pos(u): return x0 + R * u, gy - 4 * H * u * (1 - u)
+    for u, nm, dx, dy in ((0, 'P', -4, 18), (0.2, 'A', -16, -2), (0.5, 'B', 0, -12), (0.8, 'C', 12, -2), (1.0, 'Q', 4, 18)):
+        x, y = pos(u)
+        f.circ(x, y, 4.2, RD, INK, 1.2)
+        f.text(x + dx, y + dy, nm, 14, bold=True, italic=True)
+    xa, ya = pos(0.2); xc, yc = pos(0.8)
+    f.line(xa, ya, xc, yc, GR, 1, '3 3')
+    f.arrow(x0, gy, x0 + 36 * math.cos(math.radians(deg)), gy - 36 * math.sin(math.radians(deg)), RD, 2)
+    return f.svg()
+
+
+def horiz_pts_fig(w=300, h=200):
+    f = Fig(w, h)
+    gy = h - 24; top = 40; x0 = 40
+    f.hatch(14, gy, w - 28)
+    pts = [(x0 + 200 * u / 40, top + (gy - top - 6) * (u / 40) ** 2) for u in range(41)]
+    f.poly(pts, 'none', BL, 2.2, close=False, dash='5 3')
+    for u, nm, dx, dy in ((0, 'A', -10, 4), (0.5, 'B', -14, -4), (0.8, 'C', -14, -2), (1.0, 'D', 12, 4)):
+        x = x0 + 200 * u; y = top + (gy - top - 6) * u * u
+        f.circ(x, y, 4.2, RD, INK, 1.2); f.text(x + dx, y + dy, nm, 14, bold=True, italic=True)
+    f.arrow(x0, top, x0 + 40, top, RD, 2)
+    return f.svg()
+
+
+OBL = [  # (문장, 참거짓, 풀이문, 그룹)
+    ('B 에서 물체의 속력은 0이다.', False, '최고점 B 에서 연직 속도 성분만 0이고 수평 속도 성분은 남아 있으므로 속력은 0이 아니다.', 'topv'),
+    ('B 에서 물체의 속도의 방향은 수평 방향이다.', True, '최고점에서는 연직 속도가 0이므로 속도는 수평 방향이다.', 'topv'),
+    ('B 에서 물체의 가속도의 크기는 0이다.', False, '물체에는 항상 중력만 작용하므로 가속도는 B 에서도 g(연직 아래)이다.', 'topa'),
+    ('물체의 가속도는 모든 지점에서 연직 아래 방향이고 크기가 같다.', True, '공기 저항이 없으므로 중력만 작용하여 가속도는 g 로 일정하다.', 'acc'),
+    ('A 에서와 C 에서 물체의 속력은 같다.', True, 'A 와 C 는 높이가 같으므로 속력이 같다(수평 성분 같고 연직 성분의 크기 같음).', 'AC'),
+    ('A 에서와 C 에서 물체의 속도는 같다.', False, 'A 와 C 에서 속력은 같지만 연직 속도 성분의 방향이 반대이므로 속도는 같지 않다.', 'AC'),
+    ('P 에서 Q 까지 물체의 수평 방향 속도 성분은 일정하다.', True, '수평 방향으로는 힘이 작용하지 않으므로 등속 운동이다.', 'hor'),
+    ('P 에서 B 까지 올라가는 동안 물체의 연직 방향 속도 성분의 크기는 감소한다.', True, '중력 가속도가 아래로 작용하므로 올라갈수록 연직 속도의 크기는 감소한다.', 'vy'),
+    ('B 에서 Q 까지 내려가는 동안 물체의 속력은 계속 감소한다.', False, '내려가는 동안 연직 속도의 크기가 증가하므로 속력은 증가한다.', 'spd'),
+    ('A 에서 B 까지 걸린 시간은 B 에서 C 까지 걸린 시간과 같다.', True, 'A 와 C 는 최고점 B 에 대해 대칭이므로 걸린 시간이 같다.', 'sym'),
+    ('C 에서 물체의 가속도의 방향은 A 에서와 반대이다.', False, '가속도는 항상 연직 아래 방향이므로 A 에서와 같다.', 'acc'),
+    ('B 에서 물체에 작용하는 알짜힘은 0이다.', False, '중력이 작용하므로 알짜힘은 0이 아니다.', 'topa'),
+    ('물체의 속력은 B 에서 가장 작다.', True, '연직 속도가 0인 B 에서 속력이 최소이다.', 'spd'),
+    ('Q 에서 속도의 연직 성분의 크기는 P 에서와 같다.', True, '같은 높이에서는 연직 속도 성분의 크기가 같다.', 'vy'),
+    ('물체가 올라가는 동안 가속도의 방향은 위쪽이다.', False, '올라가는 동안에도 가속도는 연직 아래(중력 방향)이다.', 'acc'),
+    ('A 에서 C 까지 평균 속도의 방향은 수평 방향이다.', True, 'A 와 C 는 같은 높이이므로 변위가 수평 방향이다.', 'avg'),
+    ('B 에서 물체의 연직 방향 속도 성분은 0이다.', True, '최고점에서 올라가던 운동이 내려가는 운동으로 바뀌므로 연직 속도는 0이다.', 'topv'),
+    ('수평 방향으로는 물체에 알짜힘이 작용하지 않는다.', True, '중력은 연직 아래로만 작용한다.', 'hor'),
+    ('P 에서 Q 까지 걸린 시간은 연직 방향 운동만으로 결정된다.', True, '지면으로 돌아오는 때는 연직 방향 변위가 0이 되는 때이다.', 'time'),
+    ('물체가 내려가는 동안 연직 속도 성분의 크기는 일정하다.', False, '가속도 g 로 연직 속도가 증가한다.', 'vy'),
+]
+
+HZ = [
+    ('A 에서 D 까지 수평 방향 속도 성분은 일정하다.', True, '수평 방향으로는 알짜힘이 0이므로 등속이다.', 'hor'),
+    ('A 에서 D 까지 연직 방향 속도 성분은 일정하다.', False, '연직 방향은 자유 낙하이므로 속도가 증가한다.', 'vy'),
+    ('B 에서 D 로 갈수록 물체의 속력은 증가한다.', True, '수평 성분은 일정하고 연직 성분이 증가하므로 속력이 증가한다.', 'spd'),
+    ('물체의 가속도는 A 에서 D 까지 크기와 방향이 변하지 않는다.', True, '중력만 작용하므로 가속도는 g(연직 아래)로 일정하다.', 'acc'),
+    ('C 에서 가속도의 방향은 속도의 방향과 같다.', False, '가속도는 연직 아래이고 속도는 비스듬한 방향이므로 서로 같지 않다.', 'dir'),
+    ('A 에서 물체의 속도의 방향은 수평 방향이다.', True, '수평으로 던졌으므로 처음 속도는 수평이다.', 'startv'),
+    ('A 에서 물체의 가속도는 0이다.', False, '던지는 순간에도 중력 가속도 g 가 작용한다.', 'acc'),
+    ('D 에서 속도의 방향은 수평 방향이다.', False, '연직 속도 성분이 있으므로 속도는 비스듬한 아래 방향이다.', 'startv'),
+    ('A 에서 B 까지 걸린 시간은 B 에서 D 까지 걸린 시간과 같다.', True, '수평 방향은 등속이고 B 는 수평 거리의 중간 지점이므로 두 구간에 걸린 시간이 같다.', 'time'),
+    ('물체가 날아가는 동안 연직 방향의 운동은 자유 낙하와 같다.', True, '연직 방향은 처음 속도가 0인 중력 가속도의 운동이다.', 'free'),
+    ('물체에 작용하는 알짜힘은 운동 방향과 항상 같다.', False, '알짜힘(중력)은 연직 아래이고 운동 방향은 점점 아래로 기울 뿐 같지 않다.', 'dir'),
+    ('수평 속력을 크게 하면 지면에 닿는 시간이 길어진다.', False, '낙하 시간은 높이로만 결정되므로 수평 속력과 무관하다.', 'time2'),
+]
+
+
+@T('ph031')
+def proj_bogi(r, k):
+    """포물선 운동에서 속도와 가속도(<보기>)."""
+    form = r.choice(['fig_obl', 'fig_obl', 'fig_hz', 'fig_hz', 'fig_hz', 'fig_hz', 'text_obl', 'text_obl', 'text_hz'])
+    if form == 'fig_obl' or form == 'text_obl':
+        pool = OBL
+    else:
+        pool = HZ
+    sel = r.sample(pool, 3)
+    if len({s[3] for s in sel}) < 3: return None
+    if form == 'fig_obl':
+        deg = r.choice([30, 37, 45, 53, 60])
+        fig = pts_fig(deg)
+        intro = '그림은 지면의 점 P 에서 비스듬히 던져 올린 물체가 점 Q 에 떨어질 때까지의 경로를 나타낸 것이다. 점 B 는 최고점이고 A, C 는 높이가 같은 점이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, 공기 저항은 무시한다.)'
+        return bogi(intro, [(s[0], s[1], s[2]) for s in sel], r=r, pre=FIG(fig, '66%'), ask='', lv='상', fam='a',
+                    core='포물선 운동에서 수평 방향은 등속, 연직 방향은 가속도 g 의 등가속도 운동이며 최고점에서는 연직 속도만 0이다.', point='지점별 속도와 가속도의 방향·크기를 구분한다.')
+    if form == 'fig_hz':
+        fig = horiz_pts_fig()
+        intro = '그림은 물체를 점 A 에서 수평 방향으로 던졌을 때 점 D 의 지면에 떨어질 때까지의 경로를 나타낸 것이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, 공기 저항은 무시한다.)'
+        return bogi(intro, [(s[0], s[1], s[2]) for s in sel], r=r, pre=FIG(fig, '60%'), ask='', lv='중', fam='b',
+                    core='수평 투사에서 수평 방향은 등속 운동, 연직 방향은 자유 낙하이다.', point='수평 투사의 속도와 가속도를 성분별로 판단한다.')
+    # 그림 없는 개념형: 지점 기호가 없는 문장만 사용
+    if form == 'text_obl':
+        intro = '비스듬히 던져 올린 물체의 운동에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, 공기 저항은 무시한다.)'
+        txt = []
+        for s in sel:
+            t = s[0]
+            for a, b in (('A 에서 C 까지', '같은 높이의 두 지점 사이'), ('A 에서와 C 에서', '올라갈 때와 내려올 때 같은 높이에서'), ('A 에서 B 까지 걸린 시간은 B 에서 C 까지 걸린 시간과', '최고점까지 올라가는 시간은 최고점에서 같은 높이로 내려오는 시간과'),
+                         ('P 에서 Q 까지', '던진 순간부터 지면에 떨어질 때까지'), ('P 에서 B 까지', '던진 순간부터 최고점까지'), ('B 에서 Q 까지', '최고점에서 지면에 떨어질 때까지'),
+                         ('Q 에서', '지면에 닿는 순간'), ('P 에서와', '던지는 순간과'), ('B 에서', '최고점에서'), ('C 에서', '내려오는 도중'), ('A 에서', '올라가는 도중')):
+                t = t.replace(a, b)
+            txt.append((t, s[1], s[2].replace('A 와 C', '같은 높이의 두 지점').replace('B 에서', '최고점에서').replace('B', '최고점').replace('A', '올라가는 점').replace('C', '내려오는 점'), s[3]))
+        return bogi(intro, [(t[0], t[1], t[2]) for t in txt], r=r, ask='', lv='하', fam='c',
+                    core='포물선 운동에서 수평 방향은 등속, 연직 방향은 가속도 g 의 등가속도 운동이다.', point='최고점의 속도·가속도와 대칭성을 정확히 안다.')
+    intro = '수평으로 던진 물체의 운동에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, 공기 저항은 무시한다.)'
+    txt = []
+    for s in sel:
+        t = s[0]
+        for a, b in (('A 에서 D 까지', '던진 순간부터 지면에 닿을 때까지'), ('B 에서 D 로 갈수록', '날아가는 동안'), ('A 에서 B 까지 걸린 시간은 B 에서 D 까지 걸린 시간과 같다.', '수평 거리의 앞 절반을 가는 데 걸린 시간은 뒤 절반을 가는 데 걸린 시간과 같다.'), ('C 에서', '날아가는 도중'), ('A 에서', '던지는 순간'), ('D 에서', '지면에 닿는 순간')):
+            t = t.replace(a, b)
+        txt.append((t, s[1], s[2].replace('A 에서 B', '위쪽').replace('B 에서 D', '아래쪽'), s[3]))
+    return bogi(intro, [(t[0], t[1], t[2]) for t in txt], r=r, ask='', lv='하', fam='d',
+                core='수평 투사에서 수평 방향은 등속, 연직 방향은 자유 낙하이며 낙하 시간은 높이만으로 정해진다.', point='수평·연직 성분을 따로 판단한다.')
+
+
+# ================================================================ ph032 (수평 투사와 자유 낙하 비교)
+def strobe_fig(n=4, w=300, h=210, labelA='A', labelB='B'):
+    """같은 높이에서 동시에 출발한 A(수평 투사)와 B(자유 낙하)의 일정한 시간 간격 위치."""
+    f = Fig(w, h)
+    top = 26; gy = h - 22; xb = 50
+    f.hatch(14, gy, w - 28)
+    for i in range(n + 1):
+        u = i / n
+        y = top + (gy - top - 8) * u * u
+        xa = xb + 190 * u
+        f.line(xb, y, xa, y, '#c9d1dc', 1, '4 3')
+        f.circ(xa, y, 5, BL, INK, 1.2)
+        f.circ(xb, y, 5, RD, INK, 1.2)
+    f.text(xb - 4, top - 10, labelB, 14, bold=True, c=RD, italic=True)
+    f.text(xb + 190 + 4, top - 10, '', 14)
+    f.text(xb + 18, top + 8, labelA, 14, 'start', True, BL, True)
+    f.arrow(xb + 8, top, xb + 46, top, BL, 2)
+    return f.svg()
+
+
+SM = [
+    ('같은 높이에서 동시에 출발한 A 와 B 는 동시에 지면에 닿는다.', True, '낙하 시간은 연직 방향 운동(자유 낙하)으로만 정해지므로 같다.', 'time'),
+    ('A 의 연직 방향 운동은 B 의 운동과 같다.', True, '수평으로 던진 물체도 연직 방향으로는 처음 속도 0인 자유 낙하를 한다.', 'vert'),
+    ('A 는 수평 속도가 있으므로 B 보다 늦게 지면에 닿는다.', False, '낙하 시간은 수평 속도와 무관하므로 A 와 B 는 동시에 닿는다.', 'time'),
+    ('수평 방향의 속력이 클수록 낙하 시간이 길어진다.', False, '낙하 시간은 높이로만 정해지며 수평 속력과 무관하다.', 'time2'),
+    ('같은 시각에 A 와 B 의 연직 속도 성분의 크기는 같다.', True, '두 물체 모두 연직 방향으로 자유 낙하 하므로 같다.', 'vy'),
+    ('지면에 닿는 순간 A 와 B 의 속력은 같다.', False, 'A 는 수평 속도 성분이 더 있으므로 속력이 B 보다 크다.', 'speed'),
+    ('지면에 닿는 순간 A 의 속력은 B 의 속력보다 크다.', True, '연직 속도 성분은 같고 A 에는 수평 속도 성분이 더해진다.', 'speed'),
+    ('같은 시각에 A 와 B 는 같은 높이에 있다.', True, '연직 방향 운동이 같으므로 같은 시각에 같은 높이이다.', 'height'),
+    ('A 의 가속도의 크기는 B 의 가속도의 크기보다 크다.', False, '두 물체 모두 가속도는 중력 가속도 g 로 같다.', 'acc'),
+    ('A 와 B 의 가속도는 크기와 방향이 같다.', True, '두 물체에는 모두 중력만 작용한다.', 'acc'),
+    ('A 의 수평 방향 속도는 운동하는 동안 변하지 않는다.', True, '수평 방향으로는 힘이 작용하지 않는다.', 'hor'),
+    ('B 에는 수평 방향의 알짜힘이 작용한다.', False, 'B 는 중력만 받으며 수평 방향의 힘은 없다.', 'hor'),
+    ('질량이 서로 다르더라도 같은 높이에서 동시에 놓은 두 물체는 동시에 지면에 닿는다.', True, '공기 저항이 없으면 낙하 가속도는 질량과 무관하게 g 이다.', 'mass'),
+    ('A 의 수평 속도를 2배로 하면 낙하 시간도 2배가 된다.', False, '낙하 시간은 수평 속도와 무관하다.', 'time2'),
+    ('A 의 수평 속도를 2배로 하면 수평 도달 거리도 2배가 된다.', True, '낙하 시간이 같으므로 x = v₀t 는 v₀ 에 비례한다.', 'xr'),
+    ('낙하하는 높이를 4배로 하면 낙하 시간은 2배가 된다.', True, 'h = ½gt² 이므로 t ∝ √h 이다.', 'hscale'),
+    ('A 가 지면에 닿는 순간 연직 속도 성분의 크기는 B 보다 크다.', False, '두 물체의 연직 속도 성분의 크기는 같다.', 'vy'),
+    ('B 가 지면에 닿는 순간 A 는 B 의 바로 옆 높이에 있다.', True, '두 물체의 높이가 같은 순간에 지면에 닿는다.', 'height'),
+]
+
+
+@T('ph032')
+def horiz_vs_free(r, k):
+    """수평 투사와 자유 낙하의 비교."""
+    form = r.choice(['bogi_fig', 'bogi_fig', 'bogi', 'bogi', 'x', 'dist', 'speed', 'hratio', 'ratio_x', 'same_t', 'same_t', 'x'])
+    ob1, ob2 = r.choice([('공 A', '공 B'), ('물체 A', '물체 B'), ('쇠구슬 A', '쇠구슬 B')])
+    cond = '(단, 공기 저항은 무시하고, 중력 가속도는 10 m/s²이다.)'
+    if form in ('bogi', 'bogi_fig'):
+        sel = r.sample(SM, 3)
+        if len({s[3] for s in sel}) < 3: return None
+        if form == 'bogi_fig':
+            n = r.choice([3, 4, 5])
+            fig = strobe_fig(n)
+            intro = '그림은 같은 높이에서 동시에 출발한 물체 A(수평으로 던짐)와 물체 B(가만히 놓음)의 위치를 일정한 시간 간격으로 나타낸 것이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, 공기 저항은 무시한다.)'
+            return bogi(intro, [(s[0], s[1], s[2]) for s in sel], r=r, pre=FIG(fig, '56%'), ask='', lv='중', fam='a',
+                        core='수평으로 던진 물체와 자유 낙하하는 물체는 연직 방향 운동이 같아 같은 시각에 같은 높이에 있고 동시에 지면에 닿는다.', point='같은 높이의 점들을 이어 연직 운동이 같음을 읽는다.')
+        intro = '같은 높이에서 동시에 물체 A 를 수평으로 던지고 물체 B 를 가만히 놓았다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, 공기 저항은 무시한다.)'
+        return bogi(intro, [(s[0], s[1], s[2]) for s in sel], r=r, ask='', lv='하', fam='b',
+                    core='수평 방향 운동은 연직 방향 운동에 영향을 주지 않는다. 낙하 시간은 높이만으로 정해진다.', point='수평 투사와 자유 낙하의 낙하 시간이 같음을 이해한다.')
+    t = r.choice([1, 2, 3, 4, 5, 6]); h = 5 * t * t; v0 = r.choice([4, 5, 6, 8, 10, 12, 15, 20])
+    if form == 'x':
+        body = PP('높이 %s 에서 %s를 수평 방향으로 %s의 속력으로 던짐과 동시에 %s를 가만히 놓았다. %s가 지면에 닿는 순간 %s가 이동한 수평 거리는? %s' % (U(h, 'm'), ob1, U(v0, 'm/s'), ob2, ob2, ob1, cond))
+        wr = wl(v0 * t, [v0 * t * 2, h, v0, v0 * t / 2, math.hypot(v0 * t, h), v0 * h / 10], 'm')
+        return mc(body, ans(v0 * t, 'm'), wr, r=r, lv='중', fam='c',
+                  steps=['B 의 낙하 시간 : h = ½gt² 에서 t = √(2 × %s/10) = %s s' % (num(h), num(t)), 'A 도 같은 시간 후 지면에 닿으므로 수평 거리 = v₀t = %s × %s = %s m' % (num(v0), num(t), num(v0 * t))],
+                  core='수평 투사한 물체와 자유 낙하하는 물체의 낙하 시간은 같다.', point='자유 낙하 시간으로 수평 투사의 수평 거리를 구한다.')
+    if form == 'dist':
+        tm = r.choice([0.5, 1, 1.5, 2, 2.5, 3])
+        if 5 * tm * tm >= h: return None
+        body = PP('높이 %s 에서 %s를 수평 방향으로 %s의 속력으로 던짐과 동시에 %s를 가만히 놓았다. 출발한 지 %s 후 두 물체 사이의 거리는? (두 물체는 모두 아직 지면에 닿지 않았다.) %s' % (U(h, 'm'), ob1, U(v0, 'm/s'), ob2, U(tm, '초'), cond))
+        d = v0 * tm
+        wr = wl(d, [5 * tm * tm, math.hypot(v0 * tm, 5 * tm * tm), v0 * tm * 2, v0 + 10 * tm, v0 * tm + 5 * tm * tm, d + 5], 'm')
+        return mc(body, ans(d, 'm'), wr, r=r, lv='중', fam='c',
+                  steps=['두 물체의 연직 방향 운동이 같으므로 같은 시각에 같은 높이에 있다.', '따라서 두 물체 사이의 거리는 A 의 수평 이동 거리와 같다 : v₀t = %s × %s = %s m' % (num(v0), num(tm), num(d))],
+                  core='같은 시각에 두 물체는 같은 높이에 있으므로 거리는 수평 이동 거리뿐이다.', point='연직 거리 차가 0임을 이용한다.')
+    if form == 'speed':
+        vx, vy, v = r.choice(TRI)
+        hh = vy * vy / 20; tt = vy / 10
+        body = PP('높이 %s 에서 %s를 수평 방향으로 %s의 속력으로 던짐과 동시에 %s를 가만히 놓았다. 두 물체가 지면에 닿는 순간의 속력의 비 v_A : v_B 는? %s' % (U(hh, 'm'), ob1, U(vx, 'm/s'), ob2, cond))
+        g_ = math.gcd(v, vy); right = '%d : %d' % (v // g_, vy // g_)
+        opts = ['%d : %d' % (a_ // math.gcd(a_, b_), b_ // math.gcd(a_, b_)) for a_, b_ in ((vy, v), (vx, vy), (vy, vx), (1, 1), (v, vx), (vx + vy, vy))]
+        wr = [o for o in dict.fromkeys(opts) if o != right]
+        return mc(body, right, wr, r=r, lv='상', fam='d', sort='shuf',
+                  steps=['연직 속도 : v_y = √(2gh) = %s m/s (A, B 같음)' % num(vy), 'B 의 속력 v_B = %s m/s' % num(vy), 'A 의 속력 v_A = √(%s² + %s²) = %s m/s' % (num(vx), num(vy), num(v)), 'v_A : v_B = %s : %s = %s' % (num(v), num(vy), right)],
+                  core='A 는 수평 성분이 더해져 합속도가 B 보다 크며 연직 성분은 같다.', point='연직 성분이 같음을 이용해 두 속력을 비교한다.')
+    if form == 'hratio':
+        n = r.choice([4, 9, 0.25]); h2 = h * n
+        if not two(h2): return None
+        tr = math.sqrt(n); 
+        t2 = math.sqrt(2 * h2 / 10)
+        if not two(t2): return None
+        body = PP('높이 %s 에서 수평으로 %s의 속력으로 던진 물체 A 가 지면에 닿는 데 걸린 시간이 %s이다. 높이 %s 에서 같은 속력으로 수평으로 던진 물체 B 가 지면에 닿는 데 걸리는 시간은? %s' % (U(h, 'm'), U(v0, 'm/s'), U(t, '초'), U(h2, 'm'), cond))
+        wr = wl(t2, [t * n, t * n * n, t / n, t / math.sqrt(n), t * 2, t + 1], 's')
+        return mc(body, ans(t2, 's'), wr, r=r, lv='중', fam='e',
+                  steps=['낙하 시간 t = √(2h/g) 이므로 t ∝ √h 이다.', '높이가 %s배이므로 시간은 %s배 : %s × %s = %s s' % (num(n), num(tr), num(t), num(tr), num(t2))],
+                  core='낙하 시간은 높이의 제곱근에 비례하고 수평 속력과 무관하다.', point='높이 비로 낙하 시간 비를 구한다.')
+    if form == 'same_t':
+        body = PP('높이 %s 에서 물체 A 를 수평 방향으로 %s의 속력으로 던짐과 동시에 물체 B 를 가만히 놓았다. 물체 A 가 지면에 닿을 때까지 걸리는 시간은? %s' % (U(h, 'm'), U(v0, 'm/s'), cond))
+        wr = wl(t, [h / v0, t + 1, t * 2, math.sqrt(h), h / 10, t - 1 if t > 1 else None], 's')
+        return mc(body, ans(t, 's'), wr, r=r, lv='하', fam='f',
+                  steps=['A 의 연직 방향 운동은 B 의 자유 낙하와 같다.', 'h = ½gt² 에서 %s = 5t² 이므로 t = %s s' % (num(h), num(t))],
+                  core='수평 투사의 낙하 시간은 자유 낙하의 낙하 시간과 같다.', point='수평 속력은 낙하 시간에 영향을 주지 않는다.')
+    # ratio_x
+    v2 = v0 * r.choice([2, 3, 0.5]); h2 = h * r.choice([4, 9, 1])
+    t2 = math.sqrt(2 * h2 / 10); x1 = v0 * t; x2 = v2 * t2
+    if not two(x2) or not two(v2) or not two(t2) or not two(h2): return None
+    body = PP('높이 %s 에서 수평으로 %s의 속력으로 던진 물체의 수평 도달 거리가 %s이다. 높이 %s 에서 수평으로 %s의 속력으로 던질 때의 수평 도달 거리는? %s' % (U(h, 'm'), U(v0, 'm/s'), U(x1, 'm'), U(h2, 'm'), U(v2, 'm/s'), cond))
+    wr = wl(x2, [x1 * v2 / v0, x1 * h2 / h, x1 * (v2 / v0) * (h2 / h), x1 * (v2 / v0) ** 2, x2 + 10, x2 / 2], 'm')
+    return mc(body, ans(x2, 'm'), wr, r=r, lv='상', fam='e',
+              steps=['낙하 시간 t = √(2h/g) : %s s → %s s' % (num(t), num(t2)), 'x = v₀t = %s × %s = %s m' % (num(v2), num(t2), num(x2))],
+              core='수평 도달 거리는 x = v₀t 이고 t 는 높이로 정해진다.', point='속력과 높이를 각각 반영해 낙하 시간과 수평 거리를 구한다.')

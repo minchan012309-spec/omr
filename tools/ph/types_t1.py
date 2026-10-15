@@ -471,7 +471,7 @@ def g066(r, k):
         body = P('그림과 같이 실린더 속 이상 기체가 압력 %s로 일정하게 유지되면서 부피가 %s로 팽창하였다. 이 과정에서 기체가 외부에 한 일은? (단, 1 L = 1.0×10%s m%s이다.)' % (pstr, vtxt, sup(-3), sup(3))) + fig
         wr = [W * 1000, W // 1000 if W >= 1000 else W / 1000.0, Pa * V2 * 1e-3, Pa * V1 * 1e-3, W // 2, W * 2, Pa * (V2 - V1)]
         wr = [num(w) + ' J' for w in wr]
-        return mc(body, num(W) + ' J', wr, r=r, lv='중', fam='a',
+        return mc(body, num(W) + ' J', wr, r=r, lv='하' if (mode == 'Pa' and exp_ == 'm') else '중', fam='a',
                   steps=['압력이 일정하므로 W = PΔV 이다.', 'P = %s Pa, ΔV = (%d − %d) × 10%s = %s m%s' % (num(Pa), V2, V1, '⁻³', num((V2 - V1) * 1e-3), '³'), 'W = %s × %s = %s J' % (num(Pa), num((V2 - V1) * 1e-3), num(W))],
                   core='압력이 일정할 때 기체가 한 일 W = PΔV (Pa·m³ = J).', point='부피의 단위를 m³로 바꾸어 W = PΔV 를 계산한다.')
     if form == 'b':    # 일이 주어질 때 ΔV 또는 P 구하기
@@ -545,7 +545,7 @@ def g066(r, k):
         body = P('그림은 일정량의 이상 기체의 상태가 A에서 B로 변할 때의 압력과 부피를 나타낸 것이다. A → B 과정에서 기체가 한 일은?%s' % unit_note(sc)) + fig
         mag = abs(W)
         wr = ['%s J' % num(-W), '%s J' % num(P0 * Vb * sc.J), '%s J' % num(P0 * Va * sc.J), '%s J' % num(mag / 2), '%s J' % num(mag * 2), '%s J' % num(abs(W) / 100), '%s J' % num(mag * 10)]
-        return mc(body, ('%s J' % num(W)) if W > 0 else ('−%s J' % num(mag)), [w.replace('-', '−') if False else w for w in wr], r=r, lv='중', fam='g', sort='shuf',
+        return mc(body, ('%s J' % num(W)) if W > 0 else ('−%s J' % num(mag)), wr, r=r, lv='하', fam='g', sort='shuf',
                   steps=['압력이 일정(P = %s)한 등압 과정이다. ΔV = (%d − %d) 칸 = %s' % (pre_str(sc, P0), Vb, Va, vol_str(sc, Vb - Va)),
                          'W = PΔV = %s J%s' % (num(W), '' if W > 0 else ' (압축이므로 음수)')],
                   core='등압 과정에서 W = PΔV. P-V 그래프에서 일은 곡선 아래 넓이이다.', point='그래프의 눈금에서 P와 ΔV를 읽어 W = PΔV 를 계산한다.')
@@ -758,7 +758,7 @@ def g068(r, k):
             right = '%d J' % U2
             wr = ['%d J' % (U1 * V1 // V2) if (U1 * V1) % V2 == 0 else '%d J' % (U1 + 50), '%d J' % (U1 + (V2 - V1) * 10), '%d J' % (U1 * 2), '%d J' % (U2 + 100), '%d J' % (U2 * 2), '%d J' % (U2 // 2 + 30)]
             st = ['등압 과정에서 V ∝ T 이고 U ∝ T 이므로 U ∝ V 이다.', 'U%s = U%s × V%s/V%s = %d × %d/%d = %d J' % (sub(2), sub(1), sub(2), sub(1), U1, V2, V1, U2)]
-        return mc(body, right, wr, r=r, lv='중', fam='c', sort='shuf', steps=st, core='등압 과정에서 V ∝ T, 내부 에너지 U ∝ T 이므로 U ∝ V.', point='등압 조건에서 부피-온도 비례 관계를 이용한다.')
+        return mc(body, right, wr, r=r, lv='하' if ask != 'U' else '중', fam='c', sort='shuf', steps=st, core='등압 과정에서 V ∝ T, 내부 에너지 U ∝ T 이므로 U ∝ V.', point='등압 조건에서 부피-온도 비례 관계를 이용한다.')
     if form == 'd':   # 그래프: 등압선
         sc = rand_sch(r)
         P0 = r.randint(1, 5); Va, Vb = sorted(r.sample(range(1, 8), 2))
@@ -803,7 +803,7 @@ def g068(r, k):
         body = P('이상 기체가 등압 팽창하는 동안 흡수한 열량 Q를 기체가 한 일 W와 내부 에너지 증가량 ΔU로 나누어 쓴다. W = %d J, ΔU = %d J일 때 Q에서 W가 차지하는 비율은?' % (W, dU))
         right = fr_str(Fraction(W, Q))
         wr = [fr_str(Fraction(dU, Q)), fr_str(Fraction(W, dU)), fr_str(Fraction(Q, W)), fr_str(Fraction(dU, W)), '1/2' if Fraction(W, Q) != Fraction(1, 2) else '1/3', '1']
-        return mc(body, right, wr, r=r, lv='중', fam='f', sort='shuf',
+        return mc(body, right, wr, r=r, lv='하', fam='f', sort='shuf',
                   steps=['Q = ΔU + W = %d + %d = %d J' % (dU, W, Q), 'W/Q = %d/%d = %s' % (W, Q, fr_str(Fraction(W, Q)))],
                   core='흡수한 열 Q는 내부 에너지 증가 ΔU와 외부에 한 일 W로 나뉜다(Q = ΔU + W).', point='제1법칙으로 Q를 구한 뒤 비율을 계산한다.')
     stm = pick_stmts(r, _B68)
@@ -1267,9 +1267,11 @@ def g072(r, k):
     form = r.choice(['a', 'a', 'a', 'b', 'b', 'b', 'c', 'c', 'd', 'd', 'e', 'g'])
     sc = rand_sch(r)
     if form in ('a', 'e'):
+        flat = r.random() < 0.4
         for _ in range(30):
             A = (r.randint(1, 6), r.randint(1, 5)); B = (r.randint(1, 7), r.randint(1, 5))
-            if A[0] != B[0] and A[1] != B[1]: break
+            if flat: B = (B[0], A[1])
+            if A[0] != B[0] and (A[1] != B[1] or flat): break
         else:
             return None
         W = area_seg(A, B) * sc.J
@@ -1293,7 +1295,7 @@ def g072(r, k):
                '일 = 직선 아래 사다리꼴 넓이 = ½ × (%s + %s) × %s' % (num(A[1] * sc.pstep), num(B[1] * sc.pstep), num(abs(dv))) + ' (눈금 1칸 = %s J)' % num(sc.J / (sc.pstep * sc.vstep) * 1 if False else sc.J),
                '격자 넓이로 계산하면 ½ × (%d + %d) × %d = %s 칸 → %s J%s' % (A[1], B[1], abs(B[0] - A[0]), num((A[1] + B[1]) * abs(B[0] - A[0]) / 2.0), num(abs(W)), '' if (B[0] > A[0]) == (ask == 'by') else ' (부피가 감소하므로 기체가 한 일은 음수이다)')]
         if ask != 'by': st_.append('외부로부터 받은 일 = −(기체가 한 일) = %s' % right)
-        return mc(body, right, wr, r=r, lv='중', fam='a', sort='shuf', steps=st_,
+        return mc(body, right, wr, r=r, lv='하' if flat else '중', fam='a', sort='shuf', steps=st_,
                   core='P-V 그래프에서 기체가 한 일은 경로 아래의 넓이이며, 부피가 증가하면 +, 감소하면 −이다.', point='격자 눈금을 읽어 사다리꼴 넓이로 일을 구하고 부호를 정한다.')
     if form == 'b':
         for _ in range(40):
@@ -1456,7 +1458,7 @@ def _sign_cell(s): return s
 
 @T('ph073')
 def g073(r, k):
-    form = r.choice(['a', 'a', 'a', 'b', 'b', 'b', 'c', 'c', 'c', 'g', 'g', 'h'])
+    form = r.choice(['a', 'a', 'b', 'c', 'c', 'g', 'h', 'h', 'h', 'g'])
     if form == 'a':
         procs = r.sample(ALL_PROC, 5)
         # 서로 같은 종류 두 개(팽창·압축 반대 방향)는 허용하나 곡선이 겹치는 동종·동방향은 없음
@@ -1569,7 +1571,7 @@ def g073(r, k):
         if len(set(txts)) == 3 and any(c[1] for c in cand): break
     else:
         return None
-    return bogi('그림은 일정량의 이상 기체가 A → B → C → D로 변하는 과정을 P-V 그래프로 나타낸 것이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', cand, pre=fig, r=r, ask='', lv='상', fam='c',
+    return bogi('그림은 일정량의 이상 기체가 A → B → C → D로 변하는 과정을 P-V 그래프로 나타낸 것이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', cand, pre=fig, r=r, ask='', lv='중', fam='c',
                 core='곡선의 모양으로 과정을 판별하고, 각 과정의 ΔU(온도), W(부피), Q = ΔU + W 의 부호를 따진다.', point='여러 과정으로 이어진 P-V 그래프를 해석한다.')
 
 
@@ -1649,7 +1651,7 @@ _B74 = [
 
 @T('ph074')
 def g074(r, k):
-    form = r.choice(['a', 'a', 'a', 'b', 'b', 'c', 'c', 'c', 'c', 'd', 'e', 'e', 'f'])
+    form = r.choice(['a', 'a', 'b', 'b', 'c', 'c', 'c', 'd', 'e', 'e', 'f', 'f', 'f'])
     sc = rand_sch(r)
     cyc = _cycle(r)
     if not cyc: return None
@@ -1680,7 +1682,7 @@ def g074(r, k):
         shape = {4: '직사각형' if len({p[0] for p in st.values()}) == 2 and len({p[1] for p in st.values()}) == 2 else '사다리꼴', 3: '직각삼각형'}[nn]
         st_ = ['순환 과정에서 기체가 한 알짜 일은 그래프가 둘러싼 도형의 넓이이다.', '넓이 = %s칸 (눈금 1칸 = %s J)이므로 |W| = %s J' % (num(abs(Wc)), num(sc.J), num(abs(W))),
                '진행 방향이 %s이므로 기체가 한 알짜 일은 %s이다.' % ('시계 방향' if not ccw else '시계 반대 방향', '양(+)' if not ccw else '음(−)'), '답 : ' + right]
-        return mc(body, right, wr, r=r, lv='중' if (nn == 4 and form == 'a') else ('하' if form == 'f' and nn == 3 and not ccw else '중'), fam='a', sort='shuf', steps=st_,
+        return mc(body, right, wr, r=r, lv='중' if (nn == 4 and form == 'a' and ccw) else ('하' if (form == 'f' or not ccw) else '중'), fam='a', sort='shuf', steps=st_,
                   core='순환 과정에서 한 일 = 순환 곡선이 둘러싼 넓이. 시계 방향이면 +, 반시계 방향이면 −.', point='진행 방향으로 알짜 일의 부호를 정하고 넓이로 크기를 구한다.')
     if form == 'b':
         ask = r.choice(['Qnet', 'dUQ'])
@@ -1837,7 +1839,7 @@ def pv_all_same_p(st, names):
 
 @T('ph075')
 def g075(r, k):
-    form = r.choice(['a', 'a', 'b', 'b', 'c', 'c', 'c', 'd', 'e', 'f'])
+    form = r.choice(['a', 'b', 'b', 'c', 'c', 'c', 'd', 'e', 'f', 'g', 'g'])
     sts = _states3(r)
     if not sts: return None
     names = 'ABC'
@@ -1871,7 +1873,7 @@ def g075(r, k):
         Tb = int(Tb)
         body = P(lead + ' 상태 %s의 절대 온도가 %d K일 때 상태 %s의 절대 온도는?' % (na, Ta, nb)) + inf
         wr = [Ta * pv[na] // pv[nb] if (Ta * pv[na]) % pv[nb] == 0 else Ta + 50, Ta, Tb + 100, Tb * 2, Tb // 2 + 20, Ta * st[nb][0] // st[na][0] if (Ta * st[nb][0]) % st[na][0] == 0 else Tb + 50, Ta * st[nb][1] // st[na][1] if (Ta * st[nb][1]) % st[na][1] == 0 else Tb + 30]
-        return mc(body, '%d K' % Tb, ['%d K' % w for w in wr], r=r, lv='중', fam='b',
+        return mc(body, '%d K' % Tb, ['%d K' % w for w in wr], r=r, lv='하', fam='b',
                   steps=['PV/T = 일정 이므로 T%s = T%s × (PV)%s/(PV)%s' % (sub(nb), sub(na), sub(nb), sub(na)), '(PV)%s = %d, (PV)%s = %d (눈금 단위) 이므로 T%s = %d × %d/%d = %d K' % (sub(na), pv[na], sub(nb), pv[nb], sub(nb), Ta, pv[nb], pv[na], Tb)],
                   core='PV/T = 일정 (분자 수 일정).', point='보일-샤를 법칙으로 나중 온도를 구한다.')
     if form == 'd':
@@ -1910,6 +1912,18 @@ def g075(r, k):
         wr = [ratio_str(pv[b_], pv[a_]), ratio_str(st[a_][1], st[b_][1]), ratio_str(st[a_][0], st[b_][0]), ratio_str(st[a_][0] + st[a_][1], st[b_][0] + st[b_][1]), ratio_str(pv[a_] + 1, pv[b_])]
         return mc(body, ratio, wr, r=r, lv='중', fam='f', sort='shuf', steps=['U ∝ T ∝ PV', 'U%s : U%s = %d : %d = %s' % (sub(a_), sub(b_), pv[a_], pv[b_], ratio)],
                   core='U ∝ T ∝ PV.', point='좌표의 곱의 비로 내부 에너지의 비를 구한다.')
+    if form == 'g':
+        na, nb, nc = r.sample(names, 3)
+        UA = r.choice([100, 150, 200, 300, 450, 600])
+        dU = Fraction(UA * (pv[nc] - pv[nb]), pv[na])
+        if dU.denominator != 1 or dU == 0: return None
+        dU = int(dU)
+        body = P(lead + ' 상태 %s의 내부 에너지가 %d J일 때 상태 %s에서 상태 %s로 변할 때 내부 에너지의 변화량은? (단, 이상 기체의 내부 에너지는 절대 온도에 비례한다.)' % (na, UA, nb, nc)) + inf
+        sg_ = lambda v: ('%d J 증가' if v > 0 else '%d J 감소') % abs(v)
+        wr = [sg_(-dU), sg_(abs(dU) + UA), sg_(UA), sg_(dU * 2), sg_(Fraction(UA * pv[nb], pv[na]) if (UA * pv[nb]) % pv[na] == 0 else dU + 50), sg_(int(Fraction(UA * pv[nc], pv[na])) if (UA * pv[nc]) % pv[na] == 0 else dU + 70)]
+        return mc(body, sg_(dU), wr, r=r, lv='상', fam='g', sort='shuf',
+                  steps=['U ∝ PV : U%s = %d J ↔ PV = %d' % (na, UA, pv[na]), 'U%s = %s J, U%s = %s J' % (nb, num(float(Fraction(UA * pv[nb], pv[na]))), nc, num(float(Fraction(UA * pv[nc], pv[na])))), 'ΔU = U%s − U%s = %d J' % (nc, nb, dU)],
+                  core='U ∝ T ∝ PV.', point='PV 비로 두 상태의 내부 에너지를 구해 변화량을 계산한다.')
     # c: bogi
     pool = _stmt75(r, st, names, 0)
     for _ in range(60):

@@ -81,7 +81,7 @@ def sinf(A, lam, ph=0.0):
 def pulse_fig(pulses, W, rows=3, wall=None, wall_kind=None, w=330, ticks_every=2, marks=(), arrows=(), title=None, xlab='x (cm)'):
     """눈금 위의 삼각 펄스. pulses: [(중심, 높이, 반폭, 색, 점선)]. 눈금 한 칸 = 1.  W: 가로 칸 수."""
     cell = (w - 50) / W
-    h = 40 + rows * 2 * cell + 24
+    h = 40 + rows * 2 * cell + 36
     f = Fig(w, h)
     ox, oy = 28, 20 + rows * cell
     for i in range(W + 1):
@@ -91,7 +91,7 @@ def pulse_fig(pulses, W, rows=3, wall=None, wall_kind=None, w=330, ticks_every=2
     f.line(ox, oy, ox + W * cell + 8, oy, INK, 1.6)
     for i in range(0, W + 1, ticks_every):
         f.text(ox + i * cell, oy + rows * cell + 16, str(i), 11.5, 'middle', c=GR)
-    f.text(ox + W * cell + 6, oy + rows * cell + 16, xlab, 12, 'end', True, GR)
+    f.text(ox + W * cell + 22, oy + rows * cell + 32, xlab, 12, 'end', True, GR)
     for j in range(-rows, rows + 1):
         if j != 0 and (j % 1 == 0): f.text(ox - 6, oy - j * cell + 4, str(j), 11, 'end', c=GR)
     if wall is not None:
@@ -150,11 +150,11 @@ def long_fig(lam_cm, nwave=3, w=330, h=130, marks=True, cm_per_px=None):
     x0 = 24
     px_per = (w - 50) / (lam_cm * nwave + lam_cm * 0.0)
     lam = lam_cm * px_per
-    a = 0.095 * lam
+    a = 0.14 * lam
     xs = []
-    n = int(nwave * lam / 6) + 1
+    n = int(nwave * lam / 8) + 1
     for i in range(n + 1):
-        xe = i * 6.0
+        xe = i * 8.0
         if xe > nwave * lam + 0.5: break
         xs.append(xe + a * math.sin(2 * math.pi * xe / lam))
     for x in xs:
@@ -189,7 +189,7 @@ def refr_fig(th1, th2, w=270, h=215, t1='매질 Ⅰ', t2='매질 Ⅱ'):
     r1 = 38
     pts = [(x0 - r1 * math.sin(a1 * i / 14), y0 - r1 * math.cos(a1 * i / 14)) for i in range(15)]
     f.poly(pts, 'none', GR, 1.2, close=False)
-    f.text(x0 - 22 * math.sin(a1 / 2) - 18, y0 - 46 * math.cos(a1 / 2) + 2, '%d°' % th1, 12.5, 'middle', True, RD)
+    f.text(x0 + 6, y0 - 44, '%d°' % th1, 12.5, 'start', True, RD)
     r2 = 42
     pts = [(x0 + r2 * math.sin(a2 * i / 14), y0 + r2 * math.cos(a2 * i / 14)) for i in range(15)]
     f.poly(pts, 'none', GR, 1.2, close=False)
@@ -199,7 +199,7 @@ def refr_fig(th1, th2, w=270, h=215, t1='매질 Ⅰ', t2='매질 Ⅱ'):
     return f.svg()
 
 
-def src_fig(n, pts=(), lamp=26, w=340, h=230, nmax=9, ycap=96):
+def src_fig(n, pts=(), lamp=30, w=340, h=230, nmax=6, ycap=96):
     """두 점파원 S1, S2(거리 n·λ)와 마루(실선)·골(점선) 원. pts: [(a, b, 글자)] = (S1 반지름 a·λ/2, S2 반지름 b·λ/2)."""
     f = Fig(w, h)
     cx, cy = w / 2, h / 2
@@ -227,7 +227,7 @@ def src_fig(n, pts=(), lamp=26, w=340, h=230, nmax=9, ycap=96):
     return f.svg()
 
 
-def src_points(r, n, lamp=26, nmax=9, ycap=96, k=3):
+def src_points(r, n, lamp=30, nmax=6, ycap=96, k=3):
     """그림에 쓸 교점 후보에서 k개 선택(위쪽 반평면). 반환: [(a, b)]"""
     d = n * lamp
     cand = []
@@ -267,7 +267,7 @@ def ph091(r, k):
                       steps=['v = fλ = %s × %s = %s m/s 이다.' % (fn(f_), fn(lam), fn(v))], core='파동의 속력 v = fλ.', point='진동수와 파장으로 속력을 구한다.')
         if sub_ == 'lam':
             body = P('%s의 속력이 %s m/s이고 진동수가 %s Hz이다. 이 파동의 파장은?' % (ctx, fn(v), fn(f_)))
-            wr = [v * f_, lam * 2, lam / 2, f_ / v if v else lam + 1, v - f_ if v != f_ else lam + 3, lam * 4]
+            wr = [v * f_, lam * 2, lam / 2, f_ / v if v else lam + 1, abs(v - f_) if v != f_ else lam + 3, lam * 4]
             return mc(body, '%s m' % fn(lam), ['%s m' % fn(w) for w in wr], r=r, lv='하', fam='a',
                       steps=['v = fλ 에서 λ = v/f = %s / %s = %s m 이다.' % (fn(v), fn(f_), fn(lam))], core='λ = v/f.', point='속력과 진동수로 파장을 구한다.')
         if sub_ == 'f':
@@ -529,8 +529,8 @@ _B93 = [
     ('초음파는 사람이 들을 수 없는 소리이지만 종파이다.', True, '진동수가 20000 Hz 이상인 종파이다.', 'ultra'),
 ]
 
-_EX = [('소리', 'L'), ('P파(지진파)', 'L'), ('S파(지진파)', 'T'), ('빛', 'T'), ('줄을 흔들 때 줄을 따라가는 파동', 'T'), ('용수철을 앞뒤로 밀고 당길 때의 파동', 'L'),
-       ('초음파', 'L'), ('전파(라디오파)', 'T'), ('물에 떠 있는 코르크를 위아래로 흔드는 수면파', 'T')]
+_EX = [('소리는', 'L'), ('P파(지진파)는', 'L'), ('S파(지진파)는', 'T'), ('빛은', 'T'), ('줄을 흔들 때 줄을 따라가는 파동은', 'T'), ('용수철을 앞뒤로 밀고 당길 때의 파동은', 'L'),
+       ('초음파는', 'L'), ('전파(라디오파)는', 'T'), ('물에 떠 있는 코르크를 위아래로 흔드는 수면파는', 'T')]
 
 
 @T('ph093')
@@ -549,8 +549,8 @@ def ph093(r, k):
         stm = []
         for nm, kd in s:
             truth = (kd == ask)
-            stm.append(('%s은(는) %s이다.' % (nm, '횡파' if ask == 'T' else '종파'), truth,
-                        '%s은(는) %s이다.' % (nm, '횡파' if kd == 'T' else '종파') + (' 진동 방향이 진행 방향에 %s하다.' % ('수직' if kd == 'T' else '나란'))))
+            stm.append(('%s %s이다.' % (nm, '횡파' if ask == 'T' else '종파'), truth,
+                        '%s %s이다.' % (nm, '횡파' if kd == 'T' else '종파') + (' 진동 방향이 진행 방향에 %s하다.' % ('수직' if kd == 'T' else '나란'))))
         return bogi('다음은 여러 가지 파동에 대한 설명이다. 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', stm, ask='', lv='중', fam='b', r=r,
                     core='소리·초음파·P파·용수철 밀기 파동은 종파, 빛·전파·S파·줄파동은 횡파이다.', point='여러 파동을 횡파와 종파로 분류한다.')
     if form == 'panel':
@@ -806,7 +806,7 @@ def ph095(r, k):
         f1 = sinf(A1, lam, 0.0)
         f2 = sinf(A2, lam, ph2)
         ym = max(A1, A2)
-        fig = FIG(wgraph([(f1, BL, 2.4, None), (f2, RD, 2.4, None)], lam * nx, ym, [lam / 4 * i for i in range(1, 4 * nx + 1)], [-ym, ym] if True else [], 'x (m)', 'y (cm)', xfmt=fn, ymul=1.5, h=195), '72%')
+        fig = FIG(wgraph([(f1, BL, 4.4, None), (f2, RD, 2.0, None)], lam * nx, ym, [lam / 4 * i for i in range(1, 4 * nx + 1)], [-ym, ym] if True else [], 'x (m)', 'y (cm)', xfmt=fn, ymul=1.5, h=195), '72%')
         amp = A1 + A2 if not opp else abs(A1 - A2)
         ask = r.choice(['amp', 'amp', 'pt'])
         base = '그림은 같은 줄에서 같은 방향으로 진행하는 두 파동 A(파란색), B(빨간색)의 한 순간의 변위를 위치에 따라 나타낸 것이다. 두 파동의 파장은 같다. '
@@ -850,7 +850,7 @@ def ph095(r, k):
         break
     else:
         return None
-    fig = FIG(pulse_fig([(cA, hA, hw, BL, None), (cB, hB, hw, RD, None)], W, 3, arrows=[(cA - 1, cA + 1, 3.4 if hA > 0 else 3.4, BL, '→'), (cB + 1, cB - 1, 3.4, RD, '←')]), '78%')
+    fig = FIG(pulse_fig([(cA, hA, hw, BL, None), (cB, hB, hw, RD, None)], W, 3, arrows=[(cA - 1, cA + 1, 3.4, BL, ''), (cB + 1, cB - 1, 3.4, RD, '')]), '78%')
     # 보조 검산: 대칭 계산
     assert abs(ans - (tri(x - t, cA, hA, hw) + tri(x + t, cB, hB, hw))) < 1e-9
     ask = r.choice(['disp', 'disp', 'max'])
@@ -897,11 +897,11 @@ _B96 = [
 
 @T('ph096')
 def ph096(r, k):
-    form = r.choice(['disp', 'disp', 'disp', 'shape', 'shape', 'time', 'bogi', 'bogi'])
+    form = r.choice(['disp', 'disp', 'disp', 'shape', 'shape', 'time', 'bogi'])
     if form == 'bogi':
         s = pick3(r, _B96)
         if not s: return None
-        return bogi('줄에서 펄스가 끝점에서 반사될 때에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', s, ask='', lv='중', fam='d', r=r,
+        return bogi('줄에서 펄스가 끝점에서 반사될 때에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', s, ask='', lv='하', fam='d', r=r,
                     core='고정단 반사는 위상이 반대로 바뀌고 자유단 반사는 위상이 그대로이며, 반사 후에도 속력과 모양은 같다.', point='고정단과 자유단의 반사를 구분한다.')
     kind = r.choice(['fixed', 'free'])
     kname = '고정단' if kind == 'fixed' else '자유단'
@@ -960,7 +960,7 @@ def ph096(r, k):
     body = P(base + '이 펄스가 벽에서 반사되어 되돌아올 때, 반사된 펄스의 꼭대기가 x = %d cm 에 도달하는 시각은?' % x) + fig
     ws = [wall - c0, x - c0, t + 2, t - 2, 2 * wall - x - c0 + 2 if False else (wall - c0) * 2, t * 2]
     assert t == (2 * wall - x) - c0
-    return mc(body, '%d s' % t, ['%d s' % w for w in ws], r=r, lv='중', fam='c',
+    return mc(body, '%d s' % t, ['%d s' % w for w in ws], r=r, lv='하', fam='c',
               steps=['펄스의 꼭대기는 x = %d cm 에서 벽(x = %d cm)까지 %d cm 진행한 뒤 x = %d cm 까지 %d cm 되돌아온다.' % (c0, wall, wall - c0, x, wall - x), '총 이동 거리 %d cm 를 속력 1 cm/s 로 진행하므로 %d s 이다.' % (t, t)],
               core='반사 펄스의 속력은 입사 펄스와 같다.', point='벽까지의 왕복 거리로 시간을 구한다.')
 

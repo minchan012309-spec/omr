@@ -31,6 +31,12 @@ def WR(right, cands, unit='', nd=2):
     return out
 
 
+def axes2(p, xl, yl, xt, yt, grid=True):
+    p.axes(xl, '', xt, yt, grid=grid)
+    p.text(4, 12, yl, 12.5, 'start', True, GR)
+    return p
+
+
 def lab(f, x, y, s, c=INK, anchor='middle', size=12.5):
     f.text(x, y, s, size, anchor, True, c)
 
@@ -125,15 +131,15 @@ def fig_atwood(la, lb, lb2=None, lb3=None):
     f = Fig(300, 200)
     f.line(90, 14, 210, 14, GR, 2)
     for i in range(0, 120, 8): f.line(90 + i, 14, 95 + i, 8, GR, 1)
-    cx, cy, R = 150, 62, 20
+    cx, cy, R = 150, 66, 30
     f.line(cx, 14, cx, cy, INK, 1.8)
     f.circ(cx, cy, R, '#fff', INK, 1.8)
     f.circ(cx, cy, 2.5, INK, INK)
     yb = 130
     f.line(cx - R, cy, cx - R, yb, INK, 1.8)
     f.line(cx + R, cy, cx + R, yb, INK, 1.8)
-    block(f, cx - R - 28, yb, 56, 42, la, lb, FILLS[0])
-    block(f, cx + R - 28, yb, 56, 42, lb2, lb3, FILLS[1])
+    block(f, cx - R - 25, yb, 50, 42, la, lb, FILLS[0])
+    block(f, cx + R - 25, yb, 50, 42, lb2, lb3, FILLS[1])
     return f.svg()
 
 
@@ -254,14 +260,14 @@ def fma(r, k):
     if fam == 'b':
         m = r.choice([2, 3, 4, 5, 6, 8])
         nr = r.choice([1, 1, 2])
-        rights = [('F%s' % sub(i + 1), r.randint(2, 20)) for i in range(nr)]
-        lefts = [('F%s' % sub(nr + 1), r.randint(2, 20))] if r.random() < .6 else [('f', r.randint(2, 12))]
+        rights = [('F%d' % (i + 1), r.randint(2, 20)) for i in range(nr)]
+        lefts = [('F%d' % (nr + 1), r.randint(2, 20))] if r.random() < .6 else [('f', r.randint(2, 12))]
         net = sum(v for _, v in rights) - sum(v for _, v in lefts)
         if net == 0 or not isnice(abs(net) / m, 2): return None
         a = abs(net) / m
         direc = '오른쪽' if net > 0 else '왼쪽'
         assert abs(m * a - abs(net)) < 1e-9
-        tx = ', '.join('%s의 크기는 %d N' % (n.replace('f', '마찰력 f') if n == 'f' else n, v) for n, v in rights + lefts)
+        tx = ', '.join('%s의 크기는 %d N' % ('마찰력 f' if n == 'f' else n.replace('F', 'F' + sub('') ).replace('<sub></sub>','') if False else ('마찰력 f' if n == 'f' else 'F' + sub(n[1:])), v) for n, v in rights + lefts)
         body = P('그림은 수평면 위에서 질량 %d kg인 물체에 수평 방향의 힘이 작용하는 모습을 나타낸 것이다. 물체의 가속도의 크기와 방향을 옳게 짝지은 것은?' % m) + FIG(fig_forces(m, rights, lefts), '66%')
         other = '왼쪽' if direc == '오른쪽' else '오른쪽'
         tot = sum(v for _, v in rights) + sum(v for _, v in lefts)
@@ -320,7 +326,7 @@ def fma(r, k):
         cands = [Fraction(p) * q, Fraction(p) / q, Fraction(1) / (Fraction(p) * q), Fraction(p), Fraction(q), Fraction(p) + q, Fraction(q) - p if q > p else Fraction(p) - q]
         right = fr(res) + '배'
         wrongs = [fr(c) + '배' for c in cands if c > 0 and c != res]
-        return mc(body, right, wrongs, r=r, lv='중', fam='e', sort='shuf', steps=['a = F/m 이므로 a\' = (%s F) ÷ (%s m) = %s × a' % (fr(q), fr(p), fr(res))], core='가속도는 알짜힘에 비례하고 질량에 반비례한다.', point='비례·반비례 관계를 한꺼번에 적용한다.')
+        return mc(body, right, wrongs, r=r, lv='상', fam='e', sort='shuf', steps=['a = F/m 이므로 a\' = (%s F) ÷ (%s m) = %s × a' % (fr(q), fr(p), fr(res))], core='가속도는 알짜힘에 비례하고 질량에 반비례한다.', point='비례·반비례 관계를 한꺼번에 적용한다.')
     # f
     mode = r.choice(['mass', 'force'])
     if mode == 'mass':
@@ -340,7 +346,7 @@ def fma(r, k):
 def _aF_plot(lines, F0, xmax, ymax, ystep, pts, w=300, h=225):
     """lines: [(m, color, name)]. pts: 강조할 점 목록 [(x, y)]."""
     p = Plot(w, h, xmax, ymax, ml=46, mr=28, mt=18, mb=32)
-    p.axes('F (N)', 'a (m/s²)', ticks(xmax, 2 if xmax > 6 else 1), ticks(ymax, ystep), grid=True)
+    axes2(p, 'F (N)', 'a (m/s²)', ticks(xmax, 2 if xmax > 6 else 1), ticks(ymax, ystep), grid=True)
     for m, c, nm in lines:
         xe = min(xmax, m * ymax * .96)
         p.pl([(0, 0), (xe, xe / m)], c, 2.6)
@@ -366,7 +372,7 @@ def aF_graph(r, k):
         if m == 0.5 and ymax > 10: return None
         body = P('그림은 마찰이 없는 수평면에서 물체 A에 작용하는 알짜힘 F에 따른 가속도 a를 나타낸 그래프이다. 물체 A의 질량은?') + FIG(_aF_plot([(m, RD, 'A')], F0, xmax, ymax, step, [(F0, a0)]), '66%')
         wr = WR(m, [F0, a0, F0 * a0, F0 + a0, m * 2, m + 1], 'kg')
-        return mc(body, U(m, 'kg'), wr, r=r, lv='중', fam='a', steps=['그래프에서 F = %d N 일 때 a = %s m/s² 이다.' % (F0, num(a0)), '질량 m = F ÷ a = %d ÷ %s = %s kg (그래프 기울기의 역수)' % (F0, num(a0), num(m))], core='a-F 그래프의 기울기는 1/m 이므로 기울기가 클수록 질량이 작다.', point='그래프의 한 점에서 F와 a를 읽어 질량을 구한다.')
+        return mc(body, U(m, 'kg'), wr, r=r, lv='하', fam='a', steps=['그래프에서 F = %d N 일 때 a = %s m/s² 이다.' % (F0, num(a0)), '질량 m = F ÷ a = %d ÷ %s = %s kg (그래프 기울기의 역수)' % (F0, num(a0), num(m))], core='a-F 그래프의 기울기는 1/m 이므로 기울기가 클수록 질량이 작다.', point='그래프의 한 점에서 F와 a를 읽어 질량을 구한다.')
     if fam in ('b', 'e'):
         mA, mB = r.choice([(1, 2), (2, 4), (1, 4), (2, 1), (4, 2), (4, 1), (2, 5), (5, 2), (1, 5), (5, 1), (4, 5)]) if False else r.choice([(1, 2), (2, 4), (1, 4), (2, 1), (4, 2), (4, 1), (2.5, 5), (5, 2.5), (1, 5), (5, 1), (2, 5), (5, 2)])
         F0 = r.choice([2, 4, 6, 8, 10]) if True else 4
@@ -428,7 +434,7 @@ def aF_graph(r, k):
         step = {6: 1, 8: 2, 10: 2, 12: 2, 16: 4, 20: 4, 24: 4}[Fv]
         if abs(a0 / step - round(a0 / step)) > 1e-9: return None
         p = Plot(300, 225, mmax, ymax * 1.05, ml=46, mr=28, mt=18, mb=32)
-        p.axes('m (kg)', 'a (m/s²)', ticks(mmax, 1), ticks(ymax, step), grid=True)
+        axes2(p, 'm (kg)', 'a (m/s²)', ticks(mmax, 1), ticks(ymax, step), grid=True)
         pts = [(m_ / 10, Fv / (m_ / 10)) for m_ in range(10, 81, 2)]
         p.pl(pts, RD, 2.6)
         p.dash_to_axes(m0, a0); p.circ(p.px(m0), p.py(a0), 3.5, INK, INK)
@@ -452,7 +458,7 @@ def aF_graph(r, k):
     step = {4: 2, 6: 3, 8: 4, 10: 5, 12: 6}[Fv]
     if abs(a0 / step - round(a0 / step)) > 1e-9 and not isnice(a0): return None
     p = Plot(300, 225, xmax, ymax * 1.02, ml=46, mr=28, mt=18, mb=32)
-    p.axes('1/m (1/kg)', 'a (m/s²)', [0, 0.5, 1, 1.5, 2, 2.5], ticks(ymax, step), grid=True)
+    axes2(p, '1/m (1/kg)', 'a (m/s²)', [0, 0.5, 1, 1.5, 2, 2.5], ticks(ymax, step), grid=True)
     p.pl([(0, 0), (xmax * .96, xmax * .96 * Fv)], RD, 2.6)
     p.dash_to_axes(x0, a0); p.circ(p.px(x0), p.py(a0), 3.5, INK, INK)
     mm = 1 / x0
@@ -551,7 +557,7 @@ def two_blocks(r, k):
 # ================================================================= ph012
 @T('ph012')
 def atwood(r, k):
-    fam = r.choice(['a'] * 3 + ['b'] * 3 + ['c'] * 2 + ['d'] * 3 + ['e'] * 3 + ['f'] * 2)
+    fam = r.choice(['a'] * 3 + ['b'] * 3 + ['c'] * 1 + ['d'] * 2 + ['e'] * 3 + ['f'] * 2)
     for _ in range(40):
         m1, m2 = r.randint(2, 9), r.randint(1, 8)
         if m1 > m2 and isnice(G * (m1 - m2) / (m1 + m2)) and isnice(2 * G * m1 * m2 / (m1 + m2)): break
@@ -573,7 +579,7 @@ def atwood(r, k):
     if fam == 'a':
         body = P(base + '물체의 가속도의 크기는?' + gt) + fig
         wr = WR(a, [G * (m1 + m2) / (m1 - m2), G * m1 / (m1 + m2), G * (m1 - m2) / 2, G * (m1 - m2) / m1, G, a / 2], 'm/s²')
-        return mc(body, U(a, 'm/s²'), wr, r=r, lv='중', fam='a', steps=['무거운 물체(%d kg)는 내려가고 가벼운 물체(%d kg)는 올라가며 가속도의 크기는 같다.' % (m1, m2), 'a = (m%s - m%s)g ÷ (m%s + m%s) = (%d - %d) × 10 ÷ (%d + %d) = %s m/s²' % (sub(1), sub(2), sub(1), sub(2), m1, m2, m1, m2, num(a))], core='아트우드 장치에서 a = (m1 - m2)g/(m1 + m2) 이다.', point='두 물체를 한 덩어리로 보고 알짜힘(무게 차)을 전체 질량으로 나눈다.')
+        return mc(body, U(a, 'm/s²'), wr, r=r, lv='하', fam='a', steps=['무거운 물체(%d kg)는 내려가고 가벼운 물체(%d kg)는 올라가며 가속도의 크기는 같다.' % (m1, m2), 'a = (m%s - m%s)g ÷ (m%s + m%s) = (%d - %d) × 10 ÷ (%d + %d) = %s m/s²' % (sub(1), sub(2), sub(1), sub(2), m1, m2, m1, m2, num(a))], core='아트우드 장치에서 a = (m1 - m2)g/(m1 + m2) 이다.', point='두 물체를 한 덩어리로 보고 알짜힘(무게 차)을 전체 질량으로 나눈다.')
     if fam == 'b':
         body = P(base + '줄에 걸리는 장력의 크기는?' + gt) + fig
         wr = WR(T, [m1 * G, m2 * G, (m1 + m2) * G / 2, (m1 + m2) * G, T + 5, 2 * T], 'N')
@@ -584,7 +590,7 @@ def atwood(r, k):
         return mc(body, U(2 * T, 'N'), wr, r=r, lv='상', fam='c', steps=['장력 T = 2m%sm%sg ÷ (m%s + m%s) = %s N' % (sub(1), sub(2), sub(1), sub(2), num(T)), '도르래는 두 줄이 아래로 당기는 힘 2T 를 받으므로 2 × %s = %s N' % (num(T), num(2 * T)), '(두 물체의 무게 합 %d N 보다 작다.)' % ((m1 + m2) * G)], core='가벼운 도르래를 지탱하는 힘은 줄의 장력의 2배(2T)이며, 가속 중에는 두 물체 무게의 합보다 작다.', point='가속 운동 중에는 장력이 무게와 다르다는 점에 유의한다.')
     if fam == 'd':
         # 가속도가 주어지고 m2 구하기
-        body = P('질량 %d kg인 물체와 질량이 다른 물체 B를 가벼운 줄로 연결해 마찰이 없는 가벼운 도르래에 걸고 가만히 놓았더니 %d kg인 물체가 %s m/s²의 가속도로 내려갔다. B의 질량은? (단, 중력 가속도는 10 m/s²이다.)' % (m1, m1, num(a))) + FIG(fig_atwood('', '%d kg' % m1, 'B', '?').replace('<text', '<text'), '58%')
+        body = P('질량 %d kg인 물체 A와 질량이 다른 물체 B를 가벼운 줄로 연결해 마찰이 없는 가벼운 도르래에 걸고 가만히 놓았더니 %d kg인 물체 A가 %s m/s²의 가속도로 내려갔다. B의 질량은? (단, 중력 가속도는 10 m/s²이다.)' % (m1, m1, num(a))) + FIG(fig_atwood('A', '%d kg' % m1, 'B', '?'), '58%')
         wr = WR(m2, [m1 - a, m1 - m2 + 1, m1 / 2, m1 + 1, m2 + 1, m2 * 2], 'kg')
         return mc(body, U(m2, 'kg'), wr, r=r, lv='상', fam='d', steps=['무거운 물체와 B를 한 덩어리로 보면 (m%s - m%s)g = (m%s + m%s)a 이다.' % (sub(1), sub('B'), sub(1), sub('B')), '(%d - m%s) × 10 = (%d + m%s) × %s' % (m1, sub('B'), m1, sub('B'), num(a)), 'm%s = %d kg' % (sub('B'), m2)], core='(m1 - m2)g = (m1 + m2)a 에서 미지의 질량을 구할 수 있다.', point='가속도로부터 질량을 구하는 역방향 계산이다.')
     if fam == 'e':
@@ -594,7 +600,7 @@ def atwood(r, k):
             v = a * t
             body = P(base + '가만히 놓은 %d초 후 물체의 속력은?' % t + gt) + fig
             wr = WR(v, [G * t, a * t * t / 2, v / 2, v + 2, G * (m1 - m2) * t / m1], 'm/s')
-            return mc(body, U(v, 'm/s'), wr, r=r, lv='상', fam='e', steps=['a = (%d - %d) × 10 ÷ (%d + %d) = %s m/s²' % (m1, m2, m1, m2, num(a)), 'v = at = %s × %d = %s m/s' % (num(a), t, num(v))], core='가속도를 구한 뒤 정지에서 출발한 등가속도 운동 공식을 적용한다.', point='아트우드 장치의 가속도와 운동 공식을 연결한다.')
+            return mc(body, U(v, 'm/s'), wr, r=r, lv='중', fam='e', steps=['a = (%d - %d) × 10 ÷ (%d + %d) = %s m/s²' % (m1, m2, m1, m2, num(a)), 'v = at = %s × %d = %s m/s' % (num(a), t, num(v))], core='가속도를 구한 뒤 정지에서 출발한 등가속도 운동 공식을 적용한다.', point='아트우드 장치의 가속도와 운동 공식을 연결한다.')
         s = a * t * t / 2
         body = P(base + '가만히 놓은 %d초 동안 각 물체가 이동한 거리는?' % t + gt) + fig
         wr = WR(s, [G * t * t / 2, a * t, s * 2, s / 2, s + 1], 'm')
@@ -629,7 +635,7 @@ def table_hang(r, k):
     if fam == 'a':
         body = P(base + '물체의 가속도의 크기는?' + gt) + fig
         wr = WR(a, [G, G * m / M, G * M / (M + m), G * (M - m) / (M + m) if M > m else None, a / 2, a + 1], 'm/s²')
-        return mc(body, U(a, 'm/s²'), wr, r=r, lv='중', fam='a', steps=['A, B를 한 덩어리로 보면 알짜힘은 B의 무게 m%sg = %d N 이다.' % (sub('B'), m * G), 'a = m%sg ÷ (m%s + m%s) = %d ÷ (%d + %d) = %s m/s²' % (sub('B'), sub('A'), sub('B'), m * G, M, m, num(a))], core='책상 위 물체와 매달린 물체의 가속도는 a = mg/(M + m) 이다.', point='구동하는 힘은 매달린 물체의 무게뿐이고 질량은 둘의 합이다.')
+        return mc(body, U(a, 'm/s²'), wr, r=r, lv='하', fam='a', steps=['A, B를 한 덩어리로 보면 알짜힘은 B의 무게 m%sg = %d N 이다.' % (sub('B'), m * G), 'a = m%sg ÷ (m%s + m%s) = %d ÷ (%d + %d) = %s m/s²' % (sub('B'), sub('A'), sub('B'), m * G, M, m, num(a))], core='책상 위 물체와 매달린 물체의 가속도는 a = mg/(M + m) 이다.', point='구동하는 힘은 매달린 물체의 무게뿐이고 질량은 둘의 합이다.')
     if fam == 'b':
         body = P(base + '줄에 걸리는 장력의 크기는?' + gt) + fig
         wr = WR(T, [m * G, M * G, (M + m) * G, m * a if False else m * a, T / 2, T + 2], 'N')
@@ -676,7 +682,7 @@ def table_hang(r, k):
 # ================================================================= ph014
 @T('ph014')
 def incline_motion(r, k):
-    fam = r.choice(['a'] * 3 + ['b'] * 3 + ['c'] * 2 + ['d'] * 3 + ['e'] * 3 + ['f'] * 2)
+    fam = r.choice(['a'] * 3 + ['b'] * 3 + ['c'] * 1 + ['d'] * 3 + ['e'] * 3 + ['f'] * 2)
     if fam == 'a':
         th = r.choice([30, 37, 45, 53, 60])
         m = r.choice([1, 2, 3, 5, 10])
@@ -736,7 +742,7 @@ def incline_motion(r, k):
         if ask == 'a':
             body = P(base + '물체의 가속도의 크기는? ' + gt) + fig
             wr = WR(a, [m2 * G / (m1 + m2), (m2 * G - m1 * G) / (m1 + m2) if m2 > m1 else None, m1 * G * SINV[th] / (m1 + m2), a / 2, a + 1, G * SINV[th]], 'm/s²')
-            return mc(body, U(a, 'm/s²'), wr, r=r, lv='상', fam='d', steps=['A, B를 한 덩어리로 보면 알짜힘 = m%sg - m%sg sin%d° = %d - %s = %s N' % (sub('B'), sub('A'), th, m2 * G, num(w1), num(net)), 'a = %s ÷ (%d + %d) = %s m/s²' % (num(net), m1, m2, num(a))], core='빗면 위 물체와 매달린 물체의 가속도 a = (m2g - m1g sinθ)/(m1 + m2) 이다.', point='구동력은 B의 무게에서 A의 빗면 방향 성분을 뺀 값이다.')
+            return mc(body, U(a, 'm/s²'), wr, r=r, lv='중', fam='d', steps=['A, B를 한 덩어리로 보면 알짜힘 = m%sg - m%sg sin%d° = %d - %s = %s N' % (sub('B'), sub('A'), th, m2 * G, num(w1), num(net)), 'a = %s ÷ (%d + %d) = %s m/s²' % (num(net), m1, m2, num(a))], core='빗면 위 물체와 매달린 물체의 가속도 a = (m2g - m1g sinθ)/(m1 + m2) 이다.', point='구동력은 B의 무게에서 A의 빗면 방향 성분을 뺀 값이다.')
         body = P(base + '줄에 걸리는 장력의 크기는? ' + gt) + fig
         wr = WR(T, [m2 * G, m1 * G * SINV[th], m1 * a, (m1 + m2) * a, T + 5, T - 5 if T > 5 else T + 7], 'N')
         return mc(body, U(T, 'N'), wr, r=r, lv='상', fam='d', steps=['a = (%d - %s) ÷ (%d + %d) = %s m/s²' % (m2 * G, num(w1), m1, m2, num(a)), 'B : m%sg - T = m%sa 에서 T = %d × (10 - %s) = %s N' % (sub('B'), sub('B'), m2, num(a), num(T))], core='연결된 두 물체는 각각 운동 방정식을 세워 장력을 구한다.', point='가속도를 먼저 구한 뒤 한 물체에 F = ma 를 적용한다.')
@@ -787,11 +793,11 @@ def fig_two(t1, t2, hl):
     arc(f, x0, y0, 34, 0, t1); lab(f, x0 + 50, y0 - 7, '%d°' % t1, GR)
     arc(f, x1, y0, 34, 180 - t2, 180); lab(f, x1 - 50, y0 - 7, '%d°' % t2, GR)
     n = Fig._n
-    for (px, py, ang, nm, fill) in ((x0 + .55 * (xa - x0), y0 - .55 * h, -t1, 'A', '#cfe2f7'), (x1 + .55 * (xa - x1), y0 - .55 * h, t2, 'B', '#fbe3c3')):
+    for (px, py, ang, nm, fill) in ((x0 + .3 * (xa - x0), y0 - .3 * h, -t1, 'A', '#cfe2f7'), (x1 + .3 * (xa - x1), y0 - .3 * h, t2, 'B', '#fbe3c3')):
         f.o.append('<g transform="rotate(%s %s %s)"><rect x="%s" y="%s" width="26" height="20" fill="%s" stroke="%s" stroke-width="1.6"/><text x="%s" y="%s" font-size="12" text-anchor="middle" font-weight="700" fill="%s" font-family="%s">%s</text></g>' % (n(ang), n(px), n(py), n(px - 13), n(py - 20), fill, INK, n(px), n(py - 6), INK, FONT, nm))
     if hl:
         f.line(xa, y0 - h, xa, y0, GR, 1, '4 3')
-        lab(f, xa + 5, y0 - h / 2 + 4, 'h = %s m' % hl, GR, 'start')
+        lab(f, xa - 5, y0 - h * 0.75 + 4, 'h = %s m' % hl, GR, 'end')
     return f.svg()
 
 
@@ -877,17 +883,18 @@ def fig_skaters(mA, mB):
         f.line(cx, fy - 50, cx + (14 if cx == 90 else -14), fy - 46, INK, 2.2)
         lab(f, cx, fy - 88, '%s (%d kg)' % (nm, mm), INK, 'middle', 12.5)
     f.arrow(114, fy - 60, 150, fy - 60, RD, 2.8) if False else None
-    f.arrow(118, 40, 156, 40, BL, 2.8)
-    f.arrow(202, 24, 164, 24, RD, 2.8)
-    lab(f, 160, 14, '', INK)
+    f.arrow(118, 50, 202, 50, BL, 2.8)
+    f.arrow(202, 64, 118, 64, RD, 2.8)
+    lab(f, 160, 44, 'A가 B를 미는 힘', BL, 'middle', 11.5)
+    lab(f, 160, 80, 'B가 A를 미는 힘', RD, 'middle', 11.5)
     return f.svg()
 
 
 @T('ph015')
 def inertia_ar(r, k):
-    fam = r.choice(['a'] * 3 + ['b'] * 2 + ['c'] * 2 + ['d'] * 3 + ['e'] * 3)
+    fam = r.choice(['a'] * 3 + ['b'] * 1 + ['c'] * 3 + ['d'] * 2 + ['e'] * 3)
     if fam == 'a':
-        return _bogi15(r, GEN, '뉴턴의 운동 법칙에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', 'a', r.choice(['하', '중']))
+        return _bogi15(r, GEN, '뉴턴의 운동 법칙에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', 'a', r.choice(['하', '중', '중']))
     if fam == 'b':
         return _bogi15(r, INERT, '관성과 관성 법칙에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', 'b', '하')
     if fam == 'c':
@@ -924,7 +931,7 @@ def inertia_ar(r, k):
         ('g5', '두 사람이 서로 미는 힘은 작용 반작용 관계이다.', True, '서로 다른 두 물체 사이의 한 쌍의 힘이다.'),
     ]
     stm = pick3(S, r)
-    return bogi('그림과 같이 마찰이 없는 얼음판 위에 정지해 있던 두 스케이트 선수 A(질량 %d kg), B(질량 %d kg)가 서로 밀어 반대 방향으로 멀어졌다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?' % (mA, mB), stm, pre=FIG(fig_skaters(mA, mB), '62%'), r=r, ask='', lv='중', fam='e', core='서로 미는 두 힘은 작용 반작용이므로 크기가 같고, 가속도는 질량에 반비례한다.', point='같은 크기의 힘에서 질량이 작은 쪽의 가속도가 크다.')
+    return bogi('그림과 같이 마찰이 없는 얼음판 위에 정지해 있던 두 스케이트 선수 A(질량 %d kg), B(질량 %d kg)가 서로 밀어 반대 방향으로 멀어졌다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?' % (mA, mB), stm, pre=FIG(fig_skaters(mA, mB), '62%'), r=r, ask='', lv='상', fam='e', core='서로 미는 두 힘은 작용 반작용이므로 크기가 같고, 가속도는 질량에 반비례한다.', point='같은 크기의 힘에서 질량이 작은 쪽의 가속도가 크다.')
 
 
 # ================================================================= ph016
@@ -976,7 +983,7 @@ def elevator(r, k):
         assert abs(N - m * G - m * ad * a) < 1e-9
         body = P('그림은 질량 %d kg인 사람이 엘리베이터 안의 체중계(저울) 위에 서 있는 모습을 나타낸 것이다. 엘리베이터가 %s하는 동안 가속도의 크기가 %s m/s²일 때, 체중계가 가리키는 눈금(사람이 체중계를 누르는 힘)의 크기는? (단, 중력 가속도는 10 m/s²이다.)' % (m, txt, num(a))) + FIG(fig_elev(vd == 'up', '', '%d kg' % m), '50%')
         wr = WR(N, [m * G, m * (G - ad * a), m * a, m * (G + a) if ad < 0 else m * (G - a), m * G + a, N + m], 'N')
-        return mc(body, U(N, 'N'), wr, r=r, lv='중', fam='a', steps=['%s하므로 가속도의 방향은 %s이다.' % (txt, '위쪽' if ad > 0 else '아래쪽'), '위쪽을 +로 하면 N - mg = ma 에서 N = m(g %s a) = %d × (10 %s %s)' % ('+' if ad > 0 else '-', m, '+' if ad > 0 else '-', num(a)), 'N = %s N' % num(N)], core='엘리베이터 안의 저울 눈금 N = m(g ± a): 가속도가 위쪽이면 +, 아래쪽이면 -.', point='속력 변화와 운동 방향으로 가속도 방향을 먼저 정한다.')
+        return mc(body, U(N, 'N'), wr, r=r, lv='하', fam='a', steps=['%s하므로 가속도의 방향은 %s이다.' % (txt, '위쪽' if ad > 0 else '아래쪽'), '위쪽을 +로 하면 N - mg = ma 에서 N = m(g %s a) = %d × (10 %s %s)' % ('+' if ad > 0 else '-', m, '+' if ad > 0 else '-', num(a)), 'N = %s N' % num(N)], core='엘리베이터 안의 저울 눈금 N = m(g ± a): 가속도가 위쪽이면 +, 아래쪽이면 -.', point='속력 변화와 운동 방향으로 가속도 방향을 먼저 정한다.')
     if fam == 'c':
         up = r.random() < .5
         N = m * (G + a) if up else m * (G - a)
@@ -1006,7 +1013,7 @@ def elevator(r, k):
         t3 = t2 + td
         if t3 > 14: return None
         p = Plot(300, 200, t3 + 1, v1 + 1, ml=44, mr=26, mt=20, mb=32)
-        p.axes('t (s)', 'v (m/s)', [0, 2, 4, 6, 8, 10, 12, 14][:int((t3 + 1) // 2) + 1], ticks(v1, 1 if v1 <= 4 else 2), grid=True)
+        axes2(p, 't (s)', 'v (m/s)', [0, 2, 4, 6, 8, 10, 12, 14][:int((t3 + 1) // 2) + 1], ticks(v1, 1 if v1 <= 4 else 2), grid=True)
         p.pl([(0, 0), (t1, v1), (t2, v1), (t3, 0)], BL, 2.8)
         for (tx_, tl) in ((t1 / 2, '(가)'), ((t1 + t2) / 2, '(나)'), ((t2 + t3) / 2, '(다)')):
             vy = v1 / 2 if tl != '(나)' else v1
@@ -1076,7 +1083,7 @@ def friction(r, k):
         if F is None: return None
         body = P('그림과 같이 거친 수평면 위에 질량 %d kg인 물체가 놓여 있다. 물체와 수평면 사이의 정지 마찰 계수는 %s이다. 물체를 수평 방향으로 %d N의 힘으로 당겼지만 물체가 움직이지 않았다. 이때 물체에 작용하는 마찰력의 크기는? (단, 중력 가속도는 10 m/s²이다.)' % (m, num(mus), F)) + FIG(fig_pull_floor('%d kg' % m), '62%')
         wr = WR(F, [fmax, mus * F, m * G, fmax - F if fmax - F != F else None, F + 5, F / 2], 'N')
-        return mc(body, U(F, 'N'), wr, r=r, lv='중', fam='a', steps=['최대 정지 마찰력 = μs·mg = %s × %d × 10 = %s N 이다.' % (num(mus), m, num(fmax)), '당기는 힘 %d N 은 최대 정지 마찰력보다 작아 물체가 정지해 있다.' % F, '정지해 있으므로 마찰력은 당기는 힘과 같은 %d N 이다.' % F], core='정지한 물체의 정지 마찰력은 외력과 크기가 같고 최댓값 μs·N 을 넘지 못한다.', point='정지 상태에서는 μN 이 아니라 외력과 같은 값이다.')
+        return mc(body, U(F, 'N'), wr, r=r, lv='하', fam='a', steps=['최대 정지 마찰력 = μs·mg = %s × %d × 10 = %s N 이다.' % (num(mus), m, num(fmax)), '당기는 힘 %d N 은 최대 정지 마찰력보다 작아 물체가 정지해 있다.' % F, '정지해 있으므로 마찰력은 당기는 힘과 같은 %d N 이다.' % F], core='정지한 물체의 정지 마찰력은 외력과 크기가 같고 최댓값 μs·N 을 넘지 못한다.', point='정지 상태에서는 μN 이 아니라 외력과 같은 값이다.')
     if fam == 'b':
         m = r.choice([2, 4, 5, 10, 20])
         muk = r.choice([0.1, 0.2, 0.25, 0.3, 0.4, 0.5])
@@ -1114,13 +1121,14 @@ def friction(r, k):
         ymax = math.ceil(fs / 2) * 2 + 2
         p = Plot(300, 215, xmax, ymax, ml=46, mr=26, mt=18, mb=32)
         stx = 2 if xmax <= 24 else 4
-        p.axes('F (N)', 'f (N)', ticks(xmax, stx), ticks(ymax, 2 if ymax <= 16 else 4), grid=True)
+        stp = next(x for x in (2, 4, 5, 10, 20) if xmax / x <= 8)
+        xt = [t for t in ticks(xmax, stp) if abs(t - fs) > 0.45 * stp] + [fs]
+        axes2(p, 'F (N)', 'f (N)', sorted(xt), sorted({fs, fk}), grid=True)
         p.pl([(0, 0), (fs, fs)], RD, 2.8)
         p.pl([(fs, fs), (fs, fk)], RD, 2.0, '4 3')
         p.pl([(fs, fk), (xmax * .95, fk)], RD, 2.8)
         p.dash_to_axes(fs, fs); p.dash_to_axes(xmax * .95, fk) if False else None
         p.line(p.px(0), p.py(fk), p.px(fs), p.py(fk), GR, 1, '4 3')
-        lab(p, p.px(0) - 7, p.py(fk) + 4, num(fk), GR, 'end', 11.5) if fk not in ticks(ymax, 2) else None
         p.circ(p.px(fs), p.py(fs), 3.5, INK, INK)
         fig = FIG(p.svg(), '66%')
         base = '그림은 거친 수평면 위에 놓인 질량 %d kg인 물체를 수평 방향의 힘 F로 당길 때 물체에 작용하는 마찰력 f를 F에 따라 나타낸 것이다. ' % m
@@ -1211,7 +1219,7 @@ def eq_analysis(r, k):
             ('g5', '각 실험에서 (알짜힘) × (질량)은 가속도와 같다.', False, 'a = F/m 이므로 (알짜힘) ÷ (질량)이 가속도이다.'),
         ]
         stm = pick3(S, r)
-        return bogi('표는 마찰이 없는 수평면에서 운동하는 물체 Ⅰ, Ⅱ, Ⅲ에 대한 질량, 알짜힘, 가속도를 나타낸 것이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', stm, pre=_tbl(rows, ['실험', '질량(kg)', '알짜힘(N)', '가속도(m/s²)']), r=r, ask='', lv='중', fam='a', core='각 실험에서 F = ma 가 성립하므로 표의 두 값으로 나머지 값을 구한다.', point='표의 값으로 F = ma 를 적용하고 선택지를 하나씩 검증한다.')
+        return bogi('표는 마찰이 없는 수평면에서 운동하는 물체 Ⅰ, Ⅱ, Ⅲ에 대한 질량, 알짜힘, 가속도를 나타낸 것이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', stm, pre=_tbl(rows, ['실험', '질량(kg)', '알짜힘(N)', '가속도(m/s²)']), r=r, ask='', lv='하', fam='a', core='각 실험에서 F = ma 가 성립하므로 표의 두 값으로 나머지 값을 구한다.', point='표의 값으로 F = ma 를 적용하고 선택지를 하나씩 검증한다.')
     if fam == 'b':
         m1, m2, a = r.randint(1, 6), r.randint(1, 6), r.randint(1, 5)
         F = (m1 + m2) * a
