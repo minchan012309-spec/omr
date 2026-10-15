@@ -72,7 +72,7 @@ const BKCSS=`
 .bkdoc .hd2 b{color:#111;font-weight:600}.bkdoc .hd2 .lb2{color:var(--pd);font-weight:600}
 .bkdoc .hd2 .lb2:before,.bkdoc .fb .lab:before{content:"";display:inline-block;width:1.6mm;height:1.6mm;border-radius:50%;background:var(--y);margin-right:1.6mm;vertical-align:.05mm}
 .bkdoc .fb{position:absolute;left:12mm;right:12mm;bottom:7mm;height:18mm;border-top:.25mm solid var(--line);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:9.5px;color:#555;line-height:1}
-.bkdoc .fb .pn{color:var(--p);font-weight:700;font-size:13.5px;min-width:12mm}.bkdoc .fb .pn.r{text-align:right}.bkdoc .fb>:first-child{justify-self:start}.bkdoc .fb>:last-child{justify-self:end}
+.bkdoc .fb .pn{color:var(--p);font-weight:700;font-size:13.5px;min-width:12mm}.bkdoc .fb .pn.r{text-align:right}.bkdoc .fb>:first-child{justify-self:start}.bkdoc .fb>:last-child{justify-self:end}.bkdoc .fq{position:absolute;bottom:26mm;width:9.5mm;height:9.5mm;z-index:2}.bkdoc .fq.o-l{left:12mm}.bkdoc .fq.o-r{right:12mm}.bkdoc .fq .qq{width:100%;height:100%;border:0;padding:0;background:none}.bkdoc .fq svg{width:100%;height:100%;display:block}
 .bkdoc .fb .qrb{display:flex;align-items:center;gap:2.8mm}
 .bkdoc .fb .qt{font-size:9.2px;line-height:1.45;color:#444}
 .bkdoc .fb .qq{width:11mm;height:11mm;border:0;padding:0;background:none;display:flex;align-items:center;justify-content:center}.bkdoc .fb .qq svg{width:100%;height:100%;display:block}
@@ -536,14 +536,16 @@ function bkPlanCustom(id,d){
 const BKCAP=BK_BODY;
 function bkBase(){if(window.BKBASE)return window.BKBASE;return ((typeof CF!=='undefined'&&CF&&CF.pub)||location.href).split('#')[0].split('?')[0]}
 function bkUrl(plan,p){return bkBase()+'#bk='+plan.id+':'+(plan.kind==='m'?'all':p.n)}
+function bkQr(plan,p){return !!((p.codes&&p.codes.length)||(plan.kind==='m'&&p.k==='ak'))}
 function bkHd2(plan,p){const even=p.n%2===0;const L='<span>'+esc(SNAME[SUBJ])+' · <b>'+esc(plan.short)+'</b></span>';const R='<span class="lb2">'+(p.sub&&p.sub.k?esc(p.sub.k)+' · ':'')+esc(p.label||'')+'</span>';
  return '<div class="hd2">'+(even?R+L:L+R)+'</div>'}
-function bkFb(plan,p){const even=p.n%2===0,qr=(p.codes&&p.codes.length)||(plan.kind==='m'&&p.k==='ak');
+function bkFb(plan,p){const even=p.n%2===0;
  const pn='<span class="pn'+(even?'':' r')+'">'+p.n+'</span>';
  const lab='<span class="lab">'+esc(p.label||plan.short)+'</span>';
- const mid=qr?'<div class="qrb"><div class="qq">'+qrSvg(bkUrl(plan,p))+'</div></div>':'<i></i>';
- // 양면 인쇄: 쪽 번호는 바깥쪽 모서리(짝수쪽은 왼쪽 끝, 홀수쪽은 오른쪽 끝), QR은 가운데, 단원명은 안쪽
- return '<div class="fb">'+(even?pn+mid+lab:lab+mid+pn)+'</div>'}
+ const mid='<i></i>';
+ // 양면 인쇄: 쪽 번호는 바깥쪽 모서리(짝수쪽은 왼쪽 끝, 홀수쪽은 오른쪽 끝), QR은 본문 아래 바깥쪽 모서리(.fq), 단원명은 안쪽
+ const q=bkQr(plan,p)?'<div class="fq '+(even?'o-l':'o-r')+'"><div class="qq">'+qrSvg(bkUrl(plan,p))+'</div></div>':'';
+ return q+'<div class="fb">'+(even?pn+mid+lab:lab+mid+pn)+'</div>'}
 function bkHd(l,r,b){return '<div class="hd"><span class="t1">'+l+'</span><span class="t2">'+r+'<b>'+b+'</b></span></div>'}
 function bkFt(plan,p,o){o=o||{};const qr=p.codes&&p.codes.length;
  return '<div class="ft"><span class="fl">'+(o.left||'Solvi · '+esc(plan.title))+'</span><span class="pn">'+(o.pn!=null?o.pn:p.n)+'</span>'+
