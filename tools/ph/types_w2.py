@@ -572,16 +572,16 @@ def ph093(r, k):
         return bogi('다음은 여러 가지 파동에 대한 설명이다. 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', stm, ask='', lv='중', fam='b', r=r,
                     core='소리·초음파·P파·용수철 밀기 파동은 종파, 빛·전파·S파·줄파동은 횡파이다.', point='여러 파동을 횡파와 종파로 분류한다.')
     if form == 'panel':
-        n = 3
+        n = r.choice([3, 4])
         kinds = [r.choice(['T', 'L']) for _ in range(n)]
         ask = r.choice(['T', 'L'])
         S = [i for i in range(n) if kinds[i] == ask]
         if not S: return None
-        names = '가나다'
+        names = '가나다라'
         right = ', '.join(names[i] for i in S)
         allc = [', '.join(names[i] for i in c) for m in (1, 2, 3) for c in itertools.combinations(range(n), m)]
         fig = FIG(tl_panels(kinds), '78%')
-        body = P('그림 (가)~(다)는 서로 다른 세 파동이 한 방향으로 진행할 때, 매질의 한 점이 진동하는 방향(빨간 화살표)과 파동의 진행 방향(파란 화살표)을 나타낸 것이다. %s인 것만을 있는 대로 고른 것은?' % ('횡파' if ask == 'T' else '종파')) + fig
+        body = P('그림 (가)~(%s)는 서로 다른 %s 파동이 한 방향으로 진행할 때, 매질의 한 점이 진동하는 방향(빨간 화살표)과 파동의 진행 방향(파란 화살표)을 나타낸 것이다. %s인 것만을 있는 대로 고른 것은?' % (names[n - 1], '세' if n == 3 else '네', '횡파' if ask == 'T' else '종파')) + fig
         wr = [c for c in allc if c != right]
         return mc(body, right, wr, r=r, lv='하', fam='c', sort='shuf',
                   steps=[', '.join('(%s): 진동 방향이 진행 방향에 %s → %s' % (names[i], '수직' if kinds[i] == 'T' else '나란', '횡파' if kinds[i] == 'T' else '종파') for i in range(n)),
@@ -919,7 +919,7 @@ def ph096(r, k):
     if form == 'bogi':
         s = pick3(r, _B96)
         if not s: return None
-        return bogi('줄에서 펄스가 끝점에서 반사될 때에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', s, ask='', lv='하', fam='d', r=r,
+        return bogi('줄에서 펄스가 끝점에서 반사될 때에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', s, ask='', lv=r.choice(['하', '중']), fam='d', r=r,
                     core='고정단 반사는 위상이 반대로 바뀌고 자유단 반사는 위상이 그대로이며, 반사 후에도 속력과 모양은 같다.', point='고정단과 자유단의 반사를 구분한다.')
     kind = r.choice(['fixed', 'free'])
     kname = '고정단' if kind == 'fixed' else '자유단'
@@ -979,7 +979,7 @@ def ph096(r, k):
     body = P(base + '이 펄스가 벽에서 반사되어 되돌아올 때, 반사된 펄스의 꼭대기가 x = %d cm 에 도달하는 시각은?' % x) + fig
     ws = [wall - c0, x - c0, t + 2, t - 2, 2 * wall - x - c0 + 2 if False else (wall - c0) * 2, t * 2]
     assert t == (2 * wall - x) - c0
-    return mc(body, '%d s' % t, ['%d s' % w for w in ws], r=r, lv='하', fam='c',
+    return mc(body, '%d s' % t, ['%d s' % w for w in ws], r=r, lv='중', fam='c',
               steps=['펄스의 꼭대기는 x = %d cm 에서 벽(x = %d cm)까지 %d cm 진행한 뒤 x = %d cm 까지 %d cm 되돌아온다.' % (c0, wall, wall - c0, x, wall - x), '총 이동 거리 %d cm 를 속력 1 cm/s 로 진행하므로 %d s 이다.' % (t, t)],
               core='반사 펄스의 속력은 입사 펄스와 같다.', point='벽까지의 왕복 거리로 시간을 구한다.')
 

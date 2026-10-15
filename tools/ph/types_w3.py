@@ -62,7 +62,7 @@ def wf(shape, A, T, phase=0.0):
     return lambda t: A * (1 if math.sin(2 * math.pi * t / T + phase) >= 0 else -1)
 
 
-def tr_fig(traces, nx=16, cell=14, H=3, w=330, xlab='t (ms)', ytick=True, title=None):
+def tr_fig(traces, nx=16, cell=14, H=3, w=330, xlab='t (ms)', ytick=True, title=None, u=1):
     """여러 개의 소리 파형(오실로스코프 모양). traces: [(이름, 모양, 진폭(칸), 주기(칸), 위상, 색)]. 세로·가로 한 칸은 1 단위."""
     n = len(traces)
     band = 2 * H * cell + 8
@@ -90,7 +90,7 @@ def tr_fig(traces, nx=16, cell=14, H=3, w=330, xlab='t (ms)', ytick=True, title=
                 f.text(ox - 4, cy - j * cell + 4, str(j), 10.5, 'end', c=GR) if j == H else None
     yb = n * band + 16
     for c in range(0, nx + 1, 2):
-        f.text(ox + c * cell, yb + 14, str(c), 11.5, 'middle', c=GR)
+        f.text(ox + c * cell, yb + 14, fn(c * u), 11.5, 'middle', c=GR)
     f.text(ox + nx * cell + 8, yb + 14, xlab, 12, 'start', True, GR)
     return f.svg()
 
@@ -247,41 +247,54 @@ def ph098(r, k):
         if not s: return None
         return bogi('소리의 성질과 세 요소에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', s, ask='', lv='하', fam='a', r=r,
                     core='소리는 매질이 필요한 종파이며, 높낮이는 진동수, 세기는 진폭, 음색은 파형으로 결정된다.', point='소리의 세 요소와 결정 요인을 구분한다.')
+    u = r.choice([0.5, 1, 2, 2.5, 4, 5])
+    ut = fn(u)
     if form in ('cmp', 'rat'):
-        TA, TB = r.sample([2, 4, 8], 2) if r.random() < .8 else (4, 4)
+        nmset = r.choice([('A', 'B'), ('가', '나'), ('P', 'Q'), ('갑', '을')])
+        nA, nB = nmset
+        TA, TB = r.sample([2, 4, 5, 8, 10], 2) if r.random() < .8 else (4, 4)
         aA, aB = r.sample([1, 1.5, 2, 2.5, 3], 2) if r.random() < .8 else (2, 2)
         if (TA, aA) == (TB, aB): return None
-        tr = [('A', 'sin', aA, TA, 0.0, BL), ('B', 'sin', aB, TB, 0.0, RD)]
-        fig = FIG(tr_fig(tr, nx=16, H=3), '72%')
-        base = '그림은 소리 A, B를 오실로스코프로 측정한 파형이다. 가로 한 칸은 1 ms, 세로 한 칸은 같은 소리 세기 단위이며 두 파형의 눈금은 같다. '
-        pitch = 'A' if TA < TB else ('B' if TB < TA else '같다')
-        loud = 'A' if aA > aB else ('B' if aB > aA else '같다')
+        tr = [(nA, 'sin', aA, TA, 0.0, BL), (nB, 'sin', aB, TB, 0.0, RD)]
+        fig = FIG(tr_fig(tr, nx=16, H=3, u=u), '72%')
+        base = '그림은 소리 %s, %s를 오실로스코프로 측정한 파형이다. 가로 한 칸은 %s ms이고 세로 한 칸은 같은 소리 세기 단위이며 두 파형의 눈금은 같다. ' % (nA, nB, ut)
+        pitch = nA if TA < TB else (nB if TB < TA else '같다')
+        loud = nA if aA > aB else (nB if aB > aA else '같다')
         if form == 'cmp':
+            ask = r.choice(['cmp', 'cmp', 'fA'])
+            if ask == 'fA':
+                fA = Fr(1000) / (TA * Fr(str(u)))
+                if not term(fA): return None
+                body = P(base + '소리 %s의 진동수는?' % nA) + fig
+                wr = [fA * 2, fA / 2, Fr(1000) / (TB * Fr(str(u))), Fr(TA) * Fr(str(u)), fA * Fr(str(u)), fA * 4]
+                return mc(body, '%s Hz' % fn(fA), ['%s Hz' % fn(w) for w in wr], r=r, lv='중', fam='b', sort='shuf',
+                          steps=['그래프에서 %s의 주기는 %d칸 × %s ms = %s ms 이다.' % (nA, TA, ut, fn(TA * Fr(str(u)))), '진동수 f = 1/T = 1000/%s = %s Hz 이다.' % (fn(TA * Fr(str(u))), fn(fA))],
+                          core='진동수는 주기의 역수이다.', point='파형에서 주기를 읽어 진동수를 구한다.')
             body = P(base + '두 소리를 비교한 설명으로 옳은 것은?') + fig
             def txt(p, l):
                 return '높은 소리: %s, 큰 소리: %s' % (p if p != '같다' else '높이 같음', l if l != '같다' else '크기 같음')
             right = txt(pitch, loud)
-            allc = [txt(p, l) for p in ('A', 'B', '같다') for l in ('A', 'B', '같다')]
+            allc = [txt(p, l) for p in (nA, nB, '같다') for l in (nA, nB, '같다')]
             wr = [c for c in allc if c != right]
             return mc(body, right, wr, r=r, lv='중', fam='b', sort='shuf',
-                      steps=['주기: T%s = %d ms, T%s = %d ms → 주기가 짧을수록 진동수가 커서 높은 소리이므로 높은 소리는 %s 이다.' % (sub('A'), TA, sub('B'), TB, pitch),
-                             '진폭: A = %s 칸, B = %s 칸 → 진폭이 클수록 큰 소리이므로 큰 소리는 %s 이다.' % (fn(aA), fn(aB), loud)],
+                      steps=['주기: T%s = %d칸, T%s = %d칸 → 주기가 짧을수록 진동수가 커서 높은 소리이므로 높은 소리는 %s 이다.' % (nA, TA, nB, TB, pitch),
+                             '진폭: %s = %s 칸, %s = %s 칸 → 진폭이 클수록 큰 소리이므로 큰 소리는 %s 이다.' % (nA, fn(aA), nB, fn(aB), loud)],
                       core='파형의 주기가 짧을수록 높은 소리, 진폭이 클수록 큰 소리이다.', point='파형에서 주기(높이)와 진폭(세기)을 읽는다.')
         if TA == TB: return None
         right = ratio_str(Fr(1, TA), Fr(1, TB))
-        body = P(base + '소리 A, B의 진동수의 비 f%s : f%s는?' % (sub('A'), sub('B'))) + fig
+        body = P(base + '소리 %s, %s의 진동수의 비 f%s : f%s는?' % (nA, nB, sub(nA), sub(nB))) + fig
         wr = [ratio_str(TA, TB), ratio_str(Fr(str(aA)), Fr(str(aB))), ratio_str(Fr(str(aB)), Fr(str(aA))), '1 : 1', ratio_str(TA * Fr(str(aA)), TB * Fr(str(aB)))]
         return mc(body, right, wr, r=r, lv='하', fam='b', sort='shuf',
-                  steps=['T%s = %d ms, T%s = %d ms 이다.' % (sub('A'), TA, sub('B'), TB), 'f = 1/T 이므로 f%s : f%s = 1/%d : 1/%d = %s 이다.' % (sub('A'), sub('B'), TA, TB, right)],
+                  steps=['T%s = %d칸, T%s = %d칸 이다.' % (nA, TA, nB, TB), 'f = 1/T 이므로 f%s : f%s = 1/%d : 1/%d = %s 이다.' % (nA, nB, TA, TB, right)],
                   core='진동수는 주기의 역수이다.', point='파형에서 주기를 읽어 진동수의 비를 구한다.')
     # shape: 세 파형의 음색/높이 비교
     shapes = ['sin', 'tri', 'sq']
-    names = 'ABC'
+    names = r.choice(['ABC', '가나다', 'PQR'])
     cols = [BL, RD, GN]
     pairs = list(itertools.combinations(range(3), 2))
     ask = r.choice(['samepitch', 'sametone'])
     for _try in range(60):
-        items = [(r.choice(shapes), r.choice([2, 4, 8])) for _ in range(3)]
+        items = [(r.choice(shapes), r.choice([2, 4, 5, 8, 10])) for _ in range(3)]
         if ask == 'samepitch':
             good = [p for p in pairs if items[p[0]][1] == items[p[1]][1] and items[p[0]][0] != items[p[1]][0]]
         else:
@@ -296,9 +309,9 @@ def ph098(r, k):
     else:
         txt = '음색이 같고 높이가 다른 두 소리'
         why = lambda p: '파형이 같아 음색이 같고 주기가 달라 높이가 다르다.'
-    fig = FIG(tr_fig(tr, nx=16, H=2), '72%')
+    fig = FIG(tr_fig(tr, nx=20, H=2, u=u), '72%')
     pn = lambda p: '%s와 %s' % (names[p[0]], names[p[1]])
-    base = '그림은 세 소리 A, B, C를 오실로스코프로 측정한 파형이다. 가로 한 칸은 1 ms이고, 세 소리의 진폭은 같다. '
+    base = '그림은 세 소리 %s, %s, %s를 오실로스코프로 측정한 파형이다. 가로 한 칸은 %s ms이고, 세 소리의 진폭은 같다. ' % (names[0], names[1], names[2], ut)
     if good:
         right = pn(good[0])
         wr = [pn(p) for p in pairs if p != good[0]] + ['세 소리 모두', '해당하는 것 없음']
@@ -306,7 +319,7 @@ def ph098(r, k):
         right = '해당하는 것 없음'
         wr = [pn(p) for p in pairs] + ['세 소리 모두']
     body = P(base + '%s은?' % txt) + fig
-    stp = ['주기와 파형: ' + ', '.join('%s: %s파, T = %d ms' % (names[i], {'sin': '사인', 'tri': '삼각', 'sq': '사각'}[items[i][0]], items[i][1]) for i in range(3)) + ' 이다.']
+    stp = ['주기와 파형: ' + ', '.join('%s: %s파, T = %d칸' % (names[i], {'sin': '사인', 'tri': '삼각', 'sq': '사각'}[items[i][0]], items[i][1]) for i in range(3)) + ' 이다.']
     stp.append((pn(good[0]) + '는 ' + why(good[0])) if good else '조건을 만족하는 짝이 없다.')
     return mc(body, right, wr, r=r, lv='상' if ask == 'sametone' else '중', fam='c', sort='shuf', steps=stp,
               core='높이는 주기(진동수), 음색은 파형으로 결정되며 세기는 진폭으로 결정된다.', point='파형에서 주기와 모양을 구분해 읽는다.')
@@ -364,7 +377,7 @@ def ph099(r, k):
                   steps=['빛은 매우 빠르므로 도달 시간을 무시하면 소리가 이동한 시간이 %d s 이다.' % t, '거리 = vt = 340 × %d = %d m 이다. (왕복이 아닌 편도이다)' % (t, d)],
                   core='천둥소리는 편도이므로 거리 = vt 이다.', point='메아리(왕복)와 천둥(편도)을 구분한다.')
     if form == 'lam':
-        f = r.choice([34 * i for i in range(1, 60)] + [170, 340, 425, 500, 680, 850, 1020, 1700])
+        f = r.choice([34 * i for i in range(1, 60)] + [170, 340, 425, 500, 680, 850, 1020, 1700, 272, 136, 68, 200, 400, 1000, 2000])
         lam = Fr(V, f)
         if not term(lam): return None
         body = P('진동수가 %d Hz인 소리가 공기 중(소리의 속력 340 m/s)에서 진행한다. 이 소리의 파장은?' % f)
@@ -480,8 +493,9 @@ def ph100(r, k):
         else:
             sent = '진동수 %d Hz인 소리를 내는 음원이 %s %d m/s의 속력으로 움직이고, 관찰자는 %s %d m/s의 속력으로 움직인다.' % (f, '관찰자 쪽으로' if ss == 1 else '관찰자에게서 멀어지는 방향으로', vs, '음원 쪽으로' if so == 1 else '음원에게서 멀어지는 방향으로', vo)
         body = P(sent.replace('움직이고 관찰자가 정지해 있다.', '움직이고 있고, 관찰자는 정지해 있다.') + ' 소리의 속력이 340 m/s일 때, 관찰자가 측정하는 소리의 진동수는?')
-        cands = [dop(f, -so, vo, -ss, vs), dop(f, so, vo, -ss, vs), dop(f, -so, vo, ss, vs), Fr(f) * (V + so * vo) / V, Fr(f) * V / (V - ss * vs) if False else Fr(f) * V / (V + ss * vs), Fr(f)]
-        cands = [c for c in cands if c.denominator == 1 or True]
+        cands = [dop(f, -so, vo, -ss, vs), dop(f, so, vo, -ss, vs), dop(f, -so, vo, ss, vs), Fr(f) * (V + so * vo) / V, Fr(f) * V / (V + ss * vs),
+                 Fr(f) * (V + ss * vs) / V, Fr(f) * (V - ss * vs) / V, Fr(f) * (V - so * vo) / V, Fr(f) * V / (V - so * vo) if so else Fr(f) * 2 - fp, Fr(f) * V / (V + so * vo) if so else Fr(f) * 2 - fp, Fr(f) * 2 - fp, Fr(f)]
+        cands = [c for c in cands if c > 0]
         right = '%s Hz' % fn(fp)
         wr = ['%s Hz' % fn(c) for c in cands if c != fp]
         # 풀이
@@ -843,7 +857,7 @@ _B103 = [
 
 @T('ph103')
 def ph103(r, k):
-    form = r.choice(['calc', 'calc', 'exp', 'fig', 'fig', 'ratio', 'bogi'])
+    form = r.choice(['calc', 'exp', 'exp', 'exp', 'fig', 'fig', 'ratio', 'bogi'])
     if form == 'bogi':
         s = pick3(r, _B103)
         if not s: return None
@@ -1076,7 +1090,7 @@ def ph104(r, k):
 # ================================================================== ph105 정상파 그림 해석
 @T('ph105')
 def ph105(r, k):
-    form = r.choice(['str', 'str', 'two', 'two', 'pipe', 'cnt', 'cnt'])
+    form = r.choice(['str', 'str', 'two', 'two', 'pipe', 'pipe', 'cnt', 'cnt', 'cnt'])
     if form == 'str':
         n = r.choice([2, 3, 4, 5, 6])
         L = Fr(str(r.choice([0.6, 0.9, 1.2, 1.5, 1.8, 2.4, 3])))
@@ -1137,10 +1151,10 @@ def ph105(r, k):
     if form == 'pipe':
         kind = 'closed'
         n = r.choice([1, 2, 3])
-        L = Fr(str(r.choice([0.17, 0.34, 0.5, 0.68, 0.85, 1.7])))
+        L = Fr(str(r.choice([0.17, 0.2, 0.25, 0.34, 0.4, 0.5, 0.68, 0.85, 1, 1.7, 2, 2.5, 3.4, 4])))
         lam = 4 * L / (2 * n - 1)
         f = Fr(V) / lam
-        if not term(f) or not term(lam): return None
+        if f.denominator != 1 or not term(lam): return None
         fig = FIG(pipe_fig('closed', n, 'L = %s m' % fn(L)), '70%')
         base = '그림은 한쪽 끝이 막힌 관 속에 생긴 정상파(공기 입자의 변위)를 나타낸 것이다. 관의 길이는 %s m이고 소리의 속력은 340 m/s이다. ' % fn(L)
         ask = r.choice(['lam', 'f'])
@@ -1156,14 +1170,33 @@ def ph105(r, k):
                   steps=['그림에서 L = %s × λ/4 이므로 λ = 4L/%d = %s m 이다.' % (2 * n - 1, 2 * n - 1, fn(lam)), 'f = v/λ = 340 / %s = %s Hz 이다.' % (fn(lam), fn(f))],
                   core='닫힌 관: f = (2n - 1)v/4L.', point='그림으로 파장을 구해 진동수를 계산한다.')
     # cnt: 마디와 배의 수 / 인접 공명
-    if r.random() < 0.5:
+    if r.random() < 0.6:
         n = r.choice([2, 3, 4, 5, 6])
-        fig = FIG(string_fig(n, labels=True), '70%')
-        body = P('그림은 양 끝이 고정된 줄에 생긴 정상파를 나타낸 것이다. 빨간 점은 마디, 초록 점은 배의 위치이다. 이 정상파의 마디(양 끝 포함) 수와 배의 수를 옳게 짝지은 것은?') + fig
-        right = '마디 %d개, 배 %d개' % (n + 1, n)
-        wr = ['마디 %d개, 배 %d개' % (n, n + 1), '마디 %d개, 배 %d개' % (n, n), '마디 %d개, 배 %d개' % (n + 1, n + 1), '마디 %d개, 배 %d개' % (n + 2, n), '마디 %d개, 배 %d개' % (n - 1, n)]
-        return mc(body, right, wr, r=r, lv='하', fam='d', sort='shuf', steps=['빨간 점(마디)은 양 끝을 포함해 %d개, 초록 점(배)은 %d개이다.' % (n + 1, n)],
-                  core='양 끝이 고정된 줄에서 마디 수 = 배 수 + 1.', point='정상파 그림에서 마디와 배를 센다.')
+        Lc = Fr(str(r.choice([0.6, 0.8, 1, 1.2, 1.5, 2, 2.4, 3])))
+        fig = FIG(string_fig(n, 'L = %s m' % fn(Lc), labels=True), '70%')
+        base = '그림은 길이 %s m인 줄의 양 끝을 고정하여 만든 정상파를 나타낸 것이다. 빨간 점은 마디, 초록 점은 배의 위치이다. ' % fn(Lc)
+        ask = r.choice(['pair', 'node', 'anti', 'lam'])
+        if ask == 'pair':
+            body = P(base + '이 정상파의 마디(양 끝 포함) 수와 배의 수를 옳게 짝지은 것은?') + fig
+            right = '마디 %d개, 배 %d개' % (n + 1, n)
+            wr = ['마디 %d개, 배 %d개' % (n, n + 1), '마디 %d개, 배 %d개' % (n, n), '마디 %d개, 배 %d개' % (n + 1, n + 1), '마디 %d개, 배 %d개' % (n + 2, n), '마디 %d개, 배 %d개' % (n - 1, n)]
+            return mc(body, right, wr, r=r, lv='하', fam='d', sort='shuf', steps=['빨간 점(마디)은 양 끝을 포함해 %d개, 초록 점(배)은 %d개이다.' % (n + 1, n)],
+                      core='양 끝이 고정된 줄에서 마디 수 = 배 수 + 1.', point='정상파 그림에서 마디와 배를 센다.')
+        if ask == 'node':
+            body = P(base + '이 정상파에서 줄의 양 끝을 제외하고 항상 정지해 있는 지점은 모두 몇 곳인가?') + fig
+            return mc(body, '%d곳' % (n - 1), ['%d곳' % w for w in (n, n + 1, n - 2 if n > 2 else n + 2, n + 2, 2 * n)], r=r, lv='하', fam='d', sort='shuf',
+                      steps=['마디는 양 끝을 포함해 %d개이므로 양 끝을 제외하면 %d곳이다.' % (n + 1, n - 1)],
+                      core='마디는 변위가 항상 0인 지점이다.', point='양 끝을 제외한 마디의 수를 센다.')
+        if ask == 'anti':
+            body = P(base + '이 정상파에서 진폭이 최대인 지점은 모두 몇 곳인가?') + fig
+            return mc(body, '%d곳' % n, ['%d곳' % w for w in (n + 1, n - 1, n + 2, 2 * n, n * n + 1)], r=r, lv='하', fam='d', sort='shuf',
+                      steps=['그림에서 초록 점(배)은 %d개이다.' % n], core='배는 진폭이 최대인 지점이다.', point='정상파 그림에서 배를 센다.')
+        lam = 2 * Lc / n
+        if not term(lam): return None
+        body = P(base + '이 정상파의 파장은?') + fig
+        wr = [lam * 2, lam / 2, Lc, Lc * 2, Lc / (n + 1) * 2]
+        return mc(body, '%s m' % fn(lam), ['%s m' % fn(w) for w in wr], r=r, lv='하', fam='d', steps=['배가 %d개이므로 L = %d × λ/2 이다.' % (n, n), 'λ = 2L/%d = %s m 이다.' % (n, fn(lam))],
+                  core='배 1개는 반 파장이다.', point='배의 수로 파장을 구한다.')
     n = r.choice([1, 2, 3, 4])
     f1 = Fr(r.choice([85, 100, 170, 200, 340]))
     kind = r.choice(['closed', 'open'])

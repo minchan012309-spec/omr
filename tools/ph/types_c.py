@@ -1332,7 +1332,7 @@ def meet_chase(r, k):
 @T('ph026')
 def stop_dist(r, k):
     ob = r.choice(['자동차', '버스', '트럭', '택시', '승용차'])
-    form = r.choice(['react', 'react', 'brake', 'brake', 'stop', 'stop', 'kmh', 'tr', 'a', 'ratio', 'graph', 'graph', 'safe', 'wet'])
+    form = r.choice(['react', 'react', 'brake', 'brake', 'stop', 'stop', 'kmh', 'tr', 'a', 'ratio', 'graph', 'graph', 'graph', 'graph', 'safe', 'wet'])
     v = r.choice([10, 15, 20, 25, 30]); tr = r.choice([0.4, 0.5, 0.6, 0.8, 1, 1.2, 1.5, 2]); a = r.choice([2, 2.5, 4, 5, 6, 8])
     sr = v * tr; sb = v * v / (2 * a); S = sr + sb
     if not two(S) or not two(sb) or not two(sr): return None
