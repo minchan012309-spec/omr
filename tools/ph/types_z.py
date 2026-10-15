@@ -41,7 +41,10 @@ def wr(right, cands, unit, nd=2):
     for c in cands:
         add(c)
     if len(out) < 4:
-        for c in (right * 2, right / 2, right * 4, right / 4, right + 1, right + 2, right * 1.5, right * 3, right + 0.5):
+        fb = [right * 2, right / 2, right * 4, right / 4, right * 1.5, right * 3, right * 0.75, right * 1.25]
+        if right < 10:
+            fb += [right + 1, right + 2, right + 0.5]
+        for c in fb:
             add(c)
     return out
 
