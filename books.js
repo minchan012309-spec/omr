@@ -379,7 +379,7 @@ function bkPlanConcept(id){
  return {kind:'c',title:SNAME[SUBJ]+' 개념서',short:'개념서',pages,toc,aStart,sel:S}}
 
 function bkPlanType(id){
- const S=bkSel();const pages=[{k:'cover'},{k:'toc'}];const toc=[];let no=0;const nums=new Map();
+ const S=bkSel();const esS=S.essay.filter(q=>bkScope(S).some(s=>s.k===q.sub));const pages=[{k:'cover'},{k:'toc'}];const toc=[];let no=0;const nums=new Map();
  bkScope(S).forEach(s=>{
   const qs=S.type.filter(q=>q.sub===s.k);if(!qs.length)return;
   const units=[bkU('sb:'+s.k+':t',bkSbn({k:s.k,name:s.name,goal:''},'<span class="g">'+bkTags(s)+'</span>'),{brk:true,keep:true})];
@@ -390,9 +390,9 @@ function bkPlanType(id){
   const row={sub:s,n:qs.length,p:pages.length+1};toc.push(row);
   bkPack(units,2,BK_BODY).forEach(p=>pages.push({k:'pr',kind:'t',sub:s,label:'유형 문제',...bkCI(p),codes:p.cols.flat().map(u=>u.code).filter(Boolean)}))});
  // 서술형
- if(S.essay.length){const eu=[bkU('sb:es',bkSbn({k:'서술형',name:'서술형 · 최상위 도전',goal:''},'<span class="g">풀이 과정을 서술해 보세요. 맨 뒤 모범 답안과 비교해 스스로 채점합니다.</span>'),{brk:true,keep:true})];
-  S.essay.forEach((q,i)=>{no++;nums.set(q.code,no);eu.push(bkU('q:'+q.code+':e',bkQHtml(q,no,{ans:1,code:1,lv:bkLv(q)}),{code:q.code}))});
-  toc.es={n:S.essay.length,p:pages.length+1};
+ if(esS.length){const eu=[bkU('sb:es',bkSbn({k:'서술형',name:'서술형 · 최상위 도전',goal:''},'<span class="g">풀이 과정을 서술해 보세요. 맨 뒤 모범 답안과 비교해 스스로 채점합니다.</span>'),{brk:true,keep:true})];
+  esS.forEach((q,i)=>{no++;nums.set(q.code,no);eu.push(bkU('q:'+q.code+':e',bkQHtml(q,no,{ans:1,code:1,lv:bkLv(q)}),{code:q.code}))});
+  toc.es={n:esS.length,p:pages.length+1};
   bkPack(eu,2,BK_BODY).forEach(p=>pages.push({k:'es',kind:'e',label:'서술형',...bkCI(p)}))}
  // 정답·해설
  const au=[];
@@ -400,7 +400,7 @@ function bkPlanType(id){
   au.push(bkU('as:'+s.k,'<div class="u ct"><span>'+esc(s.k)+' '+esc(s.name)+'</span></div>',{keep:true}));
   au.push(bkU('akt:'+s.k,'<div class="u k"><div class="ct sm"><span>빠른 정답</span></div><div class="kg">'+qs.map(q=>'<div><b>'+nums.get(q.code)+'</b><span>'+bkCir(q.ans)+'</span></div>').join('')+'</div></div>',{}));
   qs.forEach(q=>au.push(bkU('x:'+q.code,bkXHtml(q,nums.get(q.code)),{})))});
- if(S.essay.length){au.push(bkU('as:es','<div class="u ct"><span>서술형 모범 답안</span></div>',{keep:true}));S.essay.forEach(q=>au.push(bkU('x:'+q.code,bkXHtml(q,nums.get(q.code)),{})))}
+ if(esS.length){au.push(bkU('as:es','<div class="u ct"><span>서술형 모범 답안</span></div>',{keep:true}));esS.forEach(q=>au.push(bkU('x:'+q.code,bkXHtml(q,nums.get(q.code)),{})))}
  const aStart=pages.length+1;
  bkPack(au,2,BK_BODY).forEach(p=>pages.push({k:'ak',kind:'a',label:'정답 · 해설',...bkCI(p)}));
  return {kind:'t',title:SNAME[SUBJ]+' 유형서',short:'유형서',pages,toc,aStart,sel:S,total:no}}

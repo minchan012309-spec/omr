@@ -24,6 +24,10 @@ def validate(tag, it):
     txt = it.body + ''.join(it.opts) + ''.join(it.steps)
     for w in ('None', 'nan', 'inf', '{', '}', '%s', '%d', 'Traceback', '[object', 'undefined'):
         if w in txt: bad.append('이상한 문자열 ' + w)
+    for o in it.opts:
+        po = plain(o)
+        if re.search(r'\d\.\d{4,}', po): bad.append('선택지 소수점 너무 김')
+        if re.search(r'(?<![\d.])0\.0\d{3,}', po): bad.append('선택지 너무 작은 값')
     if it.lv not in LVI: bad.append('난이도')
     if not it.steps: bad.append('풀이 없음')
     if len(plain(it.body)) < 12: bad.append('본문 너무 짧음')

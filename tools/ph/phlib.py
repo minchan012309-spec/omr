@@ -70,6 +70,40 @@ def plain(h):
     return re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', h)).strip()
 
 
+
+# ------------------------------------------------------------------ 조사 교정
+_JO = {'은(는)': ('은', '는'), '이(가)': ('이', '가'), '을(를)': ('을', '를'), '와(과)': ('과', '와'), '으로(로)': ('으로', '로')}
+_LATIN = {'A': 0, 'B': 0, 'C': 0, 'D': 0, 'E': 0, 'F': 1, 'G': 0, 'H': 0, 'I': 0, 'J': 0, 'K': 0, 'L': 1, 'M': 1, 'N': 1, 'O': 0, 'P': 0, 'Q': 0, 'R': 1, 'S': 0, 'T': 0,
+          'U': 0, 'V': 0, 'W': 0, 'X': 0, 'Y': 0, 'Z': 0}
+_DIGIT = {'0': 1, '1': 1, '2': 0, '3': 1, '4': 0, '5': 0, '6': 1, '7': 1, '8': 1, '9': 0}
+
+
+def _has_batchim(prev):
+    """prev: 조사 바로 앞의 평문(태그 제외) 마지막 글자들. 받침 있으면 True."""
+    s = prev.rstrip()
+    if not s: return False
+    c = s[-1]
+    if '가' <= c <= '힣':
+        return (ord(c) - 0xAC00) % 28 != 0
+    if c in _DIGIT: return bool(_DIGIT[c])
+    if c.upper() in _LATIN and c.isalpha(): return bool(_LATIN[c.upper()])
+    if c in 'ℓ)]': return False
+    return False
+
+
+def josa(s):
+    """문자열 속 '이(가)' 같은 조사 표기를 받침에 맞게 고친다(태그는 건드리지 않음)."""
+    def fix(m):
+        pre = re.sub(r'<[^>]+>', '', s[:m.start()])
+        j = m.group(1)
+        yes, no = _JO[j]
+        if j == '으로(로)':
+            # ㄹ 받침은 '로'
+            if pre.rstrip() and '가' <= pre.rstrip()[-1] <= '힣' and (ord(pre.rstrip()[-1]) - 0xAC00) % 28 == 8: return no
+        return yes if _has_batchim(pre) else no
+    return re.sub(r'[ ]?(' + '|'.join(re.escape(k) for k in _JO) + ')', fix, s)
+
+
 # ------------------------------------------------------------------ 표 · 보기 · 그림
 def table(headers, rows, first_bold=True, small=False):
     h = '<table class="tb"><thead><tr>' + ''.join('<th>%s</th>' % c for c in headers) + '</tr></thead><tbody>'
@@ -314,7 +348,7 @@ def render(it, tag, no, code, sub_key, pts, qid=None, sid=None, src='문제 은�
     if it.core: e += '<p><span class="lb">핵심 개념</span> %s</p>' % it.core
     if it.point: e += '<p><span class="lb">출제 포인트</span> %s</p>' % it.point
     e += refs + '</div>'
-    return q, e
+    return josa(q), josa(e)
 
 
 def pts_for(lv, r):

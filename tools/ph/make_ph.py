@@ -56,7 +56,7 @@ def make_bank(n):
 
 
 # --------------------------------------------------------------- 교재 문항
-def book_pool(bank_sigs, per=16):
+def book_pool(bank_sigs, per=22):
     """유형마다 은행과 겹치지 않는 별도 문항(교재용)을 만든다."""
     pool = collections.defaultdict(list)
     for ty in TYPES_ORD:
@@ -87,6 +87,11 @@ def pick_round(items, k, want_lv, used_fam):
     return out
 
 
+# 기본 교재 범위(열역학 제1법칙~)는 문항을 더 두껍게, 앞 단원은 기본 분량
+NB = {'Ⅱ-A': 12}
+NS = {'Ⅱ-A': 44, 'Ⅱ-B': 28, 'Ⅲ-A': 20, 'Ⅲ-B': 20, 'Ⅲ-C': 20}
+
+
 def book_items(bank_sigs, n_basic=8, n_std=12, n_top=21):
     pool = book_pool(bank_sigs)
     seq = collections.Counter()
@@ -108,9 +113,9 @@ def book_items(bank_sigs, n_basic=8, n_std=12, n_top=21):
     for s in SUB_ORDER:
         bundle = BUNDLE[s]
         rest = [i for i in pool[s] if id(i) not in topset]
-        basic = pick_round(rest, n_basic, ('하',), used_fam)
+        basic = pick_round(rest, NB.get(s, n_basic), ('하',), used_fam)
         bset = {id(x) for x in basic}
-        std = pick_round([i for i in rest if id(i) not in bset], n_std, ('중', '상'), used_fam)
+        std = pick_round([i for i in rest if id(i) not in bset], NS.get(s, n_std), ('중', '상'), used_fam)
         sel = sorted(basic + std, key=lambda x: (tord[x._tag], LVI[x.lv]))   # 유형 순서 → 난이도
         for it in sel:
             seq[s] += 1
