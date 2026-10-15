@@ -5,6 +5,24 @@ import math, itertools
 from fractions import Fraction as Fr
 
 
+import hashlib as _hl
+_mc0 = mc
+
+
+def mc(body, right, wrongs, **kw):
+    """오답을 본문(그림 포함)에서 정해지는 방식으로 고른다: 같은 문항이 선택지만 달리 중복되지 않게."""
+    seen = {re.sub(r'\s+', '', plain(str(right)))}
+    ws = []
+    for w in wrongs:
+        k = re.sub(r'\s+', '', plain(str(w)))
+        if k in seen: continue
+        seen.add(k); ws.append(w)
+    if len(ws) > 4:
+        rr = random.Random(int(_hl.md5((body + str(right)).encode('utf-8')).hexdigest()[:8], 16))
+        ws = rr.sample(ws, 4)
+    return _mc0(body, right, ws, **kw)
+
+
 # ------------------------------------------------------------------ 공용 도구
 def fn(x, nd=2):
     return num(float(x), nd)
@@ -252,7 +270,7 @@ def src_points(r, n, lamp=30, nmax=6, ycap=96, k=3):
 # ================================================================== ph091 파동의 요소와 v=fλ
 @T('ph091')
 def ph091(r, k):
-    form = r.choice(['calc', 'calc', 'fig', 'fig', 'cnt', 'cnt', 'ratio'])
+    form = r.choice(['calc', 'calc', 'fig', 'fig', 'cnt', 'cnt', 'ratio', 'ratio'])
     ctx = r.choice(['줄을 따라 진행하는 파동', '수면파', '용수철을 따라 진행하는 파동', '긴 줄에서 발생시킨 파동'])
     if form == 'calc':
         sub_ = r.choice(['v', 'lam', 'f', 'Tv'])
@@ -332,7 +350,7 @@ def ph091(r, k):
             body = P('진동수가 %s Hz인 파원에서 발생한 파동이 %s초 동안 %s m를 진행하였다. 이 파동의 파장은?' % (fn(f_), fn(t), fn(L)))
             wr = [lam * 2, lam / 2, v, L / f_, f_ * t / L, lam * 4]
             assert lam * f_ == v
-            return mc(body, '%s m' % fn(lam), ['%s m' % fn(w) for w in wr], r=r, lv='중', fam='c',
+            return mc(body, '%s m' % fn(lam), ['%s m' % fn(w) for w in wr], r=r, lv='상', fam='c',
                       steps=['파동의 속력 v = %s / %s = %s m/s 이다.' % (fn(L), fn(t), fn(v)), 'λ = v/f = %s / %s = %s m 이다.' % (fn(v), fn(f_), fn(lam))],
                       core='속력은 이동 거리/시간, 파장은 v/f.', point='이동 거리와 시간으로 속력을 구한 뒤 파장을 구한다.')
         lam = Fr(str(r.choice([0.5, 1, 1.5, 2, 2.5, 4])))
@@ -344,7 +362,7 @@ def ph091(r, k):
         body = P('파장이 %s m, 진동수가 %s Hz인 파동에서 매질의 한 점이 %s초 동안 진동하는 사이 파동이 진행한 거리는?' % (fn(lam), fn(f_), fn(t)))
         wr = [L * 2, L / 2, lam * f_, lam * t if False else lam * t * 2, L + lam, Fr(n)]
         assert L == f_ * lam * t
-        return mc(body, '%s m' % fn(L), ['%s m' % fn(w) for w in wr], r=r, lv='중', fam='c',
+        return mc(body, '%s m' % fn(L), ['%s m' % fn(w) for w in wr], r=r, lv='상', fam='c',
                   steps=['v = fλ = %s × %s = %s m/s 이다.' % (fn(f_), fn(lam), fn(f_ * lam)), '진행 거리 = vt = %s × %s = %s m 이다. (진동 횟수 %d번 × 파장 %s m)' % (fn(f_ * lam), fn(t), fn(L), n, fn(lam))],
                   core='파동이 한 주기 동안 진행하는 거리는 파장이다.', point='진동 횟수 × 파장으로 진행 거리를 구한다.')
     # ratio
@@ -535,11 +553,11 @@ _EX = [('소리는', 'L'), ('P파(지진파)는', 'L'), ('S파(지진파)는', '
 
 @T('ph093')
 def ph093(r, k):
-    form = r.choice(['bogi', 'bogi', 'ex', 'ex', 'panel', 'panel', 'long', 'long'])
+    form = r.choice(['bogi', 'bogi', 'ex', 'ex', 'panel', 'long', 'long', 'long'])
     if form == 'bogi':
         s = pick3(r, _B93)
         if not s: return None
-        return bogi('횡파와 종파에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', s, ask='', lv='하', fam='a', r=r,
+        return bogi('횡파와 종파에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', s, ask='', lv=r.choice(['하', '중']), fam='a', r=r,
                     core='횡파는 진동 방향 ⊥ 진행 방향, 종파는 진동 방향 ∥ 진행 방향이며 매질은 이동하지 않는다.', point='횡파와 종파의 정의와 대표 예를 구분한다.')
     if form == 'ex':
         s = r.sample(_EX, 3)
@@ -627,7 +645,7 @@ _SIN = {30: Fr(1, 2), 37: Fr(3, 5), 53: Fr(4, 5)}
 
 @T('ph094')
 def ph094(r, k):
-    form = r.choice(['num', 'num', 'lam', 'ang', 'ang', 'ang', 'bogi', 'cmp'])
+    form = r.choice(['num', 'num', 'lam', 'lam', 'ang', 'ang', 'bogi', 'cmp'])
     if form == 'bogi':
         s = pick3(r, _B94)
         if not s: return None
@@ -685,7 +703,7 @@ def ph094(r, k):
         if ask == 'v2':
             body = P(base + '매질 Ⅱ에서 파동의 속력은?') + fig
             wr = [v1 * s1 / s2, v1, v2 * 2, v2 / 2, v1 * Fr(t2, t1), v1 + v2]
-            return mc(body, '%s m/s' % fn(v2), ['%s m/s' % fn(w) for w in wr], r=r, lv='중', fam='c',
+            return mc(body, '%s m/s' % fn(v2), ['%s m/s' % fn(w) for w in wr], r=r, lv='상', fam='c',
                       steps=['스넬 법칙: sinθ₁/sinθ₂ = v₁/v₂ 이다.', 'v₂ = v₁ sin%d°/sin%d° = %s × %s / %s = %s m/s 이다.' % (t2, t1, fn(v1), fn(s2), fn(s1), fn(v2))],
                       core='sinθ₁/sinθ₂ = v₁/v₂.', point='입사각·굴절각으로 속력비를 구한다.')
         if ask == 'l2':
@@ -779,11 +797,11 @@ _B95 = [
 
 @T('ph095')
 def ph095(r, k):
-    form = r.choice(['pulse', 'pulse', 'pulse', 'sine', 'sine', 'calc', 'bogi', 'bogi'])
+    form = r.choice(['pulse', 'pulse', 'sine', 'sine', 'calc', 'bogi', 'bogi'])
     if form == 'bogi':
         s = pick3(r, _B95)
         if not s: return None
-        return bogi('파동의 중첩과 간섭에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', s, ask='', lv='중', fam='d', r=r,
+        return bogi('파동의 중첩과 간섭에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', s, ask='', lv=r.choice(['하', '중']), fam='d', r=r,
                     core='중첩된 파동의 변위는 각 파동의 변위의 합이며, 보강 간섭 때 진폭은 합, 상쇄 간섭 때 진폭은 차이다.', point='중첩 원리와 보강·상쇄 간섭을 구분한다.')
     if form == 'calc':
         A1 = r.choice([1, 2, 3, 4, 5, 6])
@@ -853,7 +871,7 @@ def ph095(r, k):
     fig = FIG(pulse_fig([(cA, hA, hw, BL, None), (cB, hB, hw, RD, None)], W, 3, arrows=[(cA - 1, cA + 1, 3.4, BL, ''), (cB + 1, cB - 1, 3.4, RD, '')]), '78%')
     # 보조 검산: 대칭 계산
     assert abs(ans - (tri(x - t, cA, hA, hw) + tri(x + t, cB, hB, hw))) < 1e-9
-    ask = r.choice(['disp', 'disp', 'max'])
+    ask = r.choice(['disp', 'max'])
     base = '그림은 줄 위에서 서로 반대 방향으로 진행하는 두 펄스 A, B의 t = 0 일 때 모습이다. 눈금 한 칸은 1 cm이고, 두 펄스의 속력은 각각 1 cm/s이다. '
     if ask == 'disp':
         body = P(base + 't = %d s 일 때 x = %d cm 에서 줄의 변위는? (단, 위쪽을 +로 한다.)' % (t, x)) + fig
@@ -897,7 +915,7 @@ _B96 = [
 
 @T('ph096')
 def ph096(r, k):
-    form = r.choice(['disp', 'disp', 'disp', 'shape', 'shape', 'time', 'bogi'])
+    form = r.choice(['disp', 'disp', 'disp', 'shape', 'time', 'bogi'])
     if form == 'bogi':
         s = pick3(r, _B96)
         if not s: return None
@@ -922,8 +940,8 @@ def ph096(r, k):
         y = tri(x, pc, h, hw) + Rr * tri(x, refl_c, h, hw) if pc - hw < wall + 0 or True else 0
         # 파동이 벽 오른쪽에 있는 입사 펄스 성분은 존재하지 않음(x ≤ wall)
         y = tri(x, pc, h, hw) + Rr * tri(x, refl_c, h, hw)
-        if abs(y - round(y)) > 1e-9: return None
-        y = int(round(y))
+        if abs(y * 2 - round(y * 2)) > 1e-9: return None
+        y = round(y * 2) / 2
         # 이중 검산: 파동 방정식 해(영상법)과 직접 경로 길이 비교
         y2 = tri(x - t, c0, h, hw) + Rr * tri(2 * wall - x - t, c0, h, hw)
         assert abs(y2 - y) < 1e-9 or True
@@ -932,12 +950,13 @@ def ph096(r, k):
         body = P(base + 't = %d s 일 때 x = %d cm 에서 줄의 변위는? (단, 위쪽을 +로 한다.)' % (t, x)) + fig
         hh = abs(h)
         ws = [-y if y else hh, tri(x, pc, h, hw), tri(x, refl_c, h, hw), h, -h, y + hh, 2 * h]
-        return mc(body, '%d cm' % y, ['%s cm' % fn(w) for w in ws], r=r, lv='상', fam='a',
+        both_ = tri(x, pc, h, hw) != 0 and tri(x, refl_c, h, hw) != 0
+        return mc(body, '%s cm' % fn(y), ['%s cm' % fn(w) for w in ws], r=r, lv='상' if both_ else '중', fam='a',
                   steps=['반사 후 펄스는 속력이 같고, %s이므로 %s 반사된다.' % (kname, '위상이 반대로(높이의 부호가 바뀌어)' if kind == 'fixed' else '위상이 그대로')],
                   core='반사파는 끝점에 대해 대칭인 위치에서 (고정단: 부호 반전, 자유단: 부호 유지) 진행하는 펄스로 생각하여 중첩한다.', point='반사 펄스의 위치와 부호를 구해 변위를 합한다.') if False else \
             mc(body, '%d cm' % y, ['%s cm' % fn(w) for w in ws], r=r, lv='상', fam='a',
                steps=['t = %d s 일 때 입사 펄스의 중심은 x = %d cm 이다(벽을 넘어선 부분은 반사파가 대신한다).' % (t, pc), '반사된 펄스의 중심은 벽(x = %d cm)에 대칭인 x = 2 × %d - %d = %d cm 에 있고, %s이므로 높이는 %s cm 이다.' % (wall, wall, pc, refl_c, kname, fn(Rr * h)),
-                      'x = %d cm 에서 입사 펄스에 의한 변위 %s cm, 반사 펄스에 의한 변위 %s cm 이므로 합은 %d cm 이다.' % (x, fn(tri(x, pc, h, hw)), fn(Rr * tri(x, refl_c, h, hw)), y)],
+                      'x = %d cm 에서 입사 펄스에 의한 변위 %s cm, 반사 펄스에 의한 변위 %s cm 이므로 합은 %s cm 이다.' % (x, fn(tri(x, pc, h, hw)), fn(Rr * tri(x, refl_c, h, hw)), fn(y))],
                core='반사 펄스는 벽에 대칭인 위치에서 반대 방향으로 진행하며, 고정단에서는 부호가 반전, 자유단에서는 부호가 유지된다.', point='반사 펄스의 위치와 부호를 구해 변위를 합한다.')
     if form == 'shape':
         t = r.choice([10, 11, 12, 13, 14])
@@ -1006,7 +1025,7 @@ def ph097(r, k):
         s = pick3(r, _B97)
         if not s: return None
         return bogi('두 점파원에서 같은 위상으로 퍼져 나가는 파동의 간섭에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?' if False else '두 파원에서 퍼져 나가는 파동의 간섭에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?',
-                    s, ask='', lv='중', fam='d', r=r, core='두 파원이 같은 위상이면 경로차가 mλ 일 때 보강, (m + ½)λ 일 때 상쇄 간섭이 일어난다.', point='경로차와 간섭 조건을 연결한다.')
+                    s, ask='', lv=r.choice(['하', '중']), fam='d', r=r, core='두 파원이 같은 위상이면 경로차가 mλ 일 때 보강, (m + ½)λ 일 때 상쇄 간섭이 일어난다.', point='경로차와 간섭 조건을 연결한다.')
     if form == 'fig':
         n = r.choice([2, 3, 4])
         ps = src_points(r, n)

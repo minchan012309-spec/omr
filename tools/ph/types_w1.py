@@ -8,6 +8,24 @@ G = 10
 PI = 3
 
 
+import hashlib as _hl
+_mc0 = mc
+
+
+def mc(body, right, wrongs, **kw):
+    """오답을 본문(그림 포함)에서 정해지는 방식으로 고른다: 같은 문항이 선택지만 달리 중복되지 않게."""
+    seen = {re.sub(r'\s+', '', plain(str(right)))}
+    ws = []
+    for w in wrongs:
+        k = re.sub(r'\s+', '', plain(str(w)))
+        if k in seen: continue
+        seen.add(k); ws.append(w)
+    if len(ws) > 4:
+        rr = random.Random(int(_hl.md5((body + str(right)).encode('utf-8')).hexdigest()[:8], 16))
+        ws = rr.sample(ws, 4)
+    return _mc0(body, right, ws, **kw)
+
+
 # ------------------------------------------------------------------ 공용 도구
 def fn(x, nd=2):
     """Fraction/float -> 보기 좋은 문자열."""
