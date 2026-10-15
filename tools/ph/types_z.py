@@ -1476,3 +1476,320 @@ def g110(r, k):
               steps=['마찰열 Q = ' + ('운동 에너지 ½mv² = ½ × %d × %d² = %s J (마찰력 × 거리와 같다)' % (mm, vv, fs(Qh)) if use_v else '마찰력 × 거리 = μmg × d = %s × %d × 10 × %d = %s J' % (fs(mu), mm, d, fs(Qh))),
                      '기체에 전달된 열 = 부피 일정이므로 W = 0, ΔU = %s × %s = %s J' % (fs(eta), fs(Qh), fs(dU)), 'ΔU = (3/2)nRΔT → ΔT = %s / (1.5 × %s × 8) = %s K' % (fs(dU), fs(nmol), fs(dT))],
               core='부피가 일정한 기체가 받은 열은 모두 내부 에너지 증가가 되며, 역학적 에너지가 마찰열로 전환된다.', point='역학적 에너지 → 열 → 내부 에너지의 전환 경로를 따라 계산한다.')
+
+
+# ================================================================== ph111 용수철 진자와 에너지 · 진동수
+def fig_sp_h(ktxt='k', mtxt='m', Atxt=None, xtxt=None, xfrac=None, w=330, hh=150):
+    """수평 용수철 진자(평형 위치 O, 진폭 ±A 눈금)."""
+    f = Fig(w, hh)
+    fy = 92
+    f.line(10, fy, w - 8, fy, INK, 1.6)
+    for i in range(10, w - 8, 8):
+        f.line(i, fy, i - 5, fy + 6, GR, 1)
+    f.line(20, fy - 52, 20, fy, GR, 3)
+    for v in range(fy - 50, fy, 8):
+        f.line(20, v, 14, v + 6, GR, 1)
+    xe = 190
+    f.spring(20, fy - 15, xe - 20, 8, 8)
+    f.rect(xe - 20, fy - 30, 40, 30, '#cfe2f7', INK, 1.7)
+    f.text(xe, fy - 10, mtxt, 13, bold=True, italic=True)
+    f.text(112, fy - 38, ktxt, 12.5, bold=True, c=BL)
+    f.line(xe, fy - 62, xe, fy + 22, GR, 1, '4 3')
+    f.text(xe, fy + 38, 'O', 12.5, bold=True, c=GR)
+    s = 70
+    for sg, lab in ((-1, '-A'), (1, 'A')):
+        x = xe + sg * s
+        f.line(x, fy + 10, x, fy + 22, INK, 1.4)
+        f.text(x, fy + 38, lab, 12.5, bold=True, c=GR)
+    f.line(xe - s, fy + 16, xe + s, fy + 16, GR, 1.2)
+    if Atxt:
+        f.text(xe + s + 8, fy + 20, 'A = ' + Atxt, 12.5, 'start', True, RD)
+    if xfrac is not None:
+        xx = xe + xfrac * s
+        f.circ(xx, fy + 16, 4, RD, RD, 1)
+        f.text(xx, fy + 58, 'x = ' + xtxt, 12.5, bold=True, c=RD)
+    return f.svg()
+
+
+def _vspring(f, x, y1, y2, coils=8, amp=8, c=INK, sw=1.6):
+    pts = [(x, y1), (x, y1 + 8)]
+    n = coils * 2
+    for i in range(1, n + 1):
+        pts.append((x + (amp if i % 2 else -amp), y1 + 8 + (y2 - y1 - 16) * i / n))
+    pts += [(x, y2 - 8), (x, y2)]
+    f.poly(pts, 'none', c, sw, close=False)
+
+
+def fig_sp_v(ktxt='k', mtxt='m', x0txt=None, Atxt=None, w=300, hh=215):
+    f = Fig(w, hh)
+    f.line(60, 16, 170, 16, GR, 3)
+    for i in range(60, 170, 8):
+        f.line(i, 16, i + 6, 9, GR, 1)
+    yn = 80     # 원래 길이에서 아래 끝
+    ye = 130    # 평형 위치에서 블록 윗면
+    _vspring(f, 115, 16, ye, 8, 9)
+    f.rect(95, ye, 40, 30, '#cfe2f7', INK, 1.7)
+    f.text(115, ye + 20, mtxt, 13, bold=True, italic=True)
+    f.text(150, 70, ktxt, 12.5, 'start', True, BL)
+    f.line(70, yn, 100, yn, GR, 1.2, '4 3')
+    f.line(80, yn, 80, ye, GR, 1.2)
+    f._head(80, yn, 80, ye, GR, 1.2, 7)
+    f._head(80, ye, 80, yn, GR, 1.2, 7)
+    if x0txt: f.text(74, (yn + ye) / 2 + 4, x0txt, 12.5, 'end', True, GR)
+    f.line(95, ye + 15, 200, ye + 15, GR, 1, '4 3')
+    f.text(206, ye + 19, 'O (평형)', 12, 'start', True, GR)
+    if Atxt:
+        s = 34
+        f.line(95, ye + 15 + s, 200, ye + 15 + s, RD, 1, '4 3')
+        f.line(95, ye + 15 - s, 200, ye + 15 - s, RD, 1, '4 3')
+        f.line(190, ye + 15, 190, ye + 15 + s, RD, 1.2)
+        f._head(190, ye + 15, 190, ye + 15 + s, RD, 1.2, 7)
+        f.text(206, ye + 15 + s + 4, '최저점', 12, 'start', False, GR)
+        f.text(206, ye + 15 - s + 4, '최고점', 12, 'start', False, GR)
+        f.text(184, ye + 15 + s / 2 + 4, 'A = ' + Atxt, 12.5, 'end', True, RD)
+    return f.svg()
+
+
+def fig_xt(A, T, unit='cm', w=330, hh=200):
+    p = Plot(w, hh, T * 1.35, A * 1.4, 0, -A * 1.4, ml=56, mr=16, mt=16, mb=28)
+    p.axes('t (s)', 'x (%s)' % unit, xticks=[T / 4, T / 2, 3 * T / 4, T], yticks=[-A, A], xfmt=lambda v: num(v, 3), yfmt=lambda v: num(v, 2))
+    p.pl([(T * i / 80.0 * 1.0, A * math.sin(2 * math.pi * i / 80.0)) for i in range(0, 81)], BL, 2.4)
+    p.dash_to_axes(T / 4, A)
+    return p.svg()
+
+
+def _fr(q):
+    """Fraction q 의 제곱근을 '배' 문자열로."""
+    q = F(q)
+    a, b = q.numerator, q.denominator
+    ra, rb = math.isqrt(a), math.isqrt(b)
+    if ra * ra == a and rb * rb == b:
+        v = F(ra, rb)
+        return ('%d배' % v.numerator) if v.denominator == 1 else '%d/%d배' % (v.numerator, v.denominator)
+    if b == 1: return '√%d배' % a
+    if a == 1 and rb * rb == b: return '1/%d√%d배' % (rb, 1) if False else '1/%d배' % rb
+    if a == 1: return '1/√%d배' % b
+    return '√(%d/%d)배' % (a, b)
+
+
+def _fq(q):
+    q = F(q)
+    return ('%d배' % q.numerator) if q.denominator == 1 else '%d/%d배' % (q.numerator, q.denominator)
+
+
+@T('ph111')
+@balanced
+def g111(r, k):
+    form = pick(r, ['calc', 'calc', 'calc', 'atx', 'atx', 'graph', 'graph', 'graph', 'chg', 'chg', 'chg', 'vert', 'vert', 'vert', 'bogi', 'bogi'])
+    tail = ' (단, 용수철의 질량과 모든 마찰·공기 저항은 무시한다.)'
+    if form in ('calc', 'atx', 'bogi'):
+        om = r.choice([2, 3, 4, 5, 6, 8, 10, 12, 15, 20])
+        m = r.choice([0.1, 0.2, 0.25, 0.4, 0.5, 1, 2, 4])
+        kk = m * om * om
+        if not cl(kk, 2) or kk < 1: return None
+        A = r.choice([0.02, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.5])
+        T = 6.0 / om
+        vmax = om * A
+        E = 0.5 * kk * A * A
+        assert abs(E - 0.5 * m * vmax * vmax) < 1e-9
+        assert abs(om - math.sqrt(kk / m)) < 1e-9
+        kt = '%s N/m' % fs(kk)
+        mt = '%s kg' % fs(m)
+        if form == 'calc':
+            ask = r.choice(['T', 'T', 'vmax', 'vmax', 'E', 'amax'])
+            fig = FIG(fig_sp_h(kt, mt, '%s m' % fs(A)), '62%')
+            base = '그림과 같이 마찰이 없는 수평면에서 용수철 상수가 %s N/m인 용수철에 질량 %s kg인 물체를 연결하고, 평형 위치 O에서 %s m 당겼다가 가만히 놓았더니 물체가 단진동을 하였다. ' % (fs(kk), fs(m), fs(A))
+            if ask == 'T':
+                if not cl(T, 3): return None
+                body = P(base + '진동 주기는? (단, π = 3으로 계산한다.)' + tail) + fig
+                return mc(body, U(T, 's', 3), wr(T, [T / 2, T * 2, 1 / T, 2 * T / 3, 6 * T, om / 6, T * 3], 's', 3), r=r, lv='하', fam='a',
+                          steps=['각진동수 ω = √(k/m) = √(%s / %s) = %d rad/s' % (fs(kk), fs(m), om), 'T = 2π/ω = 2 × 3 / %d = %s s' % (om, fs(T, 3)), '(검산) T = 2π√(m/k) = 6 × √(%s/%s) = %s s' % (fs(m), fs(kk), fs(6 * math.sqrt(m / kk), 3))],
+                          core='용수철 진자의 주기 T = 2π√(m/k)는 진폭과 무관하다.', point='k와 m으로 ω, T를 구한다.')
+            if ask == 'vmax':
+                body = P(base + '물체의 최대 속력은?' + tail) + fig
+                return mc(body, U(vmax, 'm/s'), wr(vmax, [A * math.sqrt(kk * m), A * kk / m, A * m / kk if False else A * math.sqrt(m / kk), vmax * 2, vmax / 2, A * kk], 'm/s'), r=r, lv='중', fam='a',
+                          steps=['에너지 보존 : ½kA² = ½mv²max', 'v max = A√(k/m) = %s × √(%s/%s) = %s × %d = %s m/s' % (fs(A), fs(kk), fs(m), fs(A), om, fs(vmax)), '(검산) ω = √(k/m) = %d rad/s, v max = ωA = %d × %s = %s m/s' % (om, om, fs(A), fs(vmax))],
+                          core='단진동의 최대 속력 v max = ωA = A√(k/m) 이며 평형 위치에서 나타난다.', point='에너지 보존 ½kA² = ½mv²을 이용한다.')
+            if ask == 'amax':
+                am = om * om * A
+                body = P(base + '물체의 최대 가속도의 크기는?' + tail) + fig
+                return mc(body, U(am, 'm/s²'), wr(am, [vmax, om * A * 2, kk * A, am * 2, am / 2, kk / m], 'm/s²'), r=r, lv='중', fam='a',
+                          steps=['진폭 위치에서 용수철 힘이 최대 : F = kA = %s × %s = %s N' % (fs(kk), fs(A), fs(kk * A)), 'a max = F/m = %s / %s = %s m/s²' % (fs(kk * A), fs(m), fs(kk * A / m)), '(검산) ω²A = %d² × %s = %s m/s²' % (om, fs(A), fs(am))],
+                          core='단진동의 최대 가속도는 양 끝점에서 ω²A = kA/m 이다.', point='힘 F = kx 와 F = ma 를 연결한다.')
+            body = P(base + '진동하는 동안 물체의 최대 운동 에너지는?' + tail) + fig
+            return mc(body, U(E, 'J', 3), wr(E, [kk * A * A, 0.5 * kk * A, E * 2, E / 2, 0.5 * m * A * A, kk * A], 'J', 3), r=r, lv='중', fam='a',
+                      steps=['처음 용수철의 탄성 에너지 ½kA² = ½ × %s × %s² = %s J' % (fs(kk), fs(A), fs(E, 3)), '평형 위치에서 탄성 에너지가 모두 운동 에너지로 : Ek max = %s J' % fs(E, 3), '(검산) ½mv²max = ½ × %s × %s² = %s J' % (fs(m), fs(vmax), fs(0.5 * m * vmax * vmax, 3))],
+                      core='진동하는 동안 역학적 에너지 ½kA² 가 일정하고, 평형 위치에서 운동 에너지가 최대이다.', point='처음 탄성 에너지를 구하면 곧 최대 운동 에너지이다.')
+        if form == 'atx':
+            s, (au, xn, yn_) = r.choice([0.01, 0.02, 0.04, 0.05, 0.1]), r.choice([(5, 3, 4), (5, 4, 3), (10, 6, 8), (13, 5, 12), (5, 3, 4)])
+            A = au * s
+            x = xn * s
+            Av = A; xv = x
+            y = math.sqrt(Av * Av - xv * xv)
+            if not cl(y, 3): return None
+            v = om * y
+            if not cl(v, 3): return None
+            Ex = 0.5 * m * v * v
+            assert abs(Ex - 0.5 * kk * (Av * Av - xv * xv)) < 1e-9
+            ask = r.choice(['v', 'v', 'Ek', 'Ep'])
+            fig = FIG(fig_sp_h(kt, mt, '%s m' % fs(Av, 3), '%s m' % fs(xv, 3), xv / Av), '62%')
+            base = '그림과 같이 마찰이 없는 수평면에서 용수철 상수가 %s N/m인 용수철에 질량 %s kg인 물체를 연결하고 평형 위치 O에서 %s m 늘였다가 가만히 놓았더니 단진동을 하였다. ' % (fs(kk), fs(m), fs(Av, 3))
+            Ep = 0.5 * kk * xv * xv
+            if ask == 'v':
+                body = P(base + '물체가 평형 위치에서 %s m 떨어진 지점을 지날 때의 속력은?' % fs(xv, 3) + tail) + fig
+                return mc(body, U(v, 'm/s', 3), wr(v, [om * Av, om * xv, om * (Av - xv), math.sqrt(om * om * (Av * Av + xv * xv)), v * 2, v / 2], 'm/s', 3), r=r, lv='상', fam='b',
+                          steps=['역학적 에너지 보존 : ½kA² = ½mv² + ½kx²', 'v² = (k/m)(A² - x²) = %d × (%s² - %s²) = %s' % (om * om, fs(Av, 3), fs(xv, 3), fs(om * om * (Av * Av - xv * xv), 4)), 'v = %s m/s' % fs(v, 3),
+                                 '(검산) v = ω√(A² - x²) = %d × %s = %s m/s' % (om, fs(y, 3), fs(v, 3))],
+                          core='단진동의 위치 x 에서의 속력 v = ω√(A² - x²) 이다.', point='총 에너지 = 운동 에너지 + 탄성 에너지로 속력을 구한다.')
+            if ask == 'Ek':
+                body = P(base + '물체가 평형 위치에서 %s m 떨어진 지점을 지날 때의 운동 에너지는?' % fs(xv, 3) + tail) + fig
+                return mc(body, U(Ex, 'J', 3), wr(Ex, [0.5 * kk * Av * Av, Ep, 0.5 * kk * (Av - xv) ** 2, Ex * 2, Ex / 2, 0.5 * m * om * om * xv * xv], 'J', 3), r=r, lv='중', fam='b',
+                          steps=['총 에너지 ½kA² = ½ × %s × %s² = %s J' % (fs(kk), fs(Av, 3), fs(0.5 * kk * Av * Av, 3)), '탄성 에너지 ½kx² = ½ × %s × %s² = %s J' % (fs(kk), fs(xv, 3), fs(Ep, 3)), 'Ek = %s - %s = %s J' % (fs(0.5 * kk * Av * Av, 3), fs(Ep, 3), fs(Ex, 3)),
+                                 '(검산) ½mv² = ½ × %s × %s² = %s J' % (fs(m), fs(v, 3), fs(0.5 * m * v * v, 3))],
+                          core='단진동에서 Ek + Ep = ½kA² (일정)이다.', point='총 에너지에서 위치 x의 탄성 에너지를 뺀다.')
+            body = P(base + '물체가 평형 위치에서 %s m 떨어진 지점을 지날 때 용수철에 저장된 탄성 에너지는 운동 에너지의 몇 배인가?' % fs(xv, 3) + tail) + fig
+            ratio = F(xn * xn, yn_ * yn_)
+            return mc(body, _fq(ratio), [_fq(q) for q in (1 / ratio, ratio * ratio if ratio != 1 else F(2), F(1), F(3, 5), F(5, 3), F(25, 9), F(9, 25), F(4, 3)) if q != ratio and q > 0], r=r, lv='상', fam='b', sort='shuf',
+                      steps=['탄성 에너지 ½kx², 운동 에너지 ½k(A² - x²)', 'Ep : Ek = x² : (A² - x²) = %s² : %s² = %s' % (fs(xv, 3), fs(y, 3), '%d : %d' % (ratio.numerator, ratio.denominator)), 'Ep/Ek = %s' % _fq(ratio), '(검산) Ep %s J, Ek %s J, 합 %s J = ½kA²' % (fs(Ep, 3), fs(Ex, 3), fs(Ep + Ex, 3))],
+                      core='단진동에서 위치 에너지(탄성)와 운동 에너지의 비는 x² : (A² - x²) 이다.', point='같은 에너지 보존식에서 비를 구한다.')
+        # 보기형
+        fig = FIG(fig_sp_h(kt, mt, '%s m' % fs(A)), '62%')
+        tops = [
+            ('물체의 최대 속력은 %s m/s이다.' % fs(vmax), '물체의 최대 속력은 %s m/s이다.' % fs(vmax * 2), 'v max = A√(k/m) = %s m/s 이다.' % fs(vmax), 'v max = A√(k/m) = %s m/s 이다.' % fs(vmax)),
+            ('진동 주기는 %s s이다.(π = 3)' % fs(T, 3), '진동 주기는 %s s이다.(π = 3)' % fs(T * 2, 3), 'T = 2π√(m/k) = 6 × √(%s/%s) = %s s 이다.' % (fs(m), fs(kk), fs(T, 3)), 'T = 2π/ω = 6/%d = %s s 이다.' % (om, fs(T, 3))),
+            ('진폭을 2배로 하면 진동 주기는 변하지 않는다.', '진폭을 2배로 하면 진동 주기도 2배가 된다.', 'T = 2π√(m/k)는 진폭과 무관하다.', '주기는 m과 k 로만 정해지고 진폭과 무관하다.'),
+            ('평형 위치를 지날 때 운동 에너지가 최대이다.', '평형 위치를 지날 때 탄성 에너지가 최대이다.', '평형 위치에서 탄성 에너지가 0이므로 운동 에너지가 총 에너지와 같아 최대이다.', '평형 위치에서는 탄성 에너지가 0이다.'),
+            ('물체의 역학적 에너지(운동 + 탄성)는 %s J이고 진동하는 동안 일정하다.' % fs(E, 3), '물체의 역학적 에너지(운동 + 탄성)는 %s J이고 진동하는 동안 일정하다.' % fs(E * 2, 3), '½kA² = ½ × %s × %s² = %s J 이다.' % (fs(kk), fs(A), fs(E, 3)), '½kA² = %s J 이다.' % fs(E, 3)),
+            ('진폭 지점에서 물체의 속력은 0이다.', '진폭 지점에서 물체의 속력은 최대이다.', '진폭 지점은 운동 방향이 바뀌는 순간이므로 속력이 0이다.', '진폭 지점에서는 순간 정지한다.'),
+            ('질량을 4배로 하면 주기는 2배가 된다.', '질량을 4배로 하면 주기는 4배가 된다.', 'T ∝ √m 이므로 4배의 질량에서 주기는 2배이다.', 'T ∝ √m 이므로 2배이다.'),
+        ]
+        return topics_bogi(r, tops, '그림과 같이 마찰이 없는 수평면에서 용수철 상수가 %s N/m인 용수철에 질량 %s kg인 물체를 연결하고 평형 위치에서 %s m 당겼다가 가만히 놓았더니 단진동을 하였다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, π = 3이고, 용수철의 질량과 모든 마찰은 무시한다.)' % (fs(kk), fs(m), fs(A)),
+                           pre=fig, fam='f', lv='중', core='단진동에서 주기는 진폭과 무관하고, 평형 위치에서 운동 에너지가 최대이다.', point='진폭·주기·에너지의 관계를 종합한다.')
+    if form == 'graph':
+        T = r.choice([0.2, 0.3, 0.4, 0.5, 0.6, 1.0, 1.2, 1.5, 2.0])
+        A_cm = r.choice([2, 3, 4, 5, 6, 8, 10])
+        m = r.choice([0.1, 0.2, 0.25, 0.5, 1, 2])
+        om = 6 / T
+        kk = m * om * om
+        vmax = om * A_cm / 100
+        Em = 0.5 * m * vmax * vmax
+        assert abs(Em - 0.5 * kk * (A_cm / 100) ** 2) < 1e-9
+        ask = r.choice(['k', 'v', 'E'])
+        fig = FIG(fig_xt(A_cm, T), '64%')
+        base = '그림은 마찰이 없는 수평면에서 용수철에 연결된 질량 %s kg인 물체의 단진동에서 평형 위치로부터의 변위 x 를 시간 t 에 따라 나타낸 것이다. ' % fs(m)
+        tail2 = ' (단, π = 3이고, 용수철의 질량은 무시한다.)'
+        if ask == 'k':
+            if not cl(kk, 2): return None
+            body = P(base + '용수철 상수는?' + tail2) + fig
+            return mc(body, U(kk, 'N/m'), wr(kk, [m * (12 / T) ** 2, m * 6 / T, m * 36 / T, kk / 2, kk * 2, kk / 4, m * om], 'N/m'), r=r, lv='중', fam='c',
+                      steps=['그래프에서 주기 T = %s s, 진폭 A = %d cm 이다.' % (fs(T), A_cm), 'ω = 2π/T = 6/%s = %s rad/s' % (fs(T), fs(om)), 'k = mω² = %s × %s² = %s N/m' % (fs(m), fs(om), fs(kk)), '(검산) T = 2π√(m/k) = 6 × √(%s/%s) = %s s' % (fs(m), fs(kk), fs(6 * math.sqrt(m / kk)))],
+                      core='그래프에서 주기를 읽어 ω = 2π/T, k = mω² 를 구한다.', point='단진동 그래프의 해석과 ω-k-m 관계를 연결한다.')
+        if ask == 'v':
+            if not cl(vmax, 3): return None
+            body = P(base + '물체의 최대 속력은?' + tail2) + fig
+            return mc(body, U(vmax, 'm/s', 3), wr(vmax, [A_cm / T / 100, om * A_cm, 2 * 3 * A_cm / 100 / (T / 2), vmax * 2, vmax / 2, A_cm / 100 * 6 * T], 'm/s', 3), r=r, lv='중', fam='c',
+                      steps=['그래프에서 T = %s s, A = %d cm = %s m' % (fs(T), A_cm, fs(A_cm / 100, 3)), 'ω = 2π/T = 6/%s = %s rad/s' % (fs(T), fs(om)), 'v max = ωA = %s × %s = %s m/s' % (fs(om), fs(A_cm / 100, 3), fs(vmax, 3)),
+                             '(검산) 에너지 ½kA² = ½mv²max 에서 v max = A√(k/m) = %s m/s' % fs(A_cm / 100 * math.sqrt(kk / m), 3)],
+                      core='단진동의 최대 속력 v max = ωA = 2πA/T 이다.', point='그래프의 A, T 를 단위(cm → m)에 맞추어 읽는다.')
+        if not cl(Em, 4): return None
+        body = P(base + '물체의 최대 운동 에너지는?' + tail2) + fig
+        return mc(body, U(Em, 'J', 4), wr(Em, [0.5 * kk * A_cm / 100, 0.5 * m * om * A_cm, Em * 2, Em / 2, 0.5 * m * (A_cm / 100) ** 2, 0.5 * m * (A_cm / 100 / T) ** 2], 'J', 4), r=r, lv='상', fam='c',
+                  steps=['그래프에서 T = %s s, A = %s m' % (fs(T), fs(A_cm / 100, 3)), 'ω = 6/T = %s rad/s, k = mω² = %s N/m' % (fs(om), fs(kk)), '최대 운동 에너지 = ½kA² = ½ × %s × %s² = %s J' % (fs(kk), fs(A_cm / 100, 3), fs(Em, 4)), '(검산) ½mv²max = ½ × %s × %s² = %s J' % (fs(m), fs(vmax, 3), fs(0.5 * m * vmax * vmax, 4))],
+                  core='그래프(A, T) → ω → v max → Ek max 로 연결한다.', point='에너지 보존과 단진동 식을 모두 사용한다.')
+    if form == 'chg':
+        A = r.choice([0.05, 0.1, 0.2])
+        kind = r.choice(['m', 'k', 'par', 'ser', 'half', 'mk'])
+        if kind == 'm':
+            n = r.choice([2, 4, 9, 3]); qm, qk = F(n), F(1); desc = '질량이 %d배인 물체로 바꾸어' % n
+        elif kind == 'k':
+            n = r.choice([2, 4, 9, 3]); qm, qk = F(1), F(n); desc = '용수철 상수가 %d배인 용수철로 바꾸어' % n
+        elif kind == 'par':
+            qm, qk = F(1), F(2); desc = '똑같은 용수철 2개를 나란히(병렬) 연결하여 물체에 연결해'
+        elif kind == 'ser':
+            qm, qk = F(1), F(1, 2); desc = '똑같은 용수철 2개를 일렬로(직렬) 연결하여 물체에 연결해'
+        elif kind == 'half':
+            qm, qk = F(1), F(2); desc = '용수철을 절반 길이로 잘라 그 한 조각에 물체를 연결해'
+        else:
+            qm, qk = F(r.choice([2, 4, 3])), F(r.choice([2, 4, 3])); desc = '질량이 %d배인 물체를 용수철 상수가 %d배인 용수철에 연결해' % (qm, qk) if False else None
+            if qm == qk: return None
+            desc = '질량이 %d배인 물체를 용수철 상수가 %d배인 용수철에 연결해' % (qm, qk)
+        what = r.choice(['T', 'f', 'v', 'E', 'amax'])
+        # 같은 진폭에서
+        qT = qm / qk   # T'^2/T^2
+        qw2 = qk / qm  # ω'^2/ω^2
+        lab = {'T': ('진동 주기', qT, 'sqrt'), 'f': ('진동수', qw2, 'sqrt'), 'v': ('최대 속력', qw2, 'sqrt'), 'E': ('진동 에너지(역학적 에너지)', qk, 'lin'), 'amax': ('최대 가속도의 크기', qk / qm, 'lin')}
+        name, q, typ = lab[what]
+        ans = _fr(q) if typ == 'sqrt' else _fq(q)
+        # 교차 검증 : ω 로 직접
+        w0, w1 = math.sqrt(1.0), math.sqrt(float(qk / qm))
+        if what == 'T': assert abs(1 / w1 - math.sqrt(float(q))) < 1e-9
+        if what in ('f', 'v'): assert abs(w1 - math.sqrt(float(q))) < 1e-9
+        if what == 'E': assert abs(0.5 * float(qk) * A * A / (0.5 * A * A) - float(q)) < 1e-9
+        if what == 'amax': assert abs(w1 ** 2 - float(q)) < 1e-9
+        cands = []
+        for c in [q, 1 / q, q * q, 1 / (q * q) if q * q != 0 else q, F(1), qm, qk, 1 / qm, 1 / qk, q * 2, q / 2]:
+            cands.append(_fr(c) if typ == 'sqrt' else _fq(c))
+            cands.append(_fq(c) if typ == 'sqrt' else _fr(c))
+        wl = []
+        for c in cands:
+            if c != ans and c not in wl: wl.append(c)
+        fig = FIG(fig_sp_h('k', 'm'), '58%')
+        body = P('그림과 같이 마찰이 없는 수평면에서 용수철에 연결된 물체가 진폭 A 로 단진동을 하고 있다. 용수철과 물체를 %s 같은 진폭 A 로 단진동시킬 때, 처음에 비해 %s는 몇 배가 되는가? (단, 용수철의 질량과 모든 마찰은 무시한다.)' % (desc, name) + '') + fig
+        ok = _wordlist_ok(wl)
+        if not ok: return None
+        stp = ['ω = √(k/m) 이므로 새 용수철 상수 k\' = %s k, 새 질량 m\' = %s m 에서 ω\'/ω = √(%s)' % (_fqs(qk), _fqs(qm), _fqs(qk / qm)),
+               {'T': 'T = 2π/ω 이므로 T\'/T = √(%s) = %s' % (_fqs(qT), ans), 'f': 'f = ω/2π 이므로 f\'/f = √(%s) = %s' % (_fqs(qw2), ans), 'v': 'v max = ωA 이고 A 가 같으므로 v\'/v = √(%s) = %s' % (_fqs(qw2), ans),
+                'E': '에너지 ½kA² 에서 A 가 같으므로 E\'/E = k\'/k = %s' % ans, 'amax': 'a max = kA/m 이므로 a\'/a = (k\'/k)/(m\'/m) = %s' % ans}[what],
+               '(검산) 직접 계산 : %s' % ans]
+        return mc(body, ans, wl, r=r, lv='중' if what in ('T', 'f', 'v') else '상', fam='d', sort='shuf', steps=stp,
+                  core='T = 2π√(m/k), v max = A√(k/m), E = ½kA² 로 k·m 변화에 따른 변화율을 구한다.', point='질량·용수철 상수의 변화가 주기와 에너지에 미치는 영향을 비교한다.')
+    if form == 'vert':
+        om = r.choice([2, 4, 5, 10, 20])
+        x0 = 10.0 / om ** 2
+        m = r.choice([0.1, 0.2, 0.25, 0.5, 1, 2])
+        kk = m * G / x0
+        if not cl(kk, 2) or not cl(x0, 3): return None
+        T = 6.0 / om
+        A = r.choice([0.01, 0.02, 0.03, 0.04, 0.05, 0.1])
+        if A >= x0: return None
+        vmax = om * A
+        # 에너지로 검산 : 최저점 → 평형 위치
+        Elow = 0.5 * kk * (x0 + A) ** 2
+        Eeq = 0.5 * kk * x0 * x0
+        assert abs(0.5 * m * vmax * vmax - (Elow - Eeq - m * G * A)) < 1e-9
+        ask = r.choice(['T', 'v', 'Elow', 'ext'])
+        fig = FIG(fig_sp_v('k', '%s kg' % fs(m), x0txt='%s m' % fs(x0, 3), Atxt='%s m' % fs(A, 3) if ask in ('v', 'Elow', 'ext') else None), '56%')
+        base = '그림과 같이 천장에 매단 용수철에 질량 %s kg인 물체를 달았더니 용수철이 원래 길이보다 %s m 늘어난 상태로 정지하였다. ' % (fs(m), fs(x0, 3))
+        if ask == 'T':
+            if not cl(T, 3): return None
+            body = P(base + '이 물체를 아래로 조금 당겼다 놓았을 때 단진동의 주기는? (단, π = 3이고, 중력 가속도는 10 m/s²이며, 용수철의 질량과 공기 저항은 무시한다.)') + FIG(fig_sp_v('k', '%s kg' % fs(m), x0txt='%s m' % fs(x0, 3)), '56%')
+            return mc(body, U(T, 's', 3), wr(T, [T / 2, T * 2, 6 * math.sqrt(x0), 6 * math.sqrt(x0 / 10) * 2, 6 * x0, math.sqrt(x0), T * 3], 's', 3), r=r, lv='중', fam='e',
+                      steps=['평형에서 mg = kx₀ → k = mg/x₀ = %s × 10 / %s = %s N/m' % (fs(m), fs(x0, 3), fs(kk)), 'ω = √(k/m) = √(g/x₀) = √(10/%s) = %d rad/s' % (fs(x0, 3), om), 'T = 2π/ω = 6/%d = %s s' % (om, fs(T, 3)), '(검산) T = 2π√(m/k) = 6 × √(%s/%s) = %s s' % (fs(m), fs(kk), fs(6 * math.sqrt(m / kk), 3))],
+                      core='연직 용수철 진자의 주기 T = 2π√(x₀/g) 는 평형 늘어남 x₀ 로 구한다.', point='중력은 평형 위치를 옮길 뿐 주기를 바꾸지 않는다.')
+        if ask == 'v':
+            if not cl(vmax, 3): return None
+            body = P(base + '이 물체를 평형 위치에서 아래로 %s m 더 당겼다가 가만히 놓았다. 물체의 최대 속력은? (단, 중력 가속도는 10 m/s²이며, 용수철의 질량과 공기 저항은 무시한다.)' % fs(A, 3)) + fig
+            return mc(body, U(vmax, 'm/s', 3), wr(vmax, [math.sqrt(2 * G * A), A * math.sqrt(kk / m) * 2, math.sqrt(kk / m) * (A + x0), vmax * 2, vmax / 2, math.sqrt(kk * A * A / m + 2 * G * A)], 'm/s', 3), r=r, lv='상', fam='e',
+                      steps=['k = mg/x₀ = %s N/m, ω = √(k/m) = %d rad/s' % (fs(kk), om), '평형 위치를 중심으로 진폭 A = %s m 의 단진동 → v max = ωA = %d × %s = %s m/s' % (fs(A, 3), om, fs(A, 3), fs(vmax, 3)),
+                             '(검산) 최저점→평형 위치 에너지 : ½k(x₀+A)² - ½kx₀² - mgA = %s J = ½mv² = %s J' % (fs(Elow - Eeq - m * G * A, 5), fs(0.5 * m * vmax * vmax, 5))],
+                      core='연직 진자도 평형 위치를 중심으로 한 단진동이며, 속력은 평형 위치에서 최대이다.', point='중력 위치 에너지가 포함된 에너지 보존과 ωA 의 일치.')
+        if ask == 'ext':
+            body = P(base + '이 물체를 평형 위치에서 아래로 %s m 더 당겼다가 가만히 놓았다. 물체가 가장 높은 지점에 있을 때 용수철이 늘어난 길이는? (단, 용수철의 질량과 공기 저항은 무시한다.)' % fs(A, 3)) + fig
+            e = x0 - A
+            return mc(body, U(e, 'm', 3), wr(e, [x0 + A, x0, A, 0, x0 - 2 * A, 2 * x0], 'm', 3), r=r, lv='중', fam='e',
+                      steps=['단진동의 중심은 평형 위치이므로 위·아래로 같은 진폭 %s m 만큼 움직인다.' % fs(A, 3), '가장 높은 지점의 늘어난 길이 = x₀ - A = %s - %s = %s m' % (fs(x0, 3), fs(A, 3), fs(e, 3)), '(검산) 최저점 늘어남 %s m, 두 지점의 평균 = %s m = x₀' % (fs(x0 + A, 3), fs((x0 + A + e) / 2, 3))],
+                      core='연직 용수철 진자는 평형 위치(늘어남 x₀)를 중심으로 대칭으로 진동한다.', point='진폭이 x₀보다 작으면 최고점에서도 용수철이 늘어난 상태이다.')
+        body = P(base + '이 물체를 평형 위치에서 아래로 %s m 더 당긴 순간, 용수철에 저장된 탄성 에너지는? (단, 용수철의 질량은 무시한다.)' % fs(A, 3)) + fig
+        return mc(body, U(Elow, 'J', 4), wr(Elow, [0.5 * kk * A * A, Eeq, 0.5 * kk * x0 * x0 + 0.5 * kk * A * A, Elow + m * G * A, Elow * 2, 0.5 * kk * (x0 - A) ** 2], 'J', 4), r=r, lv='상', fam='e',
+                  steps=['k = mg/x₀ = %s × 10 / %s = %s N/m' % (fs(m), fs(x0, 3), fs(kk)), '늘어난 길이 x₀ + A = %s + %s = %s m' % (fs(x0, 3), fs(A, 3), fs(x0 + A, 3)), '탄성 에너지 ½k(x₀+A)² = ½ × %s × %s² = %s J' % (fs(kk), fs(x0 + A, 3), fs(Elow, 4)),
+                         '(검산) ½kx₀² + kx₀A + ½kA² = %s + %s + %s = %s J' % (fs(Eeq, 4), fs(kk * x0 * A, 4), fs(0.5 * kk * A * A, 4), fs(Eeq + kk * x0 * A + 0.5 * kk * A * A, 4))],
+                  core='연직 진자에서 탄성 에너지는 평형 늘어남 x₀ 가 포함된 전체 늘어난 길이로 계산한다.', point='진폭만이 아니라 평형에서의 늘어남을 더해야 한다.')
+
+
+def _fqs(q):
+    q = F(q)
+    return str(q.numerator) if q.denominator == 1 else '%d/%d' % (q.numerator, q.denominator)
+
+
+def _wordlist_ok(wl):
+    return len(wl) >= 4

@@ -275,7 +275,7 @@ def fig_ball_pull(th, mtxt):
 
 @T('ph003')
 def three_forces(r, k):
-    fam = r.choice(['a'] * 3 + ['b'] * 4 + ['c'] * 4 + ['d'] * 3 + ['e'] * 3 + ['f'] * 3)
+    fam = r.choice(['a'] * 4 + ['b'] * 3 + ['c'] * 3 + ['d'] * 3 + ['e'] * 2 + ['f'] * 3)
     if fam == 'a':
         a, b, c = r.choice([(3, 4, 5), (6, 8, 10), (5, 12, 13), (9, 12, 15), (8, 15, 17), (12, 16, 20), (15, 20, 25), (7, 24, 25), (20, 21, 29)])
         if r.random() < .5: a, b = b, a
@@ -290,7 +290,7 @@ def three_forces(r, k):
             right, ex = b, [c - a, c + a, c, a]
             st = ['평형이므로 %s² = %s² + %s² 이다.' % (F3T, F1T, F2T), '%s = √(%d² - %d²) = √%d = %d N' % (F2T, c, a, b * b, b)]
         wrongs = [U(x, 'N') for x in ex if x != right] + [U(right + 1, 'N'), U(right + 3, 'N')]
-        return mc(body, U(right, 'N'), wrongs, r=r, lv='하' if ask == 'F3' else '중', fam='a', steps=st,
+        return mc(body, U(right, 'N'), wrongs, r=r, lv='중', fam='a', steps=st,
                   core='세 힘이 평형이면 두 힘의 합력은 나머지 한 힘과 크기가 같고 방향이 반대이다.', point='수직인 두 힘의 합력(피타고라스)을 이용한다.')
     if fam == 'b':
         al = r.choice([30, 37, 45, 53, 60])
@@ -357,7 +357,7 @@ def three_forces(r, k):
         fmt = lambda t: '%d N, %d N, %d N' % t
         if r.random() < .6:
             body = P('한 점에 작용하는 세 힘의 크기가 각각 다음과 같을 때, 세 힘이 평형을 이룰 수 있는 경우만을 고른 것은? (단, 세 힘은 한 평면 위에 있다.)')
-            return mc(body, fmt(ok), [fmt(t) for t in bad], r=r, lv='하', fam='d', sort='shuf',
+            return mc(body, fmt(ok), [fmt(t) for t in bad], r=r, lv='중', fam='d', sort='shuf',
                       steps=['세 힘이 평형을 이루려면 가장 큰 힘이 나머지 두 힘의 합보다 작아야 한다(힘의 삼각형이 만들어져야 함).', '%d N, %d N, %d N : %d < %d + %d 이므로 가능하다.' % (a, b, c, max(a, b, c), sorted((a, b, c))[0], sorted((a, b, c))[1])] + ['나머지는 가장 큰 힘이 다른 두 힘의 합 이상이라 평형이 될 수 없다.'],
                       core='세 힘이 평형이면 세 힘으로 닫힌 삼각형을 만들 수 있어야 한다.', point='가장 큰 힘 < 나머지 두 힘의 합 인지 확인한다.')
         goods = []
@@ -457,7 +457,7 @@ def _ratio_txt(a, ra, b, rb):
 
 @T('ph005')
 def decompose(r, k):
-    fam = r.choice(['a'] * 4 + ['b'] * 3 + ['c'] * 4 + ['d'] * 3 + ['e'] * 3)
+    fam = r.choice(['a'] * 4 + ['b'] * 3 + ['c'] * 4 + ['d'] * 3 + ['e'] * 5)
     if fam == 'a':
         th = r.choice([30, 37, 45, 53, 60])
         F = r.choice(ANGF[th])
