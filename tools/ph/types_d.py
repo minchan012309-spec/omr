@@ -28,11 +28,12 @@ def two(x): return abs(x * 100 - round(x * 100)) < 1e-6
 
 def wl(right, cands, unit, nonneg=True):
     out, seen = [], {num(round(right, 2))}
-    fill = [right * 2, right / 2, right * 1.5, right + 10, right - 5, right + 5, right * 3, right + 3, right - 3, right + 1, right - 1, right + 2, right - 2]
+    fill = [right * 2, right / 2, right * 1.5, right * 0.75, right * 1.25, right * 3, right + 10, right - 5, right + 5, right * 0.9, right * 1.1, right + 3, right - 3, right + 1, right - 1, right + 2, right - 2]
     for c in list(cands) + fill:
         if c is None: continue
         c = round(c, 2)
         if nonneg and c <= 0: continue
+        if right > 0 and (c < 0.2 * right or c > 12 * right): continue
         if abs(c * 10 - round(c * 10)) > 1e-6 and abs(right * 10 - round(right * 10)) < 1e-6 and len(out) >= 3 and c in fill: continue
         s = num(c)
         if s in seen: continue
@@ -133,11 +134,11 @@ def cliff_fig(hl, v0l, xl, w=300, h=200, cliff=True):
     return f.svg()
 
 
-def vec_fig(vx, vy, v, w=270, h=200):
+def vec_fig(vx, vy, v, w=300, h=190):
     """착지 직전 속도 v 와 성분. 라벨은 문자열(값 또는 기호). 수평 오른쪽 vx, 아래 vy."""
     f = Fig(w, h)
-    ox, oy = 44, 40
-    sx, sy = 150, 110
+    ox, oy = 30, 36
+    sx, sy = 130, 110
     f.circ(ox, oy, 4, INK, INK, 1)
     f.line(ox, oy, ox + sx, oy, GR, 1.2, '4 3'); f.line(ox + sx, oy, ox + sx, oy + sy, GR, 1.2, '4 3')
     f.arrow(ox, oy, ox + sx - 3, oy, BL, 2.4)
@@ -146,7 +147,7 @@ def vec_fig(vx, vy, v, w=270, h=200):
     f.arrow(ox, oy, ox + sx - 3, oy + sy - 3, RD, 2.6)
     f.text(ox + sx / 2, oy - 8, vx, 13, bold=True, c=BL)
     f.text(ox + sx + 8, oy + sy / 2, vy, 13, 'start', True, GN)
-    f.text(ox + 6, oy + sy / 2 + 26, v, 13, 'start', True, RD)
+    f.text(ox + sx / 2 - 36, oy + sy / 2 + 14, v, 13, 'start', True, RD)
     arc_label(f, ox, oy, 0, 0, '') if False else None
     return f.svg()
 
@@ -162,7 +163,7 @@ def traj_fig(deg, v0l='v₀', thl='θ', Hl=None, Tl=None, Rl=None, w=310, h=195,
     L = 54
     th = math.radians(deg)
     f.arrow(x0, gy, x0 + L * math.cos(th), gy - L * math.sin(th), RD, 2.4)
-    f.text(x0 + L * math.cos(th) + 4, gy - L * math.sin(th) - 2, v0l, 12.5, 'start', True, RD)
+    f.text(14, 18, v0l, 12.5, 'start', True, RD)
     arc_label(f, x0, gy, 24, deg, thl)
     f.circ(x0, gy, 4, INK, INK, 1)
     if Hl:
@@ -738,10 +739,10 @@ def proj_bogi(r, k):
 
 
 # ================================================================ ph032 (수평 투사와 자유 낙하 비교)
-def strobe_fig(n=4, w=300, h=210, labelA='A', labelB='B'):
+def strobe_fig(n=4, w=300, h=215, labelA='A', labelB='B'):
     """같은 높이에서 동시에 출발한 A(수평 투사)와 B(자유 낙하)의 일정한 시간 간격 위치."""
     f = Fig(w, h)
-    top = 26; gy = h - 22; xb = 50
+    top = 44; gy = h - 22; xb = 60
     f.hatch(14, gy, w - 28)
     for i in range(n + 1):
         u = i / n
@@ -750,10 +751,10 @@ def strobe_fig(n=4, w=300, h=210, labelA='A', labelB='B'):
         f.line(xb, y, xa, y, '#c9d1dc', 1, '4 3')
         f.circ(xa, y, 5, BL, INK, 1.2)
         f.circ(xb, y, 5, RD, INK, 1.2)
-    f.text(xb - 4, top - 10, labelB, 14, bold=True, c=RD, italic=True)
-    f.text(xb + 190 + 4, top - 10, '', 14)
-    f.text(xb + 18, top + 8, labelA, 14, 'start', True, BL, True)
-    f.arrow(xb + 8, top, xb + 46, top, BL, 2)
+    f.text(xb - 16, top - 22, labelB, 14, bold=True, c=RD, italic=True)
+    f.arrow(xb + 8, top - 20, xb + 44, top - 20, BL, 2)
+    f.text(xb + 50, top - 16, labelA, 14, 'start', True, BL, True)
+    f.text(xb - 16, top + 3, '', 12)
     return f.svg()
 
 
@@ -792,7 +793,7 @@ def horiz_vs_free(r, k):
             n = r.choice([3, 4, 5])
             fig = strobe_fig(n)
             intro = '그림은 같은 높이에서 동시에 출발한 물체 A(수평으로 던짐)와 물체 B(가만히 놓음)의 위치를 일정한 시간 간격으로 나타낸 것이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, 공기 저항은 무시한다.)'
-            return bogi(intro, [(s[0], s[1], s[2]) for s in sel], r=r, pre=FIG(fig, '56%'), ask='', lv='중', fam='a',
+            return bogi(intro, [(s[0], s[1], s[2]) for s in sel], r=r, pre=FIG(fig, '66%'), ask='', lv='중', fam='a',
                         core='수평으로 던진 물체와 자유 낙하하는 물체는 연직 방향 운동이 같아 같은 시각에 같은 높이에 있고 동시에 지면에 닿는다.', point='같은 높이의 점들을 이어 연직 운동이 같음을 읽는다.')
         intro = '같은 높이에서 동시에 물체 A 를 수평으로 던지고 물체 B 를 가만히 놓았다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, 공기 저항은 무시한다.)'
         return bogi(intro, [(s[0], s[1], s[2]) for s in sel], r=r, ask='', lv='중', fam='b',
@@ -911,19 +912,19 @@ def cliff_slope(r, k):
             fig = step_fig(h1, 0, 'v₀ = %s m/s' % num(v0), 'x = ?', 'h = %s m' % num(d)) if False else None
         if form == 'diff':
             body = PP('그림과 같이 지면으로부터 높이 %s인 평평한 언덕 위에서 %s을(를) 수평 방향으로 던졌더니 던진 지점보다 %s 낮은 평평한 지면에 떨어졌다. 던진 순간부터 떨어질 때까지 걸린 시간은? %s' % (U(h1, 'm'), ob, U(d, 'm'), cond)) if False else \
-                PP('그림과 같이 높은 단 위에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌더니 던진 지점보다 %s 낮은 아래쪽 평지에 떨어졌다. 던진 순간부터 떨어질 때까지 걸린 시간은? %s' % (ob, U(v0, 'm/s'), U(d, 'm'), cond)) + FIG(step_fig(2 * d, d, 'v₀ = %s m/s' % num(v0), 'x', '낙차 %s m' % num(d)), '56%')
+                PP('그림과 같이 높은 단 위에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌더니 던진 지점보다 %s 낮은 아래쪽 평지에 떨어졌다. 던진 순간부터 떨어질 때까지 걸린 시간은? %s' % (ob, U(v0, 'm/s'), U(d, 'm'), cond)) + FIG(step_fig(2 * d, d, 'v₀ = %s m/s' % num(v0), 'x', 'd = %s m' % num(d)), '56%')
             wr = wl(t, [d / v0, math.sqrt(d), d / 10, t + 1, t * 2, 2 * d / 10 * 2], 's')
             return mc(body, ans(t, 's'), wr, r=r, lv='하', fam='a',
                       steps=['낙하 거리는 던진 지점과 떨어진 지점의 높이 차 %s m 이다.' % num(d), 'd = ½gt² 에서 %s = 5t² 이므로 t = %s s' % (num(d), num(t))],
                       core='수평 투사한 물체의 낙하 시간은 던진 지점과 도달 지점의 높이 차로 결정된다.', point='지면이 아니라 도달한 평지까지의 높이 차를 쓴다.')
-        fig = step_fig(h1 if h1 != d else 2 * d, h2 if h1 != d else d, 'v₀ = %s m/s' % num(v0), 'x' if form == 'step_x' else 'x = %s m' % num(x), '낙차 %s m' % num(d))
+        fig = step_fig(h1 if h1 != d else 2 * d, h2 if h1 != d else d, 'v₀ = %s m/s' % num(v0), 'x' if form == 'step_x' else 'x = %s m' % num(x), 'd = %s m' % num(d))
         if form == 'step_x':
             body = PP('그림과 같이 높은 단 위의 끝에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌더니 던진 지점보다 %s 낮은 아래쪽 평지에 떨어졌다. 단의 벽으로부터 떨어진 지점까지의 수평 거리 x 는? %s' % (ob, U(v0, 'm/s'), U(d, 'm'), cond)) + FIG(fig, '56%')
             wr = wl(x, [v0 * math.sqrt(h1) if h1 != d else v0 * d / 10, v0 * math.sqrt(2 * h1 / 10), v0 * d / 10, x * 2, x / 2, x + v0, v0 * math.sqrt(d)], 'm')
             return mc(body, ans(x, 'm'), wr, r=r, lv='중', fam='a',
                       steps=['낙하 시간 : %s = ½ × 10 × t² 에서 t = %s s' % (num(d), num(t)), 'x = v₀t = %s × %s = %s m' % (num(v0), num(t), num(x))],
                       core='낙하 높이는 던진 지점과 도달 지점의 높이 차이며, x = v₀√(2d/g) 이다.', point='높이 차로 시간을 구한 뒤 수평 거리를 구한다.')
-        body = PP('그림과 같이 높은 단 위의 끝에서 %s을(를) 수평 방향으로 던졌더니 던진 지점보다 %s 낮은 아래쪽 평지에서 단의 벽으로부터 %s 떨어진 곳에 떨어졌다. %s을(를) 던진 속력은? %s' % (ob, U(d, 'm'), U(x, 'm'), ob, cond)) + FIG(step_fig(2 * d, d, 'v₀', 'x = %s m' % num(x), '낙차 %s m' % num(d)), '56%')
+        body = PP('그림과 같이 높은 단 위의 끝에서 %s을(를) 수평 방향으로 던졌더니 던진 지점보다 %s 낮은 아래쪽 평지에서 단의 벽으로부터 %s 떨어진 곳에 떨어졌다. %s을(를) 던진 속력은? %s' % (ob, U(d, 'm'), U(x, 'm'), ob, cond)) + FIG(step_fig(2 * d, d, 'v₀', 'x = %s m' % num(x), 'd = %s m' % num(d)), '56%')
         wr = wl(v0, [x / d, x / math.sqrt(d), x / 2, x / (t + 1), x * t, v0 + 5], 'm/s')
         return mc(body, ans(v0, 'm/s'), wr, r=r, lv='중', fam='a',
                   steps=['낙하 시간 : %s = 5t² 에서 t = %s s' % (num(d), num(t)), 'v₀ = x/t = %s / %s = %s m/s' % (num(x), num(t), num(v0))],
@@ -936,7 +937,7 @@ def cliff_slope(r, k):
         if d <= 0 or not two(d): return None
         x = vx * t
         assert abs(vy * t - 5 * t * t - d) < 1e-9
-        body = PP('지면에서 %s을(를) 수평 방향 속력 %s, 연직 위 방향 속력 %s로 던졌다. %s이(가) 지면으로부터 높이 %s인 평평한 옥상에 내려오면서 도달했다. 던진 지점에서 옥상에 도달한 지점까지의 수평 거리는? (단, 옥상의 높이는 %s이고 %s)' % (ob, U(vx, 'm/s'), U(vy, 'm/s'), ob, U(d, 'm'), U(d, 'm'), cond[1:]))
+        body = PP('지면에서 %s을(를) 수평 방향 속력 %s, 연직 위 방향 속력 %s로 던졌다. %s이(가) 지면으로부터 높이 %s인 평평한 옥상에 내려오면서 도달했다. 던진 지점에서 옥상에 도달한 지점까지의 수평 거리는? (단, 옥상의 높이는 %s이고 %s)' % (ob, U(vx, 'm/s'), U(vy, 'm/s'), ob, U(d, 'm'), U(d, 'm'), cond[4:]))
         t_up = vy / 10
         wr = wl(x, [vx * t_up, vx * 2 * t_up, vx * t_up * 2 - vx, vx * (t + 1), vx * (t - 1), x * 2], 'm')
         return mc(body, ans(x, 'm'), wr, r=r, lv='상', fam='b',
@@ -953,13 +954,13 @@ def cliff_slope(r, k):
     L = None
     if deg != 45: L = x / float(COSF[deg])
     if form == 'slope_t':
-        body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌다. %s이(가) 빗면에 떨어질 때까지 걸리는 시간은? (단, tan%d° = %s 이고, %s' % (deg, ob, U(v0, 'm/s'), ob, deg, {37: '3/4', 45: '1', 53: '4/3'}[deg], note[1:])) + FIG(fig, '60%')
+        body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌다. %s이(가) 빗면에 떨어질 때까지 걸리는 시간은? (단, tan%d° = %s 이고, %s' % (deg, ob, U(v0, 'm/s'), ob, deg, {37: '3/4', 45: '1', 53: '4/3'}[deg], note[4:])) + FIG(fig, '60%')
         wr = wl(t, [v0 / 10, 2 * v0 / 10, 2 * v0 / 10 * float(tn) * 2, t + 1, 2 * v0 / 10 / float(tn) if float(tn) else None, t / 2, math.sqrt(2 * v0 / 10)], 's')
         return mc(body, ans(t, 's'), wr, r=r, lv='중', fam='c',
                   steps=['빗면에 떨어질 때 연직 낙하 거리와 수평 거리의 비가 tan%d° 이다 : ½gt² / (v₀t) = tan%d°' % (deg, deg), '5t² / (%s t) = %s 에서 t = 2 × %s × %s / 10 = %s s' % (num(v0), num(float(tn)), num(v0), num(float(tn)), num(t))],
                   core='수평 투사한 물체가 경사각 θ 의 빗면에 떨어지면 ½gt² / (v₀t) = tanθ 이므로 t = 2v₀ tanθ / g 이다.', point='낙하 거리와 수평 거리의 비가 tanθ 임을 이용한다.')
     if form == 'slope_x':
-        body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌다. %s이(가) 빗면에 닿는 순간까지 수평으로 이동한 거리는? (단, tan%d° = %s 이고, %s' % (deg, ob, U(v0, 'm/s'), ob, deg, {37: '3/4', 45: '1', 53: '4/3'}[deg], note[1:])) + FIG(fig, '60%')
+        body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌다. %s이(가) 빗면에 닿는 순간까지 수평으로 이동한 거리는? (단, tan%d° = %s 이고, %s' % (deg, ob, U(v0, 'm/s'), ob, deg, {37: '3/4', 45: '1', 53: '4/3'}[deg], note[4:])) + FIG(fig, '60%')
         wr = wl(x, [y, v0 * t * float(tn), math.hypot(x, y), x * 2, x / 2, v0 * 2 * float(tn)], 'm')
         return mc(body, ans(x, 'm'), wr, r=r, lv='중', fam='c',
                   steps=['t = 2v₀ tan%d° / g = 2 × %s × %s / 10 = %s s' % (deg, num(v0), num(float(tn)), num(t)), 'x = v₀t = %s × %s = %s m' % (num(v0), num(t), num(x))],
@@ -967,20 +968,20 @@ def cliff_slope(r, k):
     if form == 'slope_L':
         if deg == 45: return None
         if not two(L): return None
-        body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌다. %s이(가) 떨어진 지점은 던진 지점으로부터 빗면을 따라 몇 m 떨어져 있는가? (단, sin%d° = %s, cos%d° = %s, tan%d° = %s 이고, %s' % (deg, ob, U(v0, 'm/s'), ob, deg, SINS[deg], deg, COSS[deg], deg, {37: '3/4', 53: '4/3'}[deg], note[1:])) + FIG(fig, '60%')
+        body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌다. %s이(가) 떨어진 지점은 던진 지점으로부터 빗면을 따라 몇 m 떨어져 있는가? (단, sin%d° = %s, cos%d° = %s, tan%d° = %s 이고, %s' % (deg, ob, U(v0, 'm/s'), ob, deg, SINS[deg], deg, COSS[deg], deg, {37: '3/4', 53: '4/3'}[deg], note[4:])) + FIG(fig, '60%')
         wr = wl(L, [x, y, x + y, math.hypot(x, y) * 1.2, L / 2, x / float(SIN[deg]) if True else None, y / float(COSF[deg])], 'm')
         assert abs(L - math.hypot(x, y)) < 1e-9
         return mc(body, ans(L, 'm'), wr, r=r, lv='상', fam='d',
                   steps=['t = 2v₀ tanθ / g = %s s 이므로 수평 거리 x = %s m, 낙하 높이 y = ½gt² = %s m' % (num(t), num(x), num(y)), '빗면을 따라 이동한 거리 = x / cos%d° = %s / %s = %s m' % (deg, num(x), COSS[deg], num(L)), '(√(x² + y²) = √(%s² + %s²) = %s m 로 확인)' % (num(x), num(y), num(L))],
                   core='빗면을 따른 거리는 수평 거리 / cosθ = √(x² + y²) 이다.', point='수평·연직 이동 거리를 합성한다.')
     if form == 'slope_h':
-        body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌다. %s이(가) 빗면에 닿는 순간 던진 지점으로부터 연직 아래로 내려간 높이는? (단, tan%d° = %s 이고, %s' % (deg, ob, U(v0, 'm/s'), ob, deg, {37: '3/4', 45: '1', 53: '4/3'}[deg], note[1:])) + FIG(fig, '60%')
+        body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌다. %s이(가) 빗면에 닿는 순간 던진 지점으로부터 연직 아래로 내려간 높이는? (단, tan%d° = %s 이고, %s' % (deg, ob, U(v0, 'm/s'), ob, deg, {37: '3/4', 45: '1', 53: '4/3'}[deg], note[4:])) + FIG(fig, '60%')
         wr = wl(y, [x, 5 * t, v0 * t * float(tn) * 2, y * 2, y / 2, x * float(tn) * 2], 'm')
         return mc(body, ans(y, 'm'), wr, r=r, lv='상', fam='d',
                   steps=['t = 2v₀ tanθ / g = %s s' % num(t), '낙하 높이 y = ½gt² = 5 × %s² = %s m (= x tanθ = %s × %s)' % (num(t), num(y), num(x), num(float(tn)))],
                   core='낙하 높이 y = ½gt² 이고 y = x tanθ 이다.', point='도달 시각을 구한 뒤 연직 낙하 거리를 구한다.')
     # slope_v0 : 걸린 시간 주어짐
-    body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 던졌더니 %s 후에 빗면에 떨어졌다. %s을(를) 던진 속력 v₀ 는? (단, tan%d° = %s 이고, %s' % (deg, ob, U(t, '초'), ob, deg, {37: '3/4', 45: '1', 53: '4/3'}[deg], note[1:])) + FIG(fig, '60%')
+    body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 던졌더니 %s 후에 빗면에 떨어졌다. %s을(를) 던진 속력 v₀ 는? (단, tan%d° = %s 이고, %s' % (deg, ob, U(t, '초'), ob, deg, {37: '3/4', 45: '1', 53: '4/3'}[deg], note[4:])) + FIG(fig, '60%')
     wr = wl(v0, [5 * t, 10 * t, 5 * t / float(tn), 5 * t * float(tn), v0 * 2, v0 + 5, 10 * t * float(tn)], 'm/s')
     return mc(body, ans(v0, 'm/s'), wr, r=r, lv='상', fam='d',
               steps=['t = 2v₀ tan%d° / g 에서 v₀ = g t / (2 tan%d°)' % (deg, deg), 'v₀ = 10 × %s / (2 × %s) = %s m/s' % (num(t), num(float(tn)), num(v0))],
@@ -1083,7 +1084,7 @@ def vec_grid(r, k):
     if form == 'speed':
         a_, b_, c_ = r.choice([(3, 4, 5), (4, 3, 5), (6, 8, 10), (5, 12, 13), (8, 6, 10)])
         if a_ > 6 or b_ > 6: a_, b_, c_ = 3, 4, 5
-        f = Fig(200, 160); grid_panel(f, 30, 100, a_, b_, cols=7, up=5, down=2, title='처음 속도')
+        f = Fig(200, 170); grid_panel(f, 30, 120, a_, b_, cols=7, up=5, down=2, title='처음 속도')
         v = c_ * u
         body = PP('그림은 지면에서 비스듬히 던진 %s의 처음 속도를 눈금 한 칸이 %s인 모눈종이에 나타낸 것이다. %s의 처음 속력은?' % (ob, U(u, 'm/s'), ob)) + FIG(f.svg(), '46%')
         wr = wl(v, [(a_ + b_) * u, a_ * u, b_ * u, abs(a_ - b_) * u, (a_ + b_) * u / 2, v + u], 'm/s')
