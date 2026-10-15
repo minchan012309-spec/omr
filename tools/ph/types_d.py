@@ -500,7 +500,7 @@ def ratio_str(a, b):
 @T('ph030')
 def oblique_range(r, k):
     """비스듬히 던진 물체의 수평 도달 거리."""
-    form = r.choice(['R', 'R', 'R', 'pair', 'pair', 'ratio', 'fig_ratio', 'fig_ratio', 'rev', 'comp', 'sameang', 'sameang', 'maxang', 'maxang', 'maxR'])
+    form = r.choice(['R', 'R', 'R', 'pair', 'pair', 'ratio', 'fig_ratio', 'fig_ratio', 'fig_ratio', 'fig_ratio', 'rev', 'comp', 'sameang', 'sameang', 'maxang', 'maxang', 'maxR'])
     ob = r.choice(['공', '돌멩이', '창', '야구공'])
     th = r.choice(ANG_OK); v0 = r.choice([10, 15, 20, 25, 30, 40, 50])
     Rq = SIN2[th] * Fr(v0 * v0, 10)

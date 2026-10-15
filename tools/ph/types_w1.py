@@ -582,7 +582,7 @@ def ph086(r, k):
     if form == 'bogi':
         s = pick3(r, _B86)
         if not s: return None
-        return bogi('용수철 진자에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', s, ask='', lv='중', fam='d', r=r,
+        return bogi('용수철 진자에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', s, ask='', lv=r.choice(['하', '중']), fam='d', r=r,
                     core='용수철 진자의 주기는 T = 2π√(m/k) 이며 진폭과 중력에는 무관하다.', point='주기를 결정하는 요인(m, k)을 구분한다.')
     if form == 'calc':
         Tv = Fr(str(r.choice([0.6, 1.2, 1.5, 1.8, 2.4, 3, 0.3, 0.9, 3.6, 6])))
@@ -906,11 +906,11 @@ def ph088(r, k):
                   steps=['기울기에서 k = %d N/m 이다.' % kk, 'x = F/k = %s / %d = %s m = %d cm 이다.' % (fn(F2), kk, fn(F2 / kk), x2)],
                   core='F-x 그래프의 기울기로 k를 구하고 x = F/k.', point='그래프에서 k를 읽어 늘어난 길이를 구한다.')
     if form == 'hang':
-        m1 = r.choice([0.1, 0.2, 0.3, 0.5, 1, 2])
-        x1 = r.choice([2, 4, 5, 8, 10])
+        m1 = r.choice([0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.8, 1, 1.5, 2])
+        x1 = r.choice([2, 4, 5, 8, 10, 20, 25])
         kk = Fr(str(m1)) * G * 100 / x1
         if not term(kk): return None
-        m2 = r.choice([x for x in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1, 1.5, 2, 3] if x != m1])
+        m2 = r.choice([x for x in [0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.8, 1, 1.2, 1.5, 2, 2.5, 3] if x != m1])
         x2 = Fr(str(m2)) * G * 100 / kk
         if not term(x2): return None
         f = Fig(260, 228)

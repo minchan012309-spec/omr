@@ -44,6 +44,15 @@ def wl(right, cands, unit, nonneg=True):
 def ans(x, unit): return num(round(x, 2)) + ' ' + unit
 
 
+def tstr(x):
+    q = Fr(x).limit_denominator(30)
+    d = q.denominator
+    while d % 2 == 0: d //= 2
+    while d % 5 == 0: d //= 5
+    if d == 1: return num(float(q))
+    return '%d/%d' % (q.numerator, q.denominator)
+
+
 def rstr(a, b):
     q = Fr(a).limit_denominator(1000) / Fr(b).limit_denominator(1000)
     return '%d : %d' % (q.numerator, q.denominator)
@@ -71,12 +80,13 @@ def scene(theta=30, ccw=True, rl=None, vl=None, al=None, Fl=None, pname=None, w=
     f.line(cx, cy, px, py, GR, 1.3)
     if rl:
         mx, my = (cx + px) / 2, (cy + py) / 2
-        f.text(mx + 12 * math.sin(th) * (1 if True else -1) - 4, my + 12 * math.cos(th) + 4, rl, 13, 'middle', True)
+        f.text(mx + 15 * math.sin(th), my + 15 * math.cos(th) + 4, rl, 13, 'middle', True)
     s = 1 if ccw else -1
     tx, ty = -math.sin(th) * s, -math.cos(th) * s  # 화면 좌표 방향
     if vl is not None:
         f.arrow(px, py, px + 44 * tx, py + 44 * ty, RD, 2.4)
-        f.text(px + 56 * tx + (6 if tx > 0.3 else -6 if tx < -0.3 else 0), py + 54 * ty + 4, vl, 13, 'start' if tx > 0.3 else 'end' if tx < -0.3 else 'middle', True, RD, True)
+        lx = min(max(px + 58 * tx, 52), w - 52); ly = py + 56 * ty + 4
+        f.text(lx, ly, vl, 13, 'middle', True, RD, True)
     if al is not None:
         ux, uy = (cx - px) / R, (cy - py) / R
         f.arrow(px, py, px + 38 * ux, py + 38 * uy, BL, 2.4)
@@ -98,11 +108,8 @@ def disk_fig(rA, rB, w=250, h=200):
     for u_, nm, c in ((ua, 'A', BL), (ub, 'B', RD)):
         f.circ(cx + u_, cy, 6, c, INK, 1.2)
         f.text(cx + u_, cy - 12, nm, 13.5, bold=True, c=c, italic=True)
-    f.arc = None
     f.text(cx - 10, cy + 16, 'O', 13, bold=True, italic=True)
-    f.o.append('<path d="M %s %s A 40 40 0 0 1 %s %s" fill="none" stroke="%s" stroke-width="1.4"/>' % (cx + 0, cy - 40, cx + 40, cy, GR))
-    f.arrow(cx + 38, cy - 12, cx + 42, cy - 6, GR, 1.4)
-    f.text(cx + 100, cy + 6, '회전', 12, 'start', c=GR)
+    f.text(cx + 100, cy + 6, '(회전 원판)', 12, 'start', c=GR)
     return f.svg()
 
 
@@ -247,7 +254,7 @@ def circ_basic(r, k):
     if not two(v): return None
     f = scene(30, True, 'r = %s m' % num(rr), None, None)
     f.text(120, 205, '주기 T = %s s' % num(T_), 13, bold=True, c=GR)
-    body = PP('그림은 반지름 %s인 원 위를 일정한 속력으로 도는 %s을(를) 나타낸 것이다. 주기가 %s일 때 %s의 속력은? %s' % (U(rr, 'm'), ob, U(T_, 's'), ob, cond)) + FIG(f.svg(), '50%')
+    body = PP('그림은 반지름 %s인 원 위를 일정한 속력으로 도는 %s을(를) 나타낸 것이다. 주기가 %s일 때 %s의 속력은? %s' % (U(rr, 'm'), ob, U(T_, 's'), ob, cond)) + FIG(f.svg(), '60%')
     wr = wl(v, [PI * rr / T_, 2 * PI * rr * T_, rr / T_, v * 2, v / 2, 2 * rr / T_], 'm/s')
     return mc(body, ans(v, 'm/s'), wr, r=r, lv='중', fam='f',
               steps=['v = 2πr/T = 2 × 3 × %s / %s = %s m/s' % (num(rr), num(T_), num(v))],
@@ -338,7 +345,7 @@ def centripetal_acc(r, k):
     if form == 'graph':
         w_ = r.choice([1, 2, 3, 4]); rm = r.choice([2, 3, 4, 5]); am = w_ * w_ * rm
         if am > 40: return None
-        p = Plot(280, 190, rm * 1.25, am * 1.25, ml=48, mr=18, mt=16, mb=30)
+        p = Plot(280, 190, rm * 1.25, am * 1.25, ml=48, mr=18, mt=16, mb=40)
         ypx = (190 - 16 - 30) / (am * 1.25); xpx = (280 - 48 - 18) / (rm * 1.25)
         p.axes('r(m)', 'a(m/s²)', [rm], [am])
         p.line(p.px(rm), p.py(am), p.px(rm), p.py(0), GR, 1, '4 3'); p.line(p.px(rm), p.py(am), p.px(0), p.py(am), GR, 1, '4 3')
@@ -351,7 +358,7 @@ def centripetal_acc(r, k):
     v = r.choice([2, 4, 6, 8, 10]); rr = r.choice([2, 4, 5, 8, 10]); a = v * v / rr
     if not two(a): return None
     f = scene(r.choice([30, 60, 120, 210, 300]), r.random() < .5, 'r = %s m' % num(rr), 'v = %s m/s' % num(v), 'a')
-    body = PP('그림은 반지름 %s인 원 위를 %s의 속력으로 등속 원운동하는 %s의 모습을 나타낸 것이다. %s의 가속도(a)의 크기는?' % (U(rr, 'm'), U(v, 'm/s'), ob, ob)) + FIG(f.svg(), '50%')
+    body = PP('그림은 반지름 %s인 원 위를 %s의 속력으로 등속 원운동하는 %s의 모습을 나타낸 것이다. %s의 가속도(a)의 크기는?' % (U(rr, 'm'), U(v, 'm/s'), ob, ob)) + FIG(f.svg(), '60%')
     wr = wl(a, [v / rr, v * rr, v * v * rr, v * v / (2 * rr), 0.5 * v * v / rr * 2, a + 1], 'm/s²')
     return mc(body, ans(a, 'm/s²'), wr, r=r, lv='하', fam='g', steps=['a = v²/r = %s² / %s = %s m/s², 방향은 원의 중심 O 를 향한다.' % (num(v), num(rr), num(a))],
               core='등속 원운동의 가속도는 크기 v²/r, 방향은 중심 방향이다.', point='그림의 값을 읽어 구심 가속도를 구한다.')
@@ -436,7 +443,7 @@ def centripetal_force(r, k):
     if form == 'graph':
         m = r.choice([1, 2, 3, 4]); rr = r.choice([1, 2, 4, 5]); k_ = m / rr; vv = r.choice([4, 9, 16, 25, 36]); F = k_ * vv
         if not two(F) or F > 60: return None
-        p = Plot(280, 190, vv * 1.25, F * 1.25, ml=48, mr=18, mt=16, mb=30)
+        p = Plot(280, 190, vv * 1.25, F * 1.25, ml=48, mr=18, mt=16, mb=40)
         p.axes('v²(m²/s²)', 'F(N)', [vv], [F])
         p.line(p.px(vv), p.py(F), p.px(vv), p.py(0), GR, 1, '4 3'); p.line(p.px(vv), p.py(F), p.px(0), p.py(F), GR, 1, '4 3')
         p.pl([(0, 0), (vv * 1.2, F * 1.2)], BL, 2.6); p.circ(p.px(vv), p.py(F), 3.6, RD, RD, 1)
@@ -448,7 +455,7 @@ def centripetal_force(r, k):
         m = r.choice([0.5, 1, 2, 3]); v = r.choice([2, 4, 6, 8]); rr = r.choice([1, 2, 4, 8]); F = m * v * v / rr
         if not two(F): return None
         f = scene(r.choice([30, 60, 150, 240, 330]), r.random() < .5, 'r = %s m' % num(rr), 'v = %s m/s' % num(v), 'F')
-        body = PP('그림은 마찰이 없는 수평면에서 질량 %s인 %s이(가) 줄에 매달려 등속 원운동하는 것을 위에서 본 모습이다. 줄이 %s을(를) 당기는 힘 F 의 크기는?' % (U(m, 'kg'), ob, ob)) + FIG(f.svg(), '50%')
+        body = PP('그림은 마찰이 없는 수평면에서 질량 %s인 %s이(가) 줄에 매달려 등속 원운동하는 것을 위에서 본 모습이다. 줄이 %s을(를) 당기는 힘 F 의 크기는?' % (U(m, 'kg'), ob, ob)) + FIG(f.svg(), '60%')
         wr = wl(F, [m * v / rr, m * v * v * rr, m * v * rr, F * 2, F / 2, v * v / rr], 'N')
         return mc(body, ans(F, 'N'), wr, r=r, lv='하', fam='e', steps=['줄의 장력이 구심력 역할을 한다.', 'F = mv²/r = %s × %s² / %s = %s N' % (num(m), num(v), num(rr), num(F))],
                   core='수평면에서 줄이 당기는 힘(장력)이 구심력이다.', point='구심력의 원천을 찾는다.')
@@ -462,11 +469,11 @@ def centripetal_force(r, k):
 
 
 # ================================================================ ph038
-def dir_fig(theta, ccw, letters, w=260, h=225, R=66):
+def dir_fig(theta, ccw, letters, w=270, h=235, R=82):
     """물체에서 5개 방향 화살표(A~E). letters: 방향 키 -> 문자."""
     f = Fig(w, h)
     cx, cy = w / 2, h / 2 + 4
-    f.circ(cx, cy, R, 'none', GR, 1.4, '5 3'); f.circ(cx, cy, 3, INK, INK, 1); f.text(cx - 9, cy + 16, 'O', 13, bold=True, italic=True)
+    f.circ(cx, cy, R, 'none', GR, 1.4, '5 3'); f.circ(cx, cy, 3, INK, INK, 1); f.text(cx + 11, cy + 4, 'O', 13, bold=True, italic=True)
     th = math.radians(theta)
     px, py = cx + R * math.cos(th), cy - R * math.sin(th)
     f.line(cx, cy, px, py, GR, 1.2)
@@ -475,7 +482,7 @@ def dir_fig(theta, ccw, letters, w=260, h=225, R=66):
     ux, uy = (cx - px) / R, (cy - py) / R                   # 중심 방향
     dirs = {'fwd': (tx, ty), 'back': (-tx, -ty), 'in': (ux, uy), 'out': (-ux, -uy), 'diag': ((tx + ux) / math.sqrt(2), (ty + uy) / math.sqrt(2))}
     for key, (dx, dy) in dirs.items():
-        L = 40
+        L = 34
         f.arrow(px, py, px + L * dx, py + L * dy, RD if key == 'fwd' else BL, 2.2)
         f.text(px + (L + 10) * dx, py + (L + 10) * dy + 5, letters[key], 13, bold=True, c=INK)
     f.circ(px, py, 6.5, '#f2b400', INK, 1.3)
@@ -593,10 +600,10 @@ def string_circle(r, k):
 
 
 # ================================================================ ph039
-def cone_fig(deg, w=220, h=220):
+def cone_fig(deg, w=240, h=200):
     f = Fig(w, h)
-    cx = w / 2; top = 24
-    L = 130
+    cx = w / 2 - 10; top = 24
+    L = 120
     th = math.radians(deg)
     bx, by = cx + L * math.sin(th), top + L * math.cos(th)
     f.line(cx - 40, top, cx + 40, top, INK, 2.4)
@@ -642,7 +649,7 @@ def cone_and_road(r, k):
             body = PP('그림과 같이 질량 %s인 추가 길이가 일정한 줄에 매달려 연직선과 %d°를 이루며 수평면에서 등속 원운동하고 있다. 추에 작용하는 구심력의 크기는? (단, tan%d° = %s 이고, 공기 저항은 무시하며 중력 가속도는 10 m/s²이다.)' % (U(m, 'kg'), deg, deg, {37: '3/4', 45: '1', 53: '4/3'}[deg])) + FIG(fig, '46%')
             wr = wl(Fc, [m * G, m * G / tn, m * G * math.sin(math.radians(deg)), m * G / math.cos(math.radians(deg)), Fc * 2, m * G * (1 - tn)], 'N')
             return mc(body, ans(Fc, 'N'), wr, r=r, lv='중', fam='a',
-                      steps=['추에 작용하는 힘은 중력 mg(아래)와 장력 T(줄 방향)이다.', '연직 방향 : T cos%d° = mg, 수평 방향 : T sin%d° = F(구심력)' % (deg, deg), 'F = mg tan%d° = %s × 10 × %s = %s N' % (deg, num(m), num(tn), num(Fc))],
+                      steps=['추에 작용하는 힘은 중력 mg(아래)와 장력 T(줄 방향)이다.', '연직 방향 : T cos%d° = mg, 수평 방향 : T sin%d° = F(구심력)' % (deg, deg), 'F = mg tan%d° = %s × 10 × %s = %s N' % (deg, num(m), tstr(tn), num(Fc))],
                       core='원뿔 진자에서 구심력은 mg tanθ 이다(장력의 수평 성분).', point='장력을 연직·수평 성분으로 나누어 구심력을 구한다.')
         ct = {37: 0.8, 60: 0.5}[deg]
         T_ = m * G / ct
@@ -662,7 +669,7 @@ def cone_and_road(r, k):
         body = PP('그림과 같이 줄에 매달린 추가 연직선과 %d°를 이루며 반지름 %s인 수평 원 위를 등속 원운동하고 있다. 추의 속력은? (단, tan%d° = %s 이고, 공기 저항은 무시하며 중력 가속도는 10 m/s²이다.)' % (deg, U(rr, 'm'), deg, '1' if deg == 45 else '3/4')) + FIG(fig, '46%')
         wr = wl(v, [rr * G * tn, math.sqrt(rr * G), rr * tn, math.sqrt(rr * G / tn), v * 2, v + 2], 'm/s')
         return mc(body, ans(v, 'm/s'), wr, r=r, lv='상', fam='a',
-                  steps=['구심력 mg tanθ = mv²/r 이므로 v² = rg tanθ', 'v² = %s × 10 × %s = %s 이므로 v = %s m/s' % (num(rr), num(tn), num(v * v), num(v))],
+                  steps=['구심력 mg tanθ = mv²/r 이므로 v² = rg tanθ', 'v² = %s × 10 × %s = %s 이므로 v = %s m/s' % (num(rr), tstr(tn), num(v * v), num(v))],
                   core='원뿔 진자의 속력은 v² = rg tanθ 이다(질량과 무관).', point='mg tanθ = mv²/r 에서 질량이 약분된다.')
     if form == 'cone_th':
         v, rr, deg = r.choice([(6, 4.8, 37), (3, 1.2, 37), (9, 10.8, 37), (10, 10, 45), (5, 2.5, 45), (20, 40, 45), (10, 7.5, 53), (20, 30, 53)])
@@ -671,7 +678,7 @@ def cone_and_road(r, k):
         body = PP('질량 m 인 추가 줄에 매달려 반지름 %s인 수평 원 위를 %s의 속력으로 등속 원운동하고 있다. 줄이 연직선과 이루는 각 θ 는? (단, tan37° = 3/4, tan45° = 1, tan53° = 4/3 이고, 공기 저항은 무시하며 중력 가속도는 10 m/s²이다.)' % (U(rr, 'm'), U(v, 'm/s')))
         wr = ['%d°' % a_ for a_ in (30, 37, 45, 53, 60) if a_ != deg]
         return mc(body, '%d°' % deg, wr, r=r, lv='중', fam='a', sort='shuf',
-                  steps=['tanθ = v²/(rg) = %s² / (%s × 10) = %s' % (num(v), num(rr), num(tn)), 'tanθ = %s 이므로 θ = %d°' % ({37: '3/4', 45: '1', 53: '4/3'}[deg], deg)],
+                  steps=['tanθ = v²/(rg) = %s² / (%s × 10) = %s' % (num(v), num(rr), tstr(tn)), 'tanθ = %s 이므로 θ = %d°' % ({37: '3/4', 45: '1', 53: '4/3'}[deg], deg)],
                   core='원뿔 진자에서 tanθ = v²/(rg) 이다.', point='구심력과 중력의 비로 각을 구한다.')
     if form in ('road_f', 'road_f2'):
         m = r.choice([500, 800, 1000, 1200, 1500, 2000]); v = r.choice([10, 15, 20, 25]); rr = r.choice([25, 50, 100, 125, 200])
@@ -703,7 +710,7 @@ def cone_and_road(r, k):
         fig = bank_fig(deg)
         body = PP('그림과 같이 반지름 %s인 곡선 구간에서 도로가 수평면과 θ 의 각으로 기울어 있다. 자동차가 마찰력 없이도 미끄러지지 않고 %s의 속력으로 돌 수 있도록 하는 θ 는? (단, tan37° = 3/4, tan45° = 1, tan53° = 4/3 이고, 중력 가속도는 10 m/s²이다.)' % (U(rr, 'm'), U(v, 'm/s'))) + FIG(fig, '58%')
         wr = ['%d°' % a_ for a_ in (30, 37, 45, 53, 60) if a_ != deg]
-        return mc(body, '%d°' % deg, wr, r=r, lv='상', fam='d', sort='shuf', steps=['마찰이 없을 때 수직 항력의 수평 성분이 구심력이다: N sinθ = mv²/r, N cosθ = mg', 'tanθ = v²/(rg) = %s² / (%s × 10) = %s' % (num(v), num(rr), num(v * v / (rr * G))), 'θ = %d°' % deg],
+        return mc(body, '%d°' % deg, wr, r=r, lv='상', fam='d', sort='shuf', steps=['마찰이 없을 때 수직 항력의 수평 성분이 구심력이다: N sinθ = mv²/r, N cosθ = mg', 'tanθ = v²/(rg) = %s² / (%s × 10) = %s' % (num(v), num(rr), tstr(v * v / (rr * G))), 'θ = %d°' % deg],
                   core='마찰이 없는 경사 도로에서 tanθ = v²/(rg) 이다.', point='수직 항력의 성분으로 구심력과 중력을 나눈다.')
     if form == 'bank_v':
         deg, rr = r.choice([(45, 10), (45, 22.5), (45, 40), (45, 2.5), (37, 4.8), (37, 10.8)])
@@ -712,7 +719,7 @@ def cone_and_road(r, k):
         v = int(round(v)); fig = bank_fig(deg)
         body = PP('그림과 같이 반지름 %s인 곡선 구간에서 도로가 수평면과 %d°의 각으로 기울어 있다. 마찰력이 작용하지 않을 때 자동차가 도로 면을 따라 미끄러지지 않고 돌 수 있는 속력은? (단, tan%d° = %s 이고, 중력 가속도는 10 m/s²이다.)' % (U(rr, 'm'), deg, deg, '1' if deg == 45 else '3/4')) + FIG(fig, '58%')
         wr = wl(v, [rr * G * tn, math.sqrt(rr * G), v * 2, v / 2, rr * tn, v + 3], 'm/s')
-        return mc(body, ans(v, 'm/s'), wr, r=r, lv='중', fam='d', steps=['tanθ = v²/(rg) 에서 v² = rg tanθ = %s × 10 × %s = %s' % (num(rr), num(tn), num(v * v)), 'v = %s m/s' % num(v)],
+        return mc(body, ans(v, 'm/s'), wr, r=r, lv='중', fam='d', steps=['tanθ = v²/(rg) 에서 v² = rg tanθ = %s × 10 × %s = %s' % (num(rr), tstr(tn), num(v * v)), 'v = %s m/s' % num(v)],
                   core='경사 도로에서 마찰이 없을 때의 속력은 v = √(rg tanθ) 이다.', point='경사각과 반지름만으로 속력이 정해진다.')
     # mu_ratio : 개념적 비
     n = r.choice([2, 3]); mu = r.choice([0.2, 0.25, 0.4]); rr = r.choice([20, 25, 40, 50]); v = math.sqrt(mu * G * rr)
