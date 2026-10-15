@@ -303,3 +303,121 @@ _B3 = (
          '정지 마찰력은 항상 μ<sub>s</sub>N이 아니다. 최대값이 μ<sub>s</sub>N이고 실제 값은 외력과 같다.</p>', 'wa')
 )
 SECS_A['Ⅰ-B'] = [mk('Ⅰ-B', 1, _B1), mk('Ⅰ-B', 2, _B2), mk('Ⅰ-B', 3, _B3)]
+
+
+def fig_vt_turn():
+    p = Plot(320, 225, 6, 10, ymin=-6, ml=50, mr=24, mt=16, mb=14)
+    p.axes('t (s)', 'v (m/s)', (0, 2, 4, 6), (-4, 0, 4, 8))
+    p.fill_under([(0, 8), (4, 0)], '#d9e8fa')
+    p.fill_under([(4, 0), (6, -4)], '#f8d8d4')
+    p.pl([(0, 8), (4, 0), (6, -4)], BL, 2.8)
+    p.text(p.px(1.2), p.py(2.2), '변위 +16 m', 12, 'middle', True, BL)
+    p.text(p.px(5.0), p.py(-5.2), '변위 −4 m', 12, 'middle', True, RD)
+    p.text(p.px(2.6), p.py(8.4), '기울기 = a = −2 m/s²', 12, 'start', True, GR)
+    p.text(p.px(4.1), p.py(1.4), '방향 전환', 12, 'start', True, GR)
+    return p
+
+
+def fig_free_fall():
+    f = Fig(340, 215)
+    g = 185
+    f.line(20, g, 320, g, GR, 1.8)
+    xa, xd = 100, 250
+    H = 130
+    data = [(0, 0, 20), (1, 15, 10), (2, 20, 0), (3, 15, -10), (4, 0, -20)]
+    ys = lambda h: g - 7 - h / 20 * H
+    f.path('M %s %s L %s %s' % (xa, ys(0), xa, ys(20)), stroke=GR, sw=1, dash='4 3')
+    f.path('M %s %s L %s %s' % (xd, ys(0), xd, ys(20)), stroke=GR, sw=1, dash='4 3')
+    f.line(xa, ys(20), xd, ys(20), GR, 1, '4 3')
+    for t, h, v in data:
+        x = xa if t < 2 else xd
+        if t == 2:
+            x = (xa + xd) / 2
+        y = ys(h)
+        f.circ(x, y, 7, '#fff4d6', INK, 1.6)
+        if t < 2:
+            f.text(x - 14, y + 4, 't=%d s' % t, 11.5, 'end', True, INK)
+        elif t > 2:
+            f.text(x + 14, y + 4, 't=%d s' % t, 11.5, 'start', True, INK)
+    for t, h, v in data:
+        x = xa if t < 2 else (xd if t > 2 else (xa + xd) / 2)
+        y = ys(h)
+        if t < 2:
+            xx = x + 20
+            f.arrow(xx, y, xx, y - v * 1.3, BL, 2.4)
+            f.text(xx + 6, y - v * 1.3 + 12 if v > 10 else y - v * 1.3 + 4, '%d' % v, 11.5, 'start', True, BL)
+        elif t > 2:
+            xx = x - 20
+            if h == 0:
+                f.arrow(xx, y - 26, xx, y, RD, 2.4)
+                f.text(xx - 6, y - 12, '−%d' % abs(v), 11.5, 'end', True, RD)
+            else:
+                f.arrow(xx, y, xx, y + abs(v) * 1.3, RD, 2.4)
+                f.text(xx - 6, y + abs(v) * 1.3 - 2, '−%d' % abs(v), 11.5, 'end', True, RD)
+    f.text(170, ys(20) - 14, 't=2 s  최고점 h = 20 m, v = 0', 12, 'middle', True, GR)
+    f.text(170, 207, '(v 단위: m/s, 위쪽을 +로 한 연직 운동, v₀ = 20 m/s)', 11.5, 'middle', False, GR)
+    return f
+
+
+def fig_proj_h():
+    f = Fig(330, 225)
+    gy, x0, y0 = 160, 44, 40
+    f.rect(0, gy, 330, 65, '#eef2f8', 'none', 0)
+    f.line(0, gy, 330, gy, GR, 1.8)
+    f.rect(8, y0, x0 - 8, gy - y0, '#e3e9f1', GR, 1.4)
+    f.text(26, 104, 'h', 14, 'middle', True)
+    pts = [(x0 + 140 * t / 2, y0 + 120 * (t / 2) ** 2) for t in [i / 20 * 2 for i in range(21)]]
+    f.poly(pts, 'none', BL, 2.2, close=False, dash='5 3')
+    for t in (0, 1, 2):
+        x, y = x0 + 70 * t, y0 + 30 * t * t
+        vy = 20 * t
+        f.circ(x, y, 3.5, INK, INK)
+        f.arrow(x, y, x + 36, y, BL, 2.2)
+        if t:
+            f.arrow(x, y, x, y + vy, GN, 2.2)
+            f.arrow(x, y, x + 36, y + vy, RD, 2.4)
+    f.text(x0 + 30, y0 - 12, 'v₀ = vₓ', 12, 'middle', True, BL)
+    f.text(x0 + 70 + 44, y0 + 30 - 14, 'vₓ(일정)', 11.5, 'start', True, BL)
+    f.text(x0 + 70 - 6, y0 + 30 + 24, 'v_y', 12, 'end', True, GN)
+    f.text(x0 + 70 + 42, y0 + 30 + 26, 'v', 12, 'start', True, RD)
+    f.text(x0 + 140 - 6, y0 + 120 + 30, 'v_y', 12, 'end', True, GN)
+    f.text(x0 + 140 + 44, y0 + 120 + 22, 'v', 12, 'start', True, RD)
+    f.text(x0 + 140 + 44, y0 + 120 - 6, 'vₓ', 12, 'start', True, BL)
+    f.arrow(x0, 178, x0 + 140, 178, GR, 1.4)
+    f.arrow(x0 + 140, 178, x0, 178, GR, 1.4)
+    f.text(x0 + 56, 196, '도달 거리 R = v₀t', 12.5, 'middle', True, GR)
+    return f
+
+
+def fig_proj_o():
+    f = Fig(340, 230)
+    gy = 175
+    f.line(10, gy, 330, gy, GR, 1.8)
+    x0, xt, x1 = 30, 165, 300
+    H = 115
+    pts = []
+    for i in range(61):
+        x = x0 + (x1 - x0) * i / 60
+        u = (x - xt) / (xt - x0)
+        pts.append((x, gy - H * (1 - u * u)))
+    f.poly(pts, 'none', BL, 2.2, close=False, dash='5 3')
+    ang = math.atan2(2 * H, xt - x0)
+    L = 62
+    tx, ty = x0 + L * math.cos(ang), gy - L * math.sin(ang)
+    f.line(tx, ty, tx, gy, GR, 1.1, '3 3')
+    f.arrow(x0, gy, tx, ty, RD, 2.6)
+    f.text(x0 + 4, ty - 4, 'v₀', 13, 'end', True, RD)
+    f.text(tx + 5, (ty + gy) / 2 + 4, 'v₀ sinθ', 12, 'start', True, GN)
+    f.text(tx + 2, gy + 16, 'v₀ cosθ', 12, 'middle', True, BL)
+    f.path('M %s %s A 34 34 0 0 0 %s %s' % (x0 + 34, gy, x0 + 34 * math.cos(ang), gy - 34 * math.sin(ang)), stroke=INK, sw=1.2)
+    f.text(x0 + 46, gy - 8, 'θ', 12.5, 'start', True)
+    f.circ(xt, gy - H, 3.5, INK, INK)
+    f.arrow(xt, gy - H, xt + 52, gy - H, BL, 2.4)
+    f.text(xt + 56, gy - H + 4, 'vₓ = v₀ cosθ', 12, 'start', True, BL)
+    f.text(xt - 6, gy - H - 10, '최고점: v_y = 0', 12, 'end', True, GR)
+    f.line(xt, gy - H, xt, gy, GR, 1, '4 3')
+    f.text(xt - 6, gy - 58, 'H', 14, 'end', True)
+    f.arrow(x0, 212, x1, 212, GR, 1.4)
+    f.arrow(x1, 212, x0, 212, GR, 1.4)
+    f.text((x0 + x1) / 2, 226, '사거리 R (체공 시간 T)', 12.5, 'middle', True, GR)
+    return f
