@@ -1273,3 +1273,206 @@ def g109(r, k):
     return mc(body, U(hm, 'm'), wr(hm, [2 * R, 3 * R, 2 * R + 0.5 * R * 0.5, 4 * R, 5 * R, 1.5 * R], 'm'), r=r, lv='중', fam='c',
               steps=['최고점에서 수직 항력이 0 일 때가 한계 : mg = mv²/R → v² = gR = %s' % fs(G * R), '에너지 보존 : mgh = mg(2R) + ½mv² → h = 2R + R/2 = %s m' % fs(hm), '(검산) v² = 2g(h - 2R) = 2 × 10 × %s = %s = gR' % (fs(hm - 2 * R), fs(2 * G * (hm - 2 * R)))],
               core='원형 레일을 완주하려면 최고점에서 v² ≥ gR 이고, 이를 위한 최소 높이는 h = 2.5R 이다.', point='한계 조건(N = 0)과 에너지 보존을 연결한다.')
+
+
+# ================================================================== ph110 기체의 일과 역학적 에너지
+P0 = 100000  # 대기압 (Pa)
+
+
+def fig_piston(expanded=True, wtxt='M', dtxt=None, Atxt=None, heater=True, ins=False, gas='기체', w=310, hh=225):
+    """실린더 + 피스톤 + 추. expanded 이면 점선(처음 위치)과 현재 위치를 함께 그린다."""
+    f = Fig(w, hh)
+    xl, xr = 100, 200
+    yb = 168
+    yt = 36
+    g0 = 50
+    g1 = 82 if expanded else 50
+    f.rect(xl, yb - g1, xr - xl, g1, '#fdeaea', 'none', 0)
+    wc = '#d9dee6' if ins else INK
+    f.line(xl, yt, xl, yb, wc, 5 if ins else 2.4)
+    f.line(xr, yt, xr, yb, wc, 5 if ins else 2.4)
+    f.line(xl, yb, xr, yb, wc, 5 if ins else 2.4)
+    yp = yb - g1
+    f.rect(xl + 1, yp - 7, xr - xl - 2, 7, '#aab4c3', INK, 1.4)
+    f.rect(xl + 20, yp - 7 - 26, 60, 26, '#cfe2f7', INK, 1.7)
+    f.text((xl + xr) / 2, yp - 7 - 8, wtxt, 13, bold=True, italic=True)
+    if expanded:
+        f.line(xl - 6, yb - g0 - 7, xl + 22, yb - g0 - 7, GR, 1.2, '4 3')
+        f.line(xr + 6, yb - g0 - 7, xr + 22, yb - g0 - 7, GR, 1.2, '4 3')
+        f.line(xr + 16, yb - g0 - 7, xr + 16, yp - 7, GR, 1.2)
+        f._head(xr + 16, yb - g0 - 7, xr + 16, yp - 7, GR, 1.2, 7)
+        f._head(xr + 16, yp - 7, xr + 16, yb - g0 - 7, GR, 1.2, 7)
+        if dtxt: f.text(xr + 22, (yp + yb - g0) / 2 - 2, dtxt, 12.5, 'start', True, GR)
+    f.text((xl + xr) / 2, yb - 14, gas, 12.5, bold=True, c=RD)
+    if Atxt:
+        f.text(xl - 8, yb - 24, Atxt, 12, 'end', True, GR)
+        f.line(xl - 4, yb - 14, xl - 4, yb - 14, GR, 1)
+    for x in (xl + 14, (xl + xr) / 2, xr - 14):
+        f.arrow(x, 10, x, 28, GR, 1.6)
+    f.text(xl - 8, 22, 'P₀', 13, 'end', True, GR, True)
+    if heater:
+        for x in (xl + 22, (xl + xr) / 2, xr - 22):
+            f.path('M %s %s q -5 -8 0 -14 q 3 5 6 0 q 4 8 -6 14 z' % (Fig._n(x), Fig._n(yb + 24)), RD, RD, 1)
+        f.text(xr + 14, yb + 22, '가열', 12.5, 'start', True, RD)
+    if ins:
+        f.text(xl - 8, 120, '단열', 12.5, 'end', True, GR)
+    return f.svg()
+
+
+def fig_joule(Mtxt, Htxt, w=320, hh=215):
+    f = Fig(w, hh)
+    f.rect(36, 120, 100, 70, 'none', INK, 2)
+    f.rect(37, 138, 98, 51, '#cfe2f7', 'none', 0)
+    f.text(86, 182, '물', 12.5, bold=True, c=BL)
+    f.line(86, 70, 86, 172, INK, 2.2)
+    f.rect(66, 168, 40, 6, '#aab4c3', INK, 1.4)
+    f.circ(86, 60, 12, '#f1f4f8', INK, 1.6)
+    f.line(86, 60, 86, 60, INK, 1)
+    pxx, pyy = 176, 40
+    f.circ(pxx, pyy, 12, '#f1f4f8', INK, 1.6)
+    f.line(98, 56, pxx - 12, pyy + 2, GR, 1.6)
+    f.line(pxx + 12, pyy, pxx + 12, 108, GR, 1.6)
+    f.rect(pxx - 2, 108, 28, 26, '#cfe2f7', INK, 1.7)
+    f.text(pxx + 12, 126, Mtxt, 12.5, bold=True, italic=True)
+    f.rect(pxx - 2, 178, 28, 26, 'none', GR, 1.2, 0, '4 3')
+    f.line(pxx + 40, 108, pxx + 40, 178, GR, 1.2)
+    f._head(pxx + 40, 108, pxx + 40, 178, GR, 1.2, 7)
+    f._head(pxx + 40, 178, pxx + 40, 108, GR, 1.2, 7)
+    f.text(pxx + 46, 148, Htxt, 12.5, 'start', True, GR)
+    return f.svg()
+
+
+@T('ph110')
+@balanced
+def g110(r, k):
+    form = pick(r, ['iso', 'iso', 'iso', 'iso', 'joule', 'joule', 'adia', 'adia', 'fric', 'fric', 'bogi', 'bogi', 'bogi'])
+    tail = ' (단, 중력 가속도는 10 m/s²이다.)'
+    if form in ('iso', 'bogi'):
+        A = r.choice([0.005, 0.01, 0.02])
+        Mk = r.choice([2, 4, 5, 6, 8, 10, 12, 15, 20])
+        dh = r.choice([0.05, 0.1, 0.2, 0.25, 0.4, 0.5])
+        Mg = Mk * G
+        Pg = P0 + Mg / A
+        dV = A * dh
+        W = Pg * dV
+        W2 = (P0 * A + Mg) * dh
+        assert abs(W - W2) < 1e-6
+        Watm = P0 * A * dh
+        Ep = Mg * dh
+        assert abs(Watm + Ep - W) < 1e-6
+        dU = 1.5 * Pg * dV
+        Q = dU + W
+        assert abs(Q - 2.5 * W) < 1e-6
+        if not (cl(W, 2) and cl(Q, 2) and cl(Watm, 2) and cl(Ep, 2)): return None
+        Atxt = 'S = %s m²' % fs(A, 3)
+        fig = FIG(fig_piston(True, '%d kg' % Mk, 'Δh = %s m' % fs(dh), Atxt), '56%')
+        base = '그림과 같이 단면적이 %s m²인 실린더에 단원자 분자 이상 기체가 들어 있고, 질량 %d kg인 추와 피스톤이 위에 놓여 있다(피스톤의 질량은 무시). 대기압은 1.0×10%s Pa이다. 기체에 열을 서서히 가했더니 피스톤이 %s m 올라갔다. ' % (fs(A, 3), Mk, sup('5'), fs(dh))
+        if form == 'bogi':
+            tops = [
+                ('기체가 한 일은 %s J이다.' % fs(W), '기체가 한 일은 %s J이다.' % fs(Ep), '압력 P = P₀ + Mg/S = %s Pa 로 일정하므로 W = PΔV = %s J 이다.' % (fs(Pg), fs(W)), 'W = PΔV = %s J 이며 %s J 는 추의 위치 에너지 증가량일 뿐이다.' % (fs(W), fs(Ep))),
+                ('기체의 압력은 팽창하는 동안 일정하다.', '기체의 압력은 팽창하는 동안 계속 감소한다.', '피스톤이 천천히 움직이면 추와 대기압이 누르는 힘과 평형을 이루어 압력이 일정하다.', '피스톤에 작용하는 힘이 일정하므로 압력은 P₀ + Mg/S 로 일정하다.'),
+                ('기체가 흡수한 열량은 기체가 한 일보다 크다.', '기체가 흡수한 열량은 기체가 한 일과 같다.', 'Q = ΔU + W 이고 온도가 올라 ΔU > 0 이므로 Q > W 이다.', '등압 팽창에서는 온도가 상승하여 내부 에너지가 증가하므로 Q = ΔU + W > W 이다.'),
+                ('기체가 한 일 중 추의 위치 에너지 증가량은 %s J이다.' % fs(Ep), '기체가 한 일은 모두 추의 위치 에너지 증가량으로 전환된다.', 'Mg·Δh = %d × 10 × %s = %s J 이다. 나머지는 대기를 밀어내는 일이다.' % (Mk, fs(dh), fs(Ep)), '기체가 한 일 %s J 중 %s J 는 대기를 밀어내는 데 쓰인다.' % (fs(W), fs(Watm))),
+                ('기체의 내부 에너지 증가량은 %s J이다.' % fs(dU), '기체의 내부 에너지 증가량은 %s J이다.' % fs(W), '단원자 분자 이상 기체의 ΔU = (3/2)PΔV = %s J 이다.' % fs(dU), 'ΔU = (3/2)PΔV = %s J 로 기체가 한 일과 같지 않다.' % fs(dU)),
+                ('기체의 온도는 상승한다.', '기체의 온도는 변하지 않는다.', '압력이 일정하고 부피가 늘어나므로 PV 가 커져 온도가 올라간다.', '등압 팽창에서 V/T 가 일정하므로 부피가 늘면 온도도 오른다.'),
+                ('기체가 흡수한 열량은 %s J이다.' % fs(Q), '기체가 흡수한 열량은 %s J이다.' % fs(dU), 'Q = ΔU + W = %s + %s = %s J 이다.' % (fs(dU), fs(W), fs(Q)), 'Q = ΔU + W = %s J 이고 %s J 는 내부 에너지 증가량만이다.' % (fs(Q), fs(dU))),
+            ]
+            return topics_bogi(r, tops, base + '이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, 중력 가속도는 10 m/s²이다.)', pre=fig, fam='e', lv='중',
+                               core='등압 팽창에서 기체가 한 일은 PΔV 이고, 열량은 내부 에너지 증가와 한 일의 합이다.', point='기체의 일과 역학적 에너지(추의 위치 에너지)의 관계를 구분한다.')
+        ask = r.choice(['Ep', 'Ep', 'W', 'W', 'Watm', 'Q', 'Q'])
+        if ask == 'Ep':
+            body = P(base + '이 과정에서 추의 중력 위치 에너지의 증가량은?' + tail) + fig
+            return mc(body, U(Ep, 'J'), wr(Ep, [W, Watm, Pg * dV * 0.5, Mg * dh * 2, Mk * dh], 'J'), r=r, lv='하', fam='a',
+                      steps=['추가 올라간 높이는 피스톤이 올라간 높이 %s m 와 같다.' % fs(dh), 'ΔEp = mgh = %d × 10 × %s = %s J' % (Mk, fs(dh), fs(Ep))],
+                      core='위치 에너지 증가량은 mgΔh 이다.', point='추의 에너지와 기체가 한 일을 구분한다.')
+        if ask == 'W':
+            body = P(base + '이 과정에서 기체가 한 일은?' + tail) + fig
+            return mc(body, U(W, 'J'), wr(W, [Ep, Watm, P0 * dV * 0, Mg * dh + P0 * dh, Pg * A, W * 2, W / 2], 'J'), r=r, lv='중', fam='a',
+                      steps=['기체의 압력 P = P₀ + Mg/S = 1.0×10⁵ + %d × 10 / %s = %s Pa (일정)' % (Mk, fs(A, 3), fs(Pg)), '부피 변화 ΔV = SΔh = %s × %s = %s m³' % (fs(A, 3), fs(dh), fs(dV, 5)), 'W = PΔV = %s × %s = %s J' % (fs(Pg), fs(dV, 5), fs(W)),
+                             '(검산) 대기에 한 일 P₀SΔh = %s J + 추의 위치 에너지 %s J = %s J' % (fs(Watm), fs(Ep), fs(Watm + Ep))],
+                      core='등압 팽창에서 기체가 한 일은 PΔV 이며, 대기를 밀어낸 일과 추를 올린 일의 합과 같다.', point='압력을 먼저 구한 뒤 부피 변화를 곱한다.')
+        if ask == 'Watm':
+            body = P(base + '이 과정에서 기체가 한 일 중 대기를 밀어내는 데 쓰인 일은?' + tail) + fig
+            return mc(body, U(Watm, 'J'), wr(Watm, [W, Ep, Ep + 0.5 * Watm, Watm * 2, Watm / 2, P0 * dh], 'J'), r=r, lv='중', fam='a',
+                      steps=['기체가 한 일 W = (P₀S + Mg)Δh = (%s + %s) × %s = %s J' % (fs(P0 * A), fs(Mg), fs(dh), fs(W)), '추의 위치 에너지 증가 Mgh = %s J' % fs(Ep), '대기에 한 일 = W - Mgh = %s - %s = %s J' % (fs(W), fs(Ep), fs(Watm)),
+                             '(검산) P₀SΔh = %s × %s = %s J' % (fs(P0 * A), fs(dh), fs(Watm))],
+                      core='기체가 한 일 = 대기압을 이기는 일 + 추의 위치 에너지 증가.', point='에너지 전환의 경로를 추적한다.')
+        body = P(base + '이 과정에서 기체가 흡수한 열량은?' + tail) + fig
+        return mc(body, U(Q, 'J'), wr(Q, [W, dU, Q - Ep, 1.5 * W + Ep, 2 * W, 3 * W], 'J'), r=r, lv='상', fam='a',
+                  steps=['W = PΔV = (P₀ + Mg/S)SΔh = %s J' % fs(W), 'ΔU = (3/2)nRΔT = (3/2)PΔV = 1.5 × %s = %s J' % (fs(W), fs(dU)), 'Q = ΔU + W = %s + %s = %s J' % (fs(dU), fs(W), fs(Q)), '(검산) 등압 과정에서 단원자 분자 Q = (5/2)PΔV = 2.5 × %s = %s J' % (fs(W), fs(2.5 * W))],
+                  core='열역학 제1법칙 Q = ΔU + W, 단원자 분자 이상 기체의 ΔU = 3/2 PΔV 이다.', point='압력(역학) → 일 → 내부 에너지 → 열량의 순서로 연결한다.')
+    if form == 'joule':
+        Mk = r.choice([2, 4, 5, 8, 10, 20, 21, 25, 42])
+        H = r.choice([1, 1.5, 2, 2.5, 4, 5])
+        n = r.choice([5, 10, 12, 20, 25, 30, 40, 50, 100])
+        mw = r.choice([0.5, 1, 2, 3, 5])
+        c = 4200
+        eta = r.choice([1, 1, 0.5, 0.8, 0.6, 0.4, 0.25, 0.75])
+        Q = eta * n * Mk * G * H
+        dT = Q / (mw * c)
+        if not cl(dT, 2) or dT <= 0 or dT > 20: return None
+        assert abs(dT * mw * c - eta * n * Mk * G * H) < 1e-6
+        ask = r.choice(['dT', 'dT', 'dT', 'Q'])
+        fig = FIG(fig_joule('%d kg' % Mk, '%s m' % fs(H)), '58%')
+        base = '그림은 줄에 매달린 질량 %d kg인 추가 %s m 내려오면서 물속의 날개를 돌려 물을 젓는 장치를 나타낸 것이다. 추를 같은 높이에서 %d번 반복해서 내려오게 했다. 물의 질량은 %s kg이고 물의 비열은 4200 J/(kg·K)이다. ' % (Mk, fs(H), n, fs(mw))
+        eta_s = '' if eta == 1 else '추가 잃은 역학적 에너지의 %d %%만 물의 내부 에너지로 전달된다고 할 때, ' % round(eta * 100)
+        if ask == 'Q':
+            body = P(base + eta_s + '물에 전달된 열에너지는? (단, 추의 처음과 나중 속력은 0이고, 중력 가속도는 10 m/s²이다.)') + fig
+            return mc(body, U(Q, 'J'), wr(Q, [n * Mk * G * H, Q * 2, Q / 2, Mk * G * H, n * Mk * H, dT], 'J'), r=r, lv='중', fam='b',
+                      steps=['추가 한 번 내려올 때 잃는 위치 에너지 Mgh = %d × 10 × %s = %s J' % (Mk, fs(H), fs(Mk * G * H)), '%d번이면 %s J' % (n, fs(n * Mk * G * H)), '전달된 열 = %s × %s = %s J' % (fs(eta), fs(n * Mk * G * H), fs(Q))],
+                      core='역학적 에너지가 마찰(젓는 일)로 열에너지가 된다(줄의 실험).', point='위치 에너지 감소량을 열로 환산한다.')
+        body = P(base + eta_s + '물의 온도 변화는? (단, 추의 처음과 나중 속력은 0이고, 중력 가속도는 10 m/s²이며, 열은 물에만 전달된다.)') + fig
+        return mc(body, U(dT, 'K'), wr(dT, [dT * 2, dT / 2, dT / eta if eta != 1 else dT * 4, dT * eta if eta != 1 else dT * 10, Mk * G * H / (mw * c), dT * 100], 'K'), r=r, lv='중', fam='b',
+                  steps=['추의 위치 에너지 감소 : %d × (%d × 10 × %s) = %s J' % (n, Mk, fs(H), fs(n * Mk * G * H)), '물이 받은 열 Q = %s × %s = %s J' % (fs(eta), fs(n * Mk * G * H), fs(Q)), 'Q = mcΔT → ΔT = %s / (%s × 4200) = %s K' % (fs(Q), fs(mw), fs(dT)),
+                         '(검산) mcΔT = %s × 4200 × %s = %s J = Q' % (fs(mw), fs(dT), fs(mw * c * dT))],
+                  core='줄의 실험 : 역학적 에너지 감소량 = 열에너지 증가량 = mcΔT.', point='에너지 전환량을 비열 공식에 대입한다.')
+    if form == 'adia':
+        A = r.choice([0.005, 0.01, 0.02])
+        Mk = r.choice([2, 4, 5, 6, 8, 10, 12, 15, 20])
+        dh = r.choice([0.05, 0.1, 0.2, 0.25, 0.4, 0.5])
+        nmol = r.choice([0.5, 1, 2, 0.25])
+        Pext = P0 + Mk * G / A
+        W = Pext * A * dh
+        dU = -W
+        dT = W / (1.5 * nmol * 8)
+        if not cl(W, 2) or not cl(dT, 2): return None
+        assert abs(W - ((P0 * A + Mk * G) * dh)) < 1e-6
+        fig = FIG(fig_piston(True, '%d kg' % Mk, 'Δh = %s m' % fs(dh), 'S = %s m²' % fs(A, 3), heater=False, ins=True), '56%')
+        base = '그림과 같이 단면적 %s m²인 단열된 실린더에 단원자 분자 이상 기체 %s mol이 들어 있고, 마찰 없이 움직이는 질량이 무시되는 단열 피스톤 위에 질량 %d kg인 추가 놓여 있다. 대기압은 1.0×10%s Pa이다. 처음에 고정되어 있던 피스톤을 가만히 놓았더니 기체가 팽창하여 피스톤과 추가 %s m 올라간 뒤 정지하였다. ' % (fs(A, 3), fs(nmol), Mk, sup('5'), fs(dh))
+        body = P(base + '기체의 온도는 몇 K 낮아졌는가? (단, 기체 상수는 8 J/(mol·K)이고, 중력 가속도는 10 m/s²이다. 추와 피스톤이 정지한 상태에서의 운동 에너지 변화는 무시한다.)') + fig
+        return mc(body, U(dT, 'K'), wr(dT, [dT * 2, dT / 2, Mk * G * dh / (1.5 * nmol * 8), W / (nmol * 8), W / (2.5 * nmol * 8), dT * 1.5, dT * 2 / 3], 'K'), r=r, lv='상', fam='c',
+                  steps=['기체가 외부에 한 일 W = (P₀S + Mg)Δh = (%s + %d × 10) × %s = %s J' % (fs(P0 * A), Mk, fs(dh), fs(W)), '단열 과정 Q = 0 이므로 ΔU = -W = %s J' % fs(dU),
+                         'ΔU = (3/2)nRΔT 에서 |ΔT| = %s / (1.5 × %s × 8) = %s K' % (fs(W), fs(nmol), fs(dT)), '(검산) 대기에 한 일 %s J + 추의 위치 에너지 증가 %s J = %s J' % (fs(P0 * A * dh), fs(Mk * G * dh), fs(W))],
+                  core='단열 팽창에서 기체가 한 일만큼 내부 에너지가 감소하며, 이 일은 대기와 추에 전달된다.', point='역학적 일(위치 에너지)을 열역학 제1법칙에 연결한다.')
+    # fric : 마찰열 → 기체 내부 에너지
+    mm = r.choice([1, 2, 3, 4, 5])
+    mu = r.choice([0.2, 0.25, 0.4, 0.5])
+    d = r.choice([2, 4, 5, 8, 10, 12, 20])
+    v = None
+    use_v = r.random() < 0.5
+    if use_v:
+        vv = r.choice([2, 4, 5, 6, 8, 10])
+        Qh = 0.5 * mm * vv * vv
+        dd = vv * vv / (2 * mu * G)
+        if not cl(dd, 2): return None
+        # 교차 검증 : 마찰력 × 이동 거리
+        assert abs(mu * mm * G * dd - Qh) < 1e-6
+    else:
+        vv = None
+        Qh = mu * mm * G * d
+    eta = r.choice([1, 0.5, 0.4, 0.8, 0.25])
+    nmol = r.choice([0.5, 1, 2, 0.25])
+    dU = eta * Qh
+    dT = dU / (1.5 * nmol * 8)
+    if not cl(dT, 2) or dT <= 0: return None
+    eta_s = '' if eta == 1 else '발생한 열의 %d %%가 ' % round(eta * 100)
+    if use_v:
+        txt = '수평면 위에서 질량 %d kg인 물체가 %d m/s의 속력으로 미끄러지기 시작하여 운동 마찰 계수가 %s인 거친 면을 지나 멈출 때까지 마찰력에 의해 열이 발생한다. ' % (mm, vv, fs(mu))
+    else:
+        txt = '수평면 위에서 질량 %d kg인 물체가 운동 마찰 계수가 %s인 거친 면 위를 일정한 속력으로 %d m만큼 끌려 이동하는 동안 마찰력에 의해 열이 발생한다. ' % (mm, fs(mu), d)
+    body = P(txt + '%s부피가 일정한 용기 속의 단원자 분자 이상 기체 %s mol에 전달되었다면 기체의 온도 상승량은? (단, 기체 상수는 8 J/(mol·K)이고, 중력 가속도는 10 m/s²이다.)' % (eta_s if eta_s else '발생한 열이 모두 ', fs(nmol)))
+    wl = [dT * 2, dT / 2, Qh / (nmol * 8), Qh / (1.5 * nmol * 8) if eta != 1 else dT * 1.5, dT * 5 / 3, dT / eta if eta != 1 else dT * 4]
+    return mc(body, U(dT, 'K'), wr(dT, wl, 'K'), r=r, lv='상' if use_v else '중', fam='d',
+              steps=['마찰열 Q = ' + ('운동 에너지 ½mv² = ½ × %d × %d² = %s J (마찰력 × 거리와 같다)' % (mm, vv, fs(Qh)) if use_v else '마찰력 × 거리 = μmg × d = %s × %d × 10 × %d = %s J' % (fs(mu), mm, d, fs(Qh))),
+                     '기체에 전달된 열 = 부피 일정이므로 W = 0, ΔU = %s × %s = %s J' % (fs(eta), fs(Qh), fs(dU)), 'ΔU = (3/2)nRΔT → ΔT = %s / (1.5 × %s × 8) = %s K' % (fs(dU), fs(nmol), fs(dT))],
+              core='부피가 일정한 기체가 받은 열은 모두 내부 에너지 증가가 되며, 역학적 에너지가 마찰열로 전환된다.', point='역학적 에너지 → 열 → 내부 에너지의 전환 경로를 따라 계산한다.')

@@ -4,6 +4,42 @@ from phlib import *
 import math
 from fractions import Fraction
 
+from phlib import T as _T, num as _num
+
+
+def num(x, nd=2):
+    """phlib.num + 아주 작은 값(0.002 등)도 0 으로 반올림하지 않는다."""
+    if not isinstance(x, int) and x != 0 and abs(x) < 0.1:
+        s = ('%.9f' % x).rstrip('0').rstrip('.')
+        return s
+    return _num(x, nd)
+
+
+def _san_str(t):
+    """HTML 에서 '<' 가 태그로 읽히지 않게 하고, 음수의 하이픈을 '−' 로."""
+    if not isinstance(t, str): return t
+    t = re.sub(r'<(?![a-zA-Z/!])', '&lt;', t)
+    t = re.sub(r'(?<![\w\)\]])-(?=\d)', '−', t)
+    return t
+
+
+def T(tag):
+    """phlib.T 를 감싸서 문항 문자열을 정리한다."""
+    def deco(f):
+        def g(r, k):
+            it = f(r, k)
+            if it is None: return None
+            it.body = _san_str(it.body)
+            it.opts = [_san_str(o) for o in it.opts]
+            it.steps = [_san_str(x) for x in it.steps]
+            it.core = _san_str(it.core); it.point = _san_str(it.point)
+            return it
+        g.__name__ = f.__name__
+        _T(tag)(g)
+        return f
+    return deco
+
+
 GAM = 5.0 / 3.0   # 단열 곡선(PV^γ = 일정) 모양용. 단원자 분자 이상 기체
 UP, DN, ZE = '⊕', '⊖', '0'
 
@@ -131,10 +167,12 @@ def rand_sch(r, pmax_step=2, vmax_step=2):
 def unit_note(sc):
     return (' (단, ' + sc.note + '이다.)') if sc.note else ''
 
+def _unit_join(x, u):
+    return (x if isinstance(x, str) else num(x)) + ('×' + u if u.startswith('10') else ' ' + u)
 def vol_str(sc, v):
-    return num(v * sc.vstep) + ' ' + sc.vl.split('(')[1][:-1]
+    return _unit_join(v * sc.vstep, sc.vl.split('(')[1][:-1])
 def pre_str(sc, p):
-    return num(p * sc.pstep) + ' ' + sc.pl.split('(')[1][:-1]
+    return _unit_join(p * sc.pstep, sc.pl.split('(')[1][:-1])
 
 
 def curve_pts(kind, a, b, n=48):
@@ -360,10 +398,11 @@ def g065(r, k):
         if U2.denominator != 1: return None
         U2 = int(U2)
         what = r.choice(['U2', 'dU'])
-        body = P('분자 수가 일정한 이상 기체의 온도가 %d °C일 때 내부 에너지는 %d J이다. 이 기체의 온도를 %d °C로 바꾸었을 때 %s는? (단, 0 °C = 273 K이다.)' % (t1, U1, t2, '내부 에너지' if what == 'U2' else '내부 에너지의 변화량'))
+        body = P('분자 수가 일정한 이상 기체의 온도가 %d °C일 때 내부 에너지는 %d J이다. 이 기체의 온도를 %d °C로 바꾸었을 때 %s? (단, 0 °C = 273 K이다.)' % (t1, U1, t2, '내부 에너지는' if what == 'U2' else '내부 에너지의 변화량은'))
         if what == 'U2':
             right = '%d J' % U2
-            wr = ['%d J' % (U1 * t2 / t1) if t1 and (U1 * t2) % t1 == 0 else '%d J' % (U1 + (t2 - t1)), '%d J' % (U1 * T1 // T2) if (U1 * T1) % T2 == 0 else '%d J' % (U1 + 100), '%d J' % abs(U2 - U1), '%d J' % (U1 + (t2 - t1)), '%d J' % (2 * U2), '%d J' % (U2 // 2 + 10)]
+            cand = [U1 * t2 / t1 if t1 > 0 else U1 + 40, U1 * T1 / T2, abs(U2 - U1), U1 + (t2 - t1) if U1 + (t2 - t1) > 0 else U1 + 60, 2 * U2, U2 // 2 + 10, U1 + U2]
+            wr = ['%s J' % num(abs(x)) for x in cand if x > 0 and abs(x - U2) > 1e-9]
         else:
             d = U2 - U1
             if d == 0: return None
@@ -396,7 +435,7 @@ def g065(r, k):
         if nmul == 1: return None
         ratio = Fraction(T2, T1) * nmul
         right = fr_str(ratio) + '배'
-        body = P('분자 수가 N인 이상 기체의 온도가 %d °C이다. 이 기체를 %d K으로 바꾼 뒤 분자 수를 %d배로 늘려(같은 온도 유지) 나중 내부 에너지가 처음의 몇 배가 되는지 구하시오. (단, 0 °C = 273 K이다.)' % (t1, T2, nmul))
+        body = P('분자 수가 N인 이상 기체의 온도가 %d °C이다. 이 기체를 %d K으로 바꾸고 분자 수를 %d배로 늘렸다. 나중 내부 에너지는 처음의 몇 배인가? (단, 0 °C = 273 K이다.)' % (t1, T2, nmul))
         wr = [fr_str(Fraction(T2, T1)) + '배', fr_str(Fraction(T2, T1 - 273 if t1 == 27 else T1) * nmul) + '배' if t1 != 27 else fr_str(Fraction(T2, t1) * nmul) + '배', fr_str(ratio * 2) + '배', fr_str(ratio / 2) + '배', fr_str(Fraction(T1, T2) * nmul) + '배', fr_str(ratio + 1) + '배']
         return mc(body, right, wr, r=r, lv='상', fam='e', sort='shuf',
                   steps=['처음 : T%s = %d + 273 = %d K, 분자 수 N' % (sub(1), t1, T1), '나중 : T%s = %d K, 분자 수 %dN' % (sub(2), T2, nmul), 'U ∝ NT 이므로 U%s / U%s = (%d × %d) / (1 × %d) = %s' % (sub(2), sub(1), nmul, T2, T1, fr_str(ratio))],
@@ -507,7 +546,7 @@ def g066(r, k):
         mag = abs(W)
         wr = ['%s J' % num(-W), '%s J' % num(P0 * Vb * sc.J), '%s J' % num(P0 * Va * sc.J), '%s J' % num(mag / 2), '%s J' % num(mag * 2), '%s J' % num(abs(W) / 100), '%s J' % num(mag * 10)]
         return mc(body, ('%s J' % num(W)) if W > 0 else ('−%s J' % num(mag)), [w.replace('-', '−') if False else w for w in wr], r=r, lv='중', fam='g', sort='shuf',
-                  steps=['압력이 P = %s로 일정한 등압 과정이다. ΔV = (%d − %d) × %s = %s' % (pre_str(sc, P0), Vb, Va, vol_str(sc, 1), vol_str(sc, Vb - Va)),
+                  steps=['압력이 일정(P = %s)한 등압 과정이다. ΔV = (%d − %d) 칸 = %s' % (pre_str(sc, P0), Vb, Va, vol_str(sc, Vb - Va)),
                          'W = PΔV = %s J%s' % (num(W), '' if W > 0 else ' (압축이므로 음수)')],
                   core='등압 과정에서 W = PΔV. P-V 그래프에서 일은 곡선 아래 넓이이다.', point='그래프의 눈금에서 P와 ΔV를 읽어 W = PΔV 를 계산한다.')
     # h: 개념(<보기>)형이 아닌 정성 판단: 팽창/압축과 일의 부호
@@ -735,7 +774,7 @@ def g068(r, k):
         body = P('그림은 일정량의 이상 기체가 A에서 B로 변하는 과정을 나타낸 것이다. 상태 A에서 기체의 내부 에너지는 %d J이다. A → B 과정에서 기체가 흡수한 열량은?%s' % (U_A, unit_note(sc))) + fig
         wr = [UB - U_A, W, UB, Q + U_A, UB - U_A - W if UB - U_A != W else Q + W, W * 10]
         return mc(body, '%d J' % Q, ['%d J' % w for w in wr], r=r, lv='상', fam='d',
-                  steps=['A → B 는 압력이 %s로 일정한 등압 팽창이다.' % pre_str(sc, P0), 'W = PΔV = %s J. 등압 과정에서 U ∝ T ∝ V 이므로 U%s = %d × %d/%d = %d J' % (num(W), sub('B'), U_A, Vb, Va, UB),
+                  steps=['A → B 는 압력이 일정(%s)한 등압 팽창이다.' % pre_str(sc, P0), 'W = PΔV = %s J. 등압 과정에서 U ∝ T ∝ V 이므로 U%s = %d × %d/%d = %d J' % (num(W), sub('B'), U_A, Vb, Va, UB),
                          'ΔU = %d − %d = %d J, Q = ΔU + W = %d + %d = %d J' % (UB, U_A, UB - U_A, UB - U_A, W, Q)],
                   core='등압 과정: W = PΔV, U ∝ T ∝ V, Q = ΔU + W.', point='그래프에서 W를 구하고 온도(내부 에너지) 비례 관계로 ΔU를 구한다.')
     if form == 'e':   # 부호 표 채우기
@@ -979,16 +1018,16 @@ def g070(r, k):
         pA, vA, vB, pB = pa * sc.pstep, va * sc.vstep, vb * sc.vstep, pb * sc.pstep
         pu, vu = sc.pl.split('(')[1][:-1], sc.vl.split('(')[1][:-1]
         if ask == 'PB':
-            body = P('그림은 일정량의 이상 기체가 A에서 B로 변할 때의 P-V 그래프이다. 곡선은 온도가 일정한 변화를 나타낸다. 상태 A의 압력이 %s %s, 부피가 %s %s이고 상태 B의 부피가 %s %s일 때 상태 B의 압력은?' % (num(pA), pu, num(vA), vu, num(vB), vu)) + fig
-            right = '%s %s' % (num(pB), pu)
-            wr = ['%s %s' % (num(x), pu) for x in (pA * vB / vA * (vB / vA), pA, pA * vB / vA, pA + vA - vB, pB * 2, pB / 2.0, pB + pA)]
+            body = P('그림은 일정량의 이상 기체가 A에서 B로 변할 때의 P-V 그래프이다. 곡선은 온도가 일정한 변화를 나타낸다. 상태 A의 압력이 %s, 부피가 %s이고 상태 B의 부피가 %s일 때 상태 B의 압력은?' % (_unit_join(num(pA), pu), _unit_join(num(vA), vu), _unit_join(num(vB), vu))) + fig
+            right = _unit_join(num(pB), pu)
+            wr = [_unit_join(num(x), pu) for x in (pA * vB / vA * (vB / vA), pA, pA * vB / vA, pA + vA - vB, pB * 2, pB / 2.0, pB + pA)]
         else:
-            body = P('그림은 일정량의 이상 기체가 A에서 B로 변할 때의 P-V 그래프이다. 곡선은 온도가 일정한 변화를 나타낸다. 상태 A의 압력이 %s %s, 부피가 %s %s이고 상태 B의 압력이 %s %s일 때 상태 B의 부피는?' % (num(pA), pu, num(vA), vu, num(pB), pu)) + fig
-            right = '%s %s' % (num(vB), vu)
-            wr = ['%s %s' % (num(x), vu) for x in (vA * pB / pA * (pB / pA), vA, vA * pB / pA, vA + pA - pB, vB * 2, vB / 2.0, vB + vA)]
+            body = P('그림은 일정량의 이상 기체가 A에서 B로 변할 때의 P-V 그래프이다. 곡선은 온도가 일정한 변화를 나타낸다. 상태 A의 압력이 %s, 부피가 %s이고 상태 B의 압력이 %s일 때 상태 B의 부피는?' % (_unit_join(num(pA), pu), _unit_join(num(vA), vu), _unit_join(num(pB), pu))) + fig
+            right = _unit_join(num(vB), vu)
+            wr = [_unit_join(num(x), vu) for x in (vA * pB / pA * (pB / pA), vA, vA * pB / pA, vA + pA - pB, vB * 2, vB / 2.0, vB + vA)]
         return mc(body, right, wr, r=r, lv='중', fam='c', sort='shuf',
                   steps=['곡선이 등온 과정이므로 PV = 일정 이다.', 'P%s V%s = %s × %s = %s' % (sub('A'), sub('A'), num(pA), num(vA), num(pA * vA)),
-                         ('P%s = %s / %s = %s %s' % (sub('B'), num(pA * vA), num(vB), num(pB), pu)) if ask == 'PB' else ('V%s = %s / %s = %s %s' % (sub('B'), num(pA * vA), num(pB), num(vB), vu))],
+                         ('P%s = %s / %s = %s' % (sub('B'), num(pA * vA), num(vB), _unit_join(num(pB), pu))) if ask == 'PB' else ('V%s = %s / %s = %s' % (sub('B'), num(pA * vA), num(pB), _unit_join(num(vB), vu)))],
                   core='등온 과정의 P-V 그래프는 PV = 일정한 쌍곡선이다.', point='그래프 눈금과 보일 법칙으로 모르는 값을 구한다.')
     if form == 'd':   # 직선 경로와 등온 곡선의 일 비교 / 값의 범위
         sc = rand_sch(r, 1, 1)
@@ -1145,7 +1184,7 @@ def g071(r, k):
             if not expand and nm == 'A': dx, dy = (12, 18)
             p.text(p.px(vv) + dx, p.py(pp) + dy, nm, 14.5, 'middle', True, INK, True)
         p.text(p.px(7.0 if expand else 7.2), p.py(c1 / 7.0) - 10 if expand else p.py(c1 / 7.2) - 10, '', 11)
-        body = P('그림은 일정량의 이상 기체의 상태가 A에서 B(등온선, 파란색)와 C(단열 곡선, 붉은색)로 %s과정을 나타낸 것이다. B와 C의 부피는 같다. 세 상태의 절대 온도 T%s, T%s, T%s를 옳게 비교한 것은?' % ('팽창하는' if expand else '압축되는', sub('A'), sub('B'), sub('C'))) + FIG(p.svg(), '66%')
+        body = P('그림은 일정량의 이상 기체의 상태가 A에서 B(등온선, 파란색)와 C(단열 곡선, 붉은색)로 %s 과정을 나타낸 것이다. B와 C의 부피는 같다. 세 상태의 절대 온도 T%s, T%s, T%s를 옳게 비교한 것은?' % ('팽창하는' if expand else '압축되는', sub('A'), sub('B'), sub('C'))) + FIG(p.svg(), '66%')
         if expand:
             right = 'T%s = T%s > T%s' % (sub('A'), sub('B'), sub('C'))
             st = ['A → B는 등온 과정이므로 T%s = T%s 이다.' % (sub('A'), sub('B')), 'A → C는 단열 팽창이므로 온도가 내려가 T%s > T%s 이다. (같은 부피에서 압력도 P%s < P%s)' % (sub('A'), sub('C'), sub('C'), sub('B'))]
