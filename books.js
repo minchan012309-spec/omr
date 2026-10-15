@@ -5,7 +5,7 @@ const BK_MM=96/25.4,BK_BODY=240,BK_COLW=89,BK_FULLW=186;
 const BKP={},BKSELC={},BKH={};let BKHT=null,BKREADY=null;
 const BKCIR='①②③④⑤⑥⑦⑧⑨⑩';
 const bkLv=q=>q.lv0||q.lv||'';
-const BKPAL={cm:{p:'#2f9d66',pd:'#1f7d4e',pl:'#eefcf5',pl2:'#d9f8e8',line:'#b0e3c9'},me:{p:'#2f7fd0',pd:'#1d5ca6',pl:'#eef5fc',pl2:'#d9e8f8',line:'#b9cfe6'}};
+const BKPAL={cm:{p:'#2f9d66',pd:'#1f7d4e',pl:'#eefcf5',pl2:'#d9f8e8',line:'#b0e3c9'},me:{p:'#2f7fd0',pd:'#1d5ca6',pl:'#eef5fc',pl2:'#d9e8f8',line:'#b9cfe6'},ph:{p:'#6d4cc4',pd:'#5a3bad',pl:'#f3effc',pl2:'#e4dbf8',line:'#cdbfef'}};
 const BKPADS=[2.8,4.5,6.5,9];
 let BKO=(()=>{try{return JSON.parse(localStorage.getItem('omr_bko')||'{}')}catch(e){return {}}})();
 const bkOsig=()=>(BKO.color||'')+'|'+(BKO.font||'')+'|'+(BKO.design||'');
@@ -266,7 +266,7 @@ function bkSel(){
  const used=new Set();
  subs.forEach(s=>{const lows=base.filter(q=>q.sub===s.k&&q.set==='mc'&&bkLv(q)==='하').sort(byNo);
   const pick=bkFitBasic(s,lows);S.basic[s.k]=pick;pick.forEach(q=>used.add(q.code))});
- const cap={me:255,cm:999}[SUBJ]||255,ecap={me:25,cm:99}[SUBJ]||25;
+ const cap={me:255,cm:999,ph:999}[SUBJ]||255,ecap={me:25,cm:99,ph:99}[SUBJ]||25;
  let pool=base.filter(q=>(q.set==='mc'||q.set==='top')&&!used.has(q.code));
  if(pool.length>cap)pool=bkPickType(pool,cap);
  const so=s=>subs.findIndex(x=>x.k===s);
@@ -420,7 +420,7 @@ function bkxDefOf(m){ // 경로 문자열에서 책 정의 복원 → 다른 기
 function bkGapOf(id){const g=String(id).match(/~g([1-3])$/);return g?+g[1]:0}
 function bkBare(id){return String(id).replace(/~g[1-3]$/,'')}
 function bkPid(id){const g=BKO.gap||0;return bkBare(id)+(g?'~g'+g:'')}
-function bkParts(id){const gap=bkGapOf(id);id=bkBare(id);const m=String(id).match(/^(me|cm)-(c|t|x(?:b([0-9a-z]+)(?:-([\d.]+))?(?:_(?:l([0-9a-f]))?(?:n(\d+))?)?|e(\d+)(?:l([0-9a-f]))?(?:r(\d+))?))$/);if(!m)return null;
+function bkParts(id){const gap=bkGapOf(id);id=bkBare(id);const m=String(id).match(/^(me|cm|ph)-(c|t|x(?:b([0-9a-z]+)(?:-([\d.]+))?(?:_(?:l([0-9a-f]))?(?:n(\d+))?)?|e(\d+)(?:l([0-9a-f]))?(?:r(\d+))?))$/);if(!m)return null;
  if(m[2]==='c'||m[2]==='t')return {subj:m[1],kind:m[2],gap};
  const d=bkxDefOf(m[7]!=null?[0,0,0,0,m[7],m[9],m[8]]:[0,0,m[3],m[4],undefined,0,m[5],m[6]]);
  const lvS=d.lv&&d.lv!==15?'l'+d.lv.toString(16):'';
@@ -551,6 +551,7 @@ function bkFt(plan,p,o){o=o||{};const qr=p.codes&&p.codes.length;
  return '<div class="ft"><span class="fl">'+(o.left||'Solvi · '+esc(plan.title))+'</span><span class="pn">'+(o.pn!=null?o.pn:p.n)+'</span>'+
   (qr?'<div class="fr2"><div class="qq">'+qrSvg(bkUrl(plan,p))+'</div></div>':o.right?'<div class="fr2"><span class="fn">'+o.right+'</span></div>':'<div></div>')+'</div>'}
 function bkDeco(){const c=bkPal();
+ if(SUBJ==='ph')return '<svg class="deco" viewBox="0 0 200 200"><circle cx="100" cy="100" r="78" fill="none" stroke="'+c.line+'" stroke-width="3" stroke-dasharray="6 6"/><circle cx="100" cy="100" r="46" fill="'+c.pl+'" stroke="'+c.p+'" stroke-width="3"/><circle cx="100" cy="100" r="16" fill="'+c.p+'"/><ellipse cx="100" cy="100" rx="78" ry="30" transform="rotate(-24 100 100)" fill="none" stroke="'+c.p+'" stroke-width="2.5"/><circle cx="162" cy="76" r="11" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="3"/><circle cx="36" cy="124" r="8" fill="#ffca2c"/><polygon points="170,168 184,168 177,154" fill="'+c.p+'"/></svg>';
  if(SUBJ==='me')return '<svg class="deco" viewBox="0 0 200 200"><polygon points="100,22 168,61 168,139 100,178 32,139 32,61" fill="'+c.pl+'" stroke="'+c.p+'" stroke-width="3"/><polygon points="100,52 142,76 142,124 100,148 58,124 58,76" fill="none" stroke="'+c.line+'" stroke-width="2.5" stroke-dasharray="5 5"/>'+[[100,22],[168,61],[168,139],[100,178],[32,139],[32,61]].map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(i%2?9:13)+'" fill="'+(i%2?'#fff':c.p)+'" stroke="'+c.p+'" stroke-width="3"/>').join('')+'<circle cx="100" cy="100" r="14" fill="'+c.pl2+'"/><circle cx="178" cy="22" r="8" fill="#ffca2c"/><circle cx="20" cy="176" r="10" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2"/></svg>';
  return '<svg class="deco" viewBox="0 0 200 200"><circle cx="100" cy="104" r="78" fill="'+c.pl+'" stroke="'+c.p+'" stroke-width="3"/><circle cx="92" cy="96" r="26" fill="'+c.p+'"/><ellipse cx="124" cy="128" rx="20" ry="11" transform="rotate(-28 124 128)" fill="none" stroke="'+c.p+'" stroke-width="3"/><circle cx="46" cy="38" r="22" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2.5"/><circle cx="46" cy="38" r="8" fill="'+c.p+'"/><circle cx="168" cy="40" r="9" fill="#ffca2c"/><circle cx="170" cy="168" r="15" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2"/></svg>'}
 function bkCover(plan){
@@ -621,7 +622,7 @@ async function bkGradeAll(id){
  const key=id+':all',bk={page:key,bk:id,n:0,all:1,label:plan.short+' 전체',nums:Object.fromEntries(plan.M.codes.map((c,i)=>[c,i+1]))};
  {const lk=recLock('book',key);if(lk&&lk.items){showLockedRec(lk,{book:bk});return}}
  newCur(qs,{book:bk})}
-function bkRouteStr(s){const m=String(s).match(/^((?:me|cm)-(?:c|t|x[0-9a-z.\-]+)(?:~g[1-3])?):(\d+|all)$/);if(!m)return;return m[2]==='all'?bkGradeAll(m[1]):bkGradePage(m[1],+m[2])}
+function bkRouteStr(s){const m=String(s).match(/^((?:me|cm|ph)-(?:c|t|x[0-9a-z.\-]+)(?:~g[1-3])?):(\d+|all)$/);if(!m)return;return m[2]==='all'?bkGradeAll(m[1]):bkGradePage(m[1],+m[2])}
 function bkNextHtml(){const b=cur&&cur.book;if(!b||!b.bk||b.all)return '';const plan=BKP[b.bk];if(!plan)return '';
  const nx=plan.pages.find(p=>p.n>b.n&&p.codes&&p.codes.length);
  return nx?'<div class="hint" style="margin:10px 0">'+esc(plan.short)+' p.'+b.n+' 채점을 마쳤습니다. 다음 문제 쪽(<b>p.'+nx.n+'</b>)도 이어서 채점할까요? <button class="p" style="margin-left:8px" onclick="bkGradePage(\''+b.bk+'\','+nx.n+')">p.'+nx.n+' 채점하기</button></div>':''}
