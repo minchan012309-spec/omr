@@ -193,7 +193,7 @@ def work_energy(r, k):
         ws = _ws(W, cands, lambda c: _F(c) + ' J', pos=False)
         assert W == F * s * _COS[th]
         lv = '하' if th in (0, 90, 180) else '중'
-        return mc(body, '%s J' % _F(W), ws, r=r, lv=lv, fam='a', sort='num',
+        return mc(body, '%s J' % _F(W), ws, r=r, lv='하', fam='a', sort='num',
                   steps=['일 W = F s cosθ 이다.', 'W = %s × %s × cos%d° = %s J' % (_F(F), _F(s), th, _F(W))] + (['θ = 90°이면 힘이 이동 방향에 수직이므로 일을 하지 않는다.'] if th == 90 else []) + (['θ = 180°이므로 일은 음(-)이다.'] if th == 180 else []),
                   core='힘이 한 일 W = Fs cosθ (θ: 힘과 이동 방향이 이루는 각).', point='힘의 이동 방향 성분만 일을 한다.')
     if fam == 'b':
@@ -229,7 +229,7 @@ def work_energy(r, k):
                       core='알짜힘이 한 일은 운동 에너지의 변화량과 같다(W = ΔE_k).', point='힘과 마찰력이 한 일의 합이 운동 에너지 변화이다.')
         body = P(base + '%s m 이동한 순간 물체의 속력이 %d m/s였다. 마찰력의 크기는?' % (_F(s), v)) + fig
         ws = _ws(f, [Fh, Fh + f, F - f if F > f else f + 3, Fh - 2 * f if Fh > 2 * f else f + 1, f * 2], lambda c: _F(c) + ' N')
-        return mc(body, '%s N' % _F(f), ws, r=r, lv='상', fam='b', sort='num',
+        return mc(body, '%s N' % _F(f), ws, r=r, lv='중', fam='b', sort='num',
                   steps=['운동 에너지 증가량 = ½ × %d × %d² = %s J' % (m, v, _F(Wn)), 'F가 한 일 = %s × %s × cos%d° = %s J이므로 마찰력이 한 일 = %s - %s = %s J' % (_F(F), _F(s), th, _F(Fh * s), _F(Fh * s), _F(Wn), _F(f * s)),
                              '마찰력의 크기 = %s ÷ %s = %s N' % (_F(f * s), _F(s), _F(f))],
                   core='알짜힘이 한 일(힘이 한 일 + 마찰력이 한 일)은 운동 에너지의 변화량이다.', point='마찰력이 한 일은 음(-)이다.')
@@ -309,7 +309,7 @@ def work_energy(r, k):
         body = P('그림은 마찰이 없는 수평면에서 %s 질량 %d kg인 물체에 작용하는 힘의 크기를 이동 거리 s에 따라 나타낸 것이다. 힘의 방향은 물체의 운동 방향(+)과 같거나 반대(-)이다. s = %d m인 지점에서 물체의 속력은?' % (start, m, pts[-1][0])) + fig
         ws = _ws(v, [_isq(2 * W / m) or v + 1, v * 2, int(W / m) if W % m == 0 else v + 3, v + 2, v - 1 if v > 1 else v + 4], lambda c: _F(c) + ' m/s')
         Wst = '½ × %d × %d² = %s J' % (m, v, _F(Fr(m * v * v, 2)))
-        return mc(body, '%s m/s' % _F(v), ws, r=r, lv='상', fam='d', sort='num',
+        return mc(body, '%s m/s' % _F(v), ws, r=r, lv='중', fam='d', sort='num',
                   steps=['그래프의 넓이로 힘이 한 일을 구한다 : W = %s J' % _F(W),
                          'W = ½mv² - ½mv₀² 이므로 %s = ½ × %d × v² - ½ × %d × %d²' % (_F(W), m, m, v0),
                          'v² = %d, v = %d m/s' % (v * v, v)],
@@ -367,7 +367,7 @@ def potential_kinetic(r, k):
         body = P('그림과 같이 질량 %s kg인 물체가 지면(C)으로부터 높이 %d m인 A점에 있다. 점 B는 지면으로부터 %d m 높이이다. 기준면을 %s점의 높이로 할 때, %s점에서 물체의 중력 위치 에너지는? (단, g = 10 m/s²이다.)' % (_F(m), hA, hB, refn, tgt)) + fig
         cands = [m * G * dict(lev)[tgt], m * G * abs(dict(lev)[tgt] - refh), -Ep, m * G * hA, m * G * (hA - hB), m * dict(lev)[tgt]]
         ws = _ws(Ep, cands, lambda c: _F(c) + ' J', pos=False)
-        return mc(body, '%s J' % _F(Ep), ws, r=r, lv='중', fam='a', sort='num',
+        return mc(body, '%s J' % _F(Ep), ws, r=r, lv='상' if Ep < 0 else '중', fam='a', sort='num',
                   steps=['중력 위치 에너지 E_p = mgh 에서 h는 기준면으로부터의 높이이다.', '%s점은 기준면(%s점)보다 %s m %s에 있으므로 h = %s m' % (tgt, refn, _F(abs(hh)), '높은 곳' if hh >= 0 else '낮은 곳', _F(hh)),
                          'E_p = %s × 10 × (%s) = %s J' % (_F(m), _F(hh), _F(Ep))] ,
                   core='중력 위치 에너지 E_p = mgh 는 기준면에 따라 값이 달라지며, 기준면보다 낮으면 음수이다.', point='기준면으로부터의 높이를 부호까지 구한다.')
@@ -426,7 +426,7 @@ def potential_kinetic(r, k):
                       core='처음 운동 에너지가 모두 위치 에너지로 바뀐 곳이 최고점이다.', point='최고점에서는 운동 에너지가 0이다.')
         body = P('지면에서 질량 %s kg인 물체를 연직 위로 %d m/s의 속력으로 던졌다. 물체가 높이 %d m인 지점을 지날 때의 운동 에너지는? (단, g = 10 m/s²이며 공기 저항은 무시한다.)' % (_F(m), v0, y))
         ws = _ws(Ek, [Fr(1, 2) * mm * v0 * v0, mm * G * y, Fr(1, 2) * mm * v0 * v0 + mm * G * y, Ek / 2, Fr(1, 2) * mm * v0 * v0 - mm * y], lambda c: _F(c) + ' J')
-        return mc(body, '%s J' % _F(Ek), ws, r=r, lv='중', fam='c', sort='num',
+        return mc(body, '%s J' % _F(Ek), ws, r=r, lv='상', fam='c', sort='num',
                   steps=['처음 운동 에너지 = ½ × %s × %d² = %s J' % (_F(m), v0, _F(Fr(1, 2) * mm * v0 * v0)), '높이 %d m에서 위치 에너지 = %s × 10 × %d = %s J' % (y, _F(m), y, _F(mm * G * y)),
                          '역학적 에너지 보존 : E_k = %s - %s = %s J' % (_F(Fr(1, 2) * mm * v0 * v0), _F(mm * G * y), _F(Ek))],
                   core='역학적 에너지 E = E_k + E_p 가 일정하다.', point='처음 에너지에서 위치 에너지를 뺀다.')
@@ -530,7 +530,7 @@ def conserve_slide(r, k):
         body = P('그림은 마찰이 없는 트랙의 점 A, B, C, D의 높이를 나타낸 것이다. 질량 m인 물체를 점 A에서 %s. 물체가 점 %s을 지날 때의 속력은? (단, g = 10 m/s²이며 물체는 트랙을 따라 운동한다.)' % (start, tgt)) + fig
         d = hA - hs[tgt]
         ws = _ws(v, [_isq(2 * G * d) or v + 1, int(d), v + 2, v * 2, _isq(v0 * v0 + G * d) or v - 1 if v > 1 else v + 4], lambda c: _F(c) + ' m/s')
-        return mc(body, '%s m/s' % _F(v), ws, r=r, lv='중' if v0 == 0 else '상', fam='b', sort='num',
+        return mc(body, '%s m/s' % _F(v), ws, r=r, lv='중', fam='b', sort='num',
                   steps=['역학적 에너지 보존 : ½mv₀² + mg × %d = ½mv² + mg × %d' % (hA, hs[tgt]), 'v² = %d² + 2 × 10 × (%d - %d) = %d' % (v0, hA, hs[tgt], v * v), 'v = %d m/s' % v],
                   core='마찰이 없는 트랙에서는 높이 차이에 의한 위치 에너지 변화가 운동 에너지 변화가 된다.', point='트랙 모양이 아니라 높이만 본다.')
     if fam == 'c':
@@ -560,15 +560,15 @@ def conserve_slide(r, k):
         s1, s2 = _SINV[t1], _SINV[t2]
         f = Fig(320, 170)
         x0, y0 = 20, 150
-        H = 100
-        for (th, nm_, xo, col) in ((t1, 'A', 20, RD), (t2, 'B', 170, BL)):
+        H = 80
+        for (th, nm_, xo, col) in ((t1, 'A', 18, RD), (t2, 'B', 128, BL)):
             ln = H / math.sin(math.radians(th))
             xr = xo + ln * math.cos(math.radians(th))
             f.poly([(xo, y0), (xr, y0), (xr, y0 - H)], '#f1f4f8', INK, 1.6)
-            f.circ(xr - 8, y0 - H + 8 * math.tan(math.radians(th)) + 2, 5, col, INK, 1)
-            f.text(xr - 8, y0 - H - 6 + 0, nm_, 13, 'middle', True, col, True)
-            f.text(xo + 38, y0 - 4, '%d°' % th, 12, 'start', True, GR)
-            _dim_v(f, xr + 8, y0 - H, y0, '%s m' % _F(h), GR, 'right') if xr < 300 else None
+            f.circ(xr - 7, y0 - H + 7 * math.tan(math.radians(th)) + 2, 5, col, INK, 1)
+            f.text(xr - 14, y0 - H - 4, nm_, 13, 'middle', True, col, True)
+            f.text(xo + 36, y0 - 4, '%d°' % th, 12, 'start', True, GR)
+            _dim_v(f, xr + 8, y0 - H, y0, '%s m' % _F(h), GR, 'right')
         fig = FIG(f.svg(), '62%')
         base = '그림은 높이가 %s m로 같고 경사각이 각각 %d°, %d°인 마찰이 없는 두 빗면 A, B의 꼭대기에서 물체를 동시에 가만히 놓는 것을 나타낸 것이다. ' % (_F(h), t1, t2)
         if ask == 'v':
@@ -576,7 +576,7 @@ def conserve_slide(r, k):
             right = '1 : 1'
             wr = ['%s : %s' % (_fx(s1 / s2).split('/')[0] if False else (s1 / s2).numerator, (s1 / s2).denominator), '%s : %s' % ((s2 / s1).numerator, (s2 / s1).denominator), '%d : %d' % (t1, t2), '%d : %d' % (t2, t1), '1 : 2']
             steps = ['높이가 같으므로 mgh = ½mv²에서 v = √(2gh)로 같다.', 'v%s : v%s = 1 : 1' % (sub('A'), sub('B'))]
-            lv = '중'
+            lv = '하'
         elif ask == 'a':
             q = '두 물체의 가속도의 크기의 비 a%s : a%s는? (단, sin%d° = %s, sin%d° = %s)' % (sub('A'), sub('B'), t1, _fx(s1), t2, _fx(s2))
             rr = s1 / s2
@@ -618,7 +618,7 @@ def conserve_slide(r, k):
     svg, _ = _incline_fig(r.choice([30, 37, 53]), '%s m' % _F(h))
     body = P('그림과 같이 마찰이 없는 빗면의 높이 %s m인 지점에서 물체를 가만히 놓았다. 물체의 속력이 %s m/s가 되는 지점의 바닥으로부터의 높이는? (단, g = 10 m/s²이다.)' % (_F(h), _F(vq))) + FIG(svg, '60%')
     ws = _ws(y, [drop, h - vq / 10, Fr(vq, 10), h / 2, h + drop], lambda c: _F(c) + ' m')
-    return mc(body, '%s m' % _F(y), ws, r=r, lv='상', fam='e', sort='num',
+    return mc(body, '%s m' % _F(y), ws, r=r, lv='중', fam='e', sort='num',
               steps=['내려온 높이 d : mgd = ½mv² 이므로 d = %s² ÷ 20 = %s m' % (_F(vq), _F(drop)), '바닥으로부터의 높이 = %s - %s = %s m' % (_F(h), _F(drop), _F(y))],
               core='속력이 v인 지점까지 내려온 높이는 d = v²/(2g)이다.', point='처음 높이에서 내려온 높이를 빼서 현재 높이를 구한다.')
 
@@ -726,7 +726,7 @@ def spring_energy(r, k):
         Ep2 = Fr(1, 2) * kk * x2 * x2
         body = P(head + '이 용수철을 %s m만큼 변형시켰을 때 용수철에 저장된 탄성 위치 에너지는?' % _F(x2)) + fig
         ws = _ws(Ep2, [kk * x2 * x2, Fr(1, 2) * kk * x2, Fr(1, 2) * F1 * x1 * (x2 / x1), Fr(1, 2) * kk * x1 * x1, kk * x2], lambda c: _F(c) + ' J')
-        return mc(body, '%s J' % _F(Ep2), ws, r=r, lv='상', fam='b', sort='num',
+        return mc(body, '%s J' % _F(Ep2), ws, r=r, lv='중', fam='b', sort='num',
                   steps=['그래프의 기울기 k = %s ÷ %s = %s N/m' % (_F(F1), _F(x1), _F(kk)), 'E = ½kx² = ½ × %s × %s² = %s J' % (_F(kk), _F(x2), _F(Ep2))],
                   core='k는 F-x 그래프의 기울기이고 E = ½kx²이다.', point='그래프에 없는 변형 길이에서는 k를 먼저 구한다.')
     if fam == 'c':
@@ -769,8 +769,23 @@ def spring_energy(r, k):
             if _ok(hh) and _ok(d) and hh >= Fr(1, 5): break
         else:
             return None
-        f = Fig(300, 170)
         svg, (x0, y0, x1, y1) = _incline_fig(th, None, None, w=300, h=170, block=False)
+        # 빗면 아래쪽에 용수철과 물체를 덧그린다
+        ang = math.radians(th)
+        ux, uy = (x1 - x0) / math.hypot(x1 - x0, y1 - y0), (y1 - y0) / math.hypot(x1 - x0, y1 - y0)
+        nx, ny = uy, -ux
+        L_ = math.hypot(x1 - x0, y1 - y0)
+        pts_ = []
+        n_ = 12
+        for i_ in range(n_ + 1):
+            t_ = 0.06 + 0.22 * i_ / n_
+            off = 0 if i_ in (0, n_) else (6 if i_ % 2 else -6)
+            pts_.append((x0 + ux * L_ * t_ + nx * (off + 0), y0 + uy * L_ * t_ + ny * (off + 0)))
+        pts_ = [(a + nx * 1, b + ny * 1) for a, b in pts_]
+        bx_, by_ = x0 + ux * L_ * 0.36, y0 + uy * L_ * 0.36
+        add = '<polyline points="%s" fill="none" stroke="%s" stroke-width="1.8"/>' % (' '.join('%s,%s' % (Fig._n(a), Fig._n(b)) for a, b in pts_), INK)
+        add += '<g transform="rotate(%s %s %s)"><rect x="%s" y="%s" width="26" height="18" fill="#cfe2f7" stroke="%s" stroke-width="1.6"/></g>' % (Fig._n(-th), Fig._n(bx_), Fig._n(by_), Fig._n(bx_ - 4), Fig._n(by_ - 18), INK)
+        svg = svg.replace('</svg>', add + '</svg>')
         body = P('그림과 같이 경사각 %d°인 마찰이 없는 빗면의 아래 끝에 용수철 상수 %d N/m인 용수철이 고정되어 있다. 용수철을 %s m 압축시키고 질량 %s kg인 물체를 용수철에 붙이지 않고 놓았더니 물체가 빗면을 따라 올라갔다. 물체가 올라간 최고 높이는? (단, g = 10 m/s²이며, 용수철이 압축되기 전의 위치를 기준으로 한다.)' % (th, kk, _F(x), _F(m))) + FIG(svg, '56%')
         ask_h = True
         ws = _ws(hh, [Ep, Ep / m if False else Ep / (mm * 5), hh * 2, d, hh / 2], lambda c: _F(c) + ' m')
@@ -893,7 +908,7 @@ def pendulum_energy(r, k):
         fig = FIG(_pendulum_fig(float(L), th), '52%')
         body = P('그림과 같이 길이 %s m인 가벼운 실에 질량 %s kg인 물체를 매달아 실이 연직선과 %d°를 이루는 점 A에서 가만히 놓았다. 물체가 가장 낮은 점 B를 지날 때 실이 물체를 당기는 힘의 크기는? (단, g = 10 m/s²이며 공기 저항은 무시한다. cos37° = 0.8, cos53° = 0.6)' % (_F(L), _F(m), th)) + fig
         ws = _ws(T, [mm * G, mm * v2 / L, 2 * mm * G, mm * G * (3 - cosv[th]), mm * G * (2 - cosv[th]) , mm * G * (1 + 2 * (1 - cosv[th]))], lambda c: _F(c) + ' N')
-        return mc(body, '%s N' % _F(T), ws, r=r, lv='상', fam='b', sort='num',
+        return mc(body, '%s N' % _F(T), ws, r=r, lv='상' if (th != 90 and r.random() < .5) else '중', fam='b', sort='num',
                   steps=['B에서의 속력 : v² = 2gL(1 - cos%d°) = 2 × 10 × %s × %s = %s' % (th, _F(L), _fx(1 - cosv[th]), _F(v2)),
                          'B에서 구심력 : T - mg = mv²/L 이므로 T = mg + mv²/L',
                          'T = %s × 10 + %s × %s ÷ %s = %s N' % (_F(m), _F(m), _F(v2), _F(L), _F(T))],
@@ -921,7 +936,7 @@ def pendulum_energy(r, k):
             if v0 is None: return None
             body = P('그림은 마찰이 없는 롤러코스터 트랙의 점 A, B, C, D의 높이를 나타낸 것이다. 수레를 점 A에서 트랙을 따라 출발시켜 점 %s(가장 높은 점)를 지나가게 하려면 점 A에서 최소한 얼마의 속력으로 출발시켜야 하는가? (단, g = 10 m/s²이며 수레는 트랙을 이탈하지 않는다.)' % tgt) + fig
             ws = _ws(v0, [d, _isq(10 * d) or v0 + 1, v0 * 2, v0 + 2, v0 - 1 if v0 > 1 else v0 + 3], lambda c: _F(c) + ' m/s')
-            return mc(body, '%s m/s' % _F(v0), ws, r=r, lv='상', fam='c', sort='num',
+            return mc(body, '%s m/s' % _F(v0), ws, r=r, lv='중', fam='c', sort='num',
                       steps=['점 %s(높이 %d m)를 간신히 통과할 때 그곳에서 속력이 0이다.' % (tgt, hi), '½mv₀² = mg(%d - %d) 이므로 v₀² = 2 × 10 × %d = %d' % (hi, hA, d, v0 * v0), 'v₀ = %d m/s' % v0],
                       core='언덕을 넘으려면 처음 역학적 에너지가 언덕 꼭대기의 위치 에너지 이상이어야 한다.', point='가장 높은 언덕과의 높이 차로 최소 속력을 구한다.')
         # 가장 낮은 점의 속력 (정지 출발)
@@ -934,7 +949,7 @@ def pendulum_energy(r, k):
         body = P('그림은 마찰이 없는 롤러코스터 트랙의 점 A, B, C, D의 높이를 나타낸 것이다. 수레를 점 A에서 가만히 놓았을 때 수레가 가장 낮은 점 %s를 지나는 순간의 속력은? (단, g = 10 m/s²이며 수레는 트랙을 이탈하지 않고 도중에 A보다 높은 곳은 없다고 한다.)' % tgt) + fig
         if top > hA: return None
         ws = _ws(v, [_isq(10 * d) or v + 1, d, v * 2, v + 2, v - 1 if v > 1 else v + 3], lambda c: _F(c) + ' m/s')
-        return mc(body, '%s m/s' % _F(v), ws, r=r, lv='중', fam='c', sort='num',
+        return mc(body, '%s m/s' % _F(v), ws, r=r, lv='하', fam='c', sort='num',
                   steps=['점 %s는 A보다 %d m 낮다.' % (tgt, d), 'mgd = ½mv² 이므로 v = √(2 × 10 × %d) = %d m/s' % (d, v)],
                   core='마찰이 없는 트랙에서 속력은 높이 차이만으로 결정된다.', point='경로의 모양과 무관하게 높이 차를 본다.')
     # d: 원형 트랙
@@ -955,7 +970,7 @@ def pendulum_energy(r, k):
         body = P('그림과 같이 마찰이 없는 트랙의 높이 h인 지점에서 질량 m인 물체를 가만히 놓았더니 반지름 %s m인 원형 트랙의 최고점을 간신히 통과하여 돌아 나왔다(최고점에서 트랙이 물체에 작용하는 힘이 0). h는? (단, g = 10 m/s²이다.)' % _F(R)) + fig
         hmin = Fr(5, 2) * R
         ws = _ws(hmin, [2 * R, 3 * R, 2 * R + R / 2 * 0 + Fr(1, 2), Fr(3, 2) * R, 5 * R], lambda c: _F(c) + ' m')
-        return mc(body, '%s m' % _F(hmin), ws, r=r, lv='상', fam='d', sort='num',
+        return mc(body, '%s m' % _F(hmin), ws, r=r, lv='중', fam='d', sort='num',
                   steps=['최고점에서 중력이 구심력 : mg = mv²/R 이므로 v² = gR = %s' % _F(G * R), '역학적 에너지 보존 : mgh = mg(2R) + ½mv²', 'h = 2R + R/2 = %s m' % _F(hmin)],
                   core='원형 트랙 최고점을 통과하는 최소 조건은 mg = mv²/R 이며 이때 h = 2.5R이다.', point='최고점에서 수직 항력이 0이 되는 조건을 쓴다.')
     body = P('그림과 같이 마찰이 없는 트랙의 높이 h = %s m인 지점에서 질량 %s kg인 물체를 가만히 놓았더니 반지름 %s m인 원형 트랙을 따라 운동하였다. 원형 트랙의 최고점에서 트랙이 물체에 작용하는 수직 항력의 크기는? (단, g = 10 m/s²이다.)' % (_F(hh), _F(m), _F(R))) + fig
@@ -979,7 +994,7 @@ def _rough_fig(h_lab=None, d_lab=None, rough=(0.45, 0.85), w=320, h=190, mu_lab=
     f.circ(36, 24, 7, BL, INK, 1.2)
     _dim_v(f, 18, 24, y0, h_lab or 'h', RD, 'left')
     f.line(18, 24, 36, 24, '#9fb0c6', 1, '3 3')
-    if d_lab: _dim_h(f, xa, xb, y0 + 28, d_lab, GR)
+    if d_lab: _dim_h(f, xa, xb, y0 + 20, d_lab, GR)
     if mu_lab: f.text((xa + xb) / 2, y0 + 8 + 18 - 36 + 0, '', 10)
     f.text((xa + xb) / 2, y0 - 8, '거친 구간' if mu_lab is None else '거친 구간 (μ = %s)' % mu_lab, 12.5, 'middle', True, GR)
     return f.svg()
@@ -1003,14 +1018,14 @@ def friction_loss(r, k):
         if ask == 's':
             body = P(base + '물체와 면 사이의 운동 마찰 계수가 %s일 때, 물체가 정지할 때까지 미끄러진 거리는? (단, g = 10 m/s²이다.)' % _F(mu))
             ws = _ws(s, [Fr(v0 * v0, 2 * G), s * mu if False else s * 2, Fr(v0 * v0, G) / mu, s / 2, Fr(v0, 1) / mu], lambda c: _F(c) + ' m')
-            return mc(body, '%s m' % _F(s), ws, r=r, lv='중', fam='a', sort='num',
+            return mc(body, '%s m' % _F(s), ws, r=r, lv='하', fam='a', sort='num',
                       steps=['운동 에너지가 모두 마찰력이 한 일로 소모된다 : ½mv₀² = μmg s', 's = v₀²/(2μg) = %d² ÷ (2 × %s × 10) = %s m' % (v0, _F(mu), _F(s)),
                              '(확인) a = μg = %s m/s², s = v₀²/2a = %s m' % (_F(mu * G), _F(Fr(v0 * v0) / (2 * mu * G)))],
                       core='마찰력이 한 일 = 감소한 운동 에너지 : μmgs = ½mv₀².', point='질량은 약분된다.')
         if ask == 'mu':
             body = P(base + '물체가 %s m를 미끄러진 후 정지하였다. 물체와 면 사이의 운동 마찰 계수는? (단, g = 10 m/s²이다.)' % _F(s))
             ws = _ws(mu, [mu * 2, mu / 2, Fr(v0 * v0, 2 * G) / (s * s) if False else Fr(v0, 10), mu * 5 if mu * 5 < 1 else mu / 5, Fr(1, 2) if mu != Fr(1, 2) else Fr(3, 5)], lambda c: _F(c))
-            return mc(body, _F(mu), ws, r=r, lv='중', fam='a', sort='num',
+            return mc(body, _F(mu), ws, r=r, lv='하', fam='a', sort='num',
                       steps=['½mv₀² = μmgs 에서 μ = v₀²/(2gs)', 'μ = %d² ÷ (2 × 10 × %s) = %s' % (v0, _F(s), _F(mu))],
                       core='μmgs = ½mv₀² 에서 μ를 구한다.', point='질량 m이 약분되는 것을 이용한다.')
         Q = Fr(1, 2) * m * v0 * v0
@@ -1035,7 +1050,7 @@ def friction_loss(r, k):
         for i in range(120, 295, 8): f.line(i, y0 + 8, i + 5, y0, GR, 1)
         f.line(120, y0, 295, y0, INK, 2.2)
         f.circ(36, 24, 7, BL, INK, 1.2)
-        _dim_v(f, 16, 24, y0, 'h = %s m' % _F(h), RD, 'left')
+        _dim_v(f, 16, 24, y0, 'h', RD, 'left')
         f.line(16, 24, 36, 24, '#9fb0c6', 1, '3 3')
         f.text(210, y0 - 8, '거친 수평면 (μ = %s)' % _F(mu), 12.5, 'middle', True, GR)
         fig = FIG(f.svg(), '62%')
@@ -1112,12 +1127,12 @@ def friction_loss(r, k):
     # 검증 : 거친 구간 감속
     a = mu * G
     assert Fr(v * v) == 2 * G * h - 2 * a * d
-    fig = FIG(_rough_fig('h = %s m' % _F(h), '%s m' % _F(d), mu_lab=_F(mu)), '62%')
+    fig = FIG(_rough_fig('h', '%s m' % _F(d), mu_lab=_F(mu)), '62%')
     ask = r.choice(['v', 'v', 'n'])
     if ask == 'v':
         body = P('그림과 같이 마찰이 없는 곡면의 높이 %s m인 지점에서 물체를 가만히 놓았다. 수평면에는 길이 %s m의 거친 구간(운동 마찰 계수 %s)이 있다. 물체가 이 구간을 지나 나왔을 때의 속력은? (단, g = 10 m/s²이다.)' % (_F(h), _F(d), _F(mu))) + fig
         ws = _ws(v, [_isq(2 * G * h) or v + 1, _isq(2 * G * (h - d)) or v + 2, v * 2, v - 1 if v > 1 else v + 3, _isq(2 * G * mu * d) or v + 4], lambda c: _F(c) + ' m/s')
-        return mc(body, '%s m/s' % _F(v), ws, r=r, lv='상', fam='e', sort='num',
+        return mc(body, '%s m/s' % _F(v), ws, r=r, lv='중', fam='e', sort='num',
                   steps=['거친 구간에서 마찰력이 한 일 = -μmgd = -%s × m × 10 × %s' % (_F(mu), _F(d)), 'mgh - μmgd = ½mv² 이므로 v² = 2 × 10 × (%s - %s × %s) = %d' % (_F(h), _F(mu), _F(d), v * v), 'v = %d m/s' % v],
                   core='마찰 구간을 지날 때 줄어드는 역학적 에너지는 μmgd이다.', point='위치 에너지 감소분에서 마찰열을 뺀 것이 운동 에너지이다.')
     # n : 정지하기 전 거친 구간을 몇 번 지나는가 (정수 배)
@@ -1174,7 +1189,7 @@ def power_efficiency(r, k):
         if ask == 'Pin':
             body = P(base + '이 모터의 효율이 %s%%일 때 모터가 공급받은 전력(입력 일률)은? (단, g = 10 m/s²이다.)' % _F(eff * 100))
             ws = _ws(Pin, [Pout, Pout * eff, Pout * (1 + eff), Pout / eff / 2, Wk / eff], lambda c: _F(c) + ' W')
-            return mc(body, '%s W' % _F(Pin), ws, r=r, lv='상', fam='a', sort='num',
+            return mc(body, '%s W' % _F(Pin), ws, r=r, lv='중', fam='a', sort='num',
                       steps=['유용한 일률 = mgh/t = %d ÷ %d = %s W' % (Wk, t, _F(Pout)), '효율 = 유용한 일률 ÷ 입력 일률 이므로 입력 일률 = %s ÷ %s = %s W' % (_F(Pout), _F(eff), _F(Pin))],
                       core='효율 = (유용한 일률) ÷ (공급한 일률) × 100 %.', point='효율로 나누어 입력 일률을 구한다(곱하지 않는다).')
         if ask == 'eff':
@@ -1188,7 +1203,7 @@ def power_efficiency(r, k):
         Ein = Pin * t
         body = P(base + '이 모터의 효율이 %s%%일 때 모터가 %d초 동안 공급받은 에너지는? (단, g = 10 m/s²이다.)' % (_F(eff * 100), t))
         ws = _ws(Ein, [Wk, Wk * eff, Pin, Wk / eff / 2, Wk + Ein * 0 + 100], lambda c: _F(c) + ' J')
-        return mc(body, '%s J' % _F(Ein), ws, r=r, lv='상', fam='a', sort='num',
+        return mc(body, '%s J' % _F(Ein), ws, r=r, lv='중', fam='a', sort='num',
                   steps=['유용한 에너지(한 일) = mgh = %d J' % Wk, '효율 = 유용한 에너지 ÷ 공급 에너지 이므로 공급 에너지 = %d ÷ %s = %s J' % (Wk, _F(eff), _F(Ein))],
                   core='효율 = (유용한 에너지) ÷ (공급된 에너지).', point='열 손실 때문에 공급 에너지가 더 크다.')
     if fam == 'b':
@@ -1217,19 +1232,19 @@ def power_efficiency(r, k):
             if ask == 'F':
                 body = P('자동차가 수평 도로에서 %d m/s의 일정한 속력으로 달릴 때 엔진의 일률이 %d W이다. 자동차가 받는 저항력의 크기는?' % (v, Pw))
                 ws = _ws(Fm, [Pw, Pw * v, Fm * 2, Fm / 2, Pw / v / 2], lambda c: _F(c) + ' N')
-                return mc(body, '%s N' % _F(Fm), ws, r=r, lv='중', fam='b', sort='num',
+                return mc(body, '%s N' % _F(Fm), ws, r=r, lv='하', fam='b', sort='num',
                           steps=['P = Fv 이므로 F = P/v = %d ÷ %d = %d N' % (Pw, v, Fm), '등속이므로 저항력의 크기도 %d N이다.' % Fm],
                           core='P = Fv, 등속 운동에서 구동력 = 저항력.', point='일률을 속력으로 나누면 힘이 된다.')
             body = P('수평 도로에서 엔진의 일률이 %d W로 일정한 자동차가 크기 %d N의 저항력을 받으며 등속으로 달린다. 이때의 속력은?' % (Pw, Fm))
             ws = _ws(v, [Pw, Fm, Pw * Fm, v * 2, v / 2 if v % 2 == 0 else v + 3], lambda c: _F(c) + ' m/s')
-            return mc(body, '%s m/s' % _F(v), ws, r=r, lv='중', fam='b', sort='num',
+            return mc(body, '%s m/s' % _F(v), ws, r=r, lv='하', fam='b', sort='num',
                       steps=['등속이므로 견인력 = 저항력 = %d N' % Fm, 'v = P/F = %d ÷ %d = %d m/s' % (Pw, Fm, v)],
                       core='P = Fv 에서 v = P/F.', point='등속일 때 F는 저항력과 같다.')
         # slope
         body = P('질량 %d kg인 수레가 경사각 %d°인 빗면 위로 일정한 속력 %d m/s로 올라가고 있다. 수레가 받는 마찰력의 크기는 %d N(빗면 아래 방향)이다. 이때 수레를 끄는 힘의 일률은? (단, sin%d° = %s, g = 10 m/s²이다.)' % (m, th, v, fr_, th, _F(sn)))
         Fpull = m * G * sn + fr_
         ws = _ws(Pw, [m * G * sn * v, fr_ * v, m * G * v, (m * G * sn - fr_) * v if m * G * sn > fr_ else Pw + 100, Pw * 2], lambda c: _F(c) + ' W')
-        return mc(body, '%s W' % _F(Pw), ws, r=r, lv='상', fam='b', sort='num',
+        return mc(body, '%s W' % _F(Pw), ws, r=r, lv='중', fam='b', sort='num',
                   steps=['등속이므로 끄는 힘 = (중력의 빗면 성분) + 마찰력 = %d × 10 × %s + %d = %s N' % (m, _F(sn), fr_, _F(Fpull)), 'P = Fv = %s × %d = %s W' % (_F(Fpull), v, _F(Pw))],
                   core='등속으로 빗면을 오를 때 끄는 힘 = mg sinθ + 마찰력, P = Fv.', point='힘의 평형으로 끄는 힘을 먼저 구한다.')
     if fam == 'c':
@@ -1252,13 +1267,13 @@ def power_efficiency(r, k):
             fig = FIG(_flow_fig(Ein, Eout, Eloss, unk='out'), '62%')
             body = P('그림은 효율이 %s%%인 기계에 에너지가 공급되어 유용한 일과 열로 전환되는 것을 나타낸 것이다. 이 기계가 한 유용한 일(?)은?' % _F(eff * 100)) + fig
             ws = _ws(Eout, [Eloss, Ein, Ein * (1 - eff) + 0, Ein / 2, Ein * eff * 2 if Ein * eff * 2 < Ein * 2 else Ein * 3], lambda c: _F(c) + ' J')
-            return mc(body, '%s J' % _F(Eout), ws, r=r, lv='중', fam='c', sort='num',
+            return mc(body, '%s J' % _F(Eout), ws, r=r, lv='하', fam='c', sort='num',
                       steps=['유용한 일 = 공급 에너지 × 효율 = %d × %s = %s J' % (Ein, _F(eff), _F(Eout)), '(확인) 열 손실 = %d - %s = %s J' % (Ein, _F(Eout), _F(Eloss))],
                       core='유용한 일 = 공급 에너지 × 효율.', point='효율을 곱해 유용한 에너지를 구한다.')
         fig = FIG(_flow_fig(Ein, Eout, Eloss, unk='loss'), '62%')
         body = P('그림은 효율이 %s%%인 기계에 에너지가 공급되어 유용한 일과 열로 전환되는 것을 나타낸 것이다. 열 손실(?)은?' % _F(eff * 100)) + fig
         ws = _ws(Eloss, [Eout, Ein, Ein * eff * eff, Ein / 2, Ein * 2], lambda c: _F(c) + ' J')
-        return mc(body, '%s J' % _F(Eloss), ws, r=r, lv='중', fam='c', sort='num',
+        return mc(body, '%s J' % _F(Eloss), ws, r=r, lv='하', fam='c', sort='num',
                   steps=['유용한 일 = %d × %s = %s J' % (Ein, _F(eff), _F(Eout)), '에너지 보존에 의해 열 손실 = 공급 에너지 - 유용한 일 = %d - %s = %s J' % (Ein, _F(Eout), _F(Eloss))],
                   core='공급 에너지 = 유용한 일 + 열 손실.', point='손실은 공급에서 유용한 일을 뺀 값이다.')
     if fam == 'd':
@@ -1311,7 +1326,7 @@ def power_efficiency(r, k):
                   core='평균 일률 = (한 일)/(걸린 시간), W = Fs = ΔE_k.', point='가속도로 이동 거리를 구한 뒤 일을 구한다.')
     body = P(base + '%d초가 되는 순간 힘이 물체에 하는 일의 순간 일률(P = Fv)은?' % t)
     ws = _ws(Pins, [Pavg, W, F * t, Pins * 2, Pins / 4], lambda c: _F(c) + ' W')
-    return mc(body, '%s W' % _F(Pins), ws, r=r, lv='상', fam='e', sort='num',
+    return mc(body, '%s W' % _F(Pins), ws, r=r, lv='중', fam='e', sort='num',
               steps=['a = F/m = %s m/s²이므로 %d초 후 속력 v = at = %s m/s' % (_F(a), t, _F(vt)), '순간 일률 P = Fv = %d × %s = %s W' % (F, _F(vt), _F(Pins)), '(평균 일률은 %s W로 순간 일률의 절반이다.)' % _F(Pavg)],
               core='순간 일률 P = Fv (그 순간의 속력을 곱한다).', point='등가속도 운동에서 순간 일률은 평균 일률의 2배(정지에서 출발)이다.')
 
@@ -1324,7 +1339,7 @@ def _eg_fig(m, H, mode, assign, lam=None, w=320, h=230):
     xt = list(range(0, H + 1, max(1, H // 5)))
     if xt[-1] != H: xt.append(H)
     yt = [0, E0 // 2, E0] if E0 % 2 == 0 else [0, E0]
-    pl.axes('높이 h (m)', '에너지 (J)', xticks=xt, yticks=yt, grid=True)
+    pl.axes('높이 h (m)', 'E (J)', xticks=xt, yticks=yt, grid=True)
     curves = {}
     curves['Ep'] = [(0, 0), (H, m * G * H)]
     if mode == 'cons':
@@ -1461,5 +1476,5 @@ def energy_graph(r, k):
     intro = ('그림은 마찰이 없는 빗면 위에서 질량 m인 물체를 높이 %d m에서 가만히 놓았을 때, 물체의 높이에 따른 중력 위치 에너지, 운동 에너지, 역학적 에너지를 A, B, C로 나타낸 것이다.' % H if mode == 'cons'
              else '그림은 마찰이 있는 빗면 위에서 질량 m인 물체를 높이 %d m에서 가만히 놓았을 때, 물체의 높이에 따른 중력 위치 에너지, 운동 에너지, 역학적 에너지를 A, B, C로 나타낸 것이다(물체는 높이가 낮아지는 방향, 즉 그래프의 오른쪽에서 왼쪽으로 진행한다).' % H)
     intro += ' 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, g = 10 m/s²이고 공기 저항은 무시한다.)'
-    return bogi(intro, [(x[0], x[1], x[2]) for x in s], pre=fig, r=r, ask='', lv='중' if mode == 'cons' else '상', fam=fam,
+    return bogi(intro, [(x[0], x[1], x[2]) for x in s], pre=fig, r=r, ask='', lv='중' if mode == 'cons' else r.choice(['중', '상']), fam=fam,
                 core='높이-에너지 그래프에서 E_p는 높이에 비례하고, E_k = E - E_p 이며 마찰이 없으면 E가 일정하다.', point='그래프의 값을 읽어 에너지 관계를 판단한다.')

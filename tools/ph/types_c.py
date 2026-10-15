@@ -45,11 +45,12 @@ def two(x):
 def wl(right, cands, unit, nonneg=True):
     """오답 후보 -> 단위 붙은 문자열 목록(정답과 중복 제거, 필러 자동 추가)."""
     out, seen = [], {num(round(right, 2))}
-    fill = [right * 2, right / 2, right * 1.5, right + 10, right - 5, right + 5, right * 3, right + 3, right - 3, right + 1, right - 1, right + 2, right - 2]
+    fill = [right * 2, right / 2, right * 1.5, right * 0.75, right * 1.25, right * 3, right + 10, right - 5, right + 5, right * 0.9, right * 1.1, right + 3, right - 3, right + 1, right - 1, right + 2, right - 2]
     for c in list(cands) + fill:
         if c is None: continue
         c = round(c, 2)
         if nonneg and c <= 0: continue
+        if right > 0 and (c < 0.2 * right or c > 12 * right): continue
         if abs(c * 10 - round(c * 10)) > 1e-6 and abs(right * 10 - round(right * 10)) < 1e-6 and len(out) >= 3 and c in fill: continue
         s = num(c)
         if s in seen: continue

@@ -159,7 +159,7 @@ def fig_incline(th, Ltxt=None, spring=None, dtxt=None, mu=None, w=300, h=190, tp
         a = pt(x0, y0, th, us / 2, 44)
         f.text(a[0] - 26, a[1] - 6, ('k = ' + spring) if spring != 'k' else 'k', 12.5, bold=True, c=BL)
     if mu:
-        f.text(x1 - 12, y0 - 8, 'μ = ' + mu, 12.5, 'end', True, RD)
+        f.text(x1, y0 + 16, 'μ = ' + mu, 12.5, 'end', True, RD)
     return f.svg()
 
 
@@ -199,9 +199,9 @@ def fig_slope_floor(th, Ltxt=None, mu1=None, mu2=None, stop=False, w=330, h=190)
         mx, my = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
         f.text(mx + 16 * nx - 4, my + 16 * ny - 2, Ltxt, 12.5, bold=True, c=GR)
     if mu1:
-        f.text(xt + 18, yb - 8, 'μ' + '₁' + ' = ' + mu1, 12.5, 'start', True, RD)
+        f.text(xt + 2, yb + 22, 'μ₁ = ' + mu1 + ' (빗면)', 12.5, 'start', True, RD)
     if mu2:
-        f.text(xb + 12, yb + 22, 'μ = ' + mu2 + ' (수평면)', 12.5, 'start', True, RD)
+        f.text(w - 10, yb + 22, 'μ = ' + mu2 + ' (수평면)', 12.5, 'end', True, RD)
     if stop:
         f.line(w - 40, yb - 30, w - 40, yb, GR, 1, '4 3')
         f.text(w - 40, yb - 36, '정지', 12, bold=True, c=GR)
@@ -218,7 +218,7 @@ def _mfig(th, **kw):
 @T('ph106')
 @balanced
 def g106(r, k):
-    form = pick(r, ['easy', 'free', 'free', 'fric', 'fric', 'fric', 'fric', 'up', 'up', 'up', 'spring', 'spring', 'spring', 'spring', 'flat', 'flat', 'flat', 'bogi', 'bogi'])
+    form = pick(r, ['easy'] * 6 + ['free'] * 3 + ['fric'] * 3 + ['up'] * 3 + ['spring'] * 2 + ['flat'] * 2 + ['bogi'] * 2)
     m = r.choice([1, 2, 3, 4, 5, 6, 8, 10])
     if form == 'easy':
         th = r.choice([30, 37, 53]); s = SN[th]
@@ -328,7 +328,7 @@ def g106(r, k):
             assert abs(S * s - hh) < 1e-9
             t = v0 / (G * s)
             base = '그림과 같이 경사각이 %d°인 마찰이 없는 빗면의 아래쪽에서 질량 %d kg인 물체를 빗면을 따라 위로 %d m/s의 속력으로 밀어 올렸다. ' % (th, m, v0)
-            ask = r.choice(['S', 'S', 'h', 't'])
+            ask = r.choice(['S', 'h', 'h', 't'])
             if ask == 'h':
                 body = P(base + '물체가 올라가는 최고 지점의 처음 위치로부터의 높이는? (단, 중력 가속도는 10 m/s²이다.)') + fig
                 return mc(body, U(hh, 'm'), wr(hh, [S, hh / s, hh * s, v0 / G, v0 * v0 / G, hh * 2], 'm'), r=r, lv='하', fam='d',
@@ -494,7 +494,7 @@ def fig_traj(vx, vy, h0=0.0, v0txt=None, thtxt=None, htxt=None, Htxt=None, Rtxt=
     t_end = (vy + math.sqrt(vy * vy + 20 * h0)) / 10.0
     xe = vx * t_end
     ytop = h0 + (vy * vy / 20.0 if vy > 0 else 0)
-    ox, gy = 44, h - 28
+    ox, gy = (96 if h0 > 0 else 44), h - 28
     sc = min((w - ox - 40) / max(xe, 1e-9), (gy - 36) / max(ytop, 1e-9))
     f = Fig(w, h)
     f.line(ox - 36, gy, w - 14, gy, INK, 1.6)
@@ -514,7 +514,11 @@ def fig_traj(vx, vy, h0=0.0, v0txt=None, thtxt=None, htxt=None, Htxt=None, Rtxt=
     L = 44
     f.arrow(ox, sy, ox + L * vx / sp, sy - L * vy / sp, RD, 2.4)
     if v0txt:
-        f.text(ox + L * vx / sp + 6, sy - L * vy / sp - (6 if vy >= 0 else -14), v0txt, 12.5, 'start', True, RD)
+        tx, ty = ox + L * vx / sp, sy - L * vy / sp
+        if vy > 0:
+            f.text(tx - 6, ty - 6, v0txt, 12.5, 'end', True, RD)
+        else:
+            f.text(tx + 4, ty - 8, v0txt, 12.5, 'start', True, RD)
     if thtxt and vy != 0:
         th = math.degrees(math.atan2(abs(vy), vx))
         sg = 1 if vy > 0 else -1
@@ -558,8 +562,39 @@ COS2S = {0: '1', 30: '3/4', 37: '16/25', 45: '1/2', 53: '9/25', 60: '1/4'}
 @T('ph107')
 @balanced
 def g107(r, k):
-    form = pick(r, ['hor', 'hor', 'hor', 'obl', 'obl', 'obl', 'obl', 'cliff', 'cliff', 'cliff', 'at', 'at', 'bogi', 'bogi'])
+    form = pick(r, ['hor'] * 3 + ['obl'] * 3 + ['cliff'] * 3 + ['at'] * 2 + ['bogi'] * 2 + ['ez'] * 5)
     m = r.choice([0.5, 1, 2, 3, 4, 5])
+    if form == 'ez':
+        sub_ = r.choice(['top', 'vy', 'cl'])
+        if sub_ == 'top':
+            th = r.choice([37, 53]); v0 = r.choice([5, 10, 15, 20, 25, 30, 40])
+            vt = v0 * cx(th)
+            if not cl(vt, 2): return None
+            vx, vy = v0 * cx(th), v0 * sx(th)
+            H = float(SIN2[th]) * v0 * v0 / 20
+            assert abs(0.5 * v0 * v0 - (0.5 * vt * vt + G * H)) < 1e-6
+            fig = FIG(fig_traj(vx, vy, 0, v0txt='%d m/s' % v0, thtxt='%d°' % th, Htxt='H', apex=True), '62%')
+            body = P('그림과 같이 지면에서 공을 수평면과 %d°의 각으로 %d m/s의 속력으로 던졌다. 공이 최고점에 도달했을 때 공의 속력은? (단, 중력 가속도는 10 m/s²이고, 공기 저항은 무시한다.)' % (th, v0)) + fig
+            return mc(body, U(vt, 'm/s'), wr(vt, [v0 * sx(th), 0, v0, v0 * (cx(th) + sx(th)) / 2, v0 / 2, vt * 2], 'm/s'), r=r, lv='하', fam='f',
+                      steps=['최고점에서는 연직 속도가 0이고 수평 속도만 남는다.', '수평 속도는 일정하므로 v = v₀ cos%d° = %d × %s = %s m/s' % (th, v0, CSS.get(th, ''), fs(vt)), '(검산) 에너지 : ½mv₀² = ½mv² + mgH, H = %s m → v² = %s' % (fs(H), fs(v0 * v0 - 2 * G * H))],
+                      core='포물선 운동에서 수평 속도는 일정하고 최고점에서 속도는 수평 성분뿐이다.', point='최고점의 속력은 0이 아니다.')
+        if sub_ == 'vy':
+            v0, vyy, vv = r.choice(TRIPLES)
+            h = vyy * vyy / 20.0
+            fig = FIG(fig_traj(v0, 0, h, v0txt='v₀ = %d m/s' % v0, htxt='%s m' % fs(h)), '62%')
+            body = P('그림과 같이 높이 %s m인 절벽 끝에서 공을 수평 방향으로 %d m/s의 속력으로 던졌다. 공이 지면에 닿는 순간 속도의 연직 성분의 크기는? (단, 중력 가속도는 10 m/s²이고, 공기 저항은 무시한다.)' % (fs(h), v0)) + fig
+            t = vyy / 10.0
+            assert abs(vyy - G * t) < 1e-9 and abs(h - 0.5 * G * t * t) < 1e-9
+            return mc(body, U(vyy, 'm/s'), wr(vyy, [v0, vv, math.sqrt(G * h), 2 * G * h, G * h, vyy / 2], 'm/s'), r=r, lv='하', fam='f',
+                      steps=['수평 속도 %d m/s 는 변하지 않고 연직 방향은 자유 낙하이다.' % v0, '연직 속도 v_y = √(2gh) = √(2 × 10 × %s) = %d m/s' % (fs(h), vyy), '(검산) 낙하 시간 t = √(2h/g) = %s s, v_y = gt = %d m/s' % (fs(t), vyy)],
+                      core='수평으로 던진 물체의 연직 방향 운동은 자유 낙하이다.', point='연직 속도는 에너지 보존(mgh = ½mv_y²)으로도 구한다.')
+        v0, vyy, vv = r.choice(TRIPLES)
+        h = vyy * vyy / 20.0
+        fig = FIG(fig_traj(v0, 0, h, v0txt='%d m/s' % v0, htxt='%s m' % fs(h), vend='v'), '62%')
+        body = P('그림과 같이 높이 %s m인 절벽 끝에서 공을 수평 방향으로 %d m/s의 속력으로 던졌다. 공이 지면에 닿는 순간의 속력은? (단, 중력 가속도는 10 m/s²이고, 공기 저항은 무시한다.)' % (fs(h), v0)) + fig
+        return mc(body, U(vv, 'm/s'), wr(vv, [v0 + vyy, vyy, v0, math.sqrt(2 * G * h), abs(v0 - vyy) + 2, vv * 2], 'm/s'), r=r, lv='하', fam='f',
+                  steps=['역학적 에너지 보존 : v² = v₀² + 2gh = %d² + 2 × 10 × %s = %s' % (v0, fs(h), fs(vv * vv)), 'v = %d m/s' % vv, '(검산) v_y = √(2gh) = %d m/s, √(%d² + %d²) = %d m/s' % (vyy, v0, vyy, vv)],
+                  core='도달 속력은 에너지 보존으로 구한다.', point='속도의 합성은 벡터 합이다.')
     if form == 'hor':
         v0, vy, vv = r.choice(TRIPLES)
         h = vy * vy / 20.0
@@ -828,7 +863,7 @@ def _mass_pairs():
 @T('ph108')
 @balanced
 def g108(r, k):
-    form = pick(r, ['wall', 'wall', 'wall', 'free', 'free', 'free', 'slope', 'rough', 'rough', 'bogi', 'bogi'])
+    form = pick(r, ['wall'] * 5 + ['free'] * 3 + ['slope'] + ['rough'] * 2 + ['bogi'] * 2)
     m1, m2 = r.choice(_mass_pairs())
     M = m1 + m2
     tail = ' (단, 용수철의 질량과 모든 마찰은 무시한다.)'
@@ -848,7 +883,7 @@ def g108(r, k):
         loss = 0.5 * m1 * v1 * v1 - E
         assert abs(loss - 0.5 * m1 * v1 * v1 * m2 / M) < 1e-6
         assert abs(0.5 * kk * x * x - E) < 1e-6
-        ask = r.choice(['v', 'v', 'v', 'v', 'loss', 'x', 'k', 'x'])
+        ask = r.choice(['v', 'v', 'v', 'v', 'v', 'loss', 'x', 'k', 'x'])
         if form == 'bogi':
             ask = 'bogi'
         kt = '%d N/m' % kk
@@ -1106,7 +1141,7 @@ def fig_loop(htxt, Rtxt, w=330, hh=220):
     f.circ(cx, cy, R, 'none', INK, 2.2)
     f.circ(cx, cy, 2.5, GR, GR, 1)
     f.line(cx, cy, cx + R * math.cos(math.radians(40)), cy - R * math.sin(math.radians(40)), GR, 1.2)
-    f.text(cx + 8, cy - 4, Rtxt, 12.5, 'start', True, GR)
+    f.text(cx, cy + 20, Rtxt, 12.5, 'middle', True, GR)
     f.circ(x0 + 8, top - 7, 7, '#cfe2f7', INK, 1.7)
     f.line(x0 + 15, top - 14 + 7, cx + R + 8, top - 7, GR, 1, '4 3') if False else f.line(x0 + 8, top - 14, cx + R + 6, top - 14, GR, 1, '4 3')
     f.line(cx + R + 2, top - 14, cx + R + 2, fy, GR, 1.2)
@@ -1122,7 +1157,7 @@ CIRC = [(R_, v_) for R_ in (0.2, 0.25, 0.4, 0.5, 0.6, 0.8, 1, 1.2, 1.5, 2, 2.5, 
 @T('ph109')
 @balanced
 def g109(r, k):
-    form = pick(r, ['pend', 'pend', 'pend', 'circ', 'circ', 'circ', 'circ', 'circ', 'circ', 'loop', 'loop', 'rope', 'bogi', 'bogi'])
+    form = pick(r, ['pend'] * 5 + ['circ'] * 4 + ['loop'] * 2 + ['rope'] + ['bogi'] * 2)
     m = r.choice([0.5, 1, 2, 3, 4, 5])
     tail = ' (단, 중력 가속도는 10 m/s²이고, 공기 저항은 무시한다.)'
     if form in ('pend', 'rope', 'bogi'):
@@ -1135,7 +1170,7 @@ def g109(r, k):
         if form != 'rope' and not cl(v, 2): return None
         T = m * G * (3 - 2 * c)
         assert abs(T - (m * G + m * v2 / Lv)) < 1e-6
-        ask = r.choice(['v', 'v', 'T', 'T', 'KE', 'ratio'])
+        ask = r.choice(['v', 'v', 'v', 'KE', 'KE', 'T', 'ratio'])
         if form == 'pend':
             fig = FIG(fig_pend(th, Ltxt='%s m' % fs(Lv)), '58%')
             base = '그림과 같이 길이 %s m인 가벼운 줄에 질량 %s kg인 추를 매달고 줄이 연직 방향과 %d°를 이루는 위치에서 가만히 놓았더니 추가 원호를 따라 운동하였다. ' % (fs(Lv), fs(m), th)
@@ -1198,7 +1233,7 @@ def g109(r, k):
         assert abs((Tb - Tt) - 6 * m * G) < 1e-6
         # 에너지 교차 검증 : ½mv0² = ½mvt² + mg(2R)
         assert abs(0.5 * m * v0 * v0 - (0.5 * m * vt2 + m * G * 2 * R)) < 1e-6
-        ask = r.choice(['vt', 'vt', 'Tt', 'Tb', 'diff', 'vmin'])
+        ask = r.choice(['vt', 'vt', 'Tt', 'Tb', 'Tb', 'diff', 'vmin'])
         fig = FIG(fig_circle('R = %s m' % fs(R), 'v₀ = %d m/s' % v0), '56%')
         base = '그림과 같이 길이 %s m인 가벼운 줄에 질량 %s kg인 추를 매달고 연직면에서 원운동시킨다. 추가 최저점을 지날 때의 속력은 %d m/s이다. ' % (fs(R), fs(m), v0)
         if ask == 'vt':
@@ -1332,9 +1367,9 @@ def fig_joule(Mtxt, Htxt, w=320, hh=215):
     f.circ(pxx, pyy, 12, '#f1f4f8', INK, 1.6)
     f.line(98, 56, pxx - 12, pyy + 2, GR, 1.6)
     f.line(pxx + 12, pyy, pxx + 12, 108, GR, 1.6)
-    f.rect(pxx - 2, 108, 28, 26, '#cfe2f7', INK, 1.7)
+    f.rect(pxx - 12, 108, 48, 26, '#cfe2f7', INK, 1.7)
     f.text(pxx + 12, 126, Mtxt, 12.5, bold=True, italic=True)
-    f.rect(pxx - 2, 178, 28, 26, 'none', GR, 1.2, 0, '4 3')
+    f.rect(pxx - 12, 178, 48, 26, 'none', GR, 1.2, 0, '4 3')
     f.line(pxx + 40, 108, pxx + 40, 178, GR, 1.2)
     f._head(pxx + 40, 108, pxx + 40, 178, GR, 1.2, 7)
     f._head(pxx + 40, 178, pxx + 40, 108, GR, 1.2, 7)
@@ -1345,7 +1380,7 @@ def fig_joule(Mtxt, Htxt, w=320, hh=215):
 @T('ph110')
 @balanced
 def g110(r, k):
-    form = pick(r, ['iso', 'iso', 'iso', 'iso', 'joule', 'joule', 'adia', 'adia', 'fric', 'fric', 'bogi', 'bogi', 'bogi'])
+    form = pick(r, ['iso'] * 4 + ['joule'] * 3 + ['adia'] * 1 + ['fric'] * 3 + ['bogi'] * 3)
     tail = ' (단, 중력 가속도는 10 m/s²이다.)'
     if form in ('iso', 'bogi'):
         A = r.choice([0.005, 0.01, 0.02])
@@ -1379,7 +1414,7 @@ def g110(r, k):
             ]
             return topics_bogi(r, tops, base + '이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, 중력 가속도는 10 m/s²이다.)', pre=fig, fam='e', lv='중',
                                core='등압 팽창에서 기체가 한 일은 PΔV 이고, 열량은 내부 에너지 증가와 한 일의 합이다.', point='기체의 일과 역학적 에너지(추의 위치 에너지)의 관계를 구분한다.')
-        ask = r.choice(['Ep', 'Ep', 'W', 'W', 'Watm', 'Q', 'Q'])
+        ask = r.choice(['Ep', 'Ep', 'Ep', 'W', 'W', 'Watm', 'Q'])
         if ask == 'Ep':
             body = P(base + '이 과정에서 추의 중력 위치 에너지의 증가량은?' + tail) + fig
             return mc(body, U(Ep, 'J'), wr(Ep, [W, Watm, Pg * dV * 0.5, Mg * dh * 2, Mk * dh], 'J'), r=r, lv='하', fam='a',
@@ -1412,13 +1447,13 @@ def g110(r, k):
         dT = Q / (mw * c)
         if not cl(dT, 2) or dT <= 0 or dT > 20: return None
         assert abs(dT * mw * c - eta * n * Mk * G * H) < 1e-6
-        ask = r.choice(['dT', 'dT', 'dT', 'Q'])
+        ask = r.choice(['dT', 'Q', 'Q', 'Q'])
         fig = FIG(fig_joule('%d kg' % Mk, '%s m' % fs(H)), '58%')
         base = '그림은 줄에 매달린 질량 %d kg인 추가 %s m 내려오면서 물속의 날개를 돌려 물을 젓는 장치를 나타낸 것이다. 추를 같은 높이에서 %d번 반복해서 내려오게 했다. 물의 질량은 %s kg이고 물의 비열은 4200 J/(kg·K)이다. ' % (Mk, fs(H), n, fs(mw))
         eta_s = '' if eta == 1 else '추가 잃은 역학적 에너지의 %d %%만 물의 내부 에너지로 전달된다고 할 때, ' % round(eta * 100)
         if ask == 'Q':
             body = P(base + eta_s + '물에 전달된 열에너지는? (단, 추의 처음과 나중 속력은 0이고, 중력 가속도는 10 m/s²이다.)') + fig
-            return mc(body, U(Q, 'J'), wr(Q, [n * Mk * G * H, Q * 2, Q / 2, Mk * G * H, n * Mk * H, dT], 'J'), r=r, lv='중', fam='b',
+            return mc(body, U(Q, 'J'), wr(Q, [n * Mk * G * H, Q * 2, Q / 2, Mk * G * H, n * Mk * H, dT], 'J'), r=r, lv='하' if eta == 1 else '중', fam='b',
                       steps=['추가 한 번 내려올 때 잃는 위치 에너지 Mgh = %d × 10 × %s = %s J' % (Mk, fs(H), fs(Mk * G * H)), '%d번이면 %s J' % (n, fs(n * Mk * G * H)), '전달된 열 = %s × %s = %s J' % (fs(eta), fs(n * Mk * G * H), fs(Q))],
                       core='역학적 에너지가 마찰(젓는 일)로 열에너지가 된다(줄의 실험).', point='위치 에너지 감소량을 열로 환산한다.')
         body = P(base + eta_s + '물의 온도 변화는? (단, 추의 처음과 나중 속력은 0이고, 중력 가속도는 10 m/s²이며, 열은 물에만 전달된다.)') + fig
@@ -1470,6 +1505,11 @@ def g110(r, k):
         txt = '수평면 위에서 질량 %d kg인 물체가 %d m/s의 속력으로 미끄러지기 시작하여 운동 마찰 계수가 %s인 거친 면을 지나 멈출 때까지 마찰력에 의해 열이 발생한다. ' % (mm, vv, fs(mu))
     else:
         txt = '수평면 위에서 질량 %d kg인 물체가 운동 마찰 계수가 %s인 거친 면 위를 일정한 속력으로 %d m만큼 끌려 이동하는 동안 마찰력에 의해 열이 발생한다. ' % (mm, fs(mu), d)
+    if r.random() < 0.4:
+        body = P(txt + '이때 발생한 열의 양은? (단, 중력 가속도는 10 m/s²이다.)')
+        return mc(body, U(Qh, 'J'), wr(Qh, [mu * mm * G, mm * G * d if not use_v else mm * vv * vv, Qh * 2, Qh / 2, 0.5 * mm * vv * vv * 2 if use_v else mu * mm * d], 'J'), r=r, lv='하', fam='d',
+                  steps=['마찰열 Q = ' + ('운동 에너지 ½mv² = ½ × %d × %d² = %s J (마찰력 × 거리와 같다)' % (mm, vv, fs(Qh)) if use_v else '마찰력 × 거리 = μmg × d = %s × %d × 10 × %d = %s J' % (fs(mu), mm, d, fs(Qh)))],
+                  core='마찰로 줄어든 역학적 에너지(또는 마찰력 × 거리)가 열로 변한다.', point='마찰열을 마찰력과 이동 거리의 곱으로 구한다.')
     body = P(txt + '%s부피가 일정한 용기 속의 단원자 분자 이상 기체 %s mol에 전달되었다면 기체의 온도 상승량은? (단, 기체 상수는 8 J/(mol·K)이고, 중력 가속도는 10 m/s²이다.)' % (eta_s if eta_s else '발생한 열이 모두 ', fs(nmol)))
     wl = [dT * 2, dT / 2, Qh / (nmol * 8), Qh / (1.5 * nmol * 8) if eta != 1 else dT * 1.5, dT * 5 / 3, dT / eta if eta != 1 else dT * 4]
     return mc(body, U(dT, 'K'), wr(dT, wl, 'K'), r=r, lv='상' if use_v else '중', fam='d',
@@ -1580,7 +1620,7 @@ def _fq(q):
 @T('ph111')
 @balanced
 def g111(r, k):
-    form = pick(r, ['calc', 'calc', 'calc', 'atx', 'atx', 'graph', 'graph', 'graph', 'chg', 'chg', 'chg', 'vert', 'vert', 'vert', 'bogi', 'bogi'])
+    form = pick(r, ['calc'] * 7 + ['atx'] * 1 + ['graph'] * 3 + ['chg'] * 3 + ['vert'] * 2 + ['bogi'] * 2)
     tail = ' (단, 용수철의 질량과 모든 마찰·공기 저항은 무시한다.)'
     if form in ('calc', 'atx', 'bogi'):
         om = r.choice([2, 3, 4, 5, 6, 8, 10, 12, 15, 20])
@@ -1596,7 +1636,7 @@ def g111(r, k):
         kt = '%s N/m' % fs(kk)
         mt = '%s kg' % fs(m)
         if form == 'calc':
-            ask = r.choice(['T', 'T', 'vmax', 'vmax', 'E', 'amax'])
+            ask = r.choice(['T', 'T', 'T', 'T', 'vmax', 'vmax', 'E', 'amax'])
             fig = FIG(fig_sp_h(kt, mt, '%s m' % fs(A)), '62%')
             base = '그림과 같이 마찰이 없는 수평면에서 용수철 상수가 %s N/m인 용수철에 질량 %s kg인 물체를 연결하고, 평형 위치 O에서 %s m 당겼다가 가만히 놓았더니 물체가 단진동을 하였다. ' % (fs(kk), fs(m), fs(A))
             if ask == 'T':
@@ -1741,7 +1781,7 @@ def g111(r, k):
                {'T': 'T = 2π/ω 이므로 T\'/T = √(%s) = %s' % (_fqs(qT), ans), 'f': 'f = ω/2π 이므로 f\'/f = √(%s) = %s' % (_fqs(qw2), ans), 'v': 'v max = ωA 이고 A 가 같으므로 v\'/v = √(%s) = %s' % (_fqs(qw2), ans),
                 'E': '에너지 ½kA² 에서 A 가 같으므로 E\'/E = k\'/k = %s' % ans, 'amax': 'a max = kA/m 이므로 a\'/a = (k\'/k)/(m\'/m) = %s' % ans}[what],
                '(검산) 직접 계산 : %s' % ans]
-        return mc(body, ans, wl, r=r, lv='중' if what in ('T', 'f', 'v') else '상', fam='d', sort='shuf', steps=stp,
+        return mc(body, ans, wl, r=r, lv=('하' if what in ('T', 'f') and kind in ('m', 'k', 'par', 'ser', 'half') else '중') if what in ('T', 'f', 'v') else '상', fam='d', sort='shuf', steps=stp,
                   core='T = 2π√(m/k), v max = A√(k/m), E = ½kA² 로 k·m 변화에 따른 변화율을 구한다.', point='질량·용수철 상수의 변화가 주기와 에너지에 미치는 영향을 비교한다.')
     if form == 'vert':
         om = r.choice([2, 4, 5, 10, 20])
@@ -1891,7 +1931,7 @@ def _f0_for(r, v, vs, extra=None):
 @T('ph112')
 @balanced
 def g112(r, k):
-    form = pick(r, ['shm', 'shm', 'shm', 'circ', 'circ', 'circ', 'obs', 'obs', 'inv', 'inv', 'bogi', 'bogi'])
+    form = pick(r, ['shm'] * 4 + ['circ'] * 3 + ['obs'] * 2 + ['inv'] * 1 + ['bogi'] * 2)
     v = r.choice([340, 340, 340, 300, 350, 330])
     tail = ' (단, 소리의 속력은 %d m/s이고, 관측자는 정지해 있다.)' % v
     if form in ('shm', 'bogi'):
@@ -1931,7 +1971,7 @@ def g112(r, k):
                 ('음원이 진폭 끝에 있는 순간 관측자는 진동수 f₀ 의 소리를 듣는다.', '음원이 진폭 끝에 있는 순간 관측자는 진동수가 가장 작은 소리를 듣는다.', '진폭 끝에서는 속력이 0이므로 도플러 효과가 없다.', '최소 진동수는 평형 위치를 관측자에서 멀어지며 지날 때 나타난다.'),
             ]
             return topics_bogi(r, tops, base + '이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?' + tail_, pre=fig, fam='e', lv='중', core='단진동하는 음원은 평형 위치에서 속력이 최대이고, 이때 도플러 효과의 변화가 가장 크다.', point='단진동의 속도 변화와 도플러 효과를 연결한다.')
-        ask = r.choice(['vs', 'vs', 'fmax', 'fmax', 'fmin', 'fmin', 'ratio', 'lam'])
+        ask = r.choice(['vs', 'vs', 'vs', 'vs', 'fmax', 'fmin', 'ratio', 'lam'])
         if ask == 'vs':
             body = P(base + '음원의 최대 속력은?' + pi_) + fig
             return mc(body, U(vs, 'm/s'), wr(vs, [om, A, vs * 2, vs / 2, om * A * 2, om / A if False else vs + 10], 'm/s'), r=r, lv='하', fam='a',
@@ -1976,7 +2016,7 @@ def g112(r, k):
         assert abs(om * Rr - vs) < 1e-6
         if form == 'circ':
             fmax = f0 * v / (v - vs); fmin = f0 * v / (v + vs)
-            ask = r.choice(['vs', 'fmax', 'fmax', 'fmin', 'fmin', 'dpos'])
+            ask = r.choice(['vs', 'vs', 'vs', 'fmax', 'fmin', 'dpos'])
             fig = FIG(fig_dop_circ('R = %s m' % fs(Rr), 'f₀ = %d Hz' % f0), '64%')
             base = '그림은 위에서 본 모습으로, 진동수 %d Hz의 소리를 내는 음원이 반지름 %s m인 원 둘레를 주기 %s s로 등속 원운동하고, 같은 평면에서 원으로부터 멀리 떨어진 곳에 관측자가 정지해 있는 것을 나타낸 것이다. ' % (f0, fs(Rr), fs(T, 3))
             tl = ' (단, 소리의 속력은 %d m/s이고 π = 3이며, 관측자까지의 거리는 원의 반지름보다 매우 크다.)' % v
@@ -2033,7 +2073,7 @@ def g112(r, k):
     vs2 = v * (fmax - fmin) / (fmax + fmin)
     f02 = 2 / (1 / fmax + 1 / fmin)
     assert abs(vs2 - vs) < 1e-6 and abs(f02 - f0) < 1e-6
-    T = r.choice([0.5, 1, 2, 3, 0.6, 1.2])
+    T = r.choice([0.06, 0.1, 0.12, 0.2, 0.3, 0.6])
     A = vs * T / 6
     ask = r.choice(['vs', 'vs', 'f0', 'A'])
     if ask == 'A' and not cl(A, 3): return None
@@ -2055,3 +2095,269 @@ def g112(r, k):
     return mc(body, U(A, 'm', 3), wr(A, [vs * T, vs * T / 2, vs * T / 3, vs / T, A * 2, A / 2], 'm', 3), r=r, lv='상', fam='d',
               steps=['vs = v(f max - f min)/(f max + f min) = %s m/s' % fs(vs), 'ω = 2π/T = 6/%s = %s rad/s' % (fs(T), fs(6 / T)), '진폭 A = vs/ω = %s / %s = %s m' % (fs(vs), fs(6 / T), fs(A, 3)), '(검산) ωA = %s × %s = %s m/s = vs' % (fs(6 / T), fs(A, 3), fs(6 / T * A))],
               core='단진동의 최대 속력 vs = ωA = 2πA/T 로 진폭을 구한다.', point='도플러 → 속력 → 단진동 진폭으로 연결한다.')
+
+
+# ================================================================== ph113 열기관과 일률(연료 소비)
+def fig_engine(QH='Q_H', W='W', QC='Q_C', TH=None, TC=None, w=340, hh=230):
+    """열기관 에너지 흐름도: 고열원 → 열기관 → 저열원, 일은 오른쪽으로."""
+    f = Fig(w, hh)
+    f.rect(70, 8, 150, 34, '#fbe3e0', INK, 1.6)
+    f.text(145, 30, '고열원' + (' (%s)' % TH if TH else ''), 13, bold=True)
+    f.arrow(145, 42, 145, 88, RD, 3)
+    f.text(155, 70, QH, 13, 'start', True, RD)
+    f.circ(145, 112, 26, '#fff4d6', INK, 1.8)
+    f.text(145, 117, '열기관', 12.5, bold=True)
+    f.arrow(171, 112, 240, 112, GN, 3)
+    f.text(245, 106, W, 13, 'start', True, GN)
+    f.arrow(145, 138, 145, 184, BL, 3)
+    f.text(155, 166, QC, 13, 'start', True, BL)
+    f.rect(70, 186, 150, 34, '#dcebfa', INK, 1.6)
+    f.text(145, 208, '저열원' + (' (%s)' % TC if TC else ''), 13, bold=True)
+    return f.svg()
+
+
+def fig_engine2(w=330, hh=210):
+    """두 열기관: 첫째 열기관의 방출열이 둘째 열기관의 입력이 된다."""
+    f = Fig(w, hh)
+    f.rect(40, 8, 110, 32, '#fbe3e0', INK, 1.6)
+    f.text(95, 29, '고열원', 13, bold=True)
+    f.arrow(95, 40, 95, 66, RD, 3)
+    f.circ(95, 90, 24, '#fff4d6', INK, 1.8)
+    f.text(95, 95, '기관 1', 12, bold=True)
+    f.arrow(119, 90, 170, 90, GN, 3)
+    f.text(174, 85, 'W₁', 13, 'start', True, GN)
+    f.arrow(95, 114, 95, 142, BL, 3)
+    f.circ(95, 166, 24, '#fff4d6', INK, 1.8)
+    f.text(95, 171, '기관 2', 12, bold=True)
+    f.arrow(119, 166, 170, 166, GN, 3)
+    f.text(174, 161, 'W₂', 13, 'start', True, GN)
+    f.arrow(95, 190, 95, 202, BL, 3)
+    f.text(104, 202, '저열원으로 Q₂', 12, 'start', True, BL)
+    f.text(104, 134, 'Q₁', 13, 'start', True, BL)
+    f.text(104, 58, 'Q_H', 13, 'start', True, RD)
+    return f.svg()
+
+
+def kw(x):
+    """W → 'x kW' 또는 'x W' 문자열."""
+    return ('%s kW' % fs(x / 1000, 3)) if abs(x) >= 1000 and cl(x / 1000, 3) else ('%s W' % fs(x))
+
+
+@T('ph113')
+@balanced
+def g113(r, k):
+    form = pick(r, ['flow'] * 6 + ['fuel'] * 2 + ['mech'] * 2 + ['carnot'] * 1 + ['two'] + ['bogi'] * 2)
+    if form == 'flow':
+        QH = r.choice([200, 400, 500, 600, 800, 1000, 1200, 1500, 2000])
+        e = r.choice([0.2, 0.25, 0.3, 0.4, 0.5, 0.6])
+        W = e * QH
+        if not cl(W, 1): return None
+        QC = QH - W
+        n = r.choice([1, 2, 5, 10, 20, 25, 50, 100])
+        Pw = n * W
+        assert abs(QH - W - QC) < 1e-9
+        ask = r.choice(['e', 'e', 'e', 'P', 'P', 'QCd', 'W', 'W'])
+        given = r.choice(['QC', 'W'])
+        if ask == 'e' and given == 'W':
+            given = 'QC'
+        fig = FIG(fig_engine('Q_H = %s J' % fs(QH), '?' if given == 'QC' else 'W = %s J' % fs(W), 'Q_C = %s J' % fs(QC) if given == 'QC' else '?'), '52%')
+        if given == 'QC':
+            base = '그림은 어떤 열기관이 한 번의 순환 과정(1 사이클) 동안 고열원에서 %s J의 열을 흡수하고 저열원으로 %s J의 열을 방출하는 것을 나타낸 것이다. ' % (fs(QH), fs(QC))
+        else:
+            base = '그림은 어떤 열기관이 한 번의 순환 과정(1 사이클) 동안 고열원에서 %s J의 열을 흡수하여 %s J의 일을 하는 것을 나타낸 것이다. ' % (fs(QH), fs(W))
+        if ask == 'e':
+            body = P(base + '이 열기관의 열효율은?') + fig
+            return mc(body, fs(e), wr(e, [QC / QH, W / QC, 1 - e - 0.1, e * 2, QH / W if False else 1 / e, e / 2], '', 2), r=r, lv='하', fam='a', sort='shuf',
+                      steps=['제1법칙에 의해 1 사이클 동안 한 일 W = Q_H - Q_C = %s - %s = %s J' % (fs(QH), fs(QC), fs(W)), '열효율 e = W/Q_H = %s / %s = %s' % (fs(W), fs(QH), fs(e))],
+                      core='열기관의 열효율 e = W/Q_H = 1 - Q_C/Q_H 이다.', point='일은 흡수한 열에서 방출한 열을 뺀 값이다.')
+        if ask == 'W':
+            body = P(base + '열기관이 1 사이클 동안 방출한 열은 몇 J인가?' if given == 'W' else base + '이 열기관이 1 사이클 동안 한 일은?') + fig
+            ans = QC if given == 'W' else W
+            return mc(body, U(ans, 'J'), wr(ans, [QH, W if given == 'W' else QC, QH + ans, QH * 0.5, ans * 2, QH - ans * 2], 'J'), r=r, lv='하', fam='a',
+                      steps=['열기관은 1 사이클 후 처음 상태로 돌아오므로 ΔU = 0 이다.', 'W = Q_H - Q_C : %s = %s - %s' % (fs(W), fs(QH), fs(QC)), '답 : %s J' % fs(ans)],
+                      core='순환 과정에서 ΔU = 0 이므로 W = Q_H - Q_C 이다.', point='제1법칙을 열기관에 적용한다.')
+        if ask == 'QCd':
+            body = P(base + '이 열기관이 매초 %d회 순환할 때 저열원으로 방출하는 열의 일률(1초당 방출하는 열)은?' % n) + fig
+            return mc(body, kw(n * QC), [u for u in [kw(n * QH), kw(n * W), kw(QC), kw(n * QC * 2), kw(n * (QH + QC)), kw(n * QC / 2)] if u != kw(n * QC)], r=r, lv='중', fam='a', sort='num',
+                      steps=['1 사이클당 방출열 Q_C = %s J' % fs(QC), '매초 %d회이므로 방출하는 열의 일률 = %d × %s = %s' % (n, n, fs(QC), kw(n * QC)), '(검산) 흡수 일률 %s - 출력 %s = %s' % (kw(n * QH), kw(n * W), kw(n * QH - n * W))],
+                      core='단위 시간당 열량은 사이클당 열량 × 사이클 수이다.', point='사이클당 값을 일률로 바꾼다.')
+        body = P(base + '이 열기관이 매초 %d회 순환할 때 열기관의 출력(일률)은?' % n) + fig
+        return mc(body, kw(Pw), [u for u in [kw(n * QH), kw(n * QC), kw(W), kw(Pw * 2), kw(Pw / 2), kw(n * (QH + W))] if u != kw(Pw)], r=r, lv='중', fam='a', sort='num',
+                  steps=['1 사이클당 한 일 W = Q_H - Q_C = %s J' % fs(W) if given == 'QC' else '1 사이클당 한 일 W = %s J' % fs(W), '출력 P = n·W = %d × %s = %s' % (n, fs(W), kw(Pw)), '(검산) e × (흡수 일률) = %s × %s = %s' % (fs(e), kw(n * QH), kw(e * n * QH))],
+                  core='열기관의 출력 = 1 사이클의 일 × 초당 순환 횟수이다.', point='사이클당 일과 일률을 연결한다.')
+    if form == 'fuel':
+        Pw = r.choice([5000, 10000, 20000, 30000, 40000, 50000, 60000, 100000])
+        e = r.choice([0.2, 0.25, 0.3, 0.4, 0.5])
+        q = r.choice([10, 20, 40, 50]) * 1e6
+        t = r.choice([10, 100, 600, 1000, 3600])
+        mdot = Pw / (e * q)
+        mkg = mdot * t
+        QHrate = Pw / e
+        QCrate = QHrate - Pw
+        assert abs(QCrate - QHrate * (1 - e)) < 1e-6
+        ask = r.choice(['m', 'm', 'm', 'QC', 'e'])
+        qs = '%s×10%s J/kg' % (fs(q / 1e7), sup('7'))
+        if ask == 'm':
+            if not cl(mkg, 3) or mkg < 0.005: return None
+            fig = FIG(fig_engine('Q_H', '출력 %s' % kw(Pw), 'Q_C', None, None), '52%')
+            body = P('그림은 열효율이 %s인 열기관의 에너지 흐름을 나타낸 것이다. 이 열기관의 출력은 %s이며, 연료의 연소열(발열량)은 %s이다. 열기관이 %d초 동안 작동할 때 소비하는 연료의 질량은? (단, 연료가 연소하여 낸 열은 모두 고열원에서 기관으로 공급된다.)' % (fs(e), kw(Pw), qs, t)) + fig
+            return mc(body, U(mkg, 'kg', 3), wr(mkg, [Pw * t / q, mkg * e, mkg * (1 - e), mkg / e if False else mkg * 2, mkg / 2, mkg * 10], 'kg', 3), r=r, lv='상', fam='b',
+                      steps=['%d초 동안 한 일 W = Pt = %s × %d = %s J' % (t, fs(Pw), t, fs(Pw * t)), '흡수한 열 Q_H = W/e = %s / %s = %s J' % (fs(Pw * t), fs(e), fs(Pw * t / e)), '연료 질량 = Q_H / q = %s / %s = %s kg' % (fs(Pw * t / e), fs(q), fs(mkg, 3)),
+                             '(검산) 연료 1초당 %s kg × %d초 = %s kg' % (fs(mdot, 6), t, fs(mkg, 3))],
+                      core='연료가 낸 열 Q_H = e 로 나눈 일, 연료량 = Q_H/연소열 이다.', point='출력 → 일 → 흡수열 → 연료량의 순서로 구한다.')
+        if ask == 'QC':
+            fig = FIG(fig_engine('Q_H', '출력 %s' % kw(Pw), 'Q_C', None, None), '52%')
+            body = P('그림은 열효율이 %s인 열기관의 에너지 흐름을 나타낸 것이다. 이 열기관의 출력이 %s일 때 저열원으로 방출하는 열의 일률(1초당 방출하는 열)은?' % (fs(e), kw(Pw))) + fig
+            return mc(body, kw(QCrate), [u for u in [kw(QHrate), kw(Pw), kw(Pw * (1 - e)), kw(QCrate * 2), kw(QHrate + Pw), kw(QCrate / 2)] if u != kw(QCrate)], r=r, lv='중', fam='b', sort='num',
+                      steps=['흡수 일률 Q_H = P/e = %s / %s = %s' % (fs(Pw), fs(e), kw(QHrate)), '방출 일률 Q_C = Q_H - P = %s - %s = %s' % (kw(QHrate), kw(Pw), kw(QCrate)), '(검산) Q_C = Q_H(1 - e) = %s × %s = %s' % (kw(QHrate), fs(1 - e), kw(QHrate * (1 - e)))],
+                      core='흡수열 = 일 + 방출열 이고 e = W/Q_H 이다.', point='열효율로 흡수 일률을 먼저 구한다.')
+        # e 구하기 : 연료 소비량과 출력으로
+        if not cl(mkg, 3) or mkg < 0.005: return None
+        fig = FIG(fig_engine('Q_H', '출력 %s' % kw(Pw), 'Q_C', None, None), '52%')
+        body = P('그림과 같은 열기관이 %s의 일정한 출력으로 %d초 동안 작동하는 동안 연소열이 %s인 연료를 %s kg 소비하였다. 이 열기관의 열효율은? (단, 연료가 낸 열은 모두 기관에 공급된다.)' % (kw(Pw), t, qs, fs(mkg, 3))) + fig
+        return mc(body, fs(e), wr(e, [1 - e, e / 2, e * 2, Pw * t / (mkg * q) * 2 if False else e * 1.5, e / 4, 1 - e / 2], '', 2), r=r, lv='상', fam='b', sort='shuf',
+                  steps=['소비한 연료가 낸 열 Q_H = %s × %s = %s J' % (fs(mkg, 3), fs(q), fs(mkg * q)), '한 일 W = Pt = %s × %d = %s J' % (fs(Pw), t, fs(Pw * t)), 'e = W/Q_H = %s / %s = %s' % (fs(Pw * t), fs(mkg * q), fs(e)), '(검산) e = P/(ṁq) = %s' % fs(Pw / (mkg / t * q))],
+                  core='열효율 e = (출력 × 시간)/(연료량 × 연소열) 이다.', point='연료의 열량과 일의 비로 열효율을 구한다.')
+    if form == 'mech':
+        kind = r.choice(['car', 'car', 'pump'])
+        e = r.choice([0.2, 0.25, 0.3, 0.4, 0.5])
+        q = r.choice([4, 5]) * 1e7
+        if kind == 'car':
+            Fr = r.choice([500, 800, 1000, 1200, 1500, 2000])
+            vv = r.choice([10, 15, 20, 25, 30])
+            Pw = Fr * vv
+            km = r.choice([10, 50, 100])
+            mass = Fr * km * 1000 / (e * q)
+            mass2 = Pw / (e * q) * (km * 1000 / vv)
+            assert abs(mass - mass2) < 1e-9
+            if not cl(mass, 2) or mass < 0.02: return None
+            ask = r.choice(['fuel', 'fuel', 'P'])
+            qs = '%s×10%s J/kg' % (fs(q / 1e7), sup('7'))
+            base = '질량이 같은 자동차가 수평 도로에서 일정한 속력 %d m/s로 달린다. 이때 자동차에 작용하는 저항력의 크기는 %d N이고, 자동차 기관의 열효율은 %s이다. ' % (vv, Fr, fs(e))
+            if ask == 'P':
+                body = P(base + '이 기관이 내는 출력은? (단, 일정한 속력으로 달리므로 기관의 힘과 저항력의 크기는 같다.)')
+                return mc(body, kw(Pw), [u for u in [kw(Pw / e), kw(Pw * e), kw(Fr), kw(Pw * 2), kw(Pw / 2), kw(Fr / vv)] if u != kw(Pw)], r=r, lv='중', fam='c', sort='num',
+                          steps=['등속 운동이므로 기관의 힘 F = 저항력 = %d N' % Fr, '출력 P = Fv = %d × %d = %s' % (Fr, vv, kw(Pw)), '(검산) 1초에 하는 일 = 힘 × 이동 거리 = %d × %d = %d J' % (Fr, vv, Pw)],
+                          core='등속 운동하는 물체의 구동력은 저항력과 같고 출력은 P = Fv 이다.', point='역학의 일률 공식을 열기관 출력에 연결한다.')
+            body = P(base + '연소열이 %s인 연료를 사용할 때 %d km를 달리는 동안 소비하는 연료의 질량은? (단, 연료가 낸 열은 모두 기관에 공급된다.)' % (qs, km))
+            return mc(body, U(mass, 'kg', 2), wr(mass, [mass * e, mass / e * e * 2, mass * (1 - e), mass * 10, mass / 10, Fr * km * 1000 / q], 'kg', 2), r=r, lv='상', fam='c',
+                      steps=['%d km 를 달리는 동안 기관이 한 일 W = Fs = %d × %d = %s J' % (km, Fr, km * 1000, fs(Fr * km * 1000)), '흡수해야 할 열 Q_H = W/e = %s / %s = %s J' % (fs(Fr * km * 1000), fs(e), fs(Fr * km * 1000 / e)), '연료 질량 = Q_H/q = %s / %s = %s kg' % (fs(Fr * km * 1000 / e), fs(q), fs(mass, 2)),
+                             '(검산) 출력 %s, 연료 소비율 P/(eq) = %s kg/s, 걸린 시간 %s s → %s kg' % (kw(Pw), fs(Pw / (e * q), 8), fs(km * 1000 / vv), fs(mass2, 2))],
+                      core='일 = 힘 × 거리, 연료량 = 일/(열효율 × 연소열) 이다.', point='역학적 일(Fs)과 열기관 효율을 연결한다.')
+        # pump
+        mw = r.choice([20, 50, 100, 200, 500])
+        hh_ = r.choice([2, 5, 10, 20, 30])
+        Pw = mw * G * hh_
+        rate = Pw / (e * q)
+        ask = r.choice(['QH', 'fuelh'])
+        qs = '%s×10%s J/kg' % (fs(q / 1e7), sup('7'))
+        base = '열기관으로 작동하는 양수기가 매초 %d kg의 물을 %d m 높이까지 끌어올린다(물의 운동 에너지 변화는 무시한다). 열기관의 열효율은 %s이다. ' % (mw, hh_, fs(e))
+        if ask == 'QH':
+            body = P(base + '이 열기관이 고열원에서 흡수하는 열의 일률(1초당 흡수하는 열)은? (단, 중력 가속도는 10 m/s²이고, 열기관의 출력은 모두 물을 끌어올리는 데 쓰인다.)')
+            QHr = Pw / e
+            return mc(body, kw(QHr), [u for u in [kw(Pw), kw(Pw * e), kw(QHr * 2), kw(QHr - Pw), kw(mw * hh_), kw(QHr / 2)] if u != kw(QHr)], r=r, lv='중', fam='c', sort='num',
+                      steps=['1초에 물에 해 주는 일 = mgh = %d × 10 × %d = %s J → 출력 %s' % (mw, hh_, fs(Pw), kw(Pw)), '흡수 일률 Q_H = P/e = %s / %s = %s' % (fs(Pw), fs(e), kw(QHr)), '(검산) e × Q_H = %s × %s = %s' % (fs(e), kw(QHr), kw(e * QHr))],
+                      core='출력 P = mgh/t, 흡수 일률 = P/e 이다.', point='위치 에너지 증가율을 출력으로 본다.')
+        hours = r.choice([1, 2, 5])
+        mass = rate * 3600 * hours
+        if not cl(mass, 2) or mass < 0.05: return None
+        body = P(base + '연소열이 %s인 연료로 이 양수기를 %d시간 작동할 때 소비하는 연료의 질량은? (단, 중력 가속도는 10 m/s²이고, 연료가 낸 열은 모두 기관에 공급된다.)' % (qs, hours))
+        return mc(body, U(mass, 'kg', 2), wr(mass, [mass * e, mass / 3600, mass * (1 - e), mass * 2, mass / 2, Pw * 3600 * hours / q], 'kg', 2), r=r, lv='상', fam='c',
+                  steps=['출력 P = mgh/t = %d × 10 × %d = %s W' % (mw, hh_, fs(Pw)), '흡수 일률 = P/e = %s W, 연료 소비율 = %s / %s = %s kg/s' % (fs(Pw / e), fs(Pw / e), fs(q), fs(rate, 8)), '%d시간 = %d s 동안 연료 = %s × %d = %s kg' % (hours, 3600 * hours, fs(rate, 8), 3600 * hours, fs(mass, 2)),
+                         '(검산) 총 일 %s J ÷ e ÷ q = %s kg' % (fs(Pw * 3600 * hours), fs(Pw * 3600 * hours / e / q, 2))],
+                  core='역학적 출력(mgh/t)과 열효율, 연소열로 연료 소비를 구한다.', point='위치 에너지 증가 → 출력 → 열 → 연료의 연결.')
+    if form in ('carnot', 'bogi'):
+        TH = r.choice([400, 500, 600, 800, 1000, 1200])
+        TC = r.choice([200, 250, 300, 320, 400, 480])
+        if TC >= TH: return None
+        ec = 1 - TC / TH
+        if not cl(ec, 3): return None
+        QH = r.choice([200, 400, 500, 800, 1000, 2000, 5000])
+        e = r.choice([0.1, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6])
+        W = e * QH
+        if not cl(W, 1): return None
+        QC = QH - W
+        n = r.choice([1, 5, 10, 20, 50])
+        if form == 'bogi':
+            if e >= ec - 1e-9: return None
+            fig = FIG(fig_engine('Q_H = %s J' % fs(QH), 'W = %s J' % fs(W), 'Q_C = %s J' % fs(QC), '%d K' % TH, '%d K' % TC), '52%')
+            ok = e < ec - 1e-9
+            tops = [
+                ('이 열기관의 열효율은 %s이다.' % fs(e), '이 열기관의 열효율은 %s이다.' % fs(QC / QH), 'e = W/Q_H = %s / %s = %s 이다.' % (fs(W), fs(QH), fs(e)), 'e = W/Q_H = %s 이고 Q_C/Q_H = %s 는 방출열의 비율이다.' % (fs(e), fs(QC / QH))),
+                ('이 열기관의 열효율은 같은 온도의 카르노 기관의 열효율(%s)보다 %s.' % (fs(ec, 3), '작다' if ok else '크다'), '이 열기관의 열효율은 같은 온도의 카르노 기관의 열효율(%s)보다 %s.' % (fs(ec, 3), '크다' if ok else '작다'), '카르노 효율 1 - T_C/T_H = 1 - %d/%d = %s 이고 e = %s 이므로 %s.' % (TC, TH, fs(ec, 3), fs(e), '작다' if ok else '크다'), '카르노 효율 %s 와 e = %s 를 비교하면 %s.' % (fs(ec, 3), fs(e), '작다' if ok else '크다')),
+                ('이 열기관이 1 사이클 동안 방출하는 열은 %s J이다.' % fs(QC), '이 열기관이 1 사이클 동안 방출하는 열은 %s J이다.' % fs(W), 'Q_C = Q_H - W = %s J 이다.' % fs(QC), 'Q_C = Q_H - W = %s J 이고 %s J 는 한 일이다.' % (fs(QC), fs(W))),
+                ('이 열기관의 열효율은 1(100 %)보다 작다.', '이 열기관은 흡수한 열을 모두 일로 바꿀 수 있다.', '열효율은 항상 1보다 작다(열역학 제2법칙).', '방출열이 반드시 존재하므로 열효율 100 %는 불가능하다.'),
+                ('1 사이클 동안 기관의 내부 에너지 변화는 0이다.', '1 사이클 동안 기관의 내부 에너지는 %s J 증가한다.' % fs(W), '순환 과정에서는 처음 상태로 돌아오므로 ΔU = 0 이다.', '순환하면 내부 에너지가 처음과 같다. ΔU = 0 이다.'),
+                ('매초 %d회 순환하면 이 열기관의 출력은 %s이다.' % (n, kw(n * W)), '매초 %d회 순환하면 이 열기관의 출력은 %s이다.' % (n, kw(n * QH)), 'P = nW = %d × %s = %s 이다.' % (n, fs(W), kw(n * W)), 'P = nW = %s 이며 %s 는 흡수 일률이다.' % (kw(n * W), kw(n * QH))),
+            ]
+            return topics_bogi(r, tops, '그림은 고열원의 온도가 %d K, 저열원의 온도가 %d K인 열기관의 에너지 흐름을 나타낸 것이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?' % (TH, TC), pre=fig, fam='f', lv='중',
+                               core='열기관에서 W = Q_H - Q_C, e = W/Q_H < 카르노 효율 1 - T_C/T_H 이다.', point='열역학 제1·제2법칙과 열효율, 일률을 종합한다.')
+        ask = r.choice(['Pmax', 'Pmax', 'ratio', 'fuel'])
+        Pin = r.choice([10000, 20000, 25000, 40000, 50000, 100000])
+        if ask == 'Pmax':
+            Pm = ec * Pin
+            if not cl(Pm, 1): return None
+            fig = FIG(fig_engine('Q_H = %s' % kw(Pin), 'P_max', 'Q_C', '%d K' % TH, '%d K' % TC), '52%')
+            body = P('그림과 같이 고열원의 온도가 %d K, 저열원의 온도가 %d K인 열기관이 고열원에서 매초 %s의 열을 흡수한다. 이 열기관이 낼 수 있는 이론적인 최대 출력은?' % (TH, TC, kw(Pin))) + fig
+            return mc(body, kw(Pm), [u for u in [kw(Pin * (TC / TH)), kw(Pin), kw(Pin * (1 - ec) * 0.5 + Pm * 0.5), kw(Pin * TH / (TH + TC)), kw(Pm / 2), kw(Pm * 2)] if u != kw(Pm)], r=r, lv='상', fam='d', sort='num',
+                      steps=['최대 효율은 카르노 효율 e max = 1 - T_C/T_H = 1 - %d/%d = %s' % (TC, TH, fs(ec, 3)), '최대 출력 P = e max × Q_H(일률) = %s × %s = %s' % (fs(ec, 3), kw(Pin), kw(Pm)), '(검산) 방출열 Q_C = Q_H·T_C/T_H = %s, Pm = Q_H - Q_C = %s' % (kw(Pin * TC / TH), kw(Pin - Pin * TC / TH))],
+                      core='열기관의 최대 효율은 카르노 효율 1 - T_C/T_H 이다.', point='온도로 최대 효율을 구한 뒤 흡수 일률에 곱한다.')
+        if ask == 'ratio':
+            Pout = e * Pin
+            if not cl(Pout, 1): return None
+            if e >= ec: return None
+            fig = FIG(fig_engine('Q_H = %s' % kw(Pin), '출력 %s' % kw(Pout), 'Q_C', '%d K' % TH, '%d K' % TC), '52%')
+            q_ = F(e).limit_denominator(1000) / F(ec).limit_denominator(1000)
+            body = P('그림과 같이 고열원의 온도가 %d K, 저열원의 온도가 %d K인 열기관이 고열원에서 매초 %s의 열을 흡수하여 %s의 출력을 낸다. 이 열기관의 열효율은 같은 온도 조건의 카르노 기관 열효율의 몇 배인가?' % (TH, TC, kw(Pin), kw(Pout))) + fig
+            qs_ = ('%d/%d배' % (q_.numerator, q_.denominator)) if q_.denominator != 1 else '%d배' % q_.numerator
+            wl = []
+            for c in [1 / q_, q_ * q_, F(e).limit_denominator(100), F(ec).limit_denominator(100), q_ / 2, q_ + F(1, 2), F(1, 2)]:
+                c = F(c)
+                s_ = ('%d/%d배' % (c.numerator, c.denominator)) if c.denominator != 1 else '%d배' % c.numerator
+                if s_ != qs_ and c > 0 and s_ not in wl: wl.append(s_)
+            return mc(body, qs_, wl, r=r, lv='상', fam='d', sort='shuf',
+                      steps=['열효율 e = P/Q_H = %s / %s = %s' % (kw(Pout), kw(Pin), fs(e)), '카르노 효율 e_c = 1 - T_C/T_H = 1 - %d/%d = %s' % (TC, TH, fs(ec, 3)), 'e / e_c = %s / %s = %s' % (fs(e), fs(ec, 3), qs_), '(검산) 이 열기관은 e < e_c 이므로 열역학 제2법칙을 만족한다.'],
+                      core='실제 열기관의 효율은 카르노 효율보다 작다.', point='열효율과 카르노 효율의 비를 계산한다.')
+        # fuel : 카르노 기관이 낼 수 있는 최대 출력일 때 연료
+        q = r.choice([2, 4, 5]) * 1e7
+        t = r.choice([100, 1000, 3600])
+        mfuel = Pin * t / q
+        if not cl(mfuel, 3): return None
+        Pm = ec * Pin
+        if not cl(Pm, 1): return None
+        Wtot = Pm * t
+        fig = FIG(fig_engine('Q_H', '출력', 'Q_C', '%d K' % TH, '%d K' % TC), '52%')
+        body = P('고열원의 온도가 %d K, 저열원의 온도가 %d K인 열기관이 연소열이 %s×10%s J/kg인 연료를 매초 %s kg씩 태워 얻은 열을 모두 고열원에서 공급받는다. 이 열기관이 %d초 동안 할 수 있는 일의 최댓값은?' % (TH, TC, fs(q / 1e7), sup('7'), fs(Pin / q, 6), t)) + fig
+        return mc(body, U(Wtot, 'J'), wr(Wtot, [Pin * t, Pin * t * TC / TH, Wtot / 2, Wtot * 2, Pin * t * (1 - ec) / 2], 'J'), r=r, lv='상', fam='d',
+                  steps=['매초 공급되는 열 = %s kg × %s J/kg = %s J' % (fs(Pin / q, 6), fs(q), fs(Pin)), '%d초 동안 공급된 열 Q_H = %s J' % (t, fs(Pin * t)), 'e max = 1 - %d/%d = %s → W max = %s × %s = %s J' % (TC, TH, fs(ec, 3), fs(ec, 3), fs(Pin * t), fs(Wtot)),
+                         '(검산) 방출열 Q_C = Q_H·T_C/T_H = %s J, W = Q_H - Q_C = %s J' % (fs(Pin * t * TC / TH), fs(Pin * t - Pin * t * TC / TH))],
+                  core='W max = (1 - T_C/T_H) × Q_H 이고 연료의 열이 Q_H 이다.', point='연료 소비를 열량으로 환산하고 카르노 효율을 적용한다.')
+    # two : 두 열기관을 직렬로 연결
+    e1 = r.choice([0.2, 0.25, 0.4, 0.5, 0.6])
+    e2 = r.choice([0.2, 0.25, 0.4, 0.5])
+    QH = r.choice([400, 500, 800, 1000, 2000])
+    W1 = e1 * QH
+    Q1 = QH - W1
+    W2 = e2 * Q1
+    Q2 = Q1 - W2
+    etot = (W1 + W2) / QH
+    assert abs(etot - (1 - (1 - e1) * (1 - e2))) < 1e-9
+    if not (cl(W1, 1) and cl(W2, 1) and cl(etot, 3)): return None
+    ask = r.choice(['etot', 'W2', 'Q2'])
+    fig = FIG(fig_engine2(), '60%')
+    base = '그림은 열기관 1이 고열원에서 한 사이클에 %s J의 열을 흡수하여 일 W₁을 하고, 방출한 열 Q₁을 모두 열기관 2가 흡수하여 일 W₂를 한 뒤 나머지 열 Q₂를 저열원으로 방출하는 것을 나타낸 것이다. 열기관 1과 2의 열효율은 각각 %s, %s이다. ' % (fs(QH), fs(e1), fs(e2))
+    if ask == 'etot':
+        body = P(base + '두 열기관 전체의 열효율은?') + fig
+        return mc(body, fs(etot, 3), wr(etot, [e1 + e2, e1 * e2, (e1 + e2) / 2, 1 - e1 * e2, etot / 2, 1 - e1 - e2], '', 3), r=r, lv='상', fam='e', sort='shuf',
+                  steps=['W₁ = e₁Q_H = %s × %s = %s J, Q₁ = Q_H - W₁ = %s J' % (fs(e1), fs(QH), fs(W1), fs(Q1)), 'W₂ = e₂Q₁ = %s × %s = %s J' % (fs(e2), fs(Q1), fs(W2)), '전체 e = (W₁ + W₂)/Q_H = (%s + %s)/%s = %s' % (fs(W1), fs(W2), fs(QH), fs(etot, 3)),
+                         '(검산) 1 - (1 - e₁)(1 - e₂) = 1 - %s × %s = %s' % (fs(1 - e1), fs(1 - e2), fs(1 - (1 - e1) * (1 - e2), 3))],
+                  core='열기관을 직렬 연결하면 방출열이 다음 기관의 입력이 되며 전체 효율은 1 - (1 - e₁)(1 - e₂) 이다.', point='효율을 단순히 더하거나 곱하지 않는다.')
+    if ask == 'W2':
+        body = P(base + '열기관 2가 한 사이클에 하는 일 W₂는?') + fig
+        return mc(body, U(W2, 'J'), wr(W2, [e2 * QH, W1 * e2, e2 * Q2, Q1, W2 * 2, W2 / 2], 'J'), r=r, lv='중', fam='e',
+                  steps=['W₁ = e₁Q_H = %s J → Q₁ = Q_H - W₁ = %s - %s = %s J' % (fs(W1), fs(QH), fs(W1), fs(Q1)), '열기관 2의 입력은 Q₁ 이므로 W₂ = e₂Q₁ = %s × %s = %s J' % (fs(e2), fs(Q1), fs(W2)), '(검산) Q₂ = Q₁ - W₂ = %s J, Q_H = W₁ + W₂ + Q₂ = %s J' % (fs(Q2), fs(W1 + W2 + Q2))],
+                  core='첫째 기관의 방출열이 둘째 기관의 흡수열이다.', point='각 기관에 열효율을 순서대로 적용한다.')
+    body = P(base + '저열원으로 방출하는 열 Q₂는?') + fig
+    return mc(body, U(Q2, 'J'), wr(Q2, [Q1, QH - W2, QH * (1 - e2), QH - W1 - W2 + W1, Q2 * 2, Q2 / 2], 'J'), r=r, lv='중', fam='e',
+              steps=['W₁ = %s J, Q₁ = %s J' % (fs(W1), fs(Q1)), 'W₂ = e₂Q₁ = %s J, Q₂ = Q₁ - W₂ = %s - %s = %s J' % (fs(W2), fs(Q1), fs(W2), fs(Q2)), '(검산) Q_H - (W₁ + W₂) = %s - %s = %s J' % (fs(QH), fs(W1 + W2), fs(QH - W1 - W2))],
+              core='에너지 보존 : Q_H = W₁ + W₂ + Q₂ 이다.', point='두 단계의 에너지 수지를 계산한다.')

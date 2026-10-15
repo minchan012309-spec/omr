@@ -1226,3 +1226,435 @@ def g118(r, k):
     if not sel: return None
     return bogi(intro + ' 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, pre=fig, ask='', r=r, lv='중' if n == 3 else '상', fam='f',
                 core='절대 온도는 PV 에 비례하고 ΔU ∝ ΔT 이므로, 눈금의 P×V 값으로 온도와 ΔU 를 비교한다. 한 순환에서 ΔU = 0 이다.', point='PV 눈금을 곱해 온도·ΔU 를 비교하고 순환 과정의 성질을 적용한다.')
+
+
+# ============================================================ ph119 열역학 과정 실험과 장치(<보기>)
+def dev_fig(key):
+    f = Fig(300, 140)
+    if key == 'syringe':
+        f.rect(70, 50, 120, 44, '#e8f1fb', INK, 2)
+        for (cx, cy) in ((82, 66), (90, 76), (84, 84), (96, 68)):
+            f.circ(cx, cy, 7, '#f6e7c8', '#b59a62', 1)
+        f.rect(176, 46, 8, 52, '#9aa7b8', INK, 1.4)
+        f.line(184, 72, 250, 72, INK, 3)
+        f.line(250, 58, 250, 86, INK, 4)
+        f.arrow(232, 34, 196, 34, RD, 2.6)
+        f.text(214, 24, '빠르게 누름', 12, 'middle', True, RD)
+        f.text(130, 118, '솜', 12, 'middle', True, GR)
+        f.text(150, 118, '', 12)
+    elif key == 'cooker':
+        f.poly([(90, 50), (210, 50), (200, 110), (100, 110)], '#e8f1fb', INK, 2.2)
+        f.rect(84, 42, 132, 8, '#9aa7b8', INK, 1.6)
+        f.rect(140, 32, 20, 10, '#586476', INK, 1.4)
+        f.text(150, 24, '추', 12, 'middle', True, GR)
+        for dx in (-30, 0, 30):
+            f.path('M %d 128 Q %d 116 %d 124 Q %d 114 %d 122' % (150 + dx - 8, 150 + dx, 150 + dx + 2, 150 + dx + 4, 150 + dx + 10), 'none', RD, 2.2)
+        f.text(150, 84, '밀폐된 기체', 12, 'middle', True, BL)
+    elif key == 'bottle':
+        for (x, deform) in ((80, 0), (210, 1)):
+            w = 36 - 8 * deform
+            f.rect(x - 5, 28, 10, 12, '#9aa7b8', INK, 1.4)
+            f.path('M %d 40 Q %d 48 %d 60 L %d 110 Q %d 120 %d 120 Q %d 120 %d 110 L %d 60 Q %d 48 %d 40 Z' % (x - 5, x - 18, x - w // 2, x - w // 2, x - w // 2, x, x + w // 2, x + w // 2, x + w // 2, x + 18, x + 5), '#e8f1fb' if not deform else '#dde7f4', INK, 2)
+            if deform:
+                f.path('M %d 70 Q %d 78 %d 86' % (x - 14, x - 8, x - 14), 'none', INK, 1.4)
+                f.path('M %d 88 Q %d 96 %d 104' % (x + 14, x + 8, x + 14), 'none', INK, 1.4)
+        f.arrow(112, 78, 176, 78, INK, 2.6)
+        f.text(80, 136, '뜨거운 곳(뚜껑 닫음)', 11.5, 'middle', True, RD)
+        f.text(210, 136, '찬 곳', 11.5, 'middle', True, BL)
+    return f.svg()
+
+
+# 현상 은행: key, 이름, 서술(과정을 직접 말하지 않음), 과정 종류, 장치 그림, 문장들(문장, 참거짓, 풀이문)
+PH119 = [
+    dict(key='syringe', name='솜이 든 주사기', fig='syringe', kind='단열 압축',
+         desc='솜을 넣은 주사기 모양 실린더의 피스톤을 빠르게 눌렀더니 솜이 타올랐다.',
+         intro='그림과 같이 솜 조각을 넣은 투명한 실린더의 피스톤을 빠르게 눌렀더니 솜이 타올랐다.',
+         st=[('실린더 속 공기가 압축되는 동안 외부와 주고받는 열은 거의 없다.', True, '빠르게 누르면 열이 이동할 시간이 없어 Q ≈ 0 인 단열 압축 과정이다.'),
+             ('실린더 속 공기의 내부 에너지는 증가한다.', True, 'Q = 0 이고 외부가 기체에 일을 하므로 ΔU = -W > 0 이다.'),
+             ('실린더 속 공기의 온도가 높아져 솜이 탄다.', True, '내부 에너지가 증가하여 온도가 높아진다.'),
+             ('실린더 속 공기가 외부에 일을 한다.', False, '부피가 감소하므로 외부가 기체에 일을 한다(기체가 한 일은 음).'),
+             ('이 과정은 온도가 일정한 등온 과정이다.', False, '온도가 높아져 솜이 타므로 등온이 아니라 단열 압축이다.'),
+             ('공기가 열을 방출하기 때문에 솜이 탄다.', False, '단열 과정이므로 열 출입이 없다. 솜이 타는 것은 압축으로 온도가 올랐기 때문이다.'),
+             ('공기의 압력은 처음보다 증가한다.', True, '부피가 줄고 온도가 높아지므로 압력은 증가한다.')]),
+    dict(key='bottle', name='찌그러진 병', fig='bottle', kind='등압 압축',
+         desc='뜨거운 곳에서 뚜껑을 닫은 빈 페트병을 찬 곳으로 옮기자 병이 찌그러졌다.',
+         intro='그림과 같이 뜨거운 곳에서 뚜껑을 닫은 빈 페트병을 찬 곳으로 옮겼더니 병이 찌그러졌다. (단, 병 속 공기의 압력은 외부 대기압과 거의 같다고 본다.)',
+         st=[('병 속 공기는 열을 방출한다.', True, '온도가 낮아지므로 ΔU < 0 이고, 부피가 줄어 W < 0 이므로 Q = ΔU + W < 0 이다.'),
+             ('병 속 공기의 내부 에너지는 감소한다.', True, '온도가 낮아졌으므로 내부 에너지가 감소한다.'),
+             ('병 속 공기의 부피는 증가한다.', False, '병이 찌그러졌으므로 부피가 감소한다.'),
+             ('병 속 공기는 외부로부터 일을 받는다.', True, '부피가 감소하므로 외부(대기)가 기체에 일을 한다.'),
+             ('병 속 공기가 외부에 일을 한다.', False, '부피가 줄어드는 과정이므로 외부가 기체에 일을 한다.'),
+             ('이 과정은 근사적으로 압력이 일정한 과정이다.', True, '병이 쉽게 찌그러지므로 병 속 압력이 대기압과 거의 같게 유지된다.'),
+             ('병 속 공기의 온도가 높아져 병이 찌그러진다.', False, '온도가 낮아져 부피가 줄어든 것이다.')]),
+    dict(key='pump', name='자전거 펌프', fig=None, kind='단열 압축',
+         desc='자전거 펌프의 출구를 막고 손잡이를 빠르게 눌렀더니 펌프 아랫부분이 뜨거워졌다.',
+         intro='자전거 펌프의 출구를 막고 손잡이를 빠르게 눌렀더니 펌프 아랫부분이 뜨거워졌다.',
+         st=[('펌프 속 공기는 단열 압축된다.', True, '빠르게 누르므로 열 출입이 거의 없는 단열 압축이다.'),
+             ('외부가 공기에 한 일은 공기의 내부 에너지 증가로 나타난다.', True, 'Q = 0 이므로 외부가 한 일이 모두 내부 에너지 증가로 쓰인다.'),
+             ('공기의 부피가 늘어나므로 온도가 높아진다.', False, '공기는 압축되어 부피가 줄어든다.'),
+             ('펌프 속 공기의 압력은 감소한다.', False, '부피가 줄고 온도가 높아지므로 압력은 증가한다.'),
+             ('손잡이를 아주 천천히 누르면 온도 상승이 더 작다.', True, '천천히 누르면 열이 바깥으로 빠져나가 등온에 가까워지므로 온도 상승이 작다.'),
+             ('펌프 속 공기의 온도는 높아진다.', True, '내부 에너지가 증가하므로 온도가 높아진다.')]),
+    dict(key='cooker', name='압력밥솥', fig='cooker', kind='등적 가열',
+         desc='뚜껑을 꼭 닫은 압력밥솥 속의 기체를 가열하였다.',
+         intro='그림과 같이 뚜껑을 꼭 닫아 밀폐한 압력밥솥을 가열하였다. 솥 속 기체의 부피는 변하지 않는다고 본다.',
+         st=[('솥 속 기체는 외부에 일을 하지 않는다.', True, '부피 변화가 없으므로 W = 0 이다.'),
+             ('기체가 흡수한 열은 모두 내부 에너지 증가에 쓰인다.', True, 'W = 0 이므로 Q = ΔU 이다.'),
+             ('솥 속 기체의 압력은 증가한다.', True, '부피가 일정할 때 온도가 오르면 압력이 증가한다(P ∝ T).'),
+             ('솥 속 기체의 부피는 증가한다.', False, '밀폐되어 있으므로 부피는 일정하다.'),
+             ('이 과정은 열의 출입이 없는 단열 과정이다.', False, '가열하므로 열을 흡수한다. 부피가 일정한 등적 과정이다.'),
+             ('이 과정을 P-V 그래프로 나타내면 P 축에 나란한 직선이다.', True, '부피가 일정하므로 V 가 일정한 수직선이다.'),
+             ('기체의 온도는 일정하게 유지된다.', False, '열을 흡수하여 온도가 높아진다.')]),
+    dict(key='spray', name='스프레이 통', fig=None, kind='단열 팽창',
+         desc='스프레이 통의 노즐을 눌러 내용물을 분사하자 통이 차가워졌다.',
+         intro='스프레이 통의 노즐을 눌러 기체와 함께 내용물을 빠르게 분사하였더니 통이 차가워졌다.',
+         st=[('분사되는 기체는 급격히 팽창하며 외부에 일을 한다.', True, '압력이 높은 기체가 대기 중으로 팽창하므로 외부에 일을 한다.'),
+             ('분사되는 동안 기체의 내부 에너지는 감소한다.', True, '열 출입이 거의 없이(Q ≈ 0) 일을 하므로 ΔU = -W < 0 이다.'),
+             ('기체가 열을 방출하여 통이 차가워진다.', False, '열 출입이 거의 없는 단열 팽창으로 온도가 내려간 것이다.'),
+             ('분사되는 동안 기체가 외부로부터 일을 받는다.', False, '기체가 팽창하므로 외부에 일을 한다.'),
+             ('이 과정은 단열 팽창 과정으로 볼 수 있다.', True, '빠르게 일어나므로 열 출입이 거의 없다.'),
+             ('분사 후 통 속 기체의 온도는 높아진다.', False, '단열 팽창에서는 온도가 낮아진다.')]),
+    dict(key='cloud', name='구름의 생성', fig=None, kind='단열 팽창',
+         desc='공기 덩어리가 상승하면서 팽창하여 온도가 내려가 구름이 생겼다.',
+         intro='수증기를 포함한 공기 덩어리가 상승하면서 구름이 만들어진다. 상승하는 공기 덩어리는 주위와 열을 거의 주고받지 않는다.',
+         st=[('상승하는 공기 덩어리는 주위 압력이 낮아져 팽창한다.', True, '높이 올라갈수록 대기압이 낮아져 공기 덩어리의 부피가 커진다.'),
+             ('공기 덩어리의 팽창은 단열 팽창이다.', True, '주위와 열을 거의 주고받지 않으므로 Q ≈ 0 이다.'),
+             ('팽창하면서 공기 덩어리의 온도가 낮아져 수증기가 응결한다.', True, 'ΔU = -W < 0 이므로 온도가 내려가고 수증기가 응결하여 구름이 된다.'),
+             ('공기 덩어리는 팽창하면서 외부로부터 일을 받는다.', False, '팽창하므로 공기 덩어리가 주위에 일을 한다.'),
+             ('공기 덩어리의 내부 에너지는 증가한다.', False, '단열 팽창에서는 내부 에너지가 감소한다.'),
+             ('공기 덩어리의 온도가 높아져 구름이 생긴다.', False, '온도가 낮아져 수증기가 응결하는 것이다.')]),
+    dict(key='puff', name='뻥튀기', fig=None, kind='등적 가열',
+         desc='밀폐된 뻥튀기 통을 가열하여 통 속 기체의 압력을 높였다.',
+         intro='뻥튀기 기계는 곡물이 든 통을 밀폐한 채 가열하여 압력을 높인 뒤, 뚜껑을 갑자기 열어 곡물을 부풀린다.',
+         st=[('밀폐하고 가열하는 동안 통 속 기체의 압력은 증가한다.', True, '부피가 일정할 때 온도가 올라가므로 압력이 증가한다(등적 가열).'),
+             ('뚜껑을 여는 순간 통 속 기체는 급격히 팽창하며 외부에 일을 한다.', True, '고압의 기체가 대기압으로 팽창하므로 기체가 일을 한다.'),
+             ('뚜껑을 여는 순간의 급팽창은 근사적으로 단열 과정이다.', True, '짧은 시간에 일어나므로 열 출입이 거의 없다.'),
+             ('급팽창하는 동안 기체의 온도는 높아진다.', False, '단열 팽창은 ΔU = -W < 0 이므로 온도가 낮아진다.'),
+             ('가열하는 동안 통 속 기체가 외부에 일을 한다.', False, '밀폐되어 부피가 일정하므로 일을 하지 않는다.'),
+             ('가열하는 동안 기체가 흡수한 열은 모두 내부 에너지 증가에 쓰인다.', True, 'W = 0 이므로 Q = ΔU 이다.')]),
+    dict(key='diesel', name='디젤 엔진', fig=None, kind='단열 압축',
+         desc='디젤 엔진은 압축 행정에서 공기를 빠르게 압축하여 온도를 높여 연료를 점화한다.',
+         intro='디젤 엔진은 실린더 안의 공기를 피스톤으로 빠르게 압축하여 온도를 높인 뒤 연료를 분사하여 점화한다.',
+         st=[('압축 행정에서 공기는 단열 압축된다.', True, '빠르게 압축하여 열 출입이 거의 없다.'),
+             ('압축 행정에서 공기가 외부에 일을 한다.', False, '부피가 줄어들므로 피스톤이 공기에 일을 한다.'),
+             ('압축된 공기의 온도가 높아져 점화 장치 없이도 연료가 탈 수 있다.', True, '단열 압축으로 온도가 연료의 발화점 이상으로 오른다.'),
+             ('연소 후 고온·고압의 기체가 단열 팽창하면서 피스톤에 일을 한다.', True, '기체가 팽창하며 외부에 일을 한다.'),
+             ('단열 팽창하는 동안 기체의 내부 에너지는 증가한다.', False, 'Q = 0 이고 W > 0 이므로 ΔU = -W < 0 이다.'),
+             ('단열 팽창하는 동안 기체의 온도는 낮아진다.', True, '내부 에너지가 감소하므로 온도가 낮아진다.')]),
+    dict(key='slow', name='열전도가 좋은 실린더', fig=None, kind='등온 압축',
+         desc='열이 잘 전달되는 실린더 속 기체를 피스톤으로 아주 천천히 압축하였다.',
+         intro='열이 잘 전달되는 실린더 속의 일정량의 이상 기체를 피스톤으로 아주 천천히 압축하였다. 실린더 바깥의 온도는 일정하다.',
+         st=[('기체의 온도는 일정하게 유지된다.', True, '천천히 압축하면 열평형이 유지되어 등온 과정이다.'),
+             ('기체의 내부 에너지 변화량은 0이다.', True, '온도가 일정하므로 ΔU = 0 이다.'),
+             ('기체는 외부로부터 받은 일만큼 열을 방출한다.', True, 'ΔU = 0 이므로 Q = W 이다. W < 0 이므로 Q < 0 (방출)이다.'),
+             ('기체의 압력은 일정하게 유지된다.', False, '등온 압축에서는 PV 가 일정하므로 부피가 줄면 압력이 증가한다.'),
+             ('기체는 열을 흡수한다.', False, '압축될 때 W < 0 이고 ΔU = 0 이므로 Q < 0 이다. 열을 방출한다.'),
+             ('기체의 압력과 부피의 곱은 일정하다.', True, '등온 과정에서 PV = nRT 로 일정하다(보일 법칙).')]),
+    dict(key='balloon', name='열기구', fig=None, kind='등압 가열',
+         desc='열기구 풍선 속 공기를 버너로 가열하자 공기가 팽창하여 풍선이 부풀었다(풍선 입구는 열려 있어 압력은 대기압과 같다).',
+         intro='열기구 풍선 속 공기를 버너로 가열하면 공기가 팽창한다. 풍선 입구가 열려 있어 풍선 속 압력은 대기압과 같다고 본다.',
+         st=[('풍선 속 공기는 압력이 일정한 상태에서 팽창한다.', True, '대기압과 같은 압력을 유지하므로 등압 팽창이다.'),
+             ('공기가 흡수한 열은 모두 내부 에너지 증가에 쓰인다.', False, '팽창하며 외부에 일을 하므로 Q = ΔU + W 에서 열의 일부는 일로 쓰인다.'),
+             ('공기의 온도는 높아진다.', True, '열을 흡수하여 온도가 높아진다.'),
+             ('공기가 외부에 일을 한다.', True, '부피가 증가하므로 외부에 일을 한다.'),
+             ('공기의 내부 에너지는 감소한다.', False, '온도가 높아지므로 내부 에너지는 증가한다.')]),
+]
+KIND_SIGN = {'단열 압축': '', '단열 팽창': '', '등적 가열': '', '등압 압축': '', '등압 가열': '', '등온 압축': ''}
+
+
+@T('ph119')
+def g119(r, k):
+    form = r.choice(['one', 'one', 'one', 'mix', 'mix', 'which', 'pair'])
+    if form == 'one':
+        th = r.choice(PH119)
+        bank = [(s[0], s[1], s[2], i) for i, s in enumerate(th['st'])]
+        sel = pick_stmts(r, bank)
+        if not sel: return None
+        pre = FIG(dev_fig(th['fig']), '62%') if th['fig'] else ''
+        return bogi(th['intro'] + ' 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, pre=pre, ask='', r=r, lv=r.choice(['하', '하', '중']), fam='a',
+                    core='빠른 압축·팽창은 단열(Q=0), 밀폐 가열은 등적(W=0), 느린 변화는 등온(ΔU=0)으로 근사하고 Q = ΔU + W 로 판단한다.', point='현상을 열역학 과정으로 해석한다.')
+    if form == 'mix':
+        ths = r.sample(PH119, 3)
+        sel = []
+        for th in ths:
+            s = r.choice(th['st'])
+            sel.append(('[%s] %s' % (th['name'], s[0]), s[1], s[2]))
+        if not any(s[1] for s in sel): return None
+        return bogi('다음은 일상 속에서 볼 수 있는 열역학 과정과 관련된 현상이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, ask='', r=r, lv='중', fam='b',
+                    core='단열 압축은 온도 상승, 단열 팽창은 온도 하강, 등적 가열은 W=0, 등온은 ΔU=0 이다.', point='여러 현상에서 열역학 과정의 종류와 부호를 판단한다.')
+    if form == 'which':
+        kinds = sorted({t['kind'] for t in PH119})
+        kd = r.choice(kinds)
+        goods = [t for t in PH119 if t['kind'] == kd]
+        bads = [t for t in PH119 if t['kind'] != kd]
+        g = r.choice(goods)
+        ws = r.sample(bads, 4)
+        # 같은 이름이 겹치지 않도록
+        body = P('다음 중 기체의 상태 변화가 %s 과정에 가장 가까운 현상은?' % kd)
+        steps = ['%s : %s → %s 과정' % (g['name'], g['desc'], g['kind'])] + ['%s : %s 과정' % (w['name'], w['kind']) for w in ws]
+        return mco(body, g['desc'], [w['desc'] for w in ws], steps=steps, lv='중', fam='c', r=r,
+                   core='급격한 압축·팽창은 단열, 밀폐 용기의 가열은 등적, 대기압 아래의 가열·냉각은 등압, 느린 변화는 등온 과정이다.', point='현상에서 열 출입·부피 변화 조건을 읽어 과정을 판별한다.')
+    ths = r.sample(PH119, 3)
+    if len({t['kind'] for t in ths}) < 3: return None
+    right = ', '.join(t['kind'] for t in ths)
+    allk = ['단열 압축', '단열 팽창', '등적 가열', '등압 압축', '등압 가열', '등온 압축']
+    wr = []
+    for _ in range(40):
+        c = [t['kind'] for t in ths]
+        j = r.randrange(3)
+        c[j] = r.choice([x for x in allk if x != c[j]])
+        if r.random() < 0.5:
+            j2 = r.randrange(3)
+            c[j2] = r.choice([x for x in allk if x != c[j2]])
+        wr.append(', '.join(c))
+    body = P('(가) %s, (나) %s, (다) %s 에서 기체가 겪는 과정을 순서대로 옳게 짝지은 것은?' % (ths[0]['desc'].rstrip('.'), ths[1]['desc'].rstrip('.'), ths[2]['desc'].rstrip('.')))
+    steps = ['(가) %s : %s' % (ths[0]['name'], ths[0]['kind']), '(나) %s : %s' % (ths[1]['name'], ths[1]['kind']), '(다) %s : %s' % (ths[2]['name'], ths[2]['kind']), '따라서 %s' % right]
+    return mco(body, right, wr, steps=steps, lv='상', fam='d', r=r, core='현상의 조건(밀폐·급격·느림·대기압)으로 과정의 종류를 판단한다.', point='일상 현상과 열역학 과정을 짝짓는다.')
+
+
+# ============================================================ ph120 카르노 기관과 최대 열효율
+def carnot_cycle_pts(l1, l2, stirling=False):
+    """(ln V, ln P) 좌표에서 정해 (P,V) 상태 4개. A→B 등온 팽창이 위쪽."""
+    if stirling:
+        pts = [(0, 0), (l1, -l1), (l1, -l1 - l2), (0, -l2)]
+    else:
+        pts = [(0, 0), (l1, -l1), (l1 + l2, -l1 - GAM * l2), (l2, -GAM * l2)]
+    ly = min(y for _, y in pts)
+    return [(1.6 * math.exp(y - ly) , 1.1 * math.exp(x)) for (x, y) in pts]
+
+
+def carnot_fig(sts, stirling=False, th='T_H', tl='T_L', w=300, h=230, marks=True):
+    kinds = ['T', 'V', 'T', 'V'] if stirling else ['T', 'A', 'T', 'A']
+    pts = []
+    for i in range(4):
+        pts += curve_xy('PV', sts[i], sts[(i + 1) % 4], kinds[i])
+    xm = max(x for x, _ in pts) * 1.2
+    ym = max(y for _, y in pts) * 1.2
+    p = Plot(w, h, xm, ym, ml=30, mr=16, mt=26, mb=36)
+    p.axes('', '', xticks=(), yticks=(), grid=False)
+    p.text(w - 14, h - 16, 'V', 14, 'end', True, GR, True)
+    p.text(p.ml + 8, 16, 'P', 14, 'start', True, GR, True)
+    p.text(p.ml - 8, h - 23, 'O', 12, 'end', False, GR)
+    cols = [RD, GR, BL, GR]
+    for i in range(4):
+        poly = curve_xy('PV', sts[i], sts[(i + 1) % 4], kinds[i])
+        p.pl(poly, cols[i], 2.8)
+        m1, m2 = _along(poly, 0.46), _along(poly, 0.56)
+        p._head(p.px(m1[0]), p.py(m1[1]), p.px(m2[0]), p.py(m2[1]), cols[i], 2.4, 10)
+    cx = sum(s[1] for s in sts) / 4; cy = sum(s[0] for s in sts) / 4
+    for i, s in enumerate(sts):
+        x, y = s[1], s[0]
+        p.circ(p.px(x), p.py(y), 3.6, INK, INK, 1)
+        ox, oy = p.px(x) - p.px(cx), p.py(y) - p.py(cy)
+        ln = math.hypot(ox, oy) or 1
+        p.text(p.px(x) + 13 * ox / ln, p.py(y) + 13 * oy / ln + 5, NMS[i], 14.5, 'middle', True, INK, True)
+    if marks:
+        def onc(sa, sb, f):
+            v = sa[1] + (sb[1] - sa[1]) * f
+            return (v, sa[0] * sa[1] / v)
+        a1 = onc(sts[0], sts[1], 0.3); c1 = onc(sts[2], sts[3], 0.28)
+        p.text(p.px(a1[0]) + 20, p.py(a1[1]) - 8, th, 13, 'middle', True, RD, True)
+        p.text(p.px(c1[0]) - 14, p.py(c1[1]) + 22, tl, 13, 'middle', True, BL, True)
+        a2 = onc(sts[0], sts[1], 0.72); c2 = onc(sts[2], sts[3], 0.6)
+        p.arrow(p.px(a2[0]), p.py(a2[1]) - 30, p.px(a2[0]), p.py(a2[1]) - 4, RD, 2.4)
+        p.text(p.px(a2[0]) - 6, p.py(a2[1]) - 36, 'Q_H', 12.5, 'middle', True, RD, True)
+        p.arrow(p.px(c2[0]), p.py(c2[1]) + 4, p.px(c2[0]), p.py(c2[1]) + 30, BL, 2.4)
+        p.text(p.px(c2[0]) + 4, p.py(c2[1]) + 44, 'Q_L', 12.5, 'middle', True, BL, True)
+    return p.svg()
+
+
+def new_carnot(r, stirling=False):
+    l1 = r.choice([0.6, 0.8, 1.0]); l2 = r.choice([1.2, 1.4, 1.6]) if not stirling else r.choice([0.8, 1.0, 1.2])
+    sts = carnot_cycle_pts(l1, l2, stirling)
+    kinds = ['T', 'V', 'T', 'V'] if stirling else ['T', 'A', 'T', 'A']
+    for i in range(4):
+        a_, b_ = sts[i], sts[(i + 1) % 4]
+        k_ = kinds[i]
+        if k_ == 'T': assert abs(a_[0] * a_[1] - b_[0] * b_[1]) < 1e-9
+        elif k_ == 'V': assert abs(a_[1] - b_[1]) < 1e-9
+        else: assert abs(a_[0] * a_[1] ** GAM - b_[0] * b_[1] ** GAM) < 1e-7
+    assert loop_simple(sts)
+    # 위쪽 등온(AB)이 고온: PV 값 비교
+    assert sts[0][0] * sts[0][1] > sts[2][0] * sts[2][1]
+    assert net_work(sts, kinds) > 0
+    return sts, kinds
+
+
+TPAIRS = [(400, 200), (400, 300), (500, 250), (500, 300), (600, 300), (600, 400), (600, 450), (800, 400), (800, 600), (900, 300), (1000, 500), (1000, 600), (1200, 300), (1200, 600), (1200, 900), (800, 200), (500, 400), (600, 200), (900, 450), (1000, 750)]
+
+
+def REF(ref):
+    def deco(f):
+        def g(r, k):
+            it = f(r, k)
+            if it is not None: it.ref = list(ref)
+            return it
+        g.__name__ = f.__name__
+        g.__doc__ = f.__doc__
+        return g
+    return deco
+
+
+def pct(x):
+    return num(x * 100) + ' %'
+
+
+@T('ph120')
+@REF([1])
+def g120(r, k):
+    form = r.choice(['calc', 'calc', 'celsius', 'findT', 'findT', 'Q', 'Q', 'change', 'seg', 'bogi', 'bogi', 'possible'])
+    TH, TL = r.choice(TPAIRS)
+    e = Fraction(TH - TL, TH)
+    if form == 'calc':
+        body = P('고열원의 온도가 %d K, 저열원의 온도가 %d K 인 카르노 기관의 열효율은?' % (TH, TL))
+        right = pct(float(e))
+        wr = [pct(TL / TH), pct(1 - TH / TL if False else (TH - TL) / TL if (TH - TL) / TL < 1 else TL / (TH + TL)), pct(TL / (TH + TL)), pct((TH - TL) / (TH + TL)), pct(float(e) / 2), pct(min(0.99, float(e) + 0.1))]
+        steps = ['카르노 기관의 열효율 e = 1 - T<sub>L</sub>/T<sub>H</sub>', 'e = 1 - %d/%d = %s' % (TL, TH, num(float(e), 3)), '열효율은 %s 이다.' % pct(float(e))]
+        return mco(body, right, wr, steps=steps, lv='하', fam='a', r=r, core='카르노 기관의 열효율은 e = 1 - T_L/T_H (온도는 절대 온도)이다.', point='절대 온도를 대입하여 열효율을 구한다.')
+    if form == 'celsius':
+        h, l = TH - 273, TL - 273
+        if l <= 0: return None
+        body = P('고열원의 온도가 %d °C, 저열원의 온도가 %d °C 인 카르노 기관의 열효율은? (단, 0 °C = 273 K 이다.)' % (h, l))
+        right = pct(float(e))
+        wr = [pct(1 - l / h), pct(l / h), pct(l / TH), pct(float(e) / 2), pct(1 - TL / (h + l))]
+        steps = ['절대 온도로 바꾼다 : T<sub>H</sub> = %d + 273 = %d K, T<sub>L</sub> = %d + 273 = %d K' % (h, TH, l, TL), 'e = 1 - %d/%d = %s = %s' % (TL, TH, num(float(e), 3), pct(float(e)))]
+        return mco(body, right, wr, steps=steps, lv='중', fam='a', r=r, core='열효율 계산에는 절대 온도(K)를 써야 한다. T(K) = t(°C) + 273.', point='섭씨온도를 절대 온도로 바꾸어 대입한다.')
+    if form == 'findT':
+        ee = r.choice([Fraction(1, 5), Fraction(1, 4), Fraction(1, 3), Fraction(2, 5), Fraction(1, 2), Fraction(3, 5), Fraction(3, 4)])
+        if r.random() < 0.5:
+            TLv = r.choice([200, 240, 300, 360, 400, 450])
+            THv = Fraction(TLv) / (1 - ee)
+            if THv.denominator != 1: return None
+            THv = int(THv)
+            body = P('저열원의 온도가 %d K 인 카르노 기관의 열효율이 %s 이다. 고열원의 온도는?' % (TLv, pct(float(ee))))
+            right = '%d K' % THv
+            wr = ['%d K' % round(TLv * (1 + float(ee))), '%d K' % round(TLv / float(ee)), '%d K' % round(TLv * (1 - float(ee))), '%d K' % round(TLv * float(ee)), '%d K' % (THv + 100)]
+            steps = ['e = 1 - T<sub>L</sub>/T<sub>H</sub> 에서 T<sub>L</sub>/T<sub>H</sub> = 1 - %s = %s' % (num(float(ee), 3), fr_str(1 - ee)), 'T<sub>H</sub> = %d ÷ %s = %d K' % (TLv, fr_str(1 - ee), THv)]
+            assert abs(1 - TLv / THv - float(ee)) < 1e-9
+            return mco(body, right, wr, steps=steps, lv='중', fam='b', r=r, sort='num', core='e = 1 - T_L/T_H 를 T_H 에 대해 정리한다.', point='열효율에서 온도 비 T_L/T_H = 1 - e 를 구한다.')
+        THv = r.choice([300, 400, 500, 600, 800, 1000, 1200])
+        TLv = THv * (1 - ee)
+        if TLv.denominator != 1: return None
+        TLv = int(TLv)
+        body = P('고열원의 온도가 %d K 인 카르노 기관의 열효율이 %s 이다. 저열원의 온도는?' % (THv, pct(float(ee))))
+        right = '%d K' % TLv
+        wr = ['%d K' % round(THv * float(ee)), '%d K' % round(THv * (1 + float(ee))), '%d K' % round(THv / (1 - float(ee))), '%d K' % (THv - TLv), '%d K' % (TLv + 100)]
+        steps = ['e = 1 - T<sub>L</sub>/T<sub>H</sub> 에서 T<sub>L</sub> = T<sub>H</sub>(1 - e)', 'T<sub>L</sub> = %d × %s = %d K' % (THv, fr_str(1 - ee), TLv)]
+        return mco(body, right, wr, steps=steps, lv='중', fam='b', r=r, sort='num', core='e = 1 - T_L/T_H 에서 T_L = T_H(1 - e).', point='열효율 식을 T_L 에 대해 정리한다.')
+    if form == 'Q':
+        QH = r.choice([400, 600, 800, 1000, 1200, 1600, 2000, 2400])
+        QL = Fraction(QH) * TL / TH
+        W = QH - QL
+        if QL.denominator != 1 or QL % 10: return None
+        QL = int(QL); W = int(W)
+        which = r.choice(['W', 'QL'])
+        body = P('고열원 %d K 와 저열원 %d K 사이에서 작동하는 카르노 기관이 한 번 순환하는 동안 고열원에서 %d J 의 열을 흡수한다. %s?' % (TH, TL, QH, '이 기관이 한 번 순환하는 동안 한 일은' if which == 'W' else '이 기관이 저열원으로 방출하는 열은'))
+        if which == 'W':
+            right = '%d J' % W
+            wr = ['%d J' % QL, '%d J' % QH, '%d J' % (QH * TL // TH if False else round(QH * TL / TH * 0.5)), '%d J' % (W + 100), '%d J' % round(QH * (TH - TL) / TL)]
+        else:
+            right = '%d J' % QL
+            wr = ['%d J' % W, '%d J' % QH, '%d J' % (QL + 100), '%d J' % round(QH * TH / TL), '%d J' % round(QH * (TH - TL) / TL)]
+        steps = ['카르노 기관에서 Q<sub>L</sub>/Q<sub>H</sub> = T<sub>L</sub>/T<sub>H</sub> = %d/%d', 'Q<sub>L</sub> = %d × %d/%d = %d J' % (QH, TL, TH, QL), 'W = Q<sub>H</sub> - Q<sub>L</sub> = %d - %d = %d J (열효율 e = %s)' % (QH, QL, W, pct(float(e)))]
+        steps[0] = steps[0] % (TL, TH)
+        assert abs(W - float(e) * QH) < 1e-6
+        return mco(body, right, wr, steps=steps, lv='중', fam='c', r=r, sort='num', core='카르노 기관에서 Q_L/Q_H = T_L/T_H 이고 W = Q_H - Q_L = eQ_H 이다.', point='열효율로 일과 방출 열을 구한다.')
+    if form == 'change':
+        d = r.choice([100, 200, 50, 150])
+        mode = r.choice(['H', 'L'])
+        if mode == 'H': e2 = Fraction(TH + d - TL, TH + d)
+        else:
+            if TL - d <= 0: return None
+            e2 = Fraction(TH - (TL - d), TH)
+        if (e2 * 1000).denominator != 1: return None
+        body = P('고열원의 온도가 %d K, 저열원의 온도가 %d K 인 카르노 기관이 있다. %s 열효율은?' % (TH, TL, ('고열원의 온도만 %d K 높이면' % d) if mode == 'H' else ('저열원의 온도만 %d K 낮추면' % d)))
+        right = pct(float(e2))
+        other = Fraction(TH + d - TL, TH + d) if mode == 'L' else Fraction(TH - (TL - d), TH)
+        wr = [pct(float(e)), pct(float(other)), pct(float(e) + d / 1000), pct(float(e2) / 2), pct(1 - (TL + d) / TH) if TL + d < TH else pct(0.1), pct(1 - TL / (TH - d)) if TH - d > TL else pct(0.05)]
+        T2 = (TH + d, TL) if mode == 'H' else (TH, TL - d)
+        steps = ['나중 온도 : T<sub>H</sub> = %d K, T<sub>L</sub> = %d K' % T2, 'e = 1 - %d/%d = %s' % (T2[1], T2[0], pct(float(e2)))]
+        return mco(body, right, wr, steps=steps, lv='상', fam='d', r=r, core='열효율은 고열원 온도가 높을수록, 저열원 온도가 낮을수록 커진다.', point='변화된 온도를 e = 1 - T_L/T_H 에 대입한다.')
+    sts, kinds = new_carnot(r)
+    fig = FIG(carnot_fig(sts), '80%')
+    intro = '그림은 일정량의 이상 기체를 작업 물질로 하는 카르노 기관의 순환 과정 A→B→C→D→A 를 P-V 그래프로 나타낸 것이다. A→B 와 C→D 는 등온 과정이고 B→C, D→A 는 단열 과정이며, 고열원과 저열원의 온도는 각각 T<sub>H</sub>, T<sub>L</sub> 이다.'
+    if form == 'seg':
+        right = 'A→B : 등온 팽창, B→C : 단열 팽창, C→D : 등온 압축, D→A : 단열 압축'
+        full = ['등온 팽창', '단열 팽창', '등온 압축', '단열 압축']
+        allk = ['등온 팽창', '단열 팽창', '등온 압축', '단열 압축', '등적 가열', '등압 팽창']
+        wr = []
+        for _ in range(30):
+            c = list(full)
+            for j in r.sample(range(4), r.choice([1, 2])):
+                c[j] = r.choice([x for x in allk if x != c[j]])
+            if c != full and len(set(c)) >= 3: wr.append('A→B : %s, B→C : %s, C→D : %s, D→A : %s' % tuple(c))
+        body = P(intro + ' 각 과정을 옳게 나타낸 것은?') + fig
+        steps = ['A→B : 곡선이 완만(등온)하고 부피 증가 → 등온 팽창 (고열원에서 Q<sub>H</sub> 흡수)', 'B→C : 곡선이 더 가파름(단열)하고 부피 증가 → 단열 팽창', 'C→D : 등온이고 부피 감소 → 등온 압축 (저열원으로 Q<sub>L</sub> 방출)', 'D→A : 단열이고 부피 감소 → 단열 압축']
+        return mco(body, right, wr, steps=steps, lv='중', fam='e', r=r, core='카르노 순환은 등온 팽창 → 단열 팽창 → 등온 압축 → 단열 압축의 네 과정으로 이루어진다.', point='그래프에서 등온·단열 곡선과 부피 변화를 읽는다.')
+    if form == 'possible':
+        QH = r.choice([400, 500, 600, 800, 1000, 1200])
+        W = r.choice([w for w in range(50, QH, 50)])
+        ea = Fraction(W, QH)
+        rel = '작' if ea < e else ('같' if ea == e else '크')
+        if rel == '같' and r.random() < 0.7: return None
+        ok = ea <= e
+        body = P('한 열기관이 %d K 의 고열원에서 한 번 순환하는 동안 %d J 의 열을 흡수하여 %d J 의 일을 하고, 나머지 열을 %d K 의 저열원으로 방출한다고 한다. 이 열기관이 가능한지에 대한 설명으로 옳은 것은?' % (TH, QH, W, TL))
+        def opt(v, rl):
+            return '%s하다. 열효율 %s 가 최대 열효율 %s 보다 %s기 때문이다.' % ('가능' if v else '불가능', pct(float(ea)), pct(float(e)), {'작': '작', '같': '같', '크': '크'}[rl] if rl != '같' else '같')
+        combos = [(v, rl) for v in (True, False) for rl in ('작', '같', '크')]
+        right_c = (ok, rel)
+        right = opt(*right_c).replace('같기 때문이다', '같기 때문이다').replace('보다 같', '와 같')
+        ws = [opt(v, rl).replace('보다 같', '와 같') for (v, rl) in combos if (v, rl) != right_c]
+        steps = ['열효율 e = W/Q<sub>H</sub> = %d/%d = %s' % (W, QH, pct(float(ea))), '두 열원 사이의 최대 열효율(카르노) e<sub>max</sub> = 1 - %d/%d = %s' % (TL, TH, pct(float(e))),
+                 '열효율이 최대 열효율보다 %s므로 %s하다.' % ({'작': '작으', '같': '같으', '크': '크'}[rel], '가능' if ok else '불가능')]
+        return mco(body, right, ws, steps=steps, lv='상', fam='g', r=r, core='같은 두 열원 사이에서 작동하는 모든 열기관의 열효율은 카르노 기관의 열효율을 넘을 수 없다.', point='실제 열효율과 최대 열효율을 비교한다.')
+    # bogi: 카르노·스털링
+    stir = r.random() < 0.4
+    sts, kinds = new_carnot(r, stir)
+    fig = FIG(carnot_fig(sts, stirling=stir), '80%')
+    if not stir:
+        bank = [
+            ('A→B 과정에서 기체는 고열원으로부터 열을 흡수한다.', True, 'A→B 는 등온 팽창이며 ΔU = 0, W > 0 이므로 Q = W > 0 (흡열)이다.', 'ab'),
+            ('A→B 과정에서 기체의 내부 에너지는 증가한다.', False, '등온 과정이므로 내부 에너지 변화는 0 이다.', 'ab'),
+            ('B→C 과정에서 기체의 온도는 낮아진다.', True, '단열 팽창이므로 Q = 0, W > 0 이고 ΔU = -W < 0 이다.', 'bc'),
+            ('B→C 과정에서 기체는 외부로부터 열을 흡수한다.', False, '단열 과정이므로 열 출입이 없다.', 'bc'),
+            ('C→D 과정에서 기체는 저열원으로 열을 방출한다.', True, 'C→D 는 등온 압축이므로 ΔU = 0, W < 0 이고 Q = W < 0 (방열)이다.', 'cd'),
+            ('C→D 과정에서 기체가 외부에 일을 한다.', False, '부피가 감소하므로 외부가 기체에 일을 한다.', 'cd'),
+            ('D→A 과정에서 기체의 온도는 높아진다.', True, '단열 압축이므로 Q = 0, W < 0 이고 ΔU = -W > 0 이다.', 'da'),
+            ('D→A 과정에서 기체의 내부 에너지는 감소한다.', False, '단열 압축에서는 외부가 한 일만큼 내부 에너지가 증가한다.', 'da'),
+            ('한 번 순환하는 동안 기체가 한 일은 Q<sub>H</sub> - Q<sub>L</sub> 이다.', True, '한 순환에서 ΔU = 0 이므로 W = Q<sub>H</sub> - Q<sub>L</sub> 이다.', 'w'),
+            ('한 번 순환하는 동안 기체가 한 일은 Q<sub>H</sub> 와 같다.', False, 'Q<sub>L</sub> 이 방출되므로 W = Q<sub>H</sub> - Q<sub>L</sub> 이다.', 'w'),
+            ('이 기관의 열효율은 1 - T<sub>L</sub>/T<sub>H</sub> 이다.', True, '카르노 기관의 열효율이다.', 'e'),
+            ('이 기관의 열효율은 T<sub>L</sub>/T<sub>H</sub> 이다.', False, '열효율은 1 - T<sub>L</sub>/T<sub>H</sub> 이다.', 'e'),
+            ('이 기관의 열효율은 100 % 가 될 수 있다.', False, 'T<sub>L</sub> = 0 K 이어야 하므로 불가능하다.', 'e2'),
+            ('Q<sub>L</sub> / Q<sub>H</sub> = T<sub>L</sub> / T<sub>H</sub> 이다.', True, '카르노 기관에서 방출하는 열과 흡수한 열의 비는 열원의 절대 온도의 비와 같다.', 'qr'),
+            ('T<sub>H</sub> 가 T<sub>L</sub> 보다 높다.', True, '고열원에서 열을 흡수하는 A→B 가 위쪽 등온선(온도가 더 높은 곡선)이다.', 'tt'),
+            ('이 순환 과정에서 기체가 한 일은 P-V 그래프로 둘러싸인 넓이와 같다.', True, '순환 과정의 일은 닫힌 곡선의 넓이이다.', 'area'),
+            ('저열원의 온도를 낮추면 열효율이 증가한다.', True, 'e = 1 - T<sub>L</sub>/T<sub>H</sub> 에서 T<sub>L</sub> 이 작을수록 e 가 커진다.', 'e3'),
+            ('고열원의 온도를 낮추면 열효율이 증가한다.', False, 'T<sub>H</sub> 를 낮추면 T<sub>L</sub>/T<sub>H</sub> 가 커져 열효율이 감소한다.', 'e3'),
+        ]
+        intro_b = '그림은 일정량의 이상 기체를 작업 물질로 하는 카르노 기관의 순환 과정 A→B→C→D→A 를 P-V 그래프로 나타낸 것이다. A→B, C→D 는 등온 과정, B→C, D→A 는 단열 과정이다. Q<sub>H</sub> 는 고열원에서 흡수한 열, Q<sub>L</sub> 은 저열원으로 방출한 열이다.'
+    else:
+        bank = [
+            ('A→B 과정에서 기체는 열을 흡수한다.', True, 'A→B 는 고온(T<sub>H</sub>)에서의 등온 팽창이므로 Q = W > 0 이다.', 'ab'),
+            ('A→B 과정에서 기체의 내부 에너지는 증가한다.', False, '등온 과정이므로 ΔU = 0 이다.', 'ab'),
+            ('B→C 과정에서 기체가 외부에 하는 일은 0 이다.', True, 'B→C 는 부피가 일정한 등적 과정이므로 W = 0 이다.', 'bc'),
+            ('B→C 과정에서 기체는 열을 방출한다.', True, '등적 냉각이므로 W = 0, ΔU < 0 이고 Q = ΔU < 0 이다.', 'bc'),
+            ('B→C 과정에서 기체의 온도는 높아진다.', False, '압력이 감소하는 등적 과정이므로 온도가 낮아진다.', 'bc'),
+            ('C→D 과정에서 기체는 외부로부터 일을 받는다.', True, 'C→D 는 등온 압축이므로 W < 0 이다.', 'cd'),
+            ('C→D 과정에서 기체의 내부 에너지는 감소한다.', False, '등온 과정이므로 ΔU = 0 이다.', 'cd'),
+            ('D→A 과정에서 기체는 열을 흡수한다.', True, '등적 가열이므로 W = 0, ΔU > 0 이고 Q = ΔU > 0 이다.', 'da'),
+            ('D→A 과정은 단열 과정이다.', False, 'D→A 는 부피가 일정한 등적 과정이다.', 'da'),
+            ('이 순환 과정은 두 개의 등온 과정과 두 개의 등적 과정으로 이루어진다.', True, 'A→B, C→D 는 등온, B→C, D→A 는 등적 과정이다(스털링 기관).', 'kind'),
+            ('이 순환 과정은 두 개의 단열 과정을 포함한다.', False, '단열 과정은 없고 등적 과정이 두 개 있다.', 'kind'),
+            ('한 번 순환하는 동안 기체의 내부 에너지 변화는 0 이다.', True, '처음 상태로 돌아오므로 ΔU = 0 이다.', 'cyc'),
+            ('한 번 순환하는 동안 기체가 한 일은 P-V 그래프로 둘러싸인 넓이와 같다.', True, '순환 과정에서 한 일은 닫힌 곡선의 넓이이다.', 'area'),
+            ('B→C 에서 방출한 열을 저장해 D→A 에서 다시 쓰면 외부에서 흡수하는 열이 줄어 열효율이 높아진다.', True, '스털링 기관의 재생기는 B→C 에서 방출한 열을 D→A 에서 흡수하도록 되돌려 쓴다.', 'regen'),
+            ('이상적인 스털링 기관의 열효율은 같은 두 열원 사이의 카르노 기관의 열효율보다 클 수 있다.', False, '같은 두 열원 사이에서 어떤 열기관도 카르노 기관의 열효율보다 클 수 없다.', 'e'),
+            ('A→B 에서 고열원의 온도 T<sub>H</sub> 는 C→D 에서 저열원의 온도 T<sub>L</sub> 보다 높다.', True, 'A→B 의 등온선이 C→D 의 등온선보다 위에 있어 PV(온도)가 더 크다.', 'tt'),
+            ('C→D 과정에서 기체는 고열원으로 열을 방출한다.', False, 'C→D 에서는 저온(T<sub>L</sub>)의 저열원으로 열을 방출한다.', 'cd2'),
+        ]
+        intro_b = '그림은 일정량의 이상 기체를 작업 물질로 하는 스털링 기관의 순환 과정 A→B→C→D→A 를 P-V 그래프로 나타낸 것이다. A→B, C→D 는 등온 과정이고 B→C, D→A 는 부피가 일정한 과정이다.'
+    sel = pick_stmts(r, bank)
+    if not sel: return None
+    return bogi(intro_b + ' 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, pre=fig, ask='', r=r, lv='중' if not stir else '상', fam='f',
+                core='카르노 순환은 등온 팽창·단열 팽창·등온 압축·단열 압축이고 e = 1 - T_L/T_H 이다. 스털링 순환은 두 등온과 두 등적 과정이다.', point='각 과정에서 ΔU, W, Q 부호와 열효율 식으로 판단한다.')
