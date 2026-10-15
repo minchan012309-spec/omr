@@ -795,7 +795,7 @@ def horiz_vs_free(r, k):
             return bogi(intro, [(s[0], s[1], s[2]) for s in sel], r=r, pre=FIG(fig, '56%'), ask='', lv='중', fam='a',
                         core='수평으로 던진 물체와 자유 낙하하는 물체는 연직 방향 운동이 같아 같은 시각에 같은 높이에 있고 동시에 지면에 닿는다.', point='같은 높이의 점들을 이어 연직 운동이 같음을 읽는다.')
         intro = '같은 높이에서 동시에 물체 A 를 수평으로 던지고 물체 B 를 가만히 놓았다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, 공기 저항은 무시한다.)'
-        return bogi(intro, [(s[0], s[1], s[2]) for s in sel], r=r, ask='', lv='하', fam='b',
+        return bogi(intro, [(s[0], s[1], s[2]) for s in sel], r=r, ask='', lv='중', fam='b',
                     core='수평 방향 운동은 연직 방향 운동에 영향을 주지 않는다. 낙하 시간은 높이만으로 정해진다.', point='수평 투사와 자유 낙하의 낙하 시간이 같음을 이해한다.')
     t = r.choice([1, 2, 3, 4, 5, 6]); h = 5 * t * t; v0 = r.choice([4, 5, 6, 8, 10, 12, 15, 20])
     if form == 'x':
@@ -849,3 +849,259 @@ def horiz_vs_free(r, k):
     return mc(body, ans(x2, 'm'), wr, r=r, lv='상', fam='e',
               steps=['낙하 시간 t = √(2h/g) : %s s → %s s' % (num(t), num(t2)), 'x = v₀t = %s × %s = %s m' % (num(v2), num(t2), num(x2))],
               core='수평 도달 거리는 x = v₀t 이고 t 는 높이로 정해진다.', point='속력과 높이를 각각 반영해 낙하 시간과 수평 거리를 구한다.')
+
+
+# ================================================================ ph033 (절벽·빗면에서 던진 물체)
+def step_fig(h1, h2, v0l, xl, dl, w=310, h=205):
+    """절벽 위(높이 h1)에서 수평으로 던져 아래 평지(높이 h2, 지면 기준)에 떨어진다."""
+    f = Fig(w, h)
+    gy = h - 28; top = 44; bx = 80
+    lowy = gy - (gy - top) * h2 / h1 if h1 else gy
+    f.hatch(14, gy, bx - 14)
+    f.line(bx, top, bx, lowy, INK, 1.6); f.line(14, top, bx, top, INK, 1.6)
+    f.poly([(14, top), (bx, top), (bx, gy), (14, gy)], '#eef2f7', INK, 1.6)
+    f.poly([(bx, lowy), (w - 14, lowy), (w - 14, gy), (bx, gy)], '#eef2f7', INK, 1.6)
+    ex = w - 46
+    pts = [(bx + (ex - bx) * u / 40, top + (lowy - top) * (u / 40) ** 2) for u in range(41)]
+    f.poly(pts, 'none', BL, 2.2, close=False, dash='5 3')
+    f.circ(bx, top - 7, 6.5, RD, INK, 1.2); f.arrow(bx + 8, top - 7, bx + 50, top - 7, RD, 2.2)
+    f.text(bx + 56, top - 12, v0l, 12.5, 'start', True, RD)
+    f.circ(ex, lowy - 7, 6.5, RD, INK, 1.2)
+    f.line(40, top, 40, lowy, GR, 1.2); f.line(34, top, 46, top, GR, 1.2); f.line(34, lowy, 46, lowy, GR, 1.2)
+    f.text(48, (top + lowy) / 2 + 4, dl, 12.5, 'start', True)
+    f.arrow(bx, lowy + 14, ex, lowy + 14, GR, 1.4); f.arrow(ex, lowy + 14, bx, lowy + 14, GR, 1.4)
+    f.text((bx + ex) / 2, lowy + 28, xl, 13, bold=True)
+    return f.svg()
+
+
+def slope_fig(deg, v0l, w=300, h=210):
+    th = math.radians(deg); tn = math.tan(th)
+    f = Fig(w, h)
+    x0, y0 = 34, 40
+    xl = min(180, 150 / tn)
+    xe, ye = x0 + xl, y0 + xl * tn
+    f.poly([(x0, y0), (xe + 50, y0 + (xl + 50) * tn), (x0, y0 + (xl + 50) * tn)], '#eef2f7', INK, 1.6)
+    pts = [(x0 + xl * u / 40, y0 + xl * tn * (u / 40) ** 2) for u in range(41)]
+    f.poly(pts, 'none', BL, 2.2, close=False, dash='5 3')
+    f.circ(x0, y0 - 7, 6.5, RD, INK, 1.2); f.arrow(x0 + 8, y0 - 7, x0 + 50, y0 - 7, RD, 2.2)
+    f.text(x0 + 56, y0 - 12, v0l, 12.5, 'start', True, RD)
+    f.circ(xe, ye - 7, 6.5, RD, INK, 1.2)
+    f.line(x0, y0, x0 + 60, y0, GR, 1, '4 3')
+    f.o.append('<path d="M %s %s A 30 30 0 0 1 %s %s" fill="none" stroke="%s" stroke-width="1.3"/>' % (Fig._n(x0 + 30 * math.cos(th) * 0 + 30), Fig._n(y0 + 0.0), Fig._n(x0 + 30 * math.cos(th)), Fig._n(y0 + 30 * math.sin(th)), GR) if False else '')
+    f.text(x0 + 40, y0 + 22, '%d°' % deg, 13, 'start', True, GR)
+    return f.svg()
+
+
+TAN = {37: Fr(3, 4), 45: Fr(1), 53: Fr(4, 3)}
+COSF = {37: Fr(4, 5), 45: None, 53: Fr(3, 5)}
+
+
+@T('ph033')
+def cliff_slope(r, k):
+    """절벽·빗면에서 던진 물체."""
+    form = r.choice(['diff', 'diff', 'step_x', 'step_x', 'step_v0', 'up', 'up', 'slope_t', 'slope_t', 'slope_x', 'slope_L', 'slope_v0', 'slope_h'])
+    ob = r.choice(['공', '돌멩이', '야구공', '구슬'])
+    cond = '(단, 공기 저항은 무시하고, 중력 가속도는 10 m/s²이다.)'
+    if form in ('diff', 'step_x', 'step_v0'):
+        d = r.choice([5, 20, 45, 80, 125]); t = math.sqrt(2 * d / 10)
+        h1 = d + r.choice([0, 20, 40, 55, 80]); h2 = h1 - d
+        v0 = r.choice([4, 5, 8, 10, 12, 15, 20])
+        x = v0 * t
+        if h2 == 0:
+            fig = step_fig(h1, 0, 'v₀ = %s m/s' % num(v0), 'x = ?', 'h = %s m' % num(d)) if False else None
+        if form == 'diff':
+            body = PP('그림과 같이 지면으로부터 높이 %s인 평평한 언덕 위에서 %s을(를) 수평 방향으로 던졌더니 던진 지점보다 %s 낮은 평평한 지면에 떨어졌다. 던진 순간부터 떨어질 때까지 걸린 시간은? %s' % (U(h1, 'm'), ob, U(d, 'm'), cond)) if False else \
+                PP('그림과 같이 높은 단 위에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌더니 던진 지점보다 %s 낮은 아래쪽 평지에 떨어졌다. 던진 순간부터 떨어질 때까지 걸린 시간은? %s' % (ob, U(v0, 'm/s'), U(d, 'm'), cond)) + FIG(step_fig(2 * d, d, 'v₀ = %s m/s' % num(v0), 'x', '낙차 %s m' % num(d)), '56%')
+            wr = wl(t, [d / v0, math.sqrt(d), d / 10, t + 1, t * 2, 2 * d / 10 * 2], 's')
+            return mc(body, ans(t, 's'), wr, r=r, lv='하', fam='a',
+                      steps=['낙하 거리는 던진 지점과 떨어진 지점의 높이 차 %s m 이다.' % num(d), 'd = ½gt² 에서 %s = 5t² 이므로 t = %s s' % (num(d), num(t))],
+                      core='수평 투사한 물체의 낙하 시간은 던진 지점과 도달 지점의 높이 차로 결정된다.', point='지면이 아니라 도달한 평지까지의 높이 차를 쓴다.')
+        fig = step_fig(h1 if h1 != d else 2 * d, h2 if h1 != d else d, 'v₀ = %s m/s' % num(v0), 'x' if form == 'step_x' else 'x = %s m' % num(x), '낙차 %s m' % num(d))
+        if form == 'step_x':
+            body = PP('그림과 같이 높은 단 위의 끝에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌더니 던진 지점보다 %s 낮은 아래쪽 평지에 떨어졌다. 단의 벽으로부터 떨어진 지점까지의 수평 거리 x 는? %s' % (ob, U(v0, 'm/s'), U(d, 'm'), cond)) + FIG(fig, '56%')
+            wr = wl(x, [v0 * math.sqrt(h1) if h1 != d else v0 * d / 10, v0 * math.sqrt(2 * h1 / 10), v0 * d / 10, x * 2, x / 2, x + v0, v0 * math.sqrt(d)], 'm')
+            return mc(body, ans(x, 'm'), wr, r=r, lv='중', fam='a',
+                      steps=['낙하 시간 : %s = ½ × 10 × t² 에서 t = %s s' % (num(d), num(t)), 'x = v₀t = %s × %s = %s m' % (num(v0), num(t), num(x))],
+                      core='낙하 높이는 던진 지점과 도달 지점의 높이 차이며, x = v₀√(2d/g) 이다.', point='높이 차로 시간을 구한 뒤 수평 거리를 구한다.')
+        body = PP('그림과 같이 높은 단 위의 끝에서 %s을(를) 수평 방향으로 던졌더니 던진 지점보다 %s 낮은 아래쪽 평지에서 단의 벽으로부터 %s 떨어진 곳에 떨어졌다. %s을(를) 던진 속력은? %s' % (ob, U(d, 'm'), U(x, 'm'), ob, cond)) + FIG(step_fig(2 * d, d, 'v₀', 'x = %s m' % num(x), '낙차 %s m' % num(d)), '56%')
+        wr = wl(v0, [x / d, x / math.sqrt(d), x / 2, x / (t + 1), x * t, v0 + 5], 'm/s')
+        return mc(body, ans(v0, 'm/s'), wr, r=r, lv='중', fam='a',
+                  steps=['낙하 시간 : %s = 5t² 에서 t = %s s' % (num(d), num(t)), 'v₀ = x/t = %s / %s = %s m/s' % (num(x), num(t), num(v0))],
+                  core='x = v₀t, 낙차 d = ½gt² 를 연립한다.', point='높이 차로 시간을 구하고 속력을 구한다.')
+    if form == 'up':
+        vy = r.choice([20, 25, 30, 40, 50]); vx = r.choice([6, 8, 10, 12, 15, 20])
+        ts = [x_ / 2 for x_ in range(1, 25) if vy / 10 < x_ / 2 < vy / 5 and half(x_ / 2)]
+        if not ts: return None
+        t = r.choice(ts); d = vy * t - 5 * t * t
+        if d <= 0 or not two(d): return None
+        x = vx * t
+        assert abs(vy * t - 5 * t * t - d) < 1e-9
+        body = PP('지면에서 %s을(를) 수평 방향 속력 %s, 연직 위 방향 속력 %s로 던졌다. %s이(가) 지면으로부터 높이 %s인 평평한 옥상에 내려오면서 도달했다. 던진 지점에서 옥상에 도달한 지점까지의 수평 거리는? (단, 옥상의 높이는 %s이고 %s)' % (ob, U(vx, 'm/s'), U(vy, 'm/s'), ob, U(d, 'm'), U(d, 'm'), cond[1:]))
+        t_up = vy / 10
+        wr = wl(x, [vx * t_up, vx * 2 * t_up, vx * t_up * 2 - vx, vx * (t + 1), vx * (t - 1), x * 2], 'm')
+        return mc(body, ans(x, 'm'), wr, r=r, lv='상', fam='b',
+                  steps=['연직 방향 : %s = %s t - 5t² 에서 5t² - %s t + %s = 0' % (num(d), num(vy), num(vy), num(d)), '내려오면서 도달하므로 큰 해 t = %s s (올라가면서 지나는 시각은 %s s)' % (num(t), num(vy / 5 - t)), '수평 거리 x = v_x t = %s × %s = %s m' % (num(vx), num(t), num(x))],
+                  core='높이 d 인 옥상에 도달하는 시각은 연직 방향 식 d = v_y t - ½gt² 의 해이며, 내려오며 도달하면 큰 해를 택한다.', point='이차 방정식의 두 해 중 문제의 조건에 맞는 해를 고른다.')
+    # 빗면
+    deg = r.choice([37, 45, 53]); tn = TAN[deg]
+    v0 = r.choice([5, 10, 15, 20, 25, 30]); t = 2 * v0 * float(tn) / 10
+    if not two(t): return None
+    x = v0 * t; y = 5 * t * t
+    assert abs(y - x * float(tn)) < 1e-9
+    note = '(단, 공기 저항은 무시하고, 중력 가속도는 10 m/s²이다.)'
+    fig = slope_fig(deg, 'v₀ = %s m/s' % num(v0) if form != 'slope_v0' else 'v₀')
+    L = None
+    if deg != 45: L = x / float(COSF[deg])
+    if form == 'slope_t':
+        body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌다. %s이(가) 빗면에 떨어질 때까지 걸리는 시간은? (단, tan%d° = %s 이고, %s' % (deg, ob, U(v0, 'm/s'), ob, deg, {37: '3/4', 45: '1', 53: '4/3'}[deg], note[1:])) + FIG(fig, '60%')
+        wr = wl(t, [v0 / 10, 2 * v0 / 10, 2 * v0 / 10 * float(tn) * 2, t + 1, 2 * v0 / 10 / float(tn) if float(tn) else None, t / 2, math.sqrt(2 * v0 / 10)], 's')
+        return mc(body, ans(t, 's'), wr, r=r, lv='중', fam='c',
+                  steps=['빗면에 떨어질 때 연직 낙하 거리와 수평 거리의 비가 tan%d° 이다 : ½gt² / (v₀t) = tan%d°' % (deg, deg), '5t² / (%s t) = %s 에서 t = 2 × %s × %s / 10 = %s s' % (num(v0), num(float(tn)), num(v0), num(float(tn)), num(t))],
+                  core='수평 투사한 물체가 경사각 θ 의 빗면에 떨어지면 ½gt² / (v₀t) = tanθ 이므로 t = 2v₀ tanθ / g 이다.', point='낙하 거리와 수평 거리의 비가 tanθ 임을 이용한다.')
+    if form == 'slope_x':
+        body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌다. %s이(가) 빗면에 닿는 순간까지 수평으로 이동한 거리는? (단, tan%d° = %s 이고, %s' % (deg, ob, U(v0, 'm/s'), ob, deg, {37: '3/4', 45: '1', 53: '4/3'}[deg], note[1:])) + FIG(fig, '60%')
+        wr = wl(x, [y, v0 * t * float(tn), math.hypot(x, y), x * 2, x / 2, v0 * 2 * float(tn)], 'm')
+        return mc(body, ans(x, 'm'), wr, r=r, lv='중', fam='c',
+                  steps=['t = 2v₀ tan%d° / g = 2 × %s × %s / 10 = %s s' % (deg, num(v0), num(float(tn)), num(t)), 'x = v₀t = %s × %s = %s m' % (num(v0), num(t), num(x))],
+                  core='빗면에 닿는 시각은 t = 2v₀ tanθ / g 이다.', point='빗면 도달 시각을 구한 뒤 수평 거리를 구한다.')
+    if form == 'slope_L':
+        if deg == 45: return None
+        if not two(L): return None
+        body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌다. %s이(가) 떨어진 지점은 던진 지점으로부터 빗면을 따라 몇 m 떨어져 있는가? (단, sin%d° = %s, cos%d° = %s, tan%d° = %s 이고, %s' % (deg, ob, U(v0, 'm/s'), ob, deg, SINS[deg], deg, COSS[deg], deg, {37: '3/4', 53: '4/3'}[deg], note[1:])) + FIG(fig, '60%')
+        wr = wl(L, [x, y, x + y, math.hypot(x, y) * 1.2, L / 2, x / float(SIN[deg]) if True else None, y / float(COSF[deg])], 'm')
+        assert abs(L - math.hypot(x, y)) < 1e-9
+        return mc(body, ans(L, 'm'), wr, r=r, lv='상', fam='d',
+                  steps=['t = 2v₀ tanθ / g = %s s 이므로 수평 거리 x = %s m, 낙하 높이 y = ½gt² = %s m' % (num(t), num(x), num(y)), '빗면을 따라 이동한 거리 = x / cos%d° = %s / %s = %s m' % (deg, num(x), COSS[deg], num(L)), '(√(x² + y²) = √(%s² + %s²) = %s m 로 확인)' % (num(x), num(y), num(L))],
+                  core='빗면을 따른 거리는 수평 거리 / cosθ = √(x² + y²) 이다.', point='수평·연직 이동 거리를 합성한다.')
+    if form == 'slope_h':
+        body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 %s의 속력으로 던졌다. %s이(가) 빗면에 닿는 순간 던진 지점으로부터 연직 아래로 내려간 높이는? (단, tan%d° = %s 이고, %s' % (deg, ob, U(v0, 'm/s'), ob, deg, {37: '3/4', 45: '1', 53: '4/3'}[deg], note[1:])) + FIG(fig, '60%')
+        wr = wl(y, [x, 5 * t, v0 * t * float(tn) * 2, y * 2, y / 2, x * float(tn) * 2], 'm')
+        return mc(body, ans(y, 'm'), wr, r=r, lv='상', fam='d',
+                  steps=['t = 2v₀ tanθ / g = %s s' % num(t), '낙하 높이 y = ½gt² = 5 × %s² = %s m (= x tanθ = %s × %s)' % (num(t), num(y), num(x), num(float(tn)))],
+                  core='낙하 높이 y = ½gt² 이고 y = x tanθ 이다.', point='도달 시각을 구한 뒤 연직 낙하 거리를 구한다.')
+    # slope_v0 : 걸린 시간 주어짐
+    body = PP('그림과 같이 경사각이 %d°인 매우 긴 빗면의 꼭대기에서 %s을(를) 수평 방향으로 던졌더니 %s 후에 빗면에 떨어졌다. %s을(를) 던진 속력 v₀ 는? (단, tan%d° = %s 이고, %s' % (deg, ob, U(t, '초'), ob, deg, {37: '3/4', 45: '1', 53: '4/3'}[deg], note[1:])) + FIG(fig, '60%')
+    wr = wl(v0, [5 * t, 10 * t, 5 * t / float(tn), 5 * t * float(tn), v0 * 2, v0 + 5, 10 * t * float(tn)], 'm/s')
+    return mc(body, ans(v0, 'm/s'), wr, r=r, lv='상', fam='d',
+              steps=['t = 2v₀ tan%d° / g 에서 v₀ = g t / (2 tan%d°)' % (deg, deg), 'v₀ = 10 × %s / (2 × %s) = %s m/s' % (num(t), num(float(tn)), num(v0))],
+              core='빗면에 닿는 시각 t = 2v₀ tanθ / g 를 거꾸로 풀어 v₀ 를 구한다.', point='tanθ 조건식을 처음 속력에 대해 푼다.')
+
+
+# ================================================================ ph034 (속도 벡터 그림)
+def grid_panel(f, ox, oy, vx, vy, cols=7, up=4, down=3, cell=18, title='', color=RD, comp=True):
+    """원점 (ox, oy) 에서 속도 벡터 (vx, vy)[칸 수]. 위쪽이 +. 격자 칸 수 cols × (up+down)."""
+    for i in range(cols + 1):
+        f.line(ox + i * cell, oy - up * cell, ox + i * cell, oy + down * cell, LG, 1)
+    for j in range(-down, up + 1):
+        f.line(ox, oy - j * cell, ox + cols * cell, oy - j * cell, LG, 1)
+    f.line(ox, oy, ox + cols * cell, oy, '#aeb9c8', 1.2, '4 3')
+    f.arrow(ox, oy, ox + vx * cell, oy - vy * cell, color, 2.6)
+    f.circ(ox, oy, 3.4, INK, INK, 1)
+    if comp:
+        f.line(ox + vx * cell, oy, ox + vx * cell, oy - vy * cell, GR, 1, '3 3')
+    f.text(ox + cols * cell / 2, oy - up * cell - 7, title, 12.5, bold=True)
+
+
+@T('ph034')
+def vec_grid(r, k):
+    """속도 벡터 그림으로 구하는 포물선 운동."""
+    form = r.choice(['one_H', 'one_T', 'one_R', 'two_t', 'two_dh', 'two_dx', 'land_h', 'land_t', 'land_x', 'speed', 'speed', 'speed', 'angle'])
+    ob = r.choice(['공', '야구공', '돌멩이', '축구공'])
+    cond = '(단, 공기 저항은 무시하고, 중력 가속도는 10 m/s²이다.)'
+    u = r.choice([5, 10])
+    if form.startswith('one'):
+        vx = r.randint(2, 6); vy = r.randint(1, 4)
+        f = Fig(200, 160); grid_panel(f, 30, 100, vx, vy, cols=7, up=4, down=2, title='처음 속도')
+        vyr, vxr = vy * u, vx * u
+        H = vyr ** 2 / 20; T_ = 2 * vyr / 10; R = vxr * T_
+        if not (two(H) and two(T_) and two(R)): return None
+        assert abs(R - 2 * vxr * vyr / 10) < 1e-9
+        base = '그림은 평평한 지면에서 %s을(를) 비스듬히 던진 순간의 속도를 눈금 한 칸이 %s인 모눈종이에 나타낸 것이다. ' % (ob, U(u, 'm/s'))
+        if form == 'one_H':
+            body = PP(base + '%s이(가) 도달하는 최고점의 높이는? %s' % (ob, cond)) + FIG(f.svg(), '46%')
+            wr = wl(H, [vyr ** 2 / 10, vyr / 10, H * 2, H / 2, math.hypot(vxr, vyr) ** 2 / 20, vxr ** 2 / 20], 'm')
+            return mc(body, ans(H, 'm'), wr, r=r, lv='중', fam='a',
+                      steps=['그림에서 연직 성분 %s칸 = %s m/s, 수평 성분 %s칸 = %s m/s' % (num(vy), num(vyr), num(vx), num(vxr)), 'H = v_y²/2g = %s²/20 = %s m' % (num(vyr), num(H))],
+                      core='최고점의 높이는 연직 속도 성분만으로 정해진다: H = v_y²/2g.', point='격자에서 연직 성분을 읽어 최고점 높이를 구한다.')
+        if form == 'one_T':
+            body = PP(base + '%s이(가) 던져진 순간부터 지면에 다시 닿을 때까지 걸리는 시간은? %s' % (ob, cond)) + FIG(f.svg(), '46%')
+            wr = wl(T_, [vyr / 10, vyr / 5 * 2, vxr / 5, T_ * 1.5, T_ / 2, math.hypot(vxr, vyr) / 5], 's')
+            return mc(body, ans(T_, 's'), wr, r=r, lv='중', fam='a',
+                      steps=['연직 성분 v_y = %s칸 × %s = %s m/s' % (num(vy), num(u), num(vyr)), 'T = 2v_y/g = 2 × %s / 10 = %s s' % (num(vyr), num(T_))],
+                      core='체공 시간 T = 2v_y/g.', point='격자에서 연직 성분을 읽는다.')
+        body = PP(base + '%s이(가) 지면에 닿는 지점까지의 수평 거리는? %s' % (ob, cond)) + FIG(f.svg(), '46%')
+        wr = wl(R, [vxr * vyr / 10, vxr * vyr / 5 * 2, vxr * T_ / 2, vxr * vyr / 20, math.hypot(vxr, vyr) * T_, R * 2], 'm')
+        return mc(body, ans(R, 'm'), wr, r=r, lv='중', fam='a',
+                  steps=['v_x = %s m/s, v_y = %s m/s' % (num(vxr), num(vyr)), 'T = 2v_y/g = %s s' % num(T_), 'R = v_x T = %s × %s = %s m' % (num(vxr), num(T_), num(R))],
+                  core='사거리 R = v_x × T = 2v_x v_y / g.', point='두 성분을 모두 읽어 체공 시간과 수평 거리를 구한다.')
+    if form.startswith('two'):
+        vx = r.randint(2, 6); vyA = r.randint(2, 4); vyB = r.choice([x_ for x_ in range(-2, vyA) if x_ != 0])
+        if vyB < -2: return None
+        f = Fig(340, 160)
+        grid_panel(f, 14, 90, vx, vyA, cols=7, up=4, down=2, title='점 A', color=RD)
+        grid_panel(f, 14 + 7 * 18 + 28, 90, vx, vyB, cols=7, up=4, down=2, title='점 B', color=BL)
+        dvy = (vyA - vyB) * u; dt = dvy / 10; dh = ((vyA * u) ** 2 - (vyB * u) ** 2) / 20; dx = vx * u * dt
+        if not (two(dt) and two(dh) and two(dx)) or dt <= 0: return None
+        assert abs(dh - ((vyA * u) * dt - 5 * dt * dt)) < 1e-9
+        base = '그림은 %s이(가) 포물선 경로를 따라 운동할 때 점 A, B 를 지나는 순간의 속도를 눈금 한 칸이 %s인 모눈종이에 나타낸 것이다(위쪽이 연직 위 방향). ' % (ob, U(u, 'm/s'))
+        sol = ['A 의 연직 성분 v_yA = %s칸 × %s = %s m/s, B 의 연직 성분 v_yB = %s칸 × %s = %s m/s (수평 성분 %s m/s 는 같다)' % (num(vyA), num(u), num(vyA * u), num(vyB), num(u), num(vyB * u), num(vx * u))]
+        if form == 'two_t':
+            body = PP(base + '%s이(가) A 에서 B 까지 운동하는 데 걸린 시간은? %s' % (ob, cond)) + FIG(f.svg(), '70%')
+            wr = wl(dt, [(vyA + vyB) * u / 10, abs(vyA * u) / 10, dt * 2, dt / 2, dvy / 5, vx * u / 10], 's')
+            return mc(body, ans(dt, 's'), wr, r=r, lv='중', fam='b', steps=sol + ['Δv_y = g Δt 에서 Δt = (%s - (%s))/10 = %s s' % (num(vyA * u), num(vyB * u), num(dt))],
+                      core='연직 속도 변화량은 가속도 g 와 시간의 곱이다: Δv_y = gΔt.', point='두 속도의 연직 성분 차로 시간을 구한다.')
+        if form == 'two_dh':
+            body = PP(base + 'A 와 B 의 높이 차는? %s' % cond) + FIG(f.svg(), '70%')
+            wr = wl(dh, [(vyA * u - vyB * u) / 2, dh * 2, dh / 2, ((vyA - vyB) * u) ** 2 / 20 * 2, (vyA * u) * dt, abs(vyA ** 2 + vyB ** 2) * u * u / 20], 'm')
+            return mc(body, ans(dh, 'm'), wr, r=r, lv='상', fam='b', steps=sol + ['v_yA² - v_yB² = 2g Δh 에서 Δh = (%s² - (%s)²)/20 = %s m' % (num(vyA * u), num(vyB * u), num(dh))],
+                      core='연직 방향은 v_y² 가 2g × (높이 변화) 만큼 변한다.', point='연직 성분의 제곱의 차로 높이 차를 구한다.')
+        body = PP(base + 'A 에서 B 까지 수평으로 이동한 거리는? %s' % cond) + FIG(f.svg(), '70%')
+        wr = wl(dx, [vx * u * dvy / 10 * 2, vx * u, vx * u * (vyA * u) / 10, dx / 2, dx * 2, vx * u * dh / 5], 'm')
+        return mc(body, ans(dx, 'm'), wr, r=r, lv='상', fam='b', steps=sol + ['걸린 시간 Δt = %s s' % num(dt), '수평 거리 = v_x Δt = %s × %s = %s m' % (num(vx * u), num(dt), num(dx))],
+                  core='수평 방향은 등속이므로 Δx = v_x Δt 이다.', point='연직 성분으로 시간을 구한 뒤 수평 거리를 구한다.')
+    if form.startswith('land'):
+        vx = r.randint(2, 6); vy = r.randint(2, 5)
+        f = Fig(200, 160); grid_panel(f, 30, 40, vx, -vy, cols=7, up=1, down=5, title='지면에 닿는 순간의 속도', color=RD)
+        vxr, vyr = vx * u, vy * u; h = vyr ** 2 / 20; t = vyr / 10; x = vxr * t
+        if not (two(h) and two(t) and two(x)): return None
+        base = '그림은 높은 곳에서 수평으로 던진 %s이(가) 지면에 닿는 순간의 속도를 눈금 한 칸이 %s인 모눈종이에 나타낸 것이다(위쪽이 연직 위 방향). ' % (ob, U(u, 'm/s'))
+        sol = ['수평 성분 %s칸 × %s = %s m/s, 연직 성분 %s칸 × %s = %s m/s' % (num(vx), num(u), num(vxr), num(vy), num(u), num(vyr))]
+        if form == 'land_h':
+            body = PP(base + '%s을(를) 던진 지점의 지면으로부터의 높이는? %s' % (ob, cond)) + FIG(f.svg(), '46%')
+            wr = wl(h, [vyr ** 2 / 10, vyr / 10, h * 2, h / 2, vxr * t, math.hypot(vxr, vyr) ** 2 / 20], 'm')
+            return mc(body, ans(h, 'm'), wr, r=r, lv='중', fam='c', steps=sol + ['v_y² = 2gh 에서 h = %s²/20 = %s m' % (num(vyr), num(h))],
+                      core='수평 투사한 물체의 낙하 높이는 지면 도달 시 연직 속도로부터 h = v_y²/2g 이다.', point='격자에서 연직 성분을 읽어 높이를 구한다.')
+        if form == 'land_t':
+            body = PP(base + '%s을(를) 던진 순간부터 지면에 닿을 때까지 걸린 시간은? %s' % (ob, cond)) + FIG(f.svg(), '46%')
+            wr = wl(t, [vyr / 5, vxr / 10, t * 2, t / 2, math.hypot(vxr, vyr) / 10, t + 1], 's')
+            return mc(body, ans(t, 's'), wr, r=r, lv='중', fam='c', steps=sol + ['v_y = gt 에서 t = %s/10 = %s s' % (num(vyr), num(t))],
+                      core='수평 투사에서 연직 속도 v_y = gt.', point='연직 성분으로 시간을 구한다.')
+        body = PP(base + '%s을(를) 던진 지점의 바로 아래 지면으로부터 %s이(가) 떨어진 지점까지의 수평 거리는? %s' % (ob, ob, cond)) + FIG(f.svg(), '46%')
+        wr = wl(x, [vxr * vyr / 10 * 2, vxr, vxr * t * 2, x / 2, vyr * t, h], 'm')
+        return mc(body, ans(x, 'm'), wr, r=r, lv='중', fam='c', steps=sol + ['낙하 시간 t = v_y/g = %s s' % num(t), '수평 거리 x = v_x t = %s × %s = %s m' % (num(vxr), num(t), num(x))],
+                  core='수평 속도는 일정하므로 x = v_x t 이다.', point='시간을 구한 뒤 수평 거리를 구한다.')
+    if form == 'speed':
+        a_, b_, c_ = r.choice([(3, 4, 5), (4, 3, 5), (6, 8, 10), (5, 12, 13), (8, 6, 10)])
+        if a_ > 6 or b_ > 6: a_, b_, c_ = 3, 4, 5
+        f = Fig(200, 160); grid_panel(f, 30, 100, a_, b_, cols=7, up=5, down=2, title='처음 속도')
+        v = c_ * u
+        body = PP('그림은 지면에서 비스듬히 던진 %s의 처음 속도를 눈금 한 칸이 %s인 모눈종이에 나타낸 것이다. %s의 처음 속력은?' % (ob, U(u, 'm/s'), ob)) + FIG(f.svg(), '46%')
+        wr = wl(v, [(a_ + b_) * u, a_ * u, b_ * u, abs(a_ - b_) * u, (a_ + b_) * u / 2, v + u], 'm/s')
+        return mc(body, ans(v, 'm/s'), wr, r=r, lv='하', fam='d',
+                  steps=['수평 성분 %s칸 = %s m/s, 연직 성분 %s칸 = %s m/s' % (num(a_), num(a_ * u), num(b_), num(b_ * u)), '속력 = √(%s² + %s²) = %s m/s' % (num(a_ * u), num(b_ * u), num(v))],
+                  core='속도의 크기는 수평·연직 성분의 합성 √(v_x² + v_y²) 이다.', point='격자에서 성분을 읽어 피타고라스 정리로 합성한다.')
+    # angle: 비 → 최고점 높이 같은 높이 비교
+    vx = r.randint(2, 6); vy = r.randint(1, 4)
+    vx2 = r.randint(2, 6); vy2 = r.randint(1, 4)
+    if vy == vy2 or (vx, vy) == (vx2, vy2): return None
+    f = Fig(340, 160)
+    grid_panel(f, 14, 100, vx, vy, cols=7, up=4, down=2, title='물체 A', color=RD)
+    grid_panel(f, 14 + 7 * 18 + 28, 100, vx2, vy2, cols=7, up=4, down=2, title='물체 B', color=BL)
+    HA, HB = (vy * u) ** 2 / 20, (vy2 * u) ** 2 / 20
+    g_ = math.gcd(vy * vy, vy2 * vy2); right = '%d : %d' % (vy * vy // g_, vy2 * vy2 // g_)
+    body = PP('그림은 평평한 지면에서 비스듬히 던진 두 물체 A, B 의 처음 속도를 눈금 한 칸이 %s인 모눈종이에 나타낸 것이다. 두 물체가 도달하는 최고점의 높이의 비 H_A : H_B 는? (단, 공기 저항은 무시한다.)' % U(u, 'm/s')) + FIG(f.svg(), '70%')
+    opts = ['%d : %d' % (a_ // math.gcd(a_, b_), b_ // math.gcd(a_, b_)) for a_, b_ in ((vy, vy2), (vx, vx2), (vy2 * vy2, vy * vy), (vx * vx, vx2 * vx2), (vy + vx, vy2 + vx2), (vy2, vy))]
+    wr = [o for o in dict.fromkeys(opts) if o != right]
+    return mc(body, right, wr, r=r, lv='중', fam='d', sort='shuf',
+              steps=['최고점의 높이는 연직 성분만으로 정해진다: H = v_y²/2g ∝ v_y²', 'A 의 연직 성분 %s칸, B 의 연직 성분 %s칸이므로 H_A : H_B = %s² : %s² = %s' % (num(vy), num(vy2), num(vy), num(vy2), right)],
+              core='최고점의 높이는 연직 속도 성분의 제곱에 비례한다.', point='수평 성분은 높이와 무관하다는 점에 유의한다.')

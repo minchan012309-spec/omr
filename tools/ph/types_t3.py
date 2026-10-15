@@ -1055,7 +1055,7 @@ def g117(r, k):
     fig = FIG(qual_fig(names, sts, kinds), '62%')
     seglab = ['%s→%s' % (names[i], names[(i + 1) % n]) for i in range(n)]
     kd = ' / '.join('%s %s' % (seglab[i], _kind_text(kinds[i], tab[i])) for i in range(n))
-    form = r.choice(['set', 'set', 'set', 'tri', 'bogi', 'bogi', 'cnt'])
+    form = r.choice(['set', 'set', 'tri', 'tri', 'bogi', 'bogi', 'cnt', 'cnt'])
     path = '→'.join(names) + '→' + names[0]
     intro = '그림은 일정량의 이상 기체의 상태가 %s를 따라 변할 때 압력 P 와 부피 V 를 나타낸 것이다. 곡선 중 하나는 단열 과정, 하나는 등온 과정이다.' % path if ('A' in kinds and 'T' in kinds) else '그림은 일정량의 이상 기체의 상태가 %s를 따라 변할 때 압력 P 와 부피 V 를 나타낸 것이다.' % path
     if 'A' in kinds and 'T' not in kinds:
@@ -1089,7 +1089,7 @@ def g117(r, k):
         body = P(intro + ' %s 과정에서 기체의 내부 에너지 변화량 ΔU, 기체가 외부에 한 일 W, 기체가 흡수한 열량 Q 의 부호를 (ΔU, W, Q) 순서로 옳게 나타낸 것은? (기체가 열을 흡수하면 Q > 0, 외부에 일을 하면 W > 0 이다.)' % seglab[i]) + fig
         steps = ['%s 은(는) %s 과정이다.' % (seglab[i], _kind_text(kinds[i], tab[i])), '부피 %s → W %s, 온도 %s → ΔU %s' % ({1: '증가', -1: '감소', 0: '일정'}[W], f(W), {1: '상승', -1: '하강', 0: '일정'}[dU], f(dU)),
                  'Q = ΔU + W %s' % ('= 0 (단열)' if kinds[i] == 'A' else '→ %s' % f(Q)), '따라서 %s' % right]
-        return mco(body, right, wr[:8], steps=steps, lv='중' if kinds[i] != 'A' else '상', fam='b', r=r, core='ΔU ∝ ΔT, W 의 부호는 ΔV 의 부호, Q = ΔU + W.', point='과정의 종류를 알면 ΔU, W, Q 의 부호가 정해진다.')
+        return mco(body, right, wr[:8], steps=steps, lv='하' if kinds[i] in 'PV' else ('중' if kinds[i] == 'T' else '상'), fam='b', r=r, core='ΔU ∝ ΔT, W 의 부호는 ΔV 의 부호, Q = ΔU + W.', point='과정의 종류를 알면 ΔU, W, Q 의 부호가 정해진다.')
     if form == 'cnt':
         which = r.choice([0, 1, 2])
         label, fn, why = [('열을 흡수하는', lambda s: s[2] > 0, 'Q > 0'), ('외부에 일을 하는', lambda s: s[1] > 0, 'W > 0'), ('내부 에너지가 증가하는', lambda s: s[0] > 0, 'ΔU > 0')][which]
@@ -1097,7 +1097,7 @@ def g117(r, k):
         body = P(intro + ' %s 과정은 모두 몇 개인가?' % label) + fig
         ws = [str(x) + '개' for x in range(0, 5) if x != cnt]
         steps = ['각 과정의 (ΔU, W, Q) 부호 : ' + ', '.join('%s (%s, %s, %s)' % (seglab[i], sgs(tab[i][0]), sgs(tab[i][1]), sgs(tab[i][2])) for i in range(n)), '%s 조건(%s)을 만족하는 과정은 %d개이다.' % (label, why, cnt)]
-        return mco(body, '%d개' % cnt, ws, steps=steps, lv='중', fam='c', r=r, sort='num', core='각 과정의 ΔU, W, Q 부호를 표로 정리하면 조건에 맞는 과정을 센다.', point='부호표 작성.')
+        return mco(body, '%d개' % cnt, ws, steps=steps, lv='하', fam='c', r=r, sort='num', core='각 과정의 ΔU, W, Q 부호를 표로 정리하면 조건에 맞는 과정을 센다.', point='부호표 작성.')
     bank = stmts_cycle(r, names, sts, kinds, 'PV')
     # 단열 관련 문장 추가
     for i in range(n):
@@ -1105,7 +1105,7 @@ def g117(r, k):
             out_ = '%s 과정에서 기체와 외부 사이의 열 출입은 없다.' % seglab[i]
             bank.append((out_, True, '단열 과정이므로 Q = 0 이다.', 'adi'))
             up = tab[i][1] > 0
-            bank.append(('%s 과정에서 기체의 온도는 %s.' % (seglab[i], '낮아진다' if up else '높아진다'), True, '단열 %s 에서는 Q=0 이므로 ΔU = -W 이다. %s하므로 온도가 %s.' % ('팽창' if up else '압축', '기체가 일을' if up else '외부가 일을', '낮아진다' if up else '높아진다'), 'adi2'))
+            bank.append(('%s 과정에서 기체의 온도는 %s.' % (seglab[i], '낮아진다' if up else '높아진다'), True, '단열 %s 에서는 Q=0 이므로 ΔU = -W 이다. %s하므로 온도가 %s.' % ('팽창' if up else '압축', '기체가 일을 ' if up else '외부가 일을 ', '낮아진다' if up else '높아진다'), 'adi2'))
             bank.append(('%s 과정에서 기체의 온도는 일정하다.' % seglab[i], False, '단열 과정은 Q = 0 이므로 W 만큼 내부 에너지가 변해 온도가 변한다. 온도가 일정한 것은 등온 과정이다.', 'adi2'))
         if kinds[i] == 'T':
             bank.append(('%s 과정에서 기체가 흡수(방출)한 열은 기체가 한(받은) 일과 같다.' % seglab[i], True, '등온 과정은 ΔU = 0 이므로 Q = W 이다.', 'iso'))
@@ -1114,3 +1114,115 @@ def g117(r, k):
     if not sel: return None
     return bogi(intro + ' 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, pre=fig, ask='', r=r, lv='중' if n == 3 else '상', fam='d',
                 core='각 과정의 (ΔU, W, Q) 부호: 등압 팽창 (+,+,+), 등적 가열 (+,0,+), 등온 팽창 (0,+,+), 단열 팽창 (−,+,0).', point='과정 종류를 판별하고 부호표로 <보기>를 판단한다.')
+
+
+# ============================================================ ph118 내부 에너지 변화량과 온도 비교(순환 과정)
+def _pairs(names, idx):
+    return '와 '.join(names[i] for i in idx) if False else '%s와 %s' % (names[idx[0]], names[idx[1]])
+
+
+@T('ph118')
+def g118(r, k):
+    form = r.choice(['eqT', 'eqT', 'ratio', 'ratio', 'dU', 'dU', 'close', 'cmp', 'bogi', 'bogi'])
+    n = r.choice([3, 4, 4])
+    if form == 'eqT':
+        got = pick_cycle(r, n, need=lambda c, s: len({p * v for p, v in c}) == len(c) - 1)
+    elif form == 'cmp':
+        got = pick_cycle(r, 4, need=lambda c, s: True)
+    else:
+        got = pick_cycle(r, n)
+    if not got: return None
+    sts, seq = got
+    n = len(sts)
+    kinds = list(seq)
+    names = list(NMS[:n])
+    Ts = [p * v for p, v in sts]
+    try:
+        fig = FIG(loop_fig('PV', names, sts, kinds, numbered=True), '66%')
+    except AssertionError:
+        return None
+    path = '→'.join(names) + '→' + names[0]
+    intro = '그림은 일정량의 이상 기체의 상태가 %s를 따라 변할 때 압력 P 와 부피 V 를 나타낸 것이다.' % path
+    tabs = '각 상태의 PV (P₀V₀ 단위) : ' + ', '.join('%s = %d' % (names[i], Ts[i]) for i in range(n)) + '. 절대 온도는 PV 에 비례한다.'
+    seg = lambda i: '%s→%s' % (names[i], names[(i + 1) % n])
+    dUs = [Fraction(3, 2) * (Ts[(i + 1) % n] - Ts[i]) for i in range(n)]   # P₀V₀ 단위
+    assert sum(dUs) == 0
+    for i in range(n):
+        assert abs(float(dUs[i]) - seg_vals(kinds[i], sts[i], sts[(i + 1) % n])[0]) < 1e-9
+    if form == 'eqT':
+        pairs = list(itertools.combinations(range(n), 2))
+        good = [p for p in pairs if Ts[p[0]] == Ts[p[1]]]
+        if len(good) != 1: return None
+        g = good[0]
+        right = '%s와 %s' % (names[g[0]], names[g[1]])
+        wr = ['%s와 %s' % (names[p[0]], names[p[1]]) for p in pairs if p != g]
+        if n == 3: wr += ['A, B, C 모두 같다', '온도가 같은 상태는 없다']
+        else: wr += ['온도가 같은 상태는 없다', '네 상태의 온도가 모두 같다']
+        body = P(intro + ' 기체의 온도가 서로 같은 두 상태는?') + fig
+        steps = [tabs, '%s 의 PV 는 %d 로 같다(등온 곡선 위). 다른 상태는 PV 가 모두 다르다.' % (right, Ts[g[0]])]
+        return mco(body, right, wr, steps=steps, lv='하', fam='a', r=r, core='이상 기체의 절대 온도는 PV 에 비례하므로 PV 가 같은 상태는 온도가 같다.', point='눈금에서 P×V 값을 구해 비교한다.')
+    if form == 'ratio':
+        right = ' : '.join(num(0)) if False else ratio_list(Ts)
+        tl = ' : '.join('T%s' % names[i] for i in range(n))
+        wr = [ratio_list([p for p, v in sts]), ratio_list([v for p, v in sts]), ratio_list([p + v for p, v in sts]), ratio_list(Ts[::-1]), ratio_list([Fraction(p, v) for p, v in sts]), ratio_list([t + 1 for t in Ts]), ratio_list([Ts[(i + 1) % n] for i in range(n)])]
+        body = P(intro + ' 상태 %s의 절대 온도의 비 %s 는?' % (', '.join(names), tl.replace('T', 'T')) ) + fig
+        steps = [tabs, 'T ∝ PV 이므로 %s = %s' % (tl, ' : '.join(str(t) for t in Ts)), '간단히 하면 %s' % right]
+        return mco(body, right, wr, steps=steps, lv='중', fam='b', r=r, core='PV = nRT 이므로 T ∝ PV 이다.', point='각 상태의 P, V 눈금을 곱해 온도 비를 구한다.')
+    if form == 'dU':
+        u = r.choice([100, 200, 400, 500, 600, 800])
+        i = r.randrange(n)
+        val = float(dUs[i]) * u
+        if abs(val - round(val)) > 1e-9 or val == 0: return None
+        right = sj(val)
+        wr = [sj(-val), sj(val * 2 / 3), sj(val * 2), sj(float(Ts[(i + 1) % n] - Ts[i]) * u), sj(float(Ts[(i + 1) % n]) * u * 1.5), sj(val + u)]
+        body = P(intro + ' P₀V₀ = %d J 이고, 이 기체의 내부 에너지는 U = (3/2)PV 이다. %s 과정에서 기체의 내부 에너지 변화량은?' % (u, seg(i))) + fig
+        steps = [tabs, 'ΔU = (3/2)(P<sub>%s</sub>V<sub>%s</sub> - P<sub>%s</sub>V<sub>%s</sub>) = (3/2)(%d - %d) P₀V₀ = %s P₀V₀' % (names[(i + 1) % n], names[(i + 1) % n], names[i], names[i], Ts[(i + 1) % n], Ts[i], fr_str(dUs[i])),
+                 '= %s × %d J = %s' % (fr_str(dUs[i]), u, sj(val))]
+        return mco(body, right, wr, steps=steps, lv='중', fam='c', r=r, core='단원자 분자 이상 기체의 내부 에너지는 U = (3/2)PV 이므로 ΔU = (3/2)Δ(PV).', point='시작·끝 상태의 PV 로 ΔU 를 구한다.')
+    if form == 'close':
+        u = r.choice([100, 200, 400, 600])
+        vals = [float(d) * u for d in dUs]
+        if any(abs(v - round(v)) > 1e-9 for v in vals): return None
+        miss = r.randrange(n)
+        given = [i for i in range(n) if i != miss]
+        ans = vals[miss]
+        if abs(ans) < 1e-9: return None
+        ph = ', '.join('%s %s' % (seg(i), sj(vals[i])) for i in given)
+        right = sj(ans)
+        wr = [sj(-ans), sj(sum(vals[i] for i in given)), sj(abs(ans) + u), sj(ans + u), sj(ans / 2), sj(0)]
+        body = P(intro + ' 한 순환 동안 과정별 내부 에너지 변화량이 %s 일 때, %s 과정에서 기체의 내부 에너지 변화량은?' % (ph, seg(miss))) + fig
+        steps = ['한 순환 후 처음 상태로 돌아오므로 내부 에너지 변화량의 합은 0이다.', '%s = -(%s) = %s' % (seg(miss), ' + '.join('(%s)' % sj(vals[i]) for i in given), sj(ans)),
+                 '(검산) (3/2)(PV₍%s₎ - PV₍%s₎) = %s' % (names[(miss + 1) % n], names[miss], sj(float(dUs[miss]) * u))]
+        return mco(body, right, wr, steps=steps, lv='중', fam='d', r=r, core='한 순환에서 ΔU = 0 이므로 모든 과정의 ΔU 를 더하면 0이다.', point='순환 후 내부 에너지 변화 0 을 이용한다.')
+    if form == 'cmp':
+        # A→B 와 C→D 비교(4상태)
+        i, j = 0, 2
+        di, dj = dUs[i], dUs[j]
+        if di == 0 or dj == 0: return None
+        right = ratio_list([di, dj]) if (di > 0) == (dj > 0) else ratio_list([abs(di), abs(dj)]).replace(' : ', ' : −')
+        if (di > 0) != (dj > 0):
+            right = ('' if di > 0 else '−') + ratio_list([abs(di), abs(dj)]).split(' : ')[0] + ' : ' + ('' if dj > 0 else '−') + ratio_list([abs(di), abs(dj)]).split(' : ')[1]
+        else:
+            a_, b_ = ratio_list([abs(di), abs(dj)]).split(' : ')
+            right = ('−' if di < 0 else '') + a_ + ' : ' + ('−' if dj < 0 else '') + b_
+        a_, b_ = ratio_list([abs(di), abs(dj)]).split(' : ')
+        wr = ['%s : %s' % (a_, b_), '−%s : %s' % (a_, b_), '%s : −%s' % (a_, b_), '−%s : −%s' % (a_, b_), '%s : %s' % (b_, a_), '−%s : %s' % (b_, a_), '%s : −%s' % (b_, a_), '%d : %d' % (abs(Ts[1] - Ts[0]), abs(Ts[3] - Ts[2]))]
+        body = P(intro + ' %s 과정과 %s 과정에서 기체의 내부 에너지 변화량의 비 ΔU<sub>%s</sub> : ΔU<sub>%s</sub> 는?' % (seg(i), seg(j), seg(i).replace('→', ''), seg(j).replace('→', ''))) + fig
+        steps = [tabs, 'ΔU<sub>%s</sub> ∝ %d - %d = %d, ΔU<sub>%s</sub> ∝ %d - %d = %d' % (seg(i).replace('→', ''), Ts[1], Ts[0], Ts[1] - Ts[0], seg(j).replace('→', ''), Ts[3], Ts[2], Ts[3] - Ts[2]), '비는 %s' % right]
+        return mco(body, right, wr, steps=steps, lv='상', fam='e', r=r, core='ΔU 는 온도 변화(PV 변화)에 비례하며 온도가 올라가면 +, 내려가면 −이다.', point='부호까지 포함하여 두 과정의 ΔU 를 비교한다.')
+    # bogi
+    bank = stmts_cycle(r, names, sts, kinds, 'PV')
+    i, j = r.sample(range(n), 2)
+    if abs(dUs[i]) == abs(dUs[j]) and dUs[i] != 0:
+        eq = dUs[i] == -dUs[j]
+        bank.append(('%s 과정과 %s 과정에서 기체의 내부 에너지 변화량은 크기가 같고 부호가 반대이다.' % (seg(i), seg(j)), eq, '%s의 ΔU ∝ %d, %s의 ΔU ∝ %d (×(3/2)P₀V₀) 이므로 %s.' % (seg(i), Ts[(i + 1) % n] - Ts[i], seg(j), Ts[(j + 1) % n] - Ts[j], '크기가 같고 부호가 반대이다' if eq else '크기가 같고 부호도 같다'), 'cmp'))
+    else:
+        bank.append(('%s 과정과 %s 과정에서 기체의 내부 에너지 변화량은 크기가 같다.' % (seg(i), seg(j)), abs(dUs[i]) == abs(dUs[j]), '%s의 |ΔU| ∝ %d, %s의 |ΔU| ∝ %d (×(3/2)P₀V₀) 이므로 %s.' % (seg(i), abs(Ts[(i + 1) % n] - Ts[i]), seg(j), abs(Ts[(j + 1) % n] - Ts[j]), '같다' if abs(dUs[i]) == abs(dUs[j]) else '같지 않다'), 'cmp'))
+    if list(dUs).count(max(dUs)) == 1:
+        c = r.randrange(n)
+        bank.append(('기체의 내부 에너지 변화량(ΔU)이 가장 큰 과정은 %s이다.' % seg(c), dUs[c] == max(dUs), '각 과정의 ΔU(단위 (3/2)P₀V₀) : ' + ', '.join('%s %s' % (seg(x), fr_str(dUs[x] * Fraction(2, 3))) for x in range(n)) + ' 이므로 ΔU 가 가장 큰 과정은 %s이다.' % seg(max(range(n), key=lambda x: dUs[x])), 'maxdU'))
+    bank = [b for b in bank if b[1] is not None]
+    sel = pick_stmts(r, bank)
+    if not sel: return None
+    return bogi(intro + ' 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, pre=fig, ask='', r=r, lv='중' if n == 3 else '상', fam='f',
+                core='절대 온도는 PV 에 비례하고 ΔU ∝ ΔT 이므로, 눈금의 P×V 값으로 온도와 ΔU 를 비교한다. 한 순환에서 ΔU = 0 이다.', point='PV 눈금을 곱해 온도·ΔU 를 비교하고 순환 과정의 성질을 적용한다.')

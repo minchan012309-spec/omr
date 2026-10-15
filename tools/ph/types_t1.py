@@ -467,7 +467,7 @@ def g066(r, k):
             vtxt = '%d L에서 %d L' % (V1, V2); vsmall = '%d L' % V1
         else:
             vtxt = '%s m%s에서 %s m%s' % (num(V1 * 1e-3), sup(3), num(V2 * 1e-3), sup(3)); vsmall = ''
-        fig = FIG(cyl_pair((V1) / V2 * 0.9 + 0.1, 1.0, 'V%s' % sub(1), 'V%s' % sub(2), heat='in', t1='처음', t2='나중'), '62%')
+        fig = FIG(cyl_pair((V1) / V2 * 0.9 + 0.1, 1.0, 'V₁', 'V₂', heat='in', t1='처음', t2='나중'), '62%')
         body = P('그림과 같이 실린더 속 이상 기체가 압력 %s로 일정하게 유지되면서 부피가 %s로 팽창하였다. 이 과정에서 기체가 외부에 한 일은? (단, 1 L = 1.0×10%s m%s이다.)' % (pstr, vtxt, sup(-3), sup(3))) + fig
         wr = [W * 1000, W // 1000 if W >= 1000 else W / 1000.0, Pa * V2 * 1e-3, Pa * V1 * 1e-3, W // 2, W * 2, Pa * (V2 - V1)]
         wr = [num(w) + ' J' for w in wr]
@@ -495,7 +495,7 @@ def g066(r, k):
     if form == 'c':    # 압축: 기체가 한 일은 음수
         p = r.choice([1, 2, 3, 4]); V1, V2 = sorted(r.sample([2, 3, 4, 5, 6, 8, 9], 2), reverse=True)
         W = -p * 1e5 * (V1 - V2) * 1e-3
-        fig = FIG(cyl_pair(1.0, (V2 / V1) * 0.9 + 0.1, 'V%s' % sub(1), 'V%s' % sub(2), heat='out', t1='처음', t2='나중'), '62%')
+        fig = FIG(cyl_pair(1.0, (V2 / V1) * 0.9 + 0.1, 'V₁', 'V₂', heat='out', t1='처음', t2='나중'), '62%')
         body = P('실린더 속 이상 기체가 압력 %d.0×10%s Pa로 일정하게 유지되면서 부피가 %d L에서 %d L로 압축되었다. 이 과정에서 기체가 한 일은? (단, 1 L = 1.0×10%s m%s이며, 기체가 외부에 하는 일을 +로 한다.)' % (p, sup(5), V1, V2, sup(-3), sup(3))) + fig
         mag = abs(W)
         wr = ['+%s J' % num(mag), '+%s J' % num(mag / 2), '−%s J' % num(mag * 2), '−%s J' % num(mag * 1000), '−%s J' % num(p * 1e5 * V2 * 1e-3), '+%s J' % num(p * 1e5 * V2 * 1e-3), '0']
@@ -965,7 +965,7 @@ def g070(r, k):
         P2 = c // V2
         ask = r.choice(['P', 'V'])
         if ask == 'P':
-            body = P('온도가 일정하게 유지되는 실린더 속 이상 기체의 압력이 %d기압, 부피가 %d L이다. 이 기체의 부피를 %d L로 바꾸었을 때 압력은?' % (P1, V1, V2)) + FIG(cyl_pair(V1 / max(V1, V2) * 0.85 + 0.1, V2 / max(V1, V2) * 0.85 + 0.1, 'V%s' % sub(1), 'V%s' % sub(2), t1='처음', t2='나중'), '58%')
+            body = P('온도가 일정하게 유지되는 실린더 속 이상 기체의 압력이 %d기압, 부피가 %d L이다. 이 기체의 부피를 %d L로 바꾸었을 때 압력은?' % (P1, V1, V2)) + FIG(cyl_pair(V1 / max(V1, V2) * 0.85 + 0.1, V2 / max(V1, V2) * 0.85 + 0.1, 'V₁', 'V₂', t1='처음', t2='나중'), '58%')
             right = '%d기압' % P2
             wr = ['%d기압' % (P1 + V2 - V1) if P1 + V2 - V1 > 0 else '%d기압' % (P2 + 2), '%s기압' % num(P1 * V2 / V1), '%d기압' % (P2 * 2), '%s기압' % num(P2 / 2.0), '%d기압' % P1, '%d기압' % (P1 * V1 * V2)]
             st = ['등온 과정이므로 보일 법칙 PV = 일정 이다.', '%d × %d = P%s × %d 에서 P%s = %d기압' % (P1, V1, sub(2), V2, sub(2), P2)]
@@ -1144,7 +1144,7 @@ def g071(r, k):
         T2 = Fraction(T1 * U2, U1)
         if T2.denominator != 1: return None
         T2 = int(T2)
-        fig = FIG(cyl_pair(0.4, 0.85, 'V%s' % sub(1), 'V%s' % sub(2), ins=True, t1='처음', t2='나중') if exp_ else cyl_pair(0.85, 0.4, 'V%s' % sub(1), 'V%s' % sub(2), ins=True, t1='처음', t2='나중'), '58%')
+        fig = FIG(cyl_pair(0.4, 0.85, 'V₁', 'V₂', ins=True, t1='처음', t2='나중') if exp_ else cyl_pair(0.85, 0.4, 'V₁', 'V₂', ins=True, t1='처음', t2='나중'), '58%')
         base = '그림과 같이 단열된 실린더 속 이상 기체가 %s' % (('팽창하면서 외부에 %d J의 일을 하였다.' % W) if exp_ else ('압축되면서 외부로부터 %d J의 일을 받았다.' % W))
         if ask == 'dU':
             body = P(base + ' 이 과정에서 기체의 내부 에너지 변화는?') + fig
