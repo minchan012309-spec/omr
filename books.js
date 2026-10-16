@@ -865,6 +865,30 @@ function ebkGlInit(){if(EBK.G)return EBK.G;const cv=document.getElementById('ebc
   const mk=()=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);return t};
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
   EBK.G={gl,pr,U,tF:mk(),tK:mk()};return EBK.G}catch(e){console.warn('curl init',e);return null}}
+
+/* WebGL을 못 쓰는 기기용: 같은 원통 말림을 2D 캔버스로 세로 띠(strip)를 그려 구현 */
+function ebkMirrorCv(src){const c=document.createElement('canvas');c.width=src.width;c.height=src.height;const g=c.getContext('2d');g.translate(c.width,0);g.scale(-1,1);g.drawImage(src,0,0);return c}
+function ebkCurlDraw2D(t,raw){const r=EBK.r2,s=EBK.cs;if(!r||!s)return;const cv=r.cv,g=r.g,W=cv.width,H=cv.height;
+ const e=raw?t:(t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2);let a,R;if(s.book){a=1-.5*e;R=.075*Math.pow(Math.sin(Math.PI*e),.75)+.004}else{R=.07;a=1-1.14*e}
+ const lo=s.book?.5:0,L=1-lo,mir=s.dir<0,PI=Math.PI;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,W,H);if(mir){g.translate(W,0);g.scale(-1,1)}
+ const F=mir?r.Fm:r.F,K=mir?r.Km:r.K,PAPER='rgba(247,245,240,.78)';
+ const strip=(img,u0,u1,x0,x1,flip)=>{if(x1-x0<.5||!img)return;const iw=img.width,ih=img.height;const sx=Math.max(0,Math.min(iw-1,u0*iw)),sw=Math.max(1,Math.min(iw-sx,(u1-u0)*iw));
+  if(flip){g.save();g.translate(x0+x1,0);g.scale(-1,1);g.drawImage(img,sx,0,sw,ih,x0,0,x1-x0,H);g.restore()}else g.drawImage(img,sx,0,sw,ih,x0,0,x1-x0,H)};
+ // 1) 아직 안 말린 앞면
+ const fe=Math.min(a,1);if(fe>lo)strip(F,0,(fe-lo)/L,lo*W,fe*W);
+ // 2) 말려 올라가 뒤로 누운 뒷면
+ const Lb=(1-a)-PI*R;if(Lb>0){const xs=Math.max(a-Lb,0),xoS=a+PI*R+(a-xs),xoA=a+PI*R;
+  if(s.book){strip(K,1-(xoS-lo)/L,1-(xoA-lo)/L,xs*W,a*W)}else{strip(F,(xoA-lo)/L,(xoS-lo)/L,xs*W,a*W,true);g.fillStyle=PAPER;g.fillRect(xs*W,0,(a-xs)*W,H)}
+  g.fillStyle='rgba(0,0,0,.07)';g.fillRect(xs*W,0,(a-xs)*W,H)}
+ // 3) 원통 부분
+ const c0=Math.max(0,Math.floor(a*W)),c1=Math.min(W,Math.ceil((a+R)*W));
+ for(let c=c0;c<c1;c++){const x=(c+.5)/W,d=x-a;if(d<0||d>R)continue;const th=Math.asin(Math.min(1,d/R)),xo2=a+(PI-th)*R;
+  const iw=(F||K).width,sww=Math.max(1,iw/W*1.3);
+  if(xo2<=1&&xo2>=lo){const u=s.book?1-(xo2-lo)/L:(xo2-lo)/L,img=s.book?K:F;g.drawImage(img,Math.max(0,Math.min(img.width-sww,u*img.width-sww/2)),0,sww,img.height,c,0,1.3,H);
+   if(!s.book){g.fillStyle=PAPER;g.fillRect(c,0,1.3,H)}g.fillStyle='rgba(0,0,0,'+(1-(.86+.12*Math.cos(th*.7)))+')';g.fillRect(c,0,1.3,H);const hl=.10*Math.pow(Math.min(1,d/R),5);if(hl>.004){g.fillStyle='rgba(255,255,255,'+hl+')';g.fillRect(c,0,1.3,H)}}
+  else{const xo1=a+th*R;if(xo1<lo||xo1>1)continue;const u=(xo1-lo)/L;g.drawImage(F,Math.max(0,Math.min(F.width-sww,u*F.width-sww/2)),0,sww,F.height,c,0,1.3,H);g.fillStyle='rgba(0,0,0,'+(1-(.66+.34*Math.cos(th)))+')';g.fillRect(c,0,1.3,H)}}
+ // 4) 말려 올라간 쪽 아래로 드리운 그림자
+ if(a<.999){const x0=(a+R)*W,x1=Math.min(W,x0+.09*W);if(x1>x0){const gr=g.createLinearGradient(x0,0,x1,0);gr.addColorStop(0,'rgba(0,0,0,.34)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x0,0,x1-x0,H)}}}
 function ebkGlPlace(){const cv=document.getElementById('ebcv'),spp=document.querySelector('#ebsp .spp'),st=document.getElementById('ebst');if(!cv||!spp)return false;
  const r=spp.getBoundingClientRect(),s=st.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);cv.style.left=(r.left-s.left+st.scrollLeft)+'px';cv.style.top=(r.top-s.top+st.scrollTop)+'px';cv.style.width=r.width+'px';cv.style.height=r.height+'px';
  const w=Math.min(2800,Math.round(r.width*d)),h=Math.min(2800,Math.round(r.height*d));if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}return true}
@@ -886,25 +910,30 @@ function ebkMakePage(n){const d=document.createElement('div');if(n<1||n>EBK.N){d
  const r=bkShadow(d.querySelector('.pgh'),EBKCSS+'<div class="bkdoc scr" style="--bks:1">'+bkPageHtml(EBK.plan,n-1)+'</div>');
  r.addEventListener('click',ev=>{if(EBK.tool!=='none'||EBK.noclick)return;const q=ev.target.closest&&ev.target.closest('.no,.qn');if(!q)return;const u=q.closest('.u.q[data-c]');if(u)ebkReveal(u.dataset.c)});ebkBindDraw(d.querySelector('canvas.pgc'));return d}
 const EBKCSS='<style>.u.q .no,.u.q .qn{cursor:pointer}.u.q .no.ebon,.u.q .qn.ebon{background:#ffe27a!important;color:#222!important;border-radius:5px;box-shadow:0 0 0 2px #f7b928}</style>';
-function ebkCurlDraw(t,raw){const G=EBK.G;if(!G||!EBK.cs)return;const {gl,U}=G,s=EBK.cs;const e=raw?t:(t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2);let a,R;
+function ebkCurlDraw(t,raw){if(EBK.r2){ebkCurlDraw2D(t,raw);return}const G=EBK.G;if(!G||!EBK.cs)return;const {gl,U}=G,s=EBK.cs;const e=raw?t:(t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2);let a,R;
  if(s.book){a=1-.5*e;R=.075*Math.pow(Math.sin(Math.PI*e),.75)+.004}else{R=.07;a=1-1.14*e}
  gl.viewport(0,0,gl.canvas.width,gl.canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
  gl.uniform1f(U.a,a);gl.uniform1f(U.R,R);gl.uniform1f(U.lo,s.book?.5:0);gl.uniform1f(U.mirror,s.dir<0?1:0);gl.uniform1f(U.mode,s.book?0:1);gl.uniform1f(U.hasK,s.k?1:0);
  gl.drawArrays(gl.TRIANGLE_STRIP,0,4)}
 async function ebkCurlPrep(s){ // 텍스처 준비 → 캔버스 보이기 → 아래 쪽 갈아 끼우기
- const G=ebkGlInit();if(!G){EBK.curlErr='이 기기에서 WebGL을 쓸 수 없어요';return false}if(!window.html2canvas){EBK.curlErr='쪽 그림 라이브러리(html2canvas)를 불러오지 못했어요';return false}const [F,K]=await Promise.all([ebkTex(s.f),s.k?ebkTex(s.k):null]);if(!document.getElementById('ebk'))return false;
- if(!ebkGlPlace()){EBK.curlErr='효과 화면을 배치하지 못했어요';return false}const {gl,U}=G;gl.useProgram(G.pr);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,G.tF);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,F);gl.uniform1i(U.F,0);
- gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,G.tK);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,K||F);gl.uniform1i(U.K,1);
- EBK.cs=s;ebkCurlDraw(0);document.getElementById('ebcv').style.display='block';
+ const G=ebkGlInit();if(!window.html2canvas){EBK.curlErr='쪽 그림 라이브러리(html2canvas)를 불러오지 못했어요';return false}
+ const [F,K]=await Promise.all([ebkTex(s.f),s.k?ebkTex(s.k):null]);if(!document.getElementById('ebk'))return false;
+ if(!ebkGlPlace()){EBK.curlErr='효과 화면을 배치하지 못했어요';return false}
+ const cv=document.getElementById('ebcv');EBK.r2=null;
+ if(G){const {gl,U}=G;gl.useProgram(G.pr);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,G.tF);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,F);gl.uniform1i(U.F,0);
+  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,G.tK);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,K||F);gl.uniform1i(U.K,1)}
+ else{let g=null;try{g=cv.getContext('2d')}catch(e){}if(!g){EBK.curlErr='이 기기에서 캔버스를 쓸 수 없어요';return false}
+  const mir=s.dir<0;EBK.r2={cv,g,F:mir?null:F,K:mir?null:(K||F),Fm:mir?ebkMirrorCv(F):null,Km:mir?ebkMirrorCv(K||F):null}}
+ EBK.cs=s;ebkCurlDraw(0);cv.style.display='block';
  const spp=document.querySelector('#ebsp .spp');const kids=spp.querySelectorAll('.pgw');const old=kids[s.book?s.el:0];if(old){const nw=ebkMakePage(s.newN);nw.style.width=old.style.width;nw.style.height=old.style.height;old.replaceWith(nw);ebkScale()}
  return true}
-function ebkCurlEnd(done){const c=document.getElementById('ebcv');if(c)c.style.display='none';EBK.cs=null;EBK.busy=0;if(done&&EBK.np)EBK.p=EBK.np;EBK.np=0;ebkDraw()}
+function ebkCurlEnd(done){const c=document.getElementById('ebcv');if(c)c.style.display='none';EBK.cs=null;EBK.r2=null;EBK.busy=0;if(done&&EBK.np)EBK.p=EBK.np;EBK.np=0;ebkDraw()}
 function ebkAnim(from,to,ms,raw){return new Promise(res=>{const t0=performance.now();const f=now=>{const k=Math.min(1,(now-t0)/ms);const t=raw?from+(to-from)*(1-(1-k)*(1-k)):from+(to-from)*k;ebkCurlDraw(t,raw);if(k<1)requestAnimationFrame(f);else res()};requestAnimationFrame(f)})}
 async function ebkFlip(dir){if(EBK.busy)return;const s=ebkSpec(dir);if(!s)return;EBK.busy=1;
  const sp=document.getElementById('ebld');const tm=setTimeout(()=>{if(sp)sp.style.display='block'},260);let ok=false;EBK.curlErr='';
  try{ok=await Promise.race([ebkCurlPrep(s),new Promise((_,rej)=>setTimeout(()=>rej(new Error('쪽 그림을 만드는 데 너무 오래 걸려요')),4500))])}catch(e){EBK.curlErr=String((e&&e.message)||e);console.warn('curl',e)}
  clearTimeout(tm);if(sp)sp.style.display='none';
- if(!ok){const c=document.getElementById('ebcv');if(c)c.style.display='none';EBK.cs=null;EBK.busy=0;EBK.p=s.np;EBK.rev=[];
+ if(!ok){const c=document.getElementById('ebcv');if(c)c.style.display='none';EBK.cs=null;EBK.r2=null;EBK.busy=0;EBK.p=s.np;EBK.rev=[];
   if(!EBK.warned){EBK.warned=1;toast('말아 올리기 효과를 쓸 수 없어 기본 효과로 넘겨요 ('+(EBK.curlErr||'알 수 없음')+')')}
   ebkDraw(0,0,dir);return}
  EBK.np=s.np;EBK.rev=[];try{await ebkAnim(0,1,s.book?950:800)}catch(e){console.warn(e)}ebkCurlEnd(true)}

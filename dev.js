@@ -222,7 +222,9 @@ async function devCurl(){const el=document.getElementById('devb');el.innerHTML='
  try{await bkLoad()}catch(e){add(false,'교재 스크립트','불러오지 못함');return}
  add(true,'브라우저',navigator.userAgent.slice(0,90));
  let gl=null;try{const c=document.createElement('canvas');gl=c.getContext('webgl')||c.getContext('experimental-webgl')}catch(e){}
- if(!gl){add(false,'WebGL','사용 불가','Safari 설정(고급 ▸ 실험적 기능)에서 WebGL이 꺼져 있거나, 저전력 모드/하드웨어 가속이 꺼져 있을 수 있어요');return}
+ if(!gl){add(true,'WebGL','사용 불가 → 대신 일반(2D) 방식으로 말아 올려요(조금 덜 부드러울 수 있어요). 하드웨어 가속을 켜면 더 부드러워요');
+  try{await bkLoadJs('lib/html2canvas.min.js',()=>window.html2canvas);add(!!window.html2canvas,'쪽 그림 라이브러리','불러옴')}catch(e){add(false,'쪽 그림 라이브러리','불러오지 못함')}
+  const c2=document.createElement('canvas');add(!!c2.getContext('2d'),'2D 캔버스','사용 가능');const err0=(typeof EBK!=='undefined'&&EBK.curlErr)||'';if(err0)add(false,'마지막 넘김 실패 이유',err0);return}
  let rend='';try{const x=gl.getExtension('WEBGL_debug_renderer_info');rend=x?gl.getParameter(x.UNMASKED_RENDERER_WEBGL):''}catch(e){}
  add(true,'WebGL','사용 가능 · 최대 텍스처 '+gl.getParameter(gl.MAX_TEXTURE_SIZE)+(rend?' · '+rend:''));
  const sh=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return gl.getShaderParameter(o,gl.COMPILE_STATUS)?'':gl.getShaderInfoLog(o)};
