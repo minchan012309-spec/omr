@@ -221,6 +221,7 @@ async function devCurl(){const el=document.getElementById('devb');el.innerHTML='
  const out=[];const add=(ok,l,m,h)=>{out.push(`<div class="${ok?'ok':'bad'}"><i></i><span>${l}</span><em>${esc(m)}${!ok&&h?' — '+esc(h):''}</em></div>`);document.getElementById('cvr').innerHTML=out.join('')};
  try{await bkLoad()}catch(e){add(false,'교재 스크립트','불러오지 못함');return}
  add(true,'브라우저',navigator.userAgent.slice(0,90));
+ try{const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;add(true,'시스템 「동작 줄이기」',rm?'켜져 있어요 (앱의 쪽 넘김 효과는 이 설정과 상관없이 보여 드려요)':'꺼져 있어요')}catch(e){}
  let gl=null;try{const c=document.createElement('canvas');gl=c.getContext('webgl')||c.getContext('experimental-webgl')}catch(e){}
  if(!gl){add(true,'WebGL','사용 불가 → 대신 일반(2D) 방식으로 말아 올려요(조금 덜 부드러울 수 있어요). 하드웨어 가속을 켜면 더 부드러워요');
   try{await bkLoadJs('lib/html2canvas.min.js',()=>window.html2canvas);add(!!window.html2canvas,'쪽 그림 라이브러리','불러옴')}catch(e){add(false,'쪽 그림 라이브러리','불러오지 못함')}
