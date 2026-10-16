@@ -168,6 +168,71 @@ begin
 end $$;
 grant execute on function dev_add(text), dev_remove(uuid), dev_ban(uuid, boolean) to authenticated;
 
+-- 15-5f) 사이트 공지 확장: 게시 기간, 처음 접속 시 팝업
+alter table site_notices add column if not exists start_at bigint;
+alter table site_notices add column if not exists end_at   bigint;
+alter table site_notices add column if not exists popup    boolean not null default false;
+
+-- 15-5g) 사용 현황: 일별 채점, 학생·채점 목록, 가입 대기, 정리 (개발자만)
+create or replace function dev_daily(p_days int default 30) returns json
+language plpgsql security definer set search_path = public as $$
+begin
+  if not is_dev() then raise exception 'not allowed'; end if;
+  return (select coalesce(json_agg(x order by x.d), '[]'::json) from (
+    select to_char(to_timestamp(a.t / 1000.0) at time zone 'Asia/Seoul', 'YYYY-MM-DD') as d,
+           count(*) as n,
+           coalesce(sum(jsonb_array_length(case when jsonb_typeof(a.items) = 'array' then a.items else '[]'::jsonb end)), 0) as q,
+           count(distinct coalesce(a.student_id::text, a.user_id::text)) as u
+    from attempts a
+    where a.t >= (extract(epoch from now() - make_interval(days => greatest(p_days, 1))) * 1000)::bigint
+    group by 1) x);
+end $$;
+
+create or replace function dev_students(p_limit int default 300) returns json
+language plpgsql security definer set search_path = public, auth as $$
+begin
+  if not is_dev() then raise exception 'not allowed'; end if;
+  return (select coalesce(json_agg(x), '[]'::json) from (
+    select s.id, s.name, s.grade, (s.login is not null) as has_login, u.email as teacher,
+           (select count(*) from attempts a where a.student_id = s.id) as attempts,
+           (select max(a.t) from attempts a where a.student_id = s.id) as last_t
+    from students s left join auth.users u on u.id = s.user_id
+    order by s.t desc limit greatest(p_limit, 1)) x);
+end $$;
+
+create or replace function dev_attempts(p_limit int default 100) returns json
+language plpgsql security definer set search_path = public, auth as $$
+begin
+  if not is_dev() then raise exception 'not allowed'; end if;
+  return (select coalesce(json_agg(x), '[]'::json) from (
+    select a.t, a."set", a.sub, s.name as student, u.email as teacher,
+           jsonb_array_length(case when jsonb_typeof(a.items) = 'array' then a.items else '[]'::jsonb end) as n,
+           (select count(*) from jsonb_array_elements(case when jsonb_typeof(a.items) = 'array' then a.items else '[]'::jsonb end) e where (e->>'r') = '1') as right
+    from attempts a left join students s on s.id = a.student_id left join auth.users u on u.id = a.user_id
+    order by a.t desc limit greatest(p_limit, 1)) x);
+end $$;
+
+create or replace function dev_signups() returns json
+language plpgsql security definer set search_path = public, auth as $$
+begin
+  if not is_dev() then raise exception 'not allowed'; end if;
+  return (select coalesce(json_agg(x), '[]'::json) from (
+    select r.id, r.name, r.grade, r.login, r.status, r.t, u.email as teacher
+    from signup_requests r left join auth.users u on u.id = r.user_id order by r.t desc limit 200) x);
+end $$;
+
+create or replace function dev_cleanup() returns json
+language plpgsql security definer set search_path = public as $$
+declare a int; b int; c int;
+begin
+  if not is_dev() then raise exception 'not allowed'; end if;
+  delete from passkey_challenges where created_at < now() - interval '1 hour'; get diagnostics a = row_count;
+  delete from st_tokens where expires_at < now(); get diagnostics b = row_count;
+  delete from dev_log where t < (extract(epoch from now() - interval '180 days') * 1000)::bigint; get diagnostics c = row_count;
+  return json_build_object('challenges', a, 'tokens', b, 'logs', c);
+end $$;
+grant execute on function dev_daily(int), dev_students(int), dev_attempts(int), dev_signups(), dev_cleanup() to authenticated;
+
 -- 15-6) 개발자 등록 ▶ 아래 이메일을 바꾸고 실행
 insert into developers (user_id, email)
 select id, email from auth.users where email = '여기에_개발자_이메일@example.com'
