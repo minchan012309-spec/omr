@@ -727,7 +727,14 @@ async function bkEbook(id){
 #ebk .eba .ai{border:1px solid #dde3ea;border-radius:10px;padding:10px;margin-bottom:10px}#ebk .eba .ai h5{margin:0 0 6px;font-size:14px}#ebk .eba .ai .ans{font-size:18px;font-weight:800;color:#c0392b}
 #ebk.proj .eba{width:min(520px,94vw);font-size:18px}
 #ebk.proj .ebw,#ebk.proj .bt{position:absolute;left:0;right:0;z-index:7;opacity:0;pointer-events:none;transition:opacity .25s}#ebk.proj .ebw{top:0}#ebk.proj .bt{bottom:0}#ebk.proj.show .ebw,#ebk.proj.show .bt{opacity:1;pointer-events:auto}
-#ebk .spp{position:relative;display:flex;flex:none}#ebk #ebcv{position:absolute;pointer-events:none;z-index:5;display:none}#ebk .ld{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#000a;color:#fff;border-radius:10px;padding:8px 14px;z-index:9;display:none;font-size:13px}@keyframes ebFade{from{opacity:.2}to{opacity:1}}#ebk .spp.fd{animation:ebFade .3s ease both}
+#ebk .spp{position:relative;display:flex;flex:none}#ebk #ebcv{position:absolute;pointer-events:none;z-index:5;display:none}#ebk .stg{perspective:1800px}
+#ebk .spp.fwd.two .pgw:last-child{transform-origin:left center;animation:ebTurnF .6s cubic-bezier(.22,.7,.2,1) both}#ebk .spp.back.two .pgw:first-child{transform-origin:right center;animation:ebTurnB .6s cubic-bezier(.22,.7,.2,1) both}
+#ebk .spp.fwd.two .pgw:first-child,#ebk .spp.back.two .pgw:last-child{animation:ebFade .4s ease both}
+#ebk .spp.fwd.one .pgw{animation:ebSlideF .4s cubic-bezier(.22,.7,.2,1) both}#ebk .spp.back.one .pgw{animation:ebSlideB .4s cubic-bezier(.22,.7,.2,1) both}
+@keyframes ebTurnF{from{transform:rotateY(-78deg);opacity:.15;filter:brightness(.7)}to{transform:none;opacity:1;filter:none}}@keyframes ebTurnB{from{transform:rotateY(78deg);opacity:.15;filter:brightness(.7)}to{transform:none;opacity:1;filter:none}}
+@keyframes ebSlideF{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}@keyframes ebSlideB{from{transform:translateX(-60px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){#ebk .spp .pgw{animation:none!important}}
+#ebk .ld{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#000a;color:#fff;border-radius:10px;padding:8px 14px;z-index:9;display:none;font-size:13px}@keyframes ebFade{from{opacity:.2}to{opacity:1}}#ebk .spp.fd{animation:ebFade .3s ease both}
 #ebk .laser{position:fixed;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:radial-gradient(circle,#ff2b2b 0 35%,#ff2b2b66 36% 70%,#0000 71%);pointer-events:none;z-index:9;display:none}
 @media (max-width:700px){#ebk .eb,#ebk .et{gap:4px;padding:5px 6px}#ebk button,#ebk select{padding:5px 8px}}</style>
 <div class="ebw"><div class="eb"><button onclick="bkEbookClose()">닫기</button><b>${esc(plan.title)}</b>
@@ -772,7 +779,7 @@ function ebkProj(on){const el=document.getElementById('ebk');if(!el)return;on=on
 function ebkSpread(){const st=document.getElementById('ebst');const w=st.clientWidth,h=st.clientHeight;return EBK.view==='two'||(EBK.view==='auto'&&w>=h*1.25&&w>=900)}
 function ebkView(){EBK.view=EBK.view==='auto'?'one':EBK.view==='one'?'two':'auto';ebkSave(EBK.id,{view:EBK.view});EBK.z=1;ebkDraw(0,1)}
 function ebkStep(d){if(EBK.busy)return;if(EBK.z>1.02){ebkStepDirect(d);return}ebkFlip(d>0?1:-1)}
-function ebkStepDirect(d){const s=ebkSpec(d>0?1:-1);if(!s)return;EBK.p=s.np;EBK.rev=[];ebkDraw()}
+function ebkStepDirect(d){const s=ebkSpec(d>0?1:-1);if(!s)return;EBK.p=s.np;EBK.rev=[];ebkDraw(0,0,d>0?1:-1)}
 function ebkGo(p,noanim){if(!p||EBK.busy)return;p=Math.max(1,Math.min(EBK.N,p));const two=ebkSpread();const sp=q=>two?(q%2===0?q:q-1):q;const cur=sp(EBK.p),nw=sp(p);
  if(!noanim&&EBK.z<=1.02&&Math.abs(nw-cur)===(two?2:1)&&nw!==cur){const dir=nw>cur?1:-1;const s=ebkSpec(dir);if(s&&s.np===(two?(nw<1?1:nw):nw)){ebkFlip(dir);return}}
  EBK.p=p;EBK.rev=[];ebkDraw(0,1)}
@@ -820,9 +827,9 @@ function ebkMarkNums(){document.querySelectorAll('#ebsp .pgh').forEach(h=>{const
 function ebkRevDraw(){const el=document.getElementById('ebal');if(!el)return;if(!EBK.rev.length){el.innerHTML='<div style="color:#667;font-size:13px;line-height:1.6">문제 <b>번호</b>를 누르면 정답과 해설이 여기에 나와요.<br>다시 누르면 닫혀요.</div>';return}
  el.innerHTML=EBK.rev.map((c,i)=>`<div class="ai" id="ebai${i}"><h5>${esc(c)}${(byCode[c]||{}).type?' · '+esc(byCode[c].type):''}</h5><div class="ans">정답 ${esc(['mc','top','bank'].includes((byCode[c]||{}).set)||/^[1-5](,[1-5])*$/.test(String((byCode[c]||{}).ans))?bkCir((byCode[c]||{}).ans):String((byCode[c]||{}).ans||'-'))}</div><div class="ex"></div></div>`).join('');
  EBK.rev.forEach((c,i)=>{const q=byCode[c];const h=document.querySelector('#ebai'+i+' .ex');if(h&&q&&q.exp)mount(h,q.exp)})}
-function ebkDraw(keep,fade){const sp=document.getElementById('ebsp');if(!sp)return;const two=ebkSpread();const {N}=EBK;let p=EBK.p;
+function ebkDraw(keep,fade,dir){const sp=document.getElementById('ebsp');if(!sp)return;const two=ebkSpread();const {N}=EBK;let p=EBK.p;
  let ps;if(two){const lo=p%2===0?p:p-1;ps=[lo,lo+1];if(lo<1)ps=[0,1]}else ps=[p];
- sp.className='sp';sp.innerHTML='<div class="spp'+(fade?' fd':'')+'"></div>';const spp=sp.firstChild;ps.forEach(n=>spp.appendChild(ebkMakePage(n)));
+ sp.className='sp';sp.innerHTML='<div class="spp'+(fade?' fd':'')+(dir>0?' fwd':dir<0?' back':'')+(two?' two':' one')+'"></div>';const spp=sp.firstChild;ps.forEach(n=>spp.appendChild(ebkMakePage(n)));
  ebkScale();ebkMarkNums();
  const shown=ps.filter(n=>n>=1&&n<=N);EBK.p=Math.min(...shown);const cur=EBK.p;ebkSave(EBK.id,{last:cur});
  const r=document.getElementById('ebr');r.value=cur;document.getElementById('ebc').textContent=shown.join('-')+' / '+N;
@@ -885,8 +892,8 @@ function ebkCurlDraw(t,raw){const G=EBK.G;if(!G||!EBK.cs)return;const {gl,U}=G,s
  gl.uniform1f(U.a,a);gl.uniform1f(U.R,R);gl.uniform1f(U.lo,s.book?.5:0);gl.uniform1f(U.mirror,s.dir<0?1:0);gl.uniform1f(U.mode,s.book?0:1);gl.uniform1f(U.hasK,s.k?1:0);
  gl.drawArrays(gl.TRIANGLE_STRIP,0,4)}
 async function ebkCurlPrep(s){ // 텍스처 준비 → 캔버스 보이기 → 아래 쪽 갈아 끼우기
- const G=ebkGlInit();if(!G||!window.html2canvas)return false;const [F,K]=await Promise.all([ebkTex(s.f),s.k?ebkTex(s.k):null]);if(!document.getElementById('ebk'))return false;
- if(!ebkGlPlace())return false;const {gl,U}=G;gl.useProgram(G.pr);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,G.tF);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,F);gl.uniform1i(U.F,0);
+ const G=ebkGlInit();if(!G){EBK.curlErr='이 기기에서 WebGL을 쓸 수 없어요';return false}if(!window.html2canvas){EBK.curlErr='쪽 그림 라이브러리(html2canvas)를 불러오지 못했어요';return false}const [F,K]=await Promise.all([ebkTex(s.f),s.k?ebkTex(s.k):null]);if(!document.getElementById('ebk'))return false;
+ if(!ebkGlPlace()){EBK.curlErr='효과 화면을 배치하지 못했어요';return false}const {gl,U}=G;gl.useProgram(G.pr);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,G.tF);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,F);gl.uniform1i(U.F,0);
  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,G.tK);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,K||F);gl.uniform1i(U.K,1);
  EBK.cs=s;ebkCurlDraw(0);document.getElementById('ebcv').style.display='block';
  const spp=document.querySelector('#ebsp .spp');const kids=spp.querySelectorAll('.pgw');const old=kids[s.book?s.el:0];if(old){const nw=ebkMakePage(s.newN);nw.style.width=old.style.width;nw.style.height=old.style.height;old.replaceWith(nw);ebkScale()}
@@ -894,9 +901,13 @@ async function ebkCurlPrep(s){ // 텍스처 준비 → 캔버스 보이기 → �
 function ebkCurlEnd(done){const c=document.getElementById('ebcv');if(c)c.style.display='none';EBK.cs=null;EBK.busy=0;if(done&&EBK.np)EBK.p=EBK.np;EBK.np=0;ebkDraw()}
 function ebkAnim(from,to,ms,raw){return new Promise(res=>{const t0=performance.now();const f=now=>{const k=Math.min(1,(now-t0)/ms);const t=raw?from+(to-from)*(1-(1-k)*(1-k)):from+(to-from)*k;ebkCurlDraw(t,raw);if(k<1)requestAnimationFrame(f);else res()};requestAnimationFrame(f)})}
 async function ebkFlip(dir){if(EBK.busy)return;const s=ebkSpec(dir);if(!s)return;EBK.busy=1;
- const sp=document.getElementById('ebld');const tm=setTimeout(()=>{if(sp)sp.style.display='block'},260);let ok=false;try{ok=await ebkCurlPrep(s)}catch(e){console.warn(e)}clearTimeout(tm);if(sp)sp.style.display='none';
- if(!ok){EBK.busy=0;EBK.p=s.np;EBK.rev=[];ebkDraw();return}
- EBK.np=s.np;EBK.rev=[];await ebkAnim(0,1,s.book?950:800);ebkCurlEnd(true)}
+ const sp=document.getElementById('ebld');const tm=setTimeout(()=>{if(sp)sp.style.display='block'},260);let ok=false;EBK.curlErr='';
+ try{ok=await Promise.race([ebkCurlPrep(s),new Promise((_,rej)=>setTimeout(()=>rej(new Error('쪽 그림을 만드는 데 너무 오래 걸려요')),4500))])}catch(e){EBK.curlErr=String((e&&e.message)||e);console.warn('curl',e)}
+ clearTimeout(tm);if(sp)sp.style.display='none';
+ if(!ok){const c=document.getElementById('ebcv');if(c)c.style.display='none';EBK.cs=null;EBK.busy=0;EBK.p=s.np;EBK.rev=[];
+  if(!EBK.warned){EBK.warned=1;toast('말아 올리기 효과를 쓸 수 없어 기본 효과로 넘겨요 ('+(EBK.curlErr||'알 수 없음')+')')}
+  ebkDraw(0,0,dir);return}
+ EBK.np=s.np;EBK.rev=[];try{await ebkAnim(0,1,s.book?950:800)}catch(e){console.warn(e)}ebkCurlEnd(true)}
 /* 끌어서 넘기기: 가로로 끌면 손가락을 따라 말려 올라가고, 놓을 때 3할 넘게 말렸으면 끝까지 넘김 */
 function ebkScrubBind(s){let st=null;
  s.addEventListener('pointerdown',e=>{if(EBK.busy||EBK.tool!=='none'||EBK.z>1.02||e.button>0)return;if(e.target.closest&&e.target.closest('button,select,input,.eba'))return;st={x:e.clientX,y:e.clientY,id:e.pointerId,state:0,dx:0}},true);
