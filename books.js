@@ -5,7 +5,7 @@ const BK_MM=96/25.4,BK_BODY=240,BK_COLW=89,BK_FULLW=186;
 const BKP={},BKSELC={},BKH={};let BKHT=null,BKREADY=null;
 const BKCIR='①②③④⑤⑥⑦⑧⑨⑩';
 const bkLv=q=>q.lv0||q.lv||'';
-const BKPAL={cm:{p:'#2f9d66',pd:'#1f7d4e',pl:'#eefcf5',pl2:'#d9f8e8',line:'#b0e3c9'},me:{p:'#2f7fd0',pd:'#1d5ca6',pl:'#eef5fc',pl2:'#d9e8f8',line:'#b9cfe6'}};
+const BKPAL={cm:{p:'#2f9d66',pd:'#1f7d4e',pl:'#eefcf5',pl2:'#d9f8e8',line:'#b0e3c9'},me:{p:'#2f7fd0',pd:'#1d5ca6',pl:'#eef5fc',pl2:'#d9e8f8',line:'#b9cfe6'},ph:{p:'#6d4cc4',pd:'#5a3bad',pl:'#f3effc',pl2:'#e4dbf8',line:'#cdbfef'}};
 const BKPADS=[2.8,4.5,6.5,9];
 let BKO=(()=>{try{return JSON.parse(localStorage.getItem('omr_bko')||'{}')}catch(e){return {}}})();
 const bkOsig=()=>(BKO.color||'')+'|'+(BKO.font||'')+'|'+(BKO.design||'');
@@ -266,7 +266,7 @@ function bkSel(){
  const used=new Set();
  subs.forEach(s=>{const lows=base.filter(q=>q.sub===s.k&&q.set==='mc'&&bkLv(q)==='하').sort(byNo);
   const pick=bkFitBasic(s,lows);S.basic[s.k]=pick;pick.forEach(q=>used.add(q.code))});
- const cap={me:255,cm:999}[SUBJ]||255,ecap={me:25,cm:99}[SUBJ]||25;
+ const cap={me:255,cm:999,ph:999}[SUBJ]||255,ecap={me:25,cm:99,ph:99}[SUBJ]||25;
  let pool=base.filter(q=>(q.set==='mc'||q.set==='top')&&!used.has(q.code));
  if(pool.length>cap)pool=bkPickType(pool,cap);
  const so=s=>subs.findIndex(x=>x.k===s);
@@ -336,9 +336,10 @@ function bkPageObjs(pg,extra){return pg.cols.map(c=>c.map(u=>u.html))}
 function bkQrPg(pages,k,kind,sub,label,pgs,extra){pgs.forEach(p=>{pages.push({k,kind,sub,label,...bkCI(p),codes:p.cols.flat().map(u=>u.code).filter(Boolean),...extra})})}
 
 function bkSbn(s,extra){return '<div class="u sbn"><b><i>'+esc(s.k)+'</i>'+esc(s.name)+'</b>'+(s.goal?'<span class="g">'+esc(s.goal)+'</span>':'')+(extra||'')+'</div>'}
+const bkScope=S=>{const sc=(CONC[SUBJ]||{}).scope;const a=sc&&sc.length?S.subs.filter(s=>sc.includes(s.k)):S.subs;return a.length?a:S.subs};
 function bkPlanConcept(id){
  const S=bkSel(),C=CONC[SUBJ]||{secs:[]};const pages=[{k:'cover'},{k:'toc'}];const toc=[];
- S.subs.forEach(s=>{
+ bkScope(S).forEach(s=>{
   const row={sub:s,c:null,ox:null,bl:null,mc:null};
   const secs=(C.secs||[]).filter(x=>x.sub===s.k);
   const cu=[bkU('sb:'+s.k+':c',bkSbn(s,'<div class="rf">[[REF:'+s.k+']]</div>'),{w:BK_FULLW,brk:true,keep:true})];
@@ -362,7 +363,7 @@ function bkPlanConcept(id){
   toc.push(row)});
  // 정답
  const au=[];
- S.subs.forEach(s=>{
+ bkScope(S).forEach(s=>{
   au.push(bkU('as:'+s.k,'<div class="u ct"><span>'+esc(s.k)+' '+esc(s.name)+'</span></div>',{keep:true}));
   [['ox','OX 정답',S.ox[s.k]],['bl','빈칸 정답',S.bl[s.k]]].forEach(([kd,nm,arr])=>{if(!arr||!arr.length)return;
    const cells=arr.map((q,i)=>'<div><b>'+(i+1)+'</b><span>'+(kd==='ox'?bkAnsOf(q):esc((q.blanks||[]).join(' / ')))+'</span></div>').join('');
@@ -378,8 +379,8 @@ function bkPlanConcept(id){
  return {kind:'c',title:SNAME[SUBJ]+' 개념서',short:'개념서',pages,toc,aStart,sel:S}}
 
 function bkPlanType(id){
- const S=bkSel();const pages=[{k:'cover'},{k:'toc'}];const toc=[];let no=0;const nums=new Map();
- S.subs.forEach(s=>{
+ const S=bkSel();const esS=S.essay.filter(q=>bkScope(S).some(s=>s.k===q.sub));const pages=[{k:'cover'},{k:'toc'}];const toc=[];let no=0;const nums=new Map();
+ bkScope(S).forEach(s=>{
   const qs=S.type.filter(q=>q.sub===s.k);if(!qs.length)return;
   const units=[bkU('sb:'+s.k+':t',bkSbn({k:s.k,name:s.name,goal:''},'<span class="g">'+bkTags(s)+'</span>'),{brk:true,keep:true})];
   let cur=null,ti=0;
@@ -389,17 +390,17 @@ function bkPlanType(id){
   const row={sub:s,n:qs.length,p:pages.length+1};toc.push(row);
   bkPack(units,2,BK_BODY).forEach(p=>pages.push({k:'pr',kind:'t',sub:s,label:'유형 문제',...bkCI(p),codes:p.cols.flat().map(u=>u.code).filter(Boolean)}))});
  // 서술형
- if(S.essay.length){const eu=[bkU('sb:es',bkSbn({k:'서술형',name:'서술형 · 최상위 도전',goal:''},'<span class="g">풀이 과정을 서술해 보세요. 맨 뒤 모범 답안과 비교해 스스로 채점합니다.</span>'),{brk:true,keep:true})];
-  S.essay.forEach((q,i)=>{no++;nums.set(q.code,no);eu.push(bkU('q:'+q.code+':e',bkQHtml(q,no,{ans:1,code:1,lv:bkLv(q)}),{code:q.code}))});
-  toc.es={n:S.essay.length,p:pages.length+1};
+ if(esS.length){const eu=[bkU('sb:es',bkSbn({k:'서술형',name:'서술형 · 최상위 도전',goal:''},'<span class="g">풀이 과정을 서술해 보세요. 맨 뒤 모범 답안과 비교해 스스로 채점합니다.</span>'),{brk:true,keep:true})];
+  esS.forEach((q,i)=>{no++;nums.set(q.code,no);eu.push(bkU('q:'+q.code+':e',bkQHtml(q,no,{ans:1,code:1,lv:bkLv(q)}),{code:q.code}))});
+  toc.es={n:esS.length,p:pages.length+1};
   bkPack(eu,2,BK_BODY).forEach(p=>pages.push({k:'es',kind:'e',label:'서술형',...bkCI(p)}))}
  // 정답·해설
  const au=[];
- S.subs.forEach(s=>{const qs=S.type.filter(q=>q.sub===s.k);if(!qs.length)return;
+ bkScope(S).forEach(s=>{const qs=S.type.filter(q=>q.sub===s.k);if(!qs.length)return;
   au.push(bkU('as:'+s.k,'<div class="u ct"><span>'+esc(s.k)+' '+esc(s.name)+'</span></div>',{keep:true}));
   au.push(bkU('akt:'+s.k,'<div class="u k"><div class="ct sm"><span>빠른 정답</span></div><div class="kg">'+qs.map(q=>'<div><b>'+nums.get(q.code)+'</b><span>'+bkCir(q.ans)+'</span></div>').join('')+'</div></div>',{}));
   qs.forEach(q=>au.push(bkU('x:'+q.code,bkXHtml(q,nums.get(q.code)),{})))});
- if(S.essay.length){au.push(bkU('as:es','<div class="u ct"><span>서술형 모범 답안</span></div>',{keep:true}));S.essay.forEach(q=>au.push(bkU('x:'+q.code,bkXHtml(q,nums.get(q.code)),{})))}
+ if(esS.length){au.push(bkU('as:es','<div class="u ct"><span>서술형 모범 답안</span></div>',{keep:true}));esS.forEach(q=>au.push(bkU('x:'+q.code,bkXHtml(q,nums.get(q.code)),{})))}
  const aStart=pages.length+1;
  bkPack(au,2,BK_BODY).forEach(p=>pages.push({k:'ak',kind:'a',label:'정답 · 해설',...bkCI(p)}));
  return {kind:'t',title:SNAME[SUBJ]+' 유형서',short:'유형서',pages,toc,aStart,sel:S,total:no}}
@@ -410,21 +411,21 @@ function bkxAll(){try{return JSON.parse(localStorage.getItem(BKXK)||'[]')}catch(
 function bkxStore(a){try{localStorage.setItem(BKXK,JSON.stringify(a))}catch(e){}}
 function bkxId(subj,d){
  const lvS=(d.lv&&d.lv!==15?'l'+d.lv.toString(16):'');
- if(d.kind==='full')return subj+'-xe'+(d.count||20)+lvS;
+ if(d.kind==='full'){const fs=(d.subs||[]).slice().sort((a,b)=>a-b);return subj+'-xe'+(d.count||20)+lvS+(fs.length?'s'+fs.join('.'):'')}
  let m=0;Object.keys(BKXF).forEach(k=>{if(k==='all'?d.all:k==='last'?d.last:(d.inc||{})[k])m|=BKXF[k]});
  const si=(d.subs||[]).slice().sort((a,b)=>a-b);return subj+'-xb'+m.toString(36)+(si.length?'-'+si.join('.'):'')+(lvS||d.cap>0?'_'+lvS+(d.cap>0?'n'+d.cap:''):'')}
 function bkxDefOf(m){ // 경로 문자열에서 책 정의 복원 → 다른 기기에서도 QR 채점 가능
- if(m[4]!=null)return {kind:'full',count:+m[4],lv:m[6]!=null?parseInt(m[6],16):15,round:m[5]?+m[5]:0};
+ if(m[4]!=null)return {kind:'full',count:+m[4],lv:m[6]!=null?parseInt(m[6],16):15,round:m[5]?+m[5]:0,subs:m[8]?String(m[8]).split('.').map(Number).filter(x=>!isNaN(x)):[]};
  const mask=parseInt(m[2],36)||0,inc={};Object.keys(BKXF).forEach(k=>{if(k!=='all'&&k!=='last'&&(mask&BKXF[k]))inc[k]=1});
  return {kind:'std',inc,all:!!(mask&BKXF.all),last:!!(mask&BKXF.last),subs:m[3]?m[3].split('.').map(Number):[],lv:m[6]!=null?parseInt(m[6],16):15,cap:m[7]?+m[7]:0}}
 function bkGapOf(id){const g=String(id).match(/~g([1-3])$/);return g?+g[1]:0}
 function bkBare(id){return String(id).replace(/~g[1-3]$/,'')}
 function bkPid(id){const g=BKO.gap||0;return bkBare(id)+(g?'~g'+g:'')}
-function bkParts(id){const gap=bkGapOf(id);id=bkBare(id);const m=String(id).match(/^(me|cm)-(c|t|x(?:b([0-9a-z]+)(?:-([\d.]+))?(?:_(?:l([0-9a-f]))?(?:n(\d+))?)?|e(\d+)(?:l([0-9a-f]))?(?:r(\d+))?))$/);if(!m)return null;
+function bkParts(id){const gap=bkGapOf(id);id=bkBare(id);const m=String(id).match(/^(me|cm|ph)-(c|t|x(?:b([0-9a-z]+)(?:-([\d.]+))?(?:_(?:l([0-9a-f]))?(?:n(\d+))?)?|e(\d+)(?:l([0-9a-f]))?(?:s([\d.]+))?(?:r(\d+))?))$/);if(!m)return null;
  if(m[2]==='c'||m[2]==='t')return {subj:m[1],kind:m[2],gap};
- const d=bkxDefOf(m[7]!=null?[0,0,0,0,m[7],m[9],m[8]]:[0,0,m[3],m[4],undefined,0,m[5],m[6]]);
+ const d=bkxDefOf(m[7]!=null?[0,0,0,0,m[7],m[10],m[8],0,m[9]]:[0,0,m[3],m[4],undefined,0,m[5],m[6]]);
  const lvS=d.lv&&d.lv!==15?'l'+d.lv.toString(16):'';
- const baseId=m[1]+'-'+(d.kind==='full'?'xe'+d.count+lvS:'xb'+m[3]+(m[4]?'-'+m[4]:'')+(lvS||d.cap>0?'_'+lvS+(d.cap>0?'n'+d.cap:''):''));
+ const baseId=m[1]+'-'+(d.kind==='full'?'xe'+d.count+lvS+((d.subs||[]).length?'s'+d.subs.join('.'):''):'xb'+m[3]+(m[4]?'-'+m[4]:'')+(lvS||d.cap>0?'_'+lvS+(d.cap>0?'n'+d.cap:''):''));
  const rec=bkxAll().find(b=>b.id===baseId);
  d.name=rec?rec.name:(d.kind==='full'?'전범위 모의고사':'맞춤 교재');d.subt=rec?rec.sub:'';d.rounds=rec&&rec.rounds||20;
  d.base=baseId;
@@ -439,9 +440,9 @@ function bkxPreset(kind){const B={
 const BKLVB={'하':1,'중':2,'상':4,'최':8};
 const bkLvOk=(q,lv)=>!lv||lv===15||!!(lv&(BKLVB[bkLv(q)]||2));
 function bkRng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-function bkMockSet(count,rd,lv){
- const subs=bkSubs();const base=DATA.filter(q=>q.sub&&(q.set==='mc'||q.set==='top')&&!q.mock&&bkLvOk(q,lv));
- const rnd=bkRng([...SUBJ+count+(lv&&lv!==15?'l'+lv:'')].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7));
+function bkMockSet(count,rd,lv,sel){
+ const subs=bkSubs().filter((s,i)=>!(sel||[]).length||sel.includes(i));const base=DATA.filter(q=>q.sub&&(q.set==='mc'||q.set==='top')&&!q.mock&&bkLvOk(q,lv));
+ const rnd=bkRng([...SUBJ+count+(lv&&lv!==15?'l'+lv:'')+((sel||[]).length?'s'+sel.join('.'):'')].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7));
  const L=subs.map(s=>{const a=base.filter(q=>q.sub===s.k);for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}).filter(a=>a.length);
  const tot=L.reduce((a,x)=>a+x.length,0);const n=L.map(a=>Math.max(1,Math.round(count*a.length/tot)));
  for(let g=0;g<200;g++){const sm=n.reduce((a,b)=>a+b,0);if(sm===count)break;const i=n.indexOf(sm>count?Math.max(...n):Math.min(...n));n[i]+=sm>count?-1:1}
@@ -452,7 +453,7 @@ function bkMockPts(qs){const w={'하':2,'중':3,'상':4,'최':5};const raw=qs.ma
  const p=raw.map(x=>Math.floor(x*100/sm));let left=100-p.reduce((a,b)=>a+b,0);const ord=raw.map((x,i)=>i).sort((a,b)=>raw[b]-raw[a]);for(let k=0;left>0;k++,left--)p[ord[k%ord.length]]++;
  const m={};qs.forEach((q,i)=>m[q.code]=p[i]);return m}
 function bkPlanFull(id,d,rd){
- const subs=bkSubs();const qs=bkMockSet(d.count,rd,d.lv),pts=bkMockPts(qs);
+ const subs=bkSubs();const qs=bkMockSet(d.count,rd,d.lv,d.subs),pts=bkMockPts(qs);
  const used=[...new Set(qs.map(q=>q.sub))];
  const M={title:d.name,round:rd,sname:SNAME[SUBJ],codes:qs.map(q=>q.code),pts,tot:100,time:Math.max(30,Math.round(d.count*2.2/5)*5)+'분',range:subs.filter(s=>used.includes(s.k)).map(s=>s.k+' '+s.name)};
  const pages=[{k:'mcv'}];
@@ -551,13 +552,15 @@ function bkFt(plan,p,o){o=o||{};const qr=p.codes&&p.codes.length;
  return '<div class="ft"><span class="fl">'+(o.left||'Solvi · '+esc(plan.title))+'</span><span class="pn">'+(o.pn!=null?o.pn:p.n)+'</span>'+
   (qr?'<div class="fr2"><div class="qq">'+qrSvg(bkUrl(plan,p))+'</div></div>':o.right?'<div class="fr2"><span class="fn">'+o.right+'</span></div>':'<div></div>')+'</div>'}
 function bkDeco(){const c=bkPal();
+ if(SUBJ==='ph')return '<svg class="deco" viewBox="0 0 200 200"><circle cx="100" cy="100" r="78" fill="none" stroke="'+c.line+'" stroke-width="3" stroke-dasharray="6 6"/><circle cx="100" cy="100" r="46" fill="'+c.pl+'" stroke="'+c.p+'" stroke-width="3"/><circle cx="100" cy="100" r="16" fill="'+c.p+'"/><ellipse cx="100" cy="100" rx="78" ry="30" transform="rotate(-24 100 100)" fill="none" stroke="'+c.p+'" stroke-width="2.5"/><circle cx="162" cy="76" r="11" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="3"/><circle cx="36" cy="124" r="8" fill="#ffca2c"/><polygon points="170,168 184,168 177,154" fill="'+c.p+'"/></svg>';
  if(SUBJ==='me')return '<svg class="deco" viewBox="0 0 200 200"><polygon points="100,22 168,61 168,139 100,178 32,139 32,61" fill="'+c.pl+'" stroke="'+c.p+'" stroke-width="3"/><polygon points="100,52 142,76 142,124 100,148 58,124 58,76" fill="none" stroke="'+c.line+'" stroke-width="2.5" stroke-dasharray="5 5"/>'+[[100,22],[168,61],[168,139],[100,178],[32,139],[32,61]].map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(i%2?9:13)+'" fill="'+(i%2?'#fff':c.p)+'" stroke="'+c.p+'" stroke-width="3"/>').join('')+'<circle cx="100" cy="100" r="14" fill="'+c.pl2+'"/><circle cx="178" cy="22" r="8" fill="#ffca2c"/><circle cx="20" cy="176" r="10" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2"/></svg>';
  return '<svg class="deco" viewBox="0 0 200 200"><circle cx="100" cy="104" r="78" fill="'+c.pl+'" stroke="'+c.p+'" stroke-width="3"/><circle cx="92" cy="96" r="26" fill="'+c.p+'"/><ellipse cx="124" cy="128" rx="20" ry="11" transform="rotate(-28 124 128)" fill="none" stroke="'+c.p+'" stroke-width="3"/><circle cx="46" cy="38" r="22" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2.5"/><circle cx="46" cy="38" r="8" fill="'+c.p+'"/><circle cx="168" cy="40" r="9" fill="#ffca2c"/><circle cx="170" cy="168" r="15" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2"/></svg>'}
 function bkCover(plan){
  if(plan.kind==='x')return bkCoverX(plan);
  const kd=plan.kind==='c'?'개념서':'유형서';
- const rows=plan.kind==='c'?[['개념','단원별 핵심 개념 정리'],['OX · 빈칸','개념을 바로 확인'],['기초 5지선다','기본 문항으로 마무리'],['정답 · 해설','맨 뒤에 정리']]
-  :[['구성','소단원 → 유형 → 난이도 순'],['문항 수','총 '+(plan.total||0)+'문항 (서술형 포함)'],['채점','쪽마다 QR로 바로 채점'],['정답 · 해설','맨 뒤에 정리']];
+ const sc=plan.sel?bkScope(plan.sel):[];const part=plan.sel&&sc.length<plan.sel.subs.length;const rg=part?['범위',sc[0].name+(sc.length>1?' ~ '+sc[sc.length-1].name:'')]:null;
+ const rows=(rg?[rg]:[]).concat(plan.kind==='c'?[['개념','단원별 핵심 개념 정리'],['OX · 빈칸','개념을 바로 확인'],['기초 5지선다','기본 문항으로 마무리'],['정답 · 해설','맨 뒤에 정리']]
+  :[['구성','소단원 → 유형 → 난이도 순'],['문항 수','총 '+(plan.total||0)+'문항 (서술형 포함)'],['채점','쪽마다 QR로 바로 채점'],['정답 · 해설','맨 뒤에 정리']]);
  return '<div class="cv"><div class="c1"><span>Solvi · 과학</span><span>'+esc(SNAME[SUBJ])+' '+kd+'</span></div>'+bkDeco()+'<div class="c2"><div class="bar"></div><div class="kd">'+(plan.kind==='c'?'CONCEPT BOOK':'TYPE BOOK')+'</div><h1>'+esc(SNAME[SUBJ])+'</h1><h2>'+kd+'</h2><div class="ln"></div><ul>'+rows.map(r=>'<li><b>'+r[0]+'</b><span>'+r[1]+'</span></li>').join('')+'</ul></div>'+
   '<table class="c3"><tr><td class="k">학 년</td><td></td><td class="k">반</td><td></td><td class="k">번 호</td><td></td><td class="k">이 름</td><td style="width:36mm"></td></tr></table><div class="c4">문제 쪽 아래 QR을 스캔하면 그 페이지를 바로 채점할 수 있습니다</div></div>'}
 function bkCoverX(plan){const rows=[['구성',plan.parts.join(' · ')||'—'],['문항 수','총 '+plan.total+'문항'+(plan.drill?' (양치기)':'')],['소단원',plan.subs.length+'개'],['정답 · 해설','맨 뒤에 정리']];
@@ -621,7 +624,7 @@ async function bkGradeAll(id){
  const key=id+':all',bk={page:key,bk:id,n:0,all:1,label:plan.short+' 전체',nums:Object.fromEntries(plan.M.codes.map((c,i)=>[c,i+1]))};
  {const lk=recLock('book',key);if(lk&&lk.items){showLockedRec(lk,{book:bk});return}}
  newCur(qs,{book:bk})}
-function bkRouteStr(s){const m=String(s).match(/^((?:me|cm)-(?:c|t|x[0-9a-z.\-]+)(?:~g[1-3])?):(\d+|all)$/);if(!m)return;return m[2]==='all'?bkGradeAll(m[1]):bkGradePage(m[1],+m[2])}
+function bkRouteStr(s){const m=String(s).match(/^((?:me|cm|ph)-(?:c|t|x[0-9a-z.\-]+)(?:~g[1-3])?):(\d+|all)$/);if(!m)return;return m[2]==='all'?bkGradeAll(m[1]):bkGradePage(m[1],+m[2])}
 function bkNextHtml(){const b=cur&&cur.book;if(!b||!b.bk||b.all)return '';const plan=BKP[b.bk];if(!plan)return '';
  const nx=plan.pages.find(p=>p.n>b.n&&p.codes&&p.codes.length);
  return nx?'<div class="hint" style="margin:10px 0">'+esc(plan.short)+' p.'+b.n+' 채점을 마쳤습니다. 다음 문제 쪽(<b>p.'+nx.n+'</b>)도 이어서 채점할까요? <button class="p" style="margin-left:8px" onclick="bkGradePage(\''+b.bk+'\','+nx.n+')">p.'+nx.n+' 채점하기</button></div>':''}
@@ -629,9 +632,10 @@ function bkNextHtml(){const b=cur&&cur.book;if(!b||!b.bk||b.all)return '';const 
 /* ---------- 교재함 · 리더 ---------- */
 let BKV={v:'shelf',id:null,z:1};
 function bkZoom(d){const Z=[1,1.6,2.4,3.2];let i=Z.indexOf(BKV.z||1);i=Math.max(0,Math.min(Z.length-1,i+d));BKV.z=Z[i];bkScale();const l=document.getElementById('bkzl');if(l)l.textContent=Math.round(Z[i]*100)+'%'}
-function bkBookList(){const S=bkSel();const L=[
- {id:SUBJ+'-c',name:'개념서',sub:'개념 정리 · OX · 빈칸 · 기초 5지선다',meta:'OX '+Object.values(S.ox).reduce((a,x)=>a+x.length,0)+' · 빈칸 '+Object.values(S.bl).reduce((a,x)=>a+x.length,0)+' · 기초 '+Object.values(S.basic).reduce((a,x)=>a+x.length,0)+'문항'},
- {id:SUBJ+'-t',name:'유형서',sub:'소단원 → 유형 → 난이도별 문제 (N제)',meta:'객관식·단답형 '+S.type.length+' · 서술형 '+S.essay.length+'문항'}];
+function bkBookList(){const S=bkSel();const sk=bkScope(S).map(s=>s.k),inS=k=>sk.includes(k),sm=o=>sk.reduce((a,k)=>a+(o[k]||[]).length,0);const part=sk.length<S.subs.length,rg=part?' · 범위 '+bkScope(S)[0].name+(sk.length>1?' ~ '+bkScope(S)[sk.length-1].name:''):'';
+ const L=[
+ {id:SUBJ+'-c',name:'개념서',sub:'개념 정리 · OX · 빈칸 · 기초 5지선다'+rg,meta:'OX '+sm(S.ox)+' · 빈칸 '+sm(S.bl)+' · 기초 '+sm(S.basic)+'문항'},
+ {id:SUBJ+'-t',name:'유형서',sub:'소단원 → 유형 → 난이도별 문제 (N제)'+rg,meta:'객관식·단답형 '+S.type.filter(q=>inS(q.sub)).length+' · 서술형 '+S.essay.filter(q=>inS(q.sub)).length+'문항'}];
  bkxAll().filter(b=>b.subj===SUBJ).forEach(b=>L.push({id:b.id,name:b.name,sub:b.sub||BKK[b.kind==='full'?'full':'std'][0],meta:b.kind==='full'?'전범위 · '+(b.rounds||20)+'회분':'내가 만든 교재',custom:1,full:b.kind==='full'}));
  return L}
 async function bkShow(){
@@ -765,16 +769,17 @@ function bkNew(kind){BKV={v:'new',id:null,d:bkxPreset(kind||'std')};render();scr
 function bkxRead(){const d=BKV.d;if(!d)return;const g=i=>document.getElementById(i);
  if(g('bxn'))d.name=g('bxn').value;if(g('bxs'))d.sub=g('bxs').value;
  if(g('bxl_1')){let lv=0;[['1',1],['2',2],['4',4],['8',8]].forEach(([k,b])=>{const e=g('bxl_'+k);if(e&&e.checked)lv|=b});d.lv=lv||15}
- if(d.kind==='full'){if(g('bxc'))d.count=Math.max(10,Math.min(60,Math.round(+g('bxc').value)||20));if(g('bxr'))d.rounds=+g('bxr').value}
+ const rdSubs=()=>{d.subs=bkSubs().map((s,i)=>g('bxs_'+i)&&g('bxs_'+i).checked?i:-1).filter(i=>i>=0);if(d.subs.length===bkSubs().length)d.subs=[]};
+ if(d.kind==='full'){if(g('bxc'))d.count=Math.max(10,Math.min(60,Math.round(+g('bxc').value)||20));if(g('bxr'))d.rounds=+g('bxr').value;if(g('bxs_0'))rdSubs()}
  else{d.inc={};['concept','ox','bl','basic','type','essay'].forEach(k=>{const e=g('bxi_'+k);if(e&&e.checked)d.inc[k]=1});const a=g('bxa');if(a)d.all=a.checked?1:0;
   if(g('bxk'))d.cap=Math.max(0,Math.min(40,Math.round(+g('bxk').value)||0));
   d.subs=bkSubs().map((s,i)=>g('bxs_'+i)&&g('bxs_'+i).checked?i:-1).filter(i=>i>=0);if(d.subs.length===bkSubs().length)d.subs=[]}}
 function bkxKind(k){bkxRead();const o=BKV.d,n=bkxPreset(k);const keepN=o.name!==BKK[o.kind][0]&&o.name!==bkxPreset(o.kind).name;
  if(keepN)n.name=o.name;if(o.sub&&o.sub!==bkxPreset(o.kind).sub)n.sub=o.sub;if(k!=='full'&&o.kind!=='full')n.subs=o.subs;BKV.d=n;bkShow()}
-function bkxSaveBook(){bkxRead();const d=BKV.d;const nm=(d.name||'').trim();if(!nm){toast('교재 이름을 입력하세요');return}
+function bkxSaveBook(){bkxRead();const d=BKV.d;let nm=(d.name||'').trim();if(!nm){toast('교재 이름을 입력하세요');return}
  if(d.kind!=='full'){if(!Object.keys(d.inc||{}).length){toast('넣을 구성을 하나 이상 고르세요');return}
   if(d.kind==='part'&&!d.subs.length){toast('파고들 소단원을 하나 이상 고르세요');return}}
- const id=bkxId(SUBJ,d);const a=bkxAll().filter(b=>b.id!==id);a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:d.kind==='last'?'std':d.kind,rounds:d.rounds||20,t:Date.now()});bkxStore(a);
+ const id=bkxId(SUBJ,d);const a=bkxAll().filter(b=>b.id!==id);if(d.kind==='full'&&(d.subs||[]).length&&nm===BKK.full[0])nm='범위 모의고사';a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:d.kind==='last'?'std':d.kind,rounds:d.rounds||20,t:Date.now()});bkxStore(a);
  delete BKP[id];Object.keys(BKP).forEach(k=>{if(k.startsWith(id+'r'))delete BKP[k]});
  BKV={v:'shelf',id:null};toast('교재를 만들었어요');render();scrollTo(0,0)}
 function bkxDel(id){const b=bkxAll().find(x=>x.id===id);if(!b||!confirm('「'+b.name+'」 교재를 삭제할까요?\n(이미 인쇄한 책의 QR은 그대로 채점돼요)'))return;
@@ -784,21 +789,26 @@ function bkBuilder(){const d=BKV.d,subs=bkSubs();const S=bkSel();
  const ck=(k,l)=>`<label class="chk"><input type="checkbox" id="bxi_${k}" ${d.inc[k]?'checked':''} onchange="bkxRead();bkxEst()"> ${l}</label>`;
  const lvc=(k,b,l)=>`<label class="chk"><input type="checkbox" id="bxl_${k}" ${(d.lv||15)&b?'checked':''} onchange="bkxRead();bkxEst()"> ${l}</label>`;
  const lvBox=`<div style="margin-top:10px;font-size:13px;font-weight:700">난이도 <small style="font-weight:400;color:var(--m)">${d.kind==='full'?'뽑을 문제의 난이도':'유형 문제에 담을 난이도'}</small></div><div style="display:flex;gap:6px 16px;flex-wrap:wrap;margin:6px 0">${lvc(1,1,'하')}${lvc(2,2,'중')}${lvc(4,4,'상')}${lvc(8,8,'최상')}</div>`;
+ const sel=d.subs||[],lo=sel.length?Math.min(...sel):0,hi=sel.length?Math.max(...sel):subs.length-1,hasSc=!!((CONC[SUBJ]||{}).scope||[]).length;
+ const subsBox=`<div style="margin-top:10px;font-size:13px;font-weight:700">범위 · 소단원 <small style="font-weight:400;color:var(--m)">${d.kind==='part'?'파고들 부분을 고르세요':'비우면 전체 · 시작과 끝을 고르면 그 사이가 한꺼번에 선택돼요'}</small></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><select id="bxr1" style="width:auto;max-width:46%">${subs.map((s,i)=>`<option value="${i}" ${i===lo?'selected':''}>${esc(s.k)} ${esc(s.name)}</option>`).join('')}</select><span>~</span><select id="bxr2" style="width:auto;max-width:46%">${subs.map((s,i)=>`<option value="${i}" ${i===hi?'selected':''}>${esc(s.k)} ${esc(s.name)}</option>`).join('')}</select><button class="s sm" onclick="bkxRange()">범위 선택</button><button class="s sm" onclick="bkxRangeSet('all')">전체</button><button class="s sm" onclick="bkxRangeSet('none')">해제</button>${hasSc?'<button class="s sm" onclick="bkxRangeSet(\'def\')">기본 범위</button>':''}</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 12px;margin:6px 0">${subs.map((s,i)=>`<label class="chk"><input type="checkbox" id="bxs_${i}" ${sel.includes(i)?'checked':''} onchange="bkxRead();bkxEst()"> ${esc(s.k)} ${esc(s.name)}</label>`).join('')}</div>`;
  const body=d.kind==='full'?`<div class="g2" style="margin-top:6px"><div><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">회차당 문항 수 (10~60)</label><input type="number" id="bxc" min="10" max="60" value="${d.count}" onchange="bkxRead();bkxEst()" style="width:100%"></div><div><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">회차 수 (최대 20)</label><select id="bxr" onchange="bkxRead()">${[5,10,15,20].map(n=>`<option ${d.rounds===n?'selected':''}>${n}</option>`).join('')}</select></div></div>
-  ${lvBox}<p class="hint" style="margin-top:10px">회차마다 문제지와 해설을 따로 인쇄해요. 전 범위에서 고르게 뽑아 100점으로 배점해요.</p>`
+  ${lvBox}${subsBox}<p class="hint" style="margin-top:10px">회차마다 문제지와 해설을 따로 인쇄해요. 고른 범위에서(비우면 전 범위) 고르게 뽑아 100점으로 배점해요.</p>`
  :`<div style="margin-top:6px;font-size:13px;font-weight:700">구성</div><div class="chks" style="display:flex;gap:6px 16px;flex-wrap:wrap;margin:6px 0">${ck('concept','개념 정리')}${ck('ox','OX')}${ck('bl','빈칸')}${ck('basic','기초 5지선다')}${ck('type','유형 문제')}${ck('essay','서술형')}</div>
   <label class="chk" style="display:block;margin:6px 0"><input type="checkbox" id="bxa" ${d.all?'checked':''} onchange="bkxRead();bkxEst()"> <b>양치기</b> — 대표 문항만이 아니라 해당 구성의 문항을 전부 담기</label>
   ${lvBox}<div style="margin-top:6px"><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">유형 문제 수 — 소단원마다 최대 (0이면 기본 구성대로)</label><input type="number" id="bxk" min="0" max="40" value="${d.cap||0}" onchange="bkxRead();bkxEst()" style="width:120px"></div>
-  <div style="margin-top:10px;font-size:13px;font-weight:700">소단원 ${d.kind==='part'?'(파고들 부분을 고르세요)':'(비우면 전체)'}</div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 12px;margin:6px 0">${subs.map((s,i)=>`<label class="chk"><input type="checkbox" id="bxs_${i}" ${d.subs.includes(i)?'checked':''} onchange="bkxRead();bkxEst()"> ${esc(s.k)} ${esc(s.name)}</label>`).join('')}</div>`;
+  ${subsBox}`;
  return `<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><button class="s" onclick="BKV={v:'shelf',id:null};render()" style="padding:6px 12px;border-radius:8px">‹ 교재함</button><h2 style="margin:0">교재 만들기 <small style="font-weight:400;color:var(--m);font-size:13px">${esc(SNAME[SUBJ])}</small></h2></div>
  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0">${['std','last','drill','part','full'].map(chip).join('')}</div>
  <div class="g2"><div><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">교재 이름</label><input id="bxn" value="${esc(d.name)}" maxlength="30" oninput="bkxRead()"></div><div><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">부제</label><input id="bxs" value="${esc(d.sub||'')}" maxlength="40" oninput="bkxRead()"></div></div>
  ${body}<p id="bxe" class="hint" style="margin:10px 0 0"></p>
  <div style="display:flex;gap:8px;margin-top:12px"><button class="p" onclick="bkxSaveBook()">교재 만들기</button><button class="s" onclick="BKV={v:'shelf',id:null};render()">취소</button></div></div>`}
+function bkxRange(){const a=+document.getElementById('bxr1').value,b=+document.getElementById('bxr2').value,lo=Math.min(a,b),hi=Math.max(a,b);bkSubs().forEach((s,i)=>{const e=document.getElementById('bxs_'+i);if(e)e.checked=i>=lo&&i<=hi});bkxRead();bkxEst()}
+function bkxRangeSet(m){const sc=(CONC[SUBJ]||{}).scope||[];bkSubs().forEach((s,i)=>{const e=document.getElementById('bxs_'+i);if(e)e.checked=m==='all'?true:m==='none'?false:sc.includes(s.k)});bkxRead();bkxEst()}
 function bkxEst(){const e=document.getElementById('bxe');if(!e||!BKV.d)return;const d=BKV.d;
  const lvn=(d.lv&&d.lv!==15)?' · 난이도 '+[['하',1],['중',2],['상',4],['최상',8]].filter(x=>d.lv&x[1]).map(x=>x[0]).join('·'):'';
- if(d.kind==='full'){e.textContent='회차당 '+d.count+'문항 · 최대 '+(d.rounds||20)+'회'+lvn;return}
+ if(d.kind==='full'){const nn=(d.subs||[]).length;e.textContent='회차당 '+d.count+'문항 · 최대 '+(d.rounds||20)+'회'+lvn+(nn?' · 범위 소단원 '+nn+'개':' · 전 범위');return}
  try{const id=bkxId(SUBJ,d);const base=DATA.filter(q=>q.sub&&q.set!=='bank'&&!q.mock);const subs=bkSubs().filter((s,i)=>!d.subs.length||d.subs.includes(i)).map(s=>s.k);const S=bkSel();
   let n=0;const inc=d.inc;subs.forEach(k=>{const f=(set,lv)=>base.filter(q=>q.sub===k&&q.set===set&&(!lv||bkLv(q)===lv)).length;
    if(d.all){if(inc.ox)n+=f('ox');if(inc.bl)n+=f('blank');if(inc.basic)n+=f('mc','하');if(inc.type)n+=base.filter(q=>q.sub===k&&(q.set==='mc'||q.set==='top')&&!(inc.basic&&bkLv(q)==='하')).length;if(inc.essay)n+=f('essay')}
