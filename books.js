@@ -706,9 +706,9 @@ const EBI={pdf:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stro
  print:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>'};
 const EBC=['#e5484d','#2f7fd0','#1f9d55','#111111','#f7b928','#8e4ec6'];
 async function bkEbook(id){
- id=bkPid(id);await bkInit();const P0=bkParts(id);if(P0&&P0.subj!==SUBJ)await setSubject(P0.subj);const plan=await bkPlan(id);if(!plan)return;
+ id=bkPid(id);try{await bkLoadJs('lib/page-flip.browser.js',()=>window.St)}catch(e){toast('책장 넘김 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인해 주세요');return}await bkInit();const P0=bkParts(id);if(P0&&P0.subj!==SUBJ)await setSubject(P0.subj);const plan=await bkPlan(id);if(!plan)return;
  const st=ebkSt()[id]||{};const N=plan.pages.length;
- Object.assign(EBK,{id,plan,N,marks:st.marks||[],p:Math.min(N,Math.max(1,st.last||1)),z:1,rev:[],pen:ebkPenGet(id),view:st.view||'auto',tool:'none',proj:0,wh:0,undo:[]});
+ Object.assign(EBK,{id,plan,N,marks:st.marks||[],p:Math.min(N,Math.max(1,st.last||1)),z:1,rev:[],pen:ebkPenGet(id),tool:'none',proj:0,wh:0,undo:[]});
  let el=document.getElementById('ebk');if(el)el.remove();
  el=document.createElement('div');el.id='ebk';
  const J=[['표지',1]];if(plan.kind==='c')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.c]));else if(plan.kind==='t')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.p]));else if(plan.kind==='x')plan.toc.forEach(r=>r.items.forEach(([n,p])=>J.push([r.sub.k+' '+n,p])));if(plan.aStart)J.push(['정답 · 해설',plan.aStart]);
@@ -717,8 +717,8 @@ async function bkEbook(id){
 #ebk .ebw{background:#12151b;flex:none}#ebk .eb,#ebk .et{display:flex;gap:6px;align-items:center;padding:6px 10px;flex-wrap:wrap}#ebk .et{padding-top:0}#ebk .eb b{flex:1;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#ebk .sp1{flex:1}
 #ebk button,#ebk select{font:inherit;background:#2a303b;color:#e8ecf2;border:1px solid #3a4250;border-radius:8px;padding:6px 10px;cursor:pointer;max-width:44vw;display:inline-flex;align-items:center;gap:4px}#ebk button.on{background:#f7b928;color:#222;border-color:#f7b928}#ebk .eb button,#ebk .et button{flex:none;white-space:nowrap}#ebk button.ebi{padding:6px 11px;justify-content:center}#ebk button.ebi svg{width:18px!important;height:18px!important;flex:none;display:block}#ebk button.pr{background:#2f9d66;border-color:#2f9d66;color:#fff;font-weight:700}
 #ebk .cd{width:22px;height:22px;padding:0;border-radius:50%;border:2px solid #fff3;flex:none}#ebk .cd.on{border-color:#fff;box-shadow:0 0 0 2px #f7b928}
-#ebk .stg{flex:1;position:relative;overflow:auto;touch-action:pan-x pan-y;overscroll-behavior:contain}#ebk .sp{display:flex;align-items:center;justify-content:center;gap:2px;width:max-content;min-width:100%;min-height:100%;margin:0 auto;padding:6px}
-#ebk .pgw{background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.5);position:relative;flex:none}#ebk .pgw.e{background:none;box-shadow:none}#ebk .pgh{position:absolute;inset:0}#ebk canvas.pgc{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
+#ebk .stg{flex:1;min-height:0;position:relative;overflow:auto;display:flex;overscroll-behavior:contain}#ebk .sp{margin:auto;flex:none;position:relative}#ebk .stf__parent{touch-action:pan-y}#ebk .stf__block{perspective:2400px}#ebk .stf__item{display:none;position:absolute;transform-style:preserve-3d;background:#fff}#ebk .stf__outerShadow,#ebk .stf__innerShadow,#ebk .stf__hardShadow,#ebk .stf__hardInnerShadow{position:absolute;left:0;top:0}
+#ebk .pgh{position:absolute;inset:0;overflow:hidden}#ebk canvas.pgc{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
 #ebk.dr canvas.pgc{pointer-events:auto;touch-action:none}#ebk.dr.lz canvas.pgc{cursor:none}#ebk.dr.er canvas.pgc{cursor:cell}#ebk.dr canvas.pgc{cursor:crosshair}
 #ebk .nv{position:fixed;top:50%;transform:translateY(-50%);width:44px;height:80px;z-index:6;background:#0007;border:0;color:#fff;font-size:30px;opacity:0;transition:.2s;justify-content:center;padding:0}#ebk .nv:hover,#ebk.proj.show .nv{opacity:.6}#ebk .nv.l{left:0;border-radius:0 12px 12px 0}#ebk .nv.r{right:0;border-radius:12px 0 0 12px}
 #ebk .bt{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#12151b;flex:none}#ebk input[type=range]{flex:1;accent-color:#f7b928}#ebk .ct{min-width:70px;text-align:center;font-variant-numeric:tabular-nums}
@@ -727,19 +727,11 @@ async function bkEbook(id){
 #ebk .eba .ai{border:1px solid #dde3ea;border-radius:10px;padding:10px;margin-bottom:10px}#ebk .eba .ai h5{margin:0 0 6px;font-size:14px}#ebk .eba .ai .ans{font-size:18px;font-weight:800;color:#c0392b}
 #ebk.proj .eba{width:min(520px,94vw);font-size:18px}
 #ebk.proj .ebw,#ebk.proj .bt{position:absolute;left:0;right:0;z-index:7;opacity:0;pointer-events:none;transition:opacity .25s}#ebk.proj .ebw{top:0}#ebk.proj .bt{bottom:0}#ebk.proj.show .ebw,#ebk.proj.show .bt{opacity:1;pointer-events:auto}
-#ebk .stg{perspective:1800px}
-#ebk .sp.fwd.two .pgw:last-child{transform-origin:left center;animation:ebTurnF .55s cubic-bezier(.22,.7,.2,1) both}#ebk .sp.back.two .pgw:first-child{transform-origin:right center;animation:ebTurnB .55s cubic-bezier(.22,.7,.2,1) both}
-#ebk .sp.fwd.two .pgw:first-child,#ebk .sp.back.two .pgw:last-child{animation:ebFade .4s ease both}
-#ebk .sp.fwd.one .pgw{animation:ebSlideF .38s cubic-bezier(.22,.7,.2,1) both}#ebk .sp.back.one .pgw{animation:ebSlideB .38s cubic-bezier(.22,.7,.2,1) both}
-@keyframes ebTurnF{from{transform:rotateY(-78deg);opacity:.15;filter:brightness(.7)}to{transform:none;opacity:1;filter:none}}@keyframes ebTurnB{from{transform:rotateY(78deg);opacity:.15;filter:brightness(.7)}to{transform:none;opacity:1;filter:none}}
-@keyframes ebFade{from{opacity:.3}to{opacity:1}}@keyframes ebSlideF{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}@keyframes ebSlideB{from{transform:translateX(-60px);opacity:0}to{transform:none;opacity:1}}
-@media (prefers-reduced-motion:reduce){#ebk .sp .pgw{animation:none!important}}
 #ebk .laser{position:fixed;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:radial-gradient(circle,#ff2b2b 0 35%,#ff2b2b66 36% 70%,#0000 71%);pointer-events:none;z-index:9;display:none}
 @media (max-width:700px){#ebk .eb,#ebk .et{gap:4px;padding:5px 6px}#ebk button,#ebk select{padding:5px 8px}}</style>
 <div class="ebw"><div class="eb"><button onclick="bkEbookClose()">닫기</button><b>${esc(plan.title)}</b>
 <select id="ebj" onchange="ebkGo(+this.value);this.value=''"><option value="">목차…</option>${EBK.J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}</select>
-<select id="ebm" onchange="ebkGo(+this.value);this.value=''"><option value="">북마크…</option></select><button id="ebs" onclick="ebkMark()">북마크</button><button onclick="ebkView()" id="ebv">보기</button>
-<button onclick="ebkList()" title="목록형 화면에서 풀기·채점">목록·채점</button><span class="sp1"></span>
+<select id="ebm" onchange="ebkGo(+this.value);this.value=''"><option value="">북마크…</option></select><button id="ebs" onclick="ebkMark()">북마크</button><button onclick="ebkList()" title="목록형 화면에서 풀기·채점">목록·채점</button><span class="sp1"></span>
 <button class="ebi" onclick="ebkZoom(-1)" title="축소 (−)">−</button><button id="ebz" onclick="ebkFit()" title="화면에 맞추기 (0)">100%</button><button class="ebi" onclick="ebkZoom(1)" title="확대 (+)">+</button>
 <button id="ebp" onclick="ebkProj()" title="수업용 전체 화면 (P)">수업 모드</button>
 <button class="ebi" onclick="bkPdf(EBK.id,1)" title="PDF 다운로드">${EBI.pdf}<span>PDF</span></button><button class="ebi pr" onclick="bkPrint(EBK.id,1)" title="인쇄">${EBI.print}<span>인쇄</span></button></div>
@@ -758,33 +750,34 @@ async function bkEbook(id){
   else if(k==='+'||k==='=')ebkZoom(1);else if(k==='-')ebkZoom(-1);else if(k==='0')ebkFit();else if(k==='p'||k==='P')ebkProj();else if(k==='d'||k==='D')ebkTool('pen');else if(k==='h'||k==='H')ebkTool('hl');else if(k==='e'||k==='E')ebkTool('er');else if(k==='l'||k==='L')ebkTool('lz');else if(k==='v'||k==='V')ebkTool('none');
   else if((e.ctrlKey||e.metaKey)&&(k==='z'||k==='Z'))ebkUndo();else return;e.preventDefault()};
  addEventListener('keydown',EBK.kd);
- EBK.rs=()=>ebkScale();addEventListener('resize',EBK.rs);
+ EBK.rs=()=>{clearTimeout(EBK.rz2);EBK.rz2=setTimeout(ebkResize,120)};addEventListener('resize',EBK.rs);
  EBK.fs=()=>{if(!document.fullscreenElement&&EBK.proj)ebkProj(0)};document.addEventListener('fullscreenchange',EBK.fs);
  const s=document.getElementById('ebst');let x0=null,y0=null,pd=0,pz=1,pc=null;
- s.addEventListener('touchstart',e=>{if(e.touches.length===1){x0=e.touches[0].clientX;y0=e.touches[0].clientY}else{x0=null}if(e.touches.length===2){const a=e.touches[0],b=e.touches[1];pd=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);pz=EBK.z;pc=[(a.clientX+b.clientX)/2,(a.clientY+b.clientY)/2]}},{passive:true});
- s.addEventListener('touchmove',e=>{if(e.touches.length===2&&pd){const a=e.touches[0],b=e.touches[1];const d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);EBK.z=Math.max(.5,Math.min(4,pz*d/pd));ebkScale();e.preventDefault()}},{passive:false});
- s.addEventListener('touchend',e=>{pd=0;if(x0==null||EBK.z>1.05||EBK.tool==='pen'||EBK.tool==='hl'||EBK.tool==='er')return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)ebkStep(dx<0?1:-1)},{passive:true});
+ s.addEventListener('touchstart',e=>{if(e.touches.length===1){x0=e.touches[0].clientX;y0=e.touches[0].clientY}else{x0=null}if(e.touches.length===2){const a=e.touches[0],b=e.touches[1];pd=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);pz=EBK.z;pc=[(a.clientX+b.clientX)/2,(a.clientY+b.clientY)/2]}},{passive:true,capture:true});
+ s.addEventListener('touchmove',e=>{if(e.touches.length===2&&pd){const a=e.touches[0],b=e.touches[1];const d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);EBK.z=Math.max(.5,Math.min(4,pz*d/pd));clearTimeout(EBK.rz);EBK.rz=setTimeout(ebkResize,60);e.preventDefault()}},{passive:false,capture:true});
+ s.addEventListener('touchend',()=>{pd=0},{passive:true});
  s.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();ebkZoom(e.deltaY<0?1:-1,1)}},{passive:false});
- let pan=null;s.addEventListener('pointerdown',e=>{if(EBK.tool==='none'&&e.pointerType==='mouse'&&EBK.z>1&&!(e.target.closest&&e.target.closest('button'))){pan={x:e.clientX,y:e.clientY,l:s.scrollLeft,t:s.scrollTop};s.setPointerCapture(e.pointerId)}});
+ let pan=null;s.addEventListener('pointerdown',e=>{if(EBK.tool==='none'&&e.pointerType==='mouse'&&EBK.z>1&&!(e.target.closest&&e.target.closest('button'))){pan={x:e.clientX,y:e.clientY,l:s.scrollLeft,t:s.scrollTop};s.setPointerCapture(e.pointerId)}},true);
  s.addEventListener('pointermove',e=>{if(pan){s.scrollLeft=pan.l-(e.clientX-pan.x);s.scrollTop=pan.t-(e.clientY-pan.y)}});s.addEventListener('pointerup',()=>{pan=null});
  el.addEventListener('mousemove',ebkPing);el.addEventListener('touchstart',ebkPing,{passive:true});
- ebkTool('none');ebkColor(EBK.color,1);ebkDraw();ebkPing()}
-function bkEbookClose(){if(document.fullscreenElement)try{document.exitFullscreen()}catch(e){}const el=document.getElementById('ebk');if(el)el.remove();document.body.style.overflow='';removeEventListener('keydown',EBK.kd);removeEventListener('resize',EBK.rs);document.removeEventListener('fullscreenchange',EBK.fs)}
+ ebkTool('none');ebkColor(EBK.color,1);ebkBook();ebkPing()}
+function bkEbookClose(){try{if(EBK.pf){EBK.pf.destroy();EBK.pf=null}}catch(e){EBK.pf=null}if(document.fullscreenElement)try{document.exitFullscreen()}catch(e){}const el=document.getElementById('ebk');if(el)el.remove();document.body.style.overflow='';removeEventListener('keydown',EBK.kd);removeEventListener('resize',EBK.rs);document.removeEventListener('fullscreenchange',EBK.fs)}
 function ebkPing(){const el=document.getElementById('ebk');if(!el)return;el.classList.add('show');clearTimeout(EBK.pt);if(EBK.proj&&!EBK.drawing)EBK.pt=setTimeout(()=>{const e=document.getElementById('ebk');if(e&&!e.matches(':hover')||EBK.proj)e&&e.classList.remove('show')},2800)}
 function ebkList(){const id=EBK.id,p=EBK.p;bkEbookClose();BKV={v:'read',id};tab='books';render();setTimeout(()=>bkJump(p),600)}
 function ebkProj(on){const el=document.getElementById('ebk');if(!el)return;on=on===undefined?!EBK.proj:!!on;EBK.proj=on?1:0;el.classList.toggle('proj',!!on);document.getElementById('ebp').classList.toggle('on',!!on);
  if(on){try{el.requestFullscreen&&el.requestFullscreen()}catch(e){}toast('수업 모드 · 화면을 움직이면 메뉴가 나타나요 (Esc로 종료)')}else if(document.fullscreenElement){try{document.exitFullscreen()}catch(e){}}
- ebkPing();setTimeout(ebkScale,150)}
-function ebkSpread(){const st=document.getElementById('ebst');const w=st.clientWidth,h=st.clientHeight;return EBK.view==='two'||(EBK.view==='auto'&&w>=h*1.25&&w>=900)}
-function ebkView(){EBK.view=EBK.view==='auto'?'one':EBK.view==='one'?'two':'auto';ebkSave(EBK.id,{view:EBK.view});EBK.z=1;ebkDraw()}
-function ebkStep(d){const two=ebkSpread();let p=EBK.p;if(two){const lo=p%2===0?p:p-1;p=d>0?lo+2:lo-2;if(p<1)p=1}else p+=d;ebkGo(p)}
-function ebkGo(p,noanim){if(!p)return;const old=EBK.p;EBK.p=Math.max(1,Math.min(EBK.N,p));EBK.dir=noanim||EBK.p===old?0:(EBK.p>old?1:-1);EBK.rev=[];ebkDraw()}
-function ebkMark(){const i=EBK.marks.indexOf(EBK.p);if(i>=0)EBK.marks.splice(i,1);else EBK.marks.push(EBK.p);EBK.marks.sort((a,b)=>a-b);ebkSave(EBK.id,{marks:EBK.marks});ebkDraw(1)}
-function ebkZoom(d,wheel){EBK.z=Math.max(.5,Math.min(4,+(EBK.z*(d>0?1.2:1/1.2)).toFixed(3)));ebkScale()}
-function ebkFit(){EBK.z=1;ebkScale();const s=document.getElementById('ebst');if(s){s.scrollLeft=0;s.scrollTop=0}}
-function ebkBase(){const st=document.getElementById('ebst'),cnt=ebkSpread()?2:1;const pw=210*BK_MM,ph=297*BK_MM;return {pw,ph,s:Math.min((st.clientWidth-16)/cnt/pw,(st.clientHeight-16)/ph)}}
-function ebkScale(){const sp=document.getElementById('ebsp');if(!sp)return;const {pw,ph,s}=ebkBase();const k=s*EBK.z;
- sp.querySelectorAll('.pgw').forEach(e=>{e.style.width=pw*k+'px';e.style.height=ph*k+'px';const h=e.querySelector('.pgh');const d=h&&h.shadowRoot&&h.shadowRoot.querySelector('.bkdoc');if(d)d.style.setProperty('--bks',k.toFixed(4));const c=e.querySelector('canvas.pgc');if(c)ebkCanvas(c)});
+ ebkPing();setTimeout(ebkResize,200);setTimeout(ebkResize,600)}
+function ebkIdx(p){return EBK.pf&&EBK.pf.getOrientation()==='landscape'?(p<=1?0:(p%2===0?p-1:p-2)):p-1}
+function ebkStep(d){if(!EBK.pf)return;if(d>0)EBK.pf.flipNext('top');else EBK.pf.flipPrev('top')}
+function ebkGo(p,noanim){if(!p||!EBK.pf)return;p=Math.max(1,Math.min(EBK.N,p));const i=ebkIdx(p);ebkFill(p);ebkFillAround(i);EBK.rev=[];if(noanim){EBK.pf.turnToPage(i);setTimeout(()=>ebkSync(),30)}else EBK.pf.flip(i)}
+function ebkMark(){const i=EBK.marks.indexOf(EBK.p);if(i>=0)EBK.marks.splice(i,1);else EBK.marks.push(EBK.p);EBK.marks.sort((a,b)=>a-b);ebkSave(EBK.id,{marks:EBK.marks});ebkSync(1)}
+function ebkZoom(d){EBK.z=Math.max(.5,Math.min(4,+(EBK.z*(d>0?1.2:1/1.2)).toFixed(3)));ebkResize()}
+function ebkFit(){EBK.z=1;ebkResize();const s=document.getElementById('ebst');if(s){s.scrollLeft=0;s.scrollTop=0}}
+function ebkResize(){const st=document.getElementById('ebst'),sp=document.getElementById('ebsp');if(!st||!sp||!EBK.pf)return;const W=st.clientWidth,H=st.clientHeight,z=EBK.z;
+ sp.style.width=Math.round(W*z)+'px';sp.style.height=Math.round(H*z)+'px';const cfg=EBK.pf.getSettings();cfg.minWidth=(W>=H*1.15)?100:Math.round(W*z)+1;
+ try{EBK.pf.update()}catch(e){}ebkScale();setTimeout(ebkScale,60);setTimeout(ebkScale,400)}
+function ebkScale(){const sp=document.getElementById('ebsp');if(!sp||!EBK.pf)return;let w=0;try{w=EBK.pf.getRender().getRect().pageWidth}catch(e){}if(!w)return;sp.style.setProperty('--bks',(w/(210*BK_MM)).toFixed(4));
+ sp.querySelectorAll('.pgw canvas.pgc').forEach(c=>{if(c.offsetWidth)ebkCanvas(c)});
  const z=document.getElementById('ebz');if(z)z.textContent=Math.round(EBK.z*100)+'%'}
 function ebkCanvas(c){const r=c.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);c.width=Math.max(1,Math.round(r.width*d));c.height=Math.max(1,Math.round(r.height*d));ebkRedraw(c)}
 function ebkRedraw(c,dot){const n=+c.parentNode.dataset.n,g=c.getContext('2d'),W=c.width,H=c.height;g.clearRect(0,0,W,H);g.lineCap='round';g.lineJoin='round';
@@ -796,7 +789,7 @@ function ebkColor(c,init){EBK.color=c;document.querySelectorAll('#ebk .cd').forE
 function ebkFinger(){EBK.finger=EBK.finger?0:1;document.getElementById('ebf').classList.toggle('on',!!EBK.finger);toast(EBK.finger?'손가락으로도 필기해요(스크롤은 두 손가락)':'펜슬·마우스로만 필기해요. 손가락은 화면 이동에 써요')}
 function ebkBg(){EBK.wh=EBK.wh?0:1;document.getElementById('ebk').classList.toggle('wh',!!EBK.wh)}
 function ebkUndo(){const u=EBK.undo.pop();if(!u)return;const a=(EBK.pen[u.n]||[]);if(u.k==='add')a.pop();else if(u.k==='del'){EBK.pen[u.n]=u.prev}ebkPenSave();document.querySelectorAll('#ebsp canvas.pgc').forEach(c=>ebkRedraw(c))}
-function ebkClear(){const ps=[...document.querySelectorAll('#ebsp .pgw[data-n]')].map(e=>+e.dataset.n).filter(n=>(EBK.pen[n]||[]).length);if(!ps.length){toast('지울 필기가 없어요');return}if(!confirm('이 화면의 필기를 모두 지울까요?'))return;ps.forEach(n=>{EBK.undo.push({k:'del',n,prev:EBK.pen[n]});EBK.pen[n]=[]});ebkPenSave();document.querySelectorAll('#ebsp canvas.pgc').forEach(c=>ebkRedraw(c))}
+function ebkClear(){const ps=(EBK.shown||[]).filter(n=>(EBK.pen[n]||[]).length);if(!ps.length){toast('지울 필기가 없어요');return}if(!confirm('이 화면의 필기를 모두 지울까요?'))return;ps.forEach(n=>{EBK.undo.push({k:'del',n,prev:EBK.pen[n]});EBK.pen[n]=[]});ebkPenSave();document.querySelectorAll('#ebsp canvas.pgc').forEach(c=>ebkRedraw(c))}
 function ebkBindDraw(c){let cur=null,last=null;const pt=e=>{const r=c.getBoundingClientRect();return [Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))]};
  const n=+c.parentNode.dataset.n;const ok=e=>e.pointerType!=='touch'||EBK.finger;
  c.addEventListener('pointerdown',e=>{if(!ok(e)||EBK.tool==='none')return;e.preventDefault();c.setPointerCapture(e.pointerId);EBK.drawing=1;const p=pt(e);
@@ -823,19 +816,28 @@ function ebkMarkNums(){document.querySelectorAll('#ebsp .pgh').forEach(h=>{const
 function ebkRevDraw(){const el=document.getElementById('ebal');if(!el)return;if(!EBK.rev.length){el.innerHTML='<div style="color:#667;font-size:13px;line-height:1.6">문제 <b>번호</b>를 누르면 정답과 해설이 여기에 나와요.<br>다시 누르면 닫혀요.</div>';return}
  el.innerHTML=EBK.rev.map((c,i)=>`<div class="ai" id="ebai${i}"><h5>${esc(c)}${(byCode[c]||{}).type?' · '+esc(byCode[c].type):''}</h5><div class="ans">정답 ${esc(['mc','top','bank'].includes((byCode[c]||{}).set)||/^[1-5](,[1-5])*$/.test(String((byCode[c]||{}).ans))?bkCir((byCode[c]||{}).ans):String((byCode[c]||{}).ans||'-'))}</div><div class="ex"></div></div>`).join('');
  EBK.rev.forEach((c,i)=>{const q=byCode[c];const h=document.querySelector('#ebai'+i+' .ex');if(h&&q&&q.exp)mount(h,q.exp)})}
-function ebkDraw(keep){const sp=document.getElementById('ebsp');if(!sp)return;const two=ebkSpread();const {plan,N}=EBK;let p=EBK.p;
- let ps;if(two){const lo=p%2===0?p:p-1;ps=[lo,lo+1];if(lo<1)ps=[0,1]}else ps=[p];
- sp.className='sp'+(EBK.dir>0?' fwd':EBK.dir<0?' back':'')+(two?' two':' one');EBK.dir=0;
- sp.innerHTML=ps.map(n=>n<1||n>N?`<div class="pgw e"></div>`:`<div class="pgw" data-n="${n}"><div class="pgh"></div><canvas class="pgc"></canvas></div>`).join('');
- sp.querySelectorAll('.pgw[data-n]').forEach(e=>{const n=+e.dataset.n;const r=bkShadow(e.querySelector('.pgh'),'<style>.u.q .no,.u.q .qn{cursor:pointer}.u.q .no.ebon,.u.q .qn.ebon{background:#ffe27a!important;color:#222!important;border-radius:5px;box-shadow:0 0 0 2px #f7b928}</style><div class="bkdoc scr" style="--bks:1">'+bkPageHtml(plan,n-1)+'</div>');
-  r.addEventListener('click',ev=>{if(EBK.tool!=='none')return;const q=ev.target.closest&&ev.target.closest('.no,.qn');if(!q)return;const u=q.closest('.u.q[data-c]');if(u)ebkReveal(u.dataset.c)});
-  ebkBindDraw(e.querySelector('canvas.pgc'))});
- ebkScale();ebkMarkNums();
- const shown=ps.filter(n=>n>=1&&n<=N);EBK.p=Math.min(...shown);const cur=EBK.p;ebkSave(EBK.id,{last:cur});
- const r=document.getElementById('ebr');r.value=cur;document.getElementById('ebc').textContent=shown.join('-')+' / '+N;
- const mk=shown.some(n=>EBK.marks.includes(n));const b=document.getElementById('ebs');b.classList.toggle('on',mk);
- document.getElementById('ebm').innerHTML='<option value="">북마크…</option>'+EBK.marks.map(n=>`<option value="${n}">p.${n}</option>`).join('');
- document.getElementById('ebv').textContent=EBK.view==='auto'?'보기: 자동':EBK.view==='one'?'보기: 한 쪽':'보기: 펼침면';ebkRevDraw()}
+const EBKCSS='<style>.u.q .no,.u.q .qn{cursor:pointer}.u.q .no.ebon,.u.q .qn.ebon{background:#ffe27a!important;color:#222!important;border-radius:5px;box-shadow:0 0 0 2px #f7b928}</style>';
+function ebkFill(n){const it=EBK.items&&EBK.items[n-1];if(!it||it.dataset.f)return;it.dataset.f=1;const r=bkShadow(it.querySelector('.pgh'),EBKCSS+'<div class="bkdoc scr">'+bkPageHtml(EBK.plan,n-1)+'</div>');
+ r.addEventListener('click',ev=>{if(EBK.tool!=='none')return;const q=ev.target.closest&&ev.target.closest('.no,.qn');if(!q)return;const u=q.closest('.u.q[data-c]');if(u)ebkReveal(u.dataset.c)});
+ const c=it.querySelector('canvas.pgc');ebkBindDraw(c);setTimeout(()=>{if(c.offsetWidth)ebkCanvas(c)},0);ebkMarkNums()}
+function ebkFillAround(i){for(let k=i-3;k<=i+4;k++)if(k>=0&&k<EBK.N)ebkFill(k+1)}
+function ebkBook(){const sp=document.getElementById('ebsp');const N=EBK.N;EBK.items=[];const frag=document.createDocumentFragment();
+ for(let n=1;n<=N;n++){const d=document.createElement('div');d.className='pgw';d.dataset.n=n;if(n===1||n===N)d.dataset.density='hard';d.innerHTML='<div class="pgh"></div><canvas class="pgc"></canvas>';
+  const stop=e=>{const mouse=e.type==='mousedown';let ok=false;if(EBK.z>1.02)ok=true;else if(EBK.tool!=='none'){if(mouse)ok=true;else{const t=e.touches&&e.touches[0];ok=!!EBK.finger||(t&&t.touchType==='stylus')}}if(ok)e.stopPropagation()};
+  d.addEventListener('mousedown',stop,true);d.addEventListener('touchstart',stop,true);EBK.items.push(d);frag.appendChild(d)}
+ const st=document.getElementById('ebst');const W=st.clientWidth,H=st.clientHeight;sp.style.width=W+'px';sp.style.height=H+'px';
+ const land=W>=H*1.15;const start=EBK.p<=1?0:(land?(EBK.p%2===0?EBK.p-1:EBK.p-2):EBK.p-1);
+ ebkFillAround(start);
+ const pf=new St.PageFlip(sp,{width:210*BK_MM,height:297*BK_MM,size:'stretch',minWidth:land?100:W+1,maxWidth:4000,minHeight:140,maxHeight:6000,showCover:true,maxShadowOpacity:.5,flippingTime:850,drawShadow:true,disableFlipByClick:true,startPage:start,swipeDistance:24,showPageCorners:true,usePortrait:true,mobileScrollSupport:true});
+ EBK.pf=pf;pf.loadFromHTML(EBK.items);
+ pf.on('flip',e=>{ebkFillAround(e.data);ebkSync()});pf.on('changeOrientation',()=>{setTimeout(()=>{ebkScale();ebkSync()},60)});
+ setTimeout(()=>{ebkScale();ebkSync()},80)}
+function ebkSync(keepRev){const pf=EBK.pf;if(!pf)return;const i=pf.getCurrentPageIndex(),land=pf.getOrientation()==='landscape';const N=EBK.N;
+ const shown=land?(i===0?[1]:[i+1,i+2].filter(n=>n<=N)):[i+1];EBK.shown=shown;const prev=EBK.p;EBK.p=shown[0];if(!keepRev&&prev!==EBK.p)EBK.rev=[];ebkFillAround(i);
+ ebkSave(EBK.id,{last:EBK.p});const r=document.getElementById('ebr');if(r)r.value=EBK.p;const c=document.getElementById('ebc');if(c)c.textContent=shown.join('-')+' / '+N;
+ const mk=shown.some(n=>EBK.marks.includes(n));const b=document.getElementById('ebs');if(b)b.classList.toggle('on',mk);
+ const m=document.getElementById('ebm');if(m)m.innerHTML='<option value="">북마크…</option>'+EBK.marks.map(n=>`<option value="${n}">p.${n}</option>`).join('');
+ ebkMarkNums();ebkRevDraw();ebkScale()}
 
 /* ---------- 인쇄 ---------- */
 function bkFontCssRule(){const f=BKO.font&&typeof FONTS!=='undefined'&&FONTS[BKO.font];return f&&BKO.font!=='paper'?'.bkdoc,.bkdoc *{font-family:'+f[1]+'!important}':''}
