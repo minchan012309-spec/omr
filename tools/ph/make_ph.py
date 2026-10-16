@@ -11,7 +11,8 @@ sys.path.insert(0, HERE)
 import build
 import phlib
 from phlib import render, pts_for, sig, plain, CIR, esc, REGISTRY
-from outline import TYPES, TYPES_ORD, BYTAG, SUBS, SUB_ORDER, BUNDLE, DEFAULT_SCOPE
+from outline import TYPES, TYPES_ORD, BYTAG, SUBS, BUNDLE, SHIP_SUBS, SHIP_TYPES, SHIP_ORDER
+SUB_ORDER = SHIP_ORDER
 
 OUT = os.path.abspath(os.path.join(HERE, '..', '..', 'ph'))
 PAL = {'p': '#6d4cc4', 'pd': '#5a3bad', 'pl': '#f3effc', 'pl2': '#e4dbf8', 'line': '#cdbfef'}
@@ -38,7 +39,7 @@ def make_bank(n):
     os.makedirs(OUT, exist_ok=True)
     index, bank_sigs = {}, {}
     tot = 0
-    for ty in TYPES_ORD:
+    for ty in SHIP_TYPES:
         tag = ty['tag']
         if tag not in REGISTRY:
             print(tag, '생성기 없음'); continue
@@ -59,7 +60,7 @@ def make_bank(n):
 def book_pool(bank_sigs, per=22):
     """유형마다 은행과 겹치지 않는 별도 문항(교재용)을 만든다."""
     pool = collections.defaultdict(list)
-    for ty in TYPES_ORD:
+    for ty in SHIP_TYPES:
         tag = ty['tag']
         if tag not in REGISTRY: continue
         items, _ = build.gen_tag(tag, per, seed_extra='|book', exclude=bank_sigs.get(tag, ()))
@@ -92,7 +93,7 @@ NB = {'Ⅱ-A': 12}
 NS = {'Ⅱ-A': 44, 'Ⅱ-B': 28, 'Ⅲ-A': 20, 'Ⅲ-B': 20, 'Ⅲ-C': 20}
 
 
-def book_items(bank_sigs, n_basic=8, n_std=12, n_top=21):
+def book_items(bank_sigs, n_basic=8, n_std=12, n_top=10):
     pool = book_pool(bank_sigs)
     seq = collections.Counter()
     data = []
@@ -109,7 +110,7 @@ def book_items(bank_sigs, n_basic=8, n_std=12, n_top=21):
             used_fam.add((x._tag, x.fam)); x._top = True
             chosen_top.append(x)
     topset = {id(x) for x in chosen_top}
-    tord = {t['tag']: i for i, t in enumerate(TYPES_ORD)}
+    tord = {t['tag']: i for i, t in enumerate(SHIP_TYPES)}
     for s in SUB_ORDER:
         bundle = BUNDLE[s]
         rest = [i for i in pool[s] if id(i) not in topset]
@@ -149,7 +150,7 @@ def ox_blank_items(P, n_ox=10, n_bl=10):
     for s in SUB_ORDER:
         pairs = P.get(s, [])
         if not pairs: continue
-        types = [t['label'] for t in TYPES_ORD if t['sub'] == s]
+        types = [t['label'] for t in SHIP_TYPES if t['sub'] == s]
         bytype = collections.OrderedDict((t, []) for t in types)
         for k, (tr, fa, ty) in enumerate(pairs):
             bytype.setdefault(ty, []).append(k)
@@ -205,7 +206,7 @@ def essay_items():
     mod = optional('essay')
     if not mod: return []
     out = []
-    for i, d in enumerate(mod.ESSAYS, 1):
+    for i, d in enumerate([e for e in mod.ESSAYS if e['sub'] in SHIP_SUBS], 1):
         s = d['sub']
         code = 'S-%03d' % i
         q = '<div class="q" id="q-S%03d"><div class="qh"><b class="qn">%d</b><span class="qp">[%d점]</span></div><div class="qs">%s</div></div>' % (i, i, d.get('pts', 4), d['body'])
@@ -227,7 +228,7 @@ def make_concept(P, pools, sec_ox, sec_bl):
         if mod and hasattr(mod, name): SECS.update(getattr(mod, name))
     mb = optional('concept_b')
     if mb and hasattr(mb, 'SUMMARY'): SUMMARY = mb.SUMMARY
-    subs = {k: {'name': v['name'], 'goal': v['goal']} for k, v in SUBS.items()}
+    subs = {k: {'name': v['name'], 'goal': v['goal']} for k, v in SUBS.items() if k in SHIP_SUBS}
     secs = []
     for s in SUB_ORDER:
         for no, sec in enumerate(SECS.get(s, []), 1):
@@ -239,7 +240,7 @@ def make_concept(P, pools, sec_ox, sec_bl):
             for t in types:
                 ox += sec_ox.get((s, t), []); bl += sec_bl.get((s, t), [])
             secs.append({'id': 'c-%s%d' % (SUBID[s], no), 'sub': s, 'no': str(no), 'title': sec['title'], 'html': sec['html'], 'types': types, 'ox': ox[:4], 'blank': bl[:5]})
-    conc = {'pal': PAL, 'scope': DEFAULT_SCOPE, 'subs': subs, 'secs': secs, 'summary': SUMMARY, 'pools': pools}
+    conc = {'pal': PAL, 'subs': subs, 'secs': secs, 'summary': SUMMARY, 'pools': pools}
     dump(os.path.join(OUT, 'concept.json'), conc)
     print('개념서: 절 %d개, 요약 %d개, 풀 %d개' % (len(secs), len(SUMMARY), len(pools)))
 
@@ -254,7 +255,7 @@ def main():
     if a.skip_bank:
         # 은행 서명은 재생성으로 얻는다(결정적)
         bank_sigs = {}
-        for ty in TYPES_ORD:
+        for ty in SHIP_TYPES:
             if ty['tag'] in REGISTRY:
                 items, _ = build.gen_tag(ty['tag'], a.n)
                 bank_sigs[ty['tag']] = {sig(i) for i in items}

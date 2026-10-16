@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import phlib
 from phlib import REGISTRY, render, pts_for, sig, plain
-from outline import TYPES, TYPES_ORD, BYTAG, SUBS
+from outline import TYPES, TYPES_ORD, SHIP_TYPES, BYTAG, SUBS
 
 LVI = {'하': 0, '중': 1, '상': 2, '최': 3}
 
@@ -100,7 +100,7 @@ def main():
         ty = BYTAG[tag]
         index[tag] = {'lv': {k: v for k, v in lv.items()}, 'label': ty['label'], 'sub': ty['sub'], 'subname': ty['subname'], 'n': len(ent)}
     if not a.check_only:
-        order = [t['tag'] for t in TYPES_ORD]
+        order = [t['tag'] for t in SHIP_TYPES]
         index = {k: index[k] for k in order if k in index}
         json.dump(index, open(idxf, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     print('total', tot)

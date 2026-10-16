@@ -204,6 +204,10 @@ BYTAG = {t['tag']: t for t in TYPES}
 TYPES_ORD = sorted(TYPES, key=lambda t: (SUB_ORDER.index(t['sub']), t['tag']))
 # 기본 교재(개념서·유형서) 범위: 열역학 제1법칙부터 끝까지(기말 범위). 다른 범위는 교재 만들기에서 지정
 DEFAULT_SCOPE = ['Ⅱ-A', 'Ⅱ-B', 'Ⅲ-A', 'Ⅲ-B', 'Ⅲ-C']
+# 앱에 실제로 담는 소단원(베타: 기말 범위인 열역학 제1법칙부터). 앞 단원을 더 넣으려면 여기에 소단원을 추가하고 make_ph.py 를 다시 돌린다
+SHIP_SUBS = DEFAULT_SCOPE
+SHIP_TYPES = [t for t in TYPES_ORD if t['sub'] in SHIP_SUBS]
+SHIP_ORDER = [s for s in SUB_ORDER if s in SHIP_SUBS]
 
 if __name__ == '__main__':
     import collections
