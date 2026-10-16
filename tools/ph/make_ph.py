@@ -240,7 +240,7 @@ def make_concept(P, pools, sec_ox, sec_bl):
             for t in types:
                 ox += sec_ox.get((s, t), []); bl += sec_bl.get((s, t), [])
             secs.append({'id': 'c-%s%d' % (SUBID[s], no), 'sub': s, 'no': str(no), 'title': sec['title'], 'html': sec['html'], 'types': types, 'ox': ox[:4], 'blank': bl[:5]})
-    conc = {'pal': PAL, 'subs': subs, 'secs': secs, 'summary': SUMMARY, 'pools': pools}
+    conc = {'pal': PAL, 'subs': subs, 'secs': secs, 'summary': SUMMARY, 'pools': pools, 'noDefaultBooks': True}
     dump(os.path.join(OUT, 'concept.json'), conc)
     print('개념서: 절 %d개, 요약 %d개, 풀 %d개' % (len(secs), len(SUMMARY), len(pools)))
 
