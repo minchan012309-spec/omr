@@ -913,9 +913,13 @@ function logout(){sess=null;localStorage.removeItem(LSS);try{sessionStorage.remo
 /* ---------- 학생 ---------- */
 const stuTomb=()=>new Set(jget('omr_stu_del',[]));
 function stuTombAdd(ids){const s=stuTomb();ids.forEach(i=>s.add(i));jset('omr_stu_del',[...s].slice(-300))}
+/* 삭제한 학생 번호(묘비)를 서버(teacher_settings.data.stuDel)에도 보관: 오래된 기기가 목록을 다시 올려 되살리는 것을 막음 */
+async function tsRaw(){try{const r=await sb('/rest/v1/teacher_settings?select=data');if(!r.ok)return null;const a=await r.json();return (a[0]&&a[0].data)||{}}catch(e){return null}}
+async function stuTombSrv(ids){const d=await tsRaw();if(d===null)return false;const cur=new Set(d.stuDel||[]);let ch=false;ids.forEach(i=>{if(!cur.has(i)){cur.add(i);ch=true}});if(!ch)return true;d.stuDel=[...cur].slice(-500);
+ try{const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:d,updated_at:new Date().toISOString()})});return r.ok}catch(e){return false}}
 async function stuSrvDel(id){try{const r=await sb('/rest/v1/students?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=representation'}});if(!r.ok)return false;const j=await r.json().catch(()=>[]);return true}catch(e){return false}}
 async function stuSync(){const r=await sb('/rest/v1/students?select=id,name,grade,memo,t,login&order=t.asc&limit=2000');if(!r.ok){CF.stuErr=1;return}CF.stuErr=0;
- let rem=await r.json();const tomb=stuTomb();
+ let rem=await r.json();const tomb=stuTomb();{const sd=await tsRaw();if(sd){const srvT=new Set(sd.stuDel||[]);srvT.forEach(i=>tomb.add(i));const miss=[...tomb].filter(i=>!srvT.has(i));if(miss.length)await stuTombSrv(miss)}}
  for(const x of rem.filter(x=>tomb.has(x.id))){await stuSrvDel(x.id)}
  jset('omr_stu_del',[...tomb].filter(i=>rem.some(x=>x.id===i)));
  rem=rem.filter(x=>!tomb.has(x.id));STU=STU.filter(x=>!tomb.has(x.id));const have=new Set(rem.map(x=>x.id));
@@ -926,9 +930,9 @@ async function stuAdd(){const n=$('#sn').value.trim();if(!n)return;const s={id:u
 async function stuEdit(id){const s=STU.find(x=>x.id===id);const n=prompt('이름',s.name);if(n===null)return;const g=prompt('학년·반',s.grade||'');if(g===null)return;s.name=n.trim()||s.name;s.grade=g.trim();jset(LST,STU);
  if(srv==='cloud')await sb('/rest/v1/students?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({name:s.name,grade:s.grade})});syncLabel();render()}
 async function stuDel(id){if(!confirm('이 학생을 삭제할까요? 채점 기록은 남지만 학생과의 연결이 끊어집니다.'))return;STU=STU.filter(x=>x.id!==id);jset(LST,STU);if(CUR_S===id)CUR_S='';stuTombAdd([id]);
- if(srv==='cloud'){if(!(await stuSrvDel(id)))toast('온라인에서 아직 지우지 못했어요. 연결되면 다시 시도해요')}syncLabel();render()}
+ if(srv==='cloud'){stuTombSrv([id]);if(!(await stuSrvDel(id)))toast('온라인에서 아직 지우지 못했어요. 연결되면 다시 시도해요')}syncLabel();render()}
 async function stuDelSel(){const ids=[...STSEL];if(!ids.length)return;if(!confirm('선택한 학생 '+ids.length+'명을 삭제할까요?\n채점 기록은 남지만 학생과의 연결이 끊어져요.'))return;
- let fail=0;stuTombAdd(ids);if(srv==='cloud'){for(const id of ids){if(!(await stuSrvDel(id)))fail++}}
+ let fail=0;stuTombAdd(ids);if(srv==='cloud'){await stuTombSrv(ids);for(const id of ids){if(!(await stuSrvDel(id)))fail++}}
  STU=STU.filter(x=>!ids.includes(x.id));jset(LST,STU);if(ids.includes(CUR_S))CUR_S='';STSEL.clear();syncLabel();render();toast(fail?'일부 학생은 온라인에서 지우지 못했어요 ('+fail+'명)':ids.length+'명을 삭제했어요')}
 let SQ='',SGR='';
 const stuFlt=s=>(!SQ||(s.name+' '+(s.grade||'')+' '+(s.memo||'')+' '+(s.login||'')).toLowerCase().includes(SQ.toLowerCase()))&&(!SGR||(s.grade||'')===SGR);
@@ -1235,7 +1239,7 @@ async function srvCheck(){const el=$('#srvck');if(!el)return;if(!cloud()||!sess)
 function bugRender(){const e=$('#bugbox');if(!e)return;e.innerHTML=BUG.err?`<div class="bad"><i></i><span>${esc(BUG.err)}</span></div>`:(BUG.list.length?BUG.list.map(x=>`<div style="display:block"><div style="display:flex;gap:8px;align-items:center"><b style="font-size:13px">${esc(x.who||'')}</b><small class="m">${new Date(+x.t).toLocaleString('ko-KR')}</small><button class="s sm" style="margin-left:auto" onclick="bugDel(${x.id})">삭제</button></div><div style="white-space:pre-wrap;margin-top:4px">${esc(x.msg)}</div><small class="m">${esc(((x.info||{}).role||'')+' · '+((x.info||{}).vp||'')+' · '+((x.info||{}).tab||''))}</small></div>`).join(''):'<div class="m">받은 신고가 없어요.</div>')}
 const permNumT=(k,d)=>{const v=+(TSET.perms||{})[k];return v>0?v:d};
 function tsetSaved(){toast('저장했어요')}
-async function tsetSave(){const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:{perms:TSET.perms},updated_at:new Date().toISOString()})});
+async function tsetSave(){const d=(await tsRaw())||{};d.perms=TSET.perms;const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:d,updated_at:new Date().toISOString()})});
  if(!r.ok)throw new Error(r.status===404?'teacher_settings 테이블이 없어요. setup.sql을 다시 실행하세요.':'저장하지 못했어요 ('+r.status+')')}
 async function tsetNum(k,v,lo,hi){const old=TSET.perms[k];TSET.perms[k]=Math.max(lo,Math.min(hi,Math.round(+v)||hi));try{await tsetSave();tsetSaved()}catch(e){TSET.perms[k]=old;toast(e.message)}tsetView()}
 async function tsetAll(on){const old={...TSET.perms};const n={};if(TSET.perms.maxQ)n.maxQ=TSET.perms.maxQ;TSET.perms=n;try{await tsetSave();tsetSaved()}catch(e){TSET.perms=old;toast(e.message)}tsetView()}
@@ -1476,7 +1480,7 @@ async function finish(force){
  scrollTo(0,0);render()}
 /* ---------- 교재 탭 (books.js 를 처음 열 때 불러옴) ---------- */
 let _bkp=null;
-function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=27';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
+function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=29';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
 function booksView(){$('#main').innerHTML='<div class="card">'+ldg('교재를 불러오는 중…')+'</div>';bkLoad().then(()=>{if(tab==='books')return bkShow()}).catch(()=>{$('#main').innerHTML='<div class="card"><h2>교재</h2><p>교재를 불러오지 못했습니다. 인터넷 연결을 확인하고 다시 눌러 주세요.</p><button class="p" onclick="render()">다시 시도</button></div>'})}
 function bkPageSolve(){const id=$('#bpb').value,n=parseInt($('#bp').value);if(!n){alert('쪽 번호를 입력하세요.');return}bkLoad().then(()=>bkSolve(id,n)).catch(()=>alert('교재를 불러오지 못했습니다.'))}
 function bkPageGo(){const g=+($('#bpgap')||{value:0}).value;const id=$('#bpb').value+(g?'~g'+g:''),n=parseInt($('#bp').value);if(!n){alert('쪽 번호를 입력하세요.');return}bkLoad().then(()=>bkGradePage(id,n)).catch(()=>alert('교재를 불러오지 못했습니다.'))}
