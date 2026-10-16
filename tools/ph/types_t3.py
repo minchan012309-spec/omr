@@ -1,0 +1,1983 @@
+# -*- coding: utf-8 -*-
+"""Ⅱ-A / Ⅱ-B 열역학 추가 유형 (ph114~ph122) 생성기.
+이상 기체: PV = nRT (T ∝ PV), 단원자 분자 U = (3/2)PV, W = PΔV, Q = ΔU + W.
+눈금 단위: 압력 P₀, 부피 V₀, 절대 온도 T₀ (= P₀V₀/nR)."""
+from phlib import *
+import math, functools, itertools
+from fractions import Fraction
+
+GAM = 5.0 / 3.0
+KR = {'P': '등압', 'V': '등적', 'T': '등온', 'A': '단열'}
+NMS = 'ABCD'
+PLN = {'PV': 'P-V', 'PT': 'P-T', 'VT': 'V-T'}
+PLK = {'PV': '압력 P와 부피 V', 'PT': '압력 P와 절대 온도 T', 'VT': '부피 V와 절대 온도 T'}
+AXN = {'PV': ('V (V₀)', 'P (P₀)'), 'PT': ('T (T₀)', 'P (P₀)'), 'VT': ('T (T₀)', 'V (V₀)')}
+AXQ = {'PV': ('V', 'P'), 'PT': ('T', 'P'), 'VT': ('T', 'V')}
+SHAPE = {
+    'PV': {'P': 'V축에 나란한(수평) 직선', 'V': 'P축에 나란한(수직) 직선', 'T': '반비례 곡선(PV 일정)', 'A': '등온 곡선보다 가파른 곡선'},
+    'PT': {'P': 'T축에 나란한(수평) 직선', 'V': '원점을 지나는 직선', 'T': 'P축에 나란한(수직) 직선'},
+    'VT': {'V': 'T축에 나란한(수평) 직선', 'P': '원점을 지나는 직선', 'T': 'V축에 나란한(수직) 직선'},
+}
+WHY = {'P': '압력이 일정', 'V': '부피가 일정', 'T': 'PV(절대 온도)가 일정', 'A': '열 출입이 없음(Q=0)'}
+CAP = ['(가)', '(나)', '(다)', '(라)', '(마)']
+
+
+# ============================================================ 공통 도구
+def mco(body, right, wrongs, *, steps, core='', point='', lv='중', fam='a', r=None, ref=None, sort='shuf'):
+    seen = {re.sub(r'\s+', '', plain(right))}
+    ws = []
+    for w in wrongs:
+        kk = re.sub(r'\s+', '', plain(w))
+        if kk in seen: continue
+        seen.add(kk); ws.append(w)
+    if len(ws) < 4: return None
+    return mc(body, right, ws, steps=steps, core=core, point=point, lv=lv, fam=fam, sort=sort, r=r, ref=ref)
+
+
+def mc_list(body, options, ans_idx, *, steps, core='', point='', lv='중', fam='a', ref=None):
+    assert len(options) == 5 and 0 <= ans_idx < 5
+    return Item(body=body, opts=list(options), ans=ans_idx + 1, steps=steps, core=core, point=point, lv=lv, fam=fam, vertical=None, ref=ref)
+
+
+def fr_str(x):
+    x = Fraction(x)
+    return str(x.numerator) if x.denominator == 1 else '%d/%d' % (x.numerator, x.denominator)
+
+
+def ratio_list(vals):
+    """정수·분수 목록을 가장 간단한 정수비 문자열로. '1 : 2 : 3'"""
+    vals = [Fraction(v) for v in vals]
+    L = 1
+    for v in vals: L = L * v.denominator // math.gcd(L, v.denominator)
+    xs = [int(v * L) for v in vals]
+    g = 0
+    for x in xs: g = math.gcd(g, abs(x))
+    g = g or 1
+    return ' : '.join(str(x // g) for x in xs)
+
+
+def sg(x, eps=1e-9):
+    return 1 if x > eps else (-1 if x < -eps else 0)
+
+
+def sj(x, unit='J'):
+    if abs(x) < 1e-9: return '0 ' + unit
+    return ('+' if x > 0 else '−') + num(abs(x)) + ' ' + unit
+
+
+def sgs(s):
+    return {1: '+', -1: '−', 0: '0'}[s]
+
+
+def pick_stmts(r, bank, n=3):
+    """bank: (문장, 참거짓, 풀이문, 그룹). 그룹이 서로 다른 n개를 뽑는다. 참 1개 이상."""
+    for _ in range(60):
+        sel = r.sample(bank, n)
+        if len({s[3] for s in sel}) == n and any(s[1] for s in sel):
+            return [(s[0], s[1], s[2]) for s in sel]
+    return None
+
+
+# ============================================================ 이상 기체 과정 판정
+def ptype(a, b):
+    """두 상태 a=(P,V), b=(P,V) 를 잇는 과정 종류. 'P' 등압, 'V' 등적, 'T' 등온, 없으면 None."""
+    (pa, va), (pb, vb) = a, b
+    if abs(pa - pb) < 1e-9 and abs(va - vb) < 1e-9: return None
+    if abs(pa - pb) < 1e-9: return 'P'
+    if abs(va - vb) < 1e-9: return 'V'
+    if abs(pa * va - pb * vb) < 1e-9: return 'T'
+    return None
+
+
+def seg_vals(kind, a, b):
+    """(ΔU, W, Q) — P₀V₀ 단위. kind: P V T A."""
+    (pa, va), (pb, vb) = a, b
+    dU = 1.5 * (pb * vb - pa * va)
+    if kind == 'P': W = pa * (vb - va)
+    elif kind == 'V': W = 0.0
+    elif kind == 'T': W = pa * va * math.log(vb / va)
+    else: W = 1.5 * (pa * va - pb * vb)
+    return dU, W, dU + W
+
+
+def seg_signs(kind, a, b):
+    """규칙으로 정한 (ΔU, W, Q) 부호를 수치 계산과 교차 검증해서 돌려준다."""
+    dU, W, Q = seg_vals(kind, a, b)
+    (pa, va), (pb, vb) = a, b
+    dT, dV, dP = pb * vb - pa * va, vb - va, pb - pa
+    if kind == 'P': rule = (sg(dT), sg(dV), sg(dV))
+    elif kind == 'V': rule = (sg(dT), 0, sg(dP))
+    elif kind == 'T': rule = (0, sg(dV), sg(dV))
+    else: rule = (sg(dT), sg(dV), 0)
+    got = (sg(dU, 1e-7), sg(W, 1e-7), sg(Q, 1e-7))
+    assert got == rule, (kind, got, rule)
+    return rule
+
+
+def net_work(sts, kinds):
+    return sum(seg_vals(kinds[i], sts[i], sts[(i + 1) % len(sts)])[1] for i in range(len(sts)))
+
+
+def ccw_label(w):
+    return '시계 방향' if w > 0 else '반시계 방향'
+
+
+# ============================================================ 격자 순환 과정 목록
+@functools.lru_cache(None)
+def grid_cycles(seq, G=5):
+    n = len(seq)
+    pts = [(p, v) for p in range(1, G + 1) for v in range(1, G + 1)]
+    nb = {a: {} for a in pts}
+    for a in pts:
+        for b in pts:
+            t = ptype(a, b)
+            if t: nb[a].setdefault(t, []).append(b)
+    out = []
+
+    def rec(path):
+        i = len(path)
+        if i == n:
+            if ptype(path[-1], path[0]) == seq[-1]: out.append(tuple(path))
+            return
+        for b in nb[path[-1]].get(seq[i - 1], []):
+            if b in path: continue
+            rec(path + [b])
+    for a in pts: rec([a])
+    return out
+
+
+SEQ3 = [''.join(p) for p in itertools.permutations('PVT')]
+SEQ4 = [''.join(s) for s in itertools.product('PVT', repeat=4) if all(s[i] != s[(i + 1) % 4] for i in range(4))]
+
+
+def _lg(s):
+    return (math.log(s[1]), math.log(s[0]))
+
+
+def _cross(o, a, b):
+    return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+
+def _seg_hit(p1, p2, p3, p4):
+    d1, d2, d3, d4 = _cross(p3, p4, p1), _cross(p3, p4, p2), _cross(p1, p2, p3), _cross(p1, p2, p4)
+    if ((d1 > 1e-9 and d2 < -1e-9) or (d1 < -1e-9 and d2 > 1e-9)) and ((d3 > 1e-9 and d4 < -1e-9) or (d3 < -1e-9 and d4 > 1e-9)): return True
+    if abs(d1) < 1e-9 and abs(d2) < 1e-9: return True   # 겹침(한 직선 위)
+    return False
+
+
+def loop_simple(sts):
+    """로그 좌표에서 모든 과정이 직선이므로 선분 교차로 단순 폐곡선인지 검사."""
+    n = len(sts)
+    L = [_lg(s) for s in sts]
+    for i in range(n):
+        for j in range(i + 2, n):
+            if i == 0 and j == n - 1: continue
+            if _seg_hit(L[i], L[(i + 1) % n], L[j], L[(j + 1) % n]): return False
+    return True
+
+
+def pick_cycle(r, n=3, need=None):
+    """격자 순환 과정 하나를 뽑는다. 반환: (상태 리스트, 과정 종류 문자열). 못 찾으면 None."""
+    for _ in range(30):
+        seq = r.choice(SEQ3 if n == 3 else SEQ4)
+        cs = grid_cycles(seq, 5)
+        if not cs: continue
+        c = list(r.choice(cs))
+        if not loop_simple(c): continue
+        if need and not need(c, seq): continue
+        return c, seq
+    return None
+
+
+# ============================================================ 그래프 그리기
+def to_xy(plane, s):
+    P, V = s
+    return {'PV': (V, P), 'PT': (P * V, P), 'VT': (P * V, V)}[plane]
+
+
+def curve_xy(plane, a, b, kind, n=40):
+    """plane 좌표계에서 a→b 의 점열. kind: P V T A(단열, P-V 에서만)."""
+    if plane == 'PV' and kind in ('T', 'A'):
+        (pa, va), (pb, vb) = a, b
+        pts = []
+        for i in range(n + 1):
+            v = va + (vb - va) * i / n
+            p = pa * va / v if kind == 'T' else pa * (va / v) ** GAM
+            pts.append((v, p))
+        return pts
+    return [to_xy(plane, a), to_xy(plane, b)]
+
+
+def _along(poly, f):
+    """점열 위 길이 비율 f(0~1) 의 점."""
+    L = [0.0]
+    for i in range(1, len(poly)):
+        L.append(L[-1] + math.hypot(poly[i][0] - poly[i - 1][0], poly[i][1] - poly[i - 1][1]))
+    t = L[-1] * f
+    for i in range(1, len(poly)):
+        if L[i] >= t - 1e-9:
+            d = (t - L[i - 1]) / ((L[i] - L[i - 1]) or 1)
+            return (poly[i - 1][0] + (poly[i][0] - poly[i - 1][0]) * d, poly[i - 1][1] + (poly[i][1] - poly[i - 1][1]) * d)
+    return poly[-1]
+
+
+def through_origin(p, q):
+    """두 점을 잇는 직선이 원점을 지나는가(점이 서로 다르고 원점이 아님)."""
+    return abs(p[0] * q[1] - p[1] * q[0]) < 1e-9 and (p != q)
+
+
+def loop_fig(plane, names, sts, kinds, numbered=True, w=292, h=226, ext=True, color=BL, lab_off=None, hl=None):
+    """순환 과정 그림. sts: [(P,V)], kinds: 각 과정 종류(P V T A). numbered: 눈금 표시."""
+    n = len(sts)
+    pts_all = []
+    for i in range(n):
+        pts_all += curve_xy(plane, sts[i], sts[(i + 1) % n], kinds[i])
+    xm = max(x for x, _ in pts_all)
+    ym = max(y for _, y in pts_all)
+    if numbered:
+        xmax = math.ceil(xm) + 0.9 if plane == 'PV' else xm + max(1.2, xm * 0.1)
+        ymax = math.ceil(ym) + 0.8
+    else:
+        xmax, ymax = xm * 1.22, ym * 1.2
+    p = Plot(w, h, xmax, ymax, ml=50 if numbered else 30, mr=16, mt=28, mb=34)
+    xl, yl = AXN[plane] if numbered else AXQ[plane]
+    if numbered:
+        xs = sorted({to_xy(plane, s)[0] for s in sts})
+        if plane == 'PV':
+            xt = list(range(0, int(xmax) + 1)); yt = list(range(0, int(ymax) + 1))
+        else:
+            xt = [0] + xs; yt = list(range(0, int(ymax) + 1))
+            pxs = [p.px(t) for t in xt[1:]]
+            for i in range(1, len(pxs)):
+                assert pxs[i] - pxs[i - 1] >= 17, '눈금 겹침'
+            assert pxs[0] - p.px(0) >= 15, '눈금 겹침'
+        p.axes('', '', xticks=xt, yticks=yt, grid=(plane == 'PV'))
+        p.text(w - 12, h - 5, xl, 12.5, 'end', True, GR)
+        p.text(p.ml + 8, 14, yl, 12.5, 'start', True, GR)
+        if plane != 'PV':
+            for s in sts:
+                x, y = to_xy(plane, s)
+                p.dash_to_axes(x, y)
+    else:
+        p.axes('', '', xticks=(), yticks=(), grid=False)
+        p.text(w - 14, h - 14, xl, 14, 'end', True, GR, True)
+        p.text(p.ml + 8, 16, yl, 14, 'start', True, GR, True)
+        p.text(p.ml - 8, h - 21, 'O', 12, 'end', False, GR)
+    cx = sum(to_xy(plane, s)[0] for s in sts) / n
+    cy = sum(to_xy(plane, s)[1] for s in sts) / n
+    for i in range(n):
+        a, b = sts[i], sts[(i + 1) % n]
+        poly = curve_xy(plane, a, b, kinds[i])
+        col = (hl or {}).get(i, color)
+        if ext and plane != 'PV' and through_origin(to_xy(plane, a), to_xy(plane, b)):
+            q0, q1 = to_xy(plane, a), to_xy(plane, b)
+            near = q0 if math.hypot(*q0) < math.hypot(*q1) else q1
+            p.line(p.px(near[0]), p.py(near[1]), p.px(0), p.py(0), GR, 1.1, '2 3')
+        p.pl(poly, col, 2.6)
+        m1, m2 = _along(poly, 0.5 - 0.04), _along(poly, 0.5 + 0.04)
+        p._head(p.px(m1[0]), p.py(m1[1]), p.px(m2[0]) , p.py(m2[1]), col, 2.2, 9.5)
+    for i, nm in enumerate(names):
+        x, y = to_xy(plane, sts[i])
+        p.circ(p.px(x), p.py(y), 3.6, INK, INK, 1)
+        dx, dy = (lab_off or {}).get(nm, (None, None))
+        if dx is None:
+            ox, oy = p.px(x) - p.px(cx), p.py(y) - p.py(cy)
+            ln = math.hypot(ox, oy) or 1
+            dx, dy = 13 * ox / ln, 13 * oy / ln + 5
+        p.text(p.px(x) + dx, p.py(y) + dy, nm, 14.5, 'middle', True, INK, True)
+    return p.svg()
+
+
+def _sig(plane, labeled):
+    """labeled: [(P,V)] 순환 순서. 그래프를 눈으로 구별하는 특징(종류·변화 방향)."""
+    n = len(labeled)
+    out = []
+    for i in range(n):
+        a, b = labeled[i], labeled[(i + 1) % n]
+        (x1, y1), (x2, y2) = to_xy(plane, a), to_xy(plane, b)
+        out.append((ptype(a, b), sg(x2 - x1), sg(y2 - y1)))
+    return tuple(out)
+
+
+def thumbs(plane, graphs, w=340, h=232):
+    """graphs: 5개의 [(P,V) …](순환 순서). 각 그래프를 눈금 없이 작게 그린 한 장의 SVG. 라벨 (가)~(마)."""
+    allp = []
+    for g in graphs:
+        for i in range(len(g)):
+            allp.append(to_xy(plane, g[i]))
+    xm = max(x for x, _ in allp) * 1.12
+    ym = max(y for _, y in allp) * 1.12
+    f = Fig(w, h)
+    pw, ph = 108, 96
+    xl, yl = AXQ[plane]
+    for gi, g in enumerate(graphs):
+        row, col = (0, gi) if gi < 3 else (1, gi - 3)
+        x0 = 6 + col * 112 + (0 if row == 0 else 56)
+        y0 = 4 + row * 114
+        ox, oy = x0 + 16, y0 + ph - 14
+        ex, ey = x0 + pw - 4, y0 + 12
+        f.rect(x0 - 2, y0 - 2, pw + 4, ph + 20, 'none', '#d5dce8', 1, 6)
+        f.arrow(ox, oy, ex, oy, INK, 1.3)
+        f.arrow(ox, oy, ox, ey, INK, 1.3)
+        f.text(ex - 2, oy + 13, xl, 12, 'end', True, GR, True)
+        f.text(ox - 4, ey + 4, yl, 12, 'end', True, GR, True)
+        f.text(ox - 3, oy + 12, 'O', 10.5, 'end', False, GR)
+        sx = (ex - ox - 10) / xm
+        sy = (oy - ey - 8) / ym
+        mp = lambda s: (ox + to_xy(plane, s)[0] * sx, oy - to_xy(plane, s)[1] * sy)
+        n = len(g)
+        cxs = sum(mp(s)[0] for s in g) / n
+        cys = sum(mp(s)[1] for s in g) / n
+        for i in range(n):
+            a, b = g[i], g[(i + 1) % n]
+            t = ptype(a, b)
+            poly = curve_xy(plane, a, b, 'T' if t == 'T' else 'L')
+            pp = [(ox + x * sx, oy - y * sy) for (x, y) in poly]
+            q0, q1 = to_xy(plane, a), to_xy(plane, b)
+            if plane != 'PV' and through_origin(q0, q1):
+                near = q0 if math.hypot(*q0) < math.hypot(*q1) else q1
+                f.line(ox + near[0] * sx, oy - near[1] * sy, ox, oy, GR, 1, '2 3')
+            f.poly(pp, 'none', BL, 2.0, close=False)
+            m1, m2 = _along(pp, 0.46), _along(pp, 0.54)
+            f._head(m1[0], m1[1], m2[0], m2[1], BL, 2, 8)
+        for i, s in enumerate(g):
+            x, y = mp(s)
+            f.circ(x, y, 2.8, INK, INK, 1)
+            ox2, oy2 = x - cxs, y - cys
+            ln = math.hypot(ox2, oy2) or 1
+            f.text(x + 10.5 * ox2 / ln, y + 10.5 * oy2 / ln + 4.5, NMS[i], 12.5, 'middle', True, INK, True)
+        f.text(x0 + pw / 2, y0 + ph + 12, CAP[gi], 12.5, 'middle', True, INK)
+    return f.svg()
+
+
+def make_thumb_set(r, plane, states, nm):
+    """정답 그래프(states 순서 그대로)와 라벨을 바꾼 오답 4개. (그래프 5개, 정답 위치) 또는 None."""
+    n = len(states)
+    good = _sig(plane, states)
+    cands = []
+    for perm in itertools.permutations(range(n)):
+        if perm == tuple(range(n)): continue
+        g = [states[perm[i]] for i in range(n)]
+        if _sig(plane, g) == good: continue
+        cands.append(g)
+    if len(cands) < 4: return None
+    ws = r.sample(cands, 4)
+    pos = r.randrange(5)
+    gs = ws[:pos] + [list(states)] + ws[pos:]
+    return gs, pos
+
+
+# ============================================================ 보기 문장 은행(순환 과정 공통)
+def stmts_cycle(r, names, sts, kinds, plane):
+    """순환 과정 그래프에 대한 <보기> 문장 후보들 (문장, 참거짓, 풀이, 그룹)."""
+    n = len(sts)
+    Ts = [p * v for p, v in sts]
+    seg = lambda i: '%s→%s' % (names[i], names[(i + 1) % n])
+    out = []
+    # 과정 종류
+    for i in range(n):
+        t = kinds[i]
+        pool = 'PVTA' if 'A' in kinds else 'PVT'
+        c = t if r.random() < 0.5 else r.choice([x for x in pool if x != t])
+        out.append(('%s 과정은 %s 과정이다.' % (seg(i), KR[c]), c == t, '%s에서는 %s하므로 %s 과정이다.' % (seg(i), WHY[t], KR[t]), 'type'))
+    # 온도 변화
+    i = r.randrange(n)
+    dT = Ts[(i + 1) % n] - Ts[i]
+    c = r.choice(['증가한다', '감소한다', '일정하다'])
+    truth = {'증가한다': dT > 0, '감소한다': dT < 0, '일정하다': dT == 0}[c]
+    real = '증가한다' if dT > 0 else ('감소한다' if dT < 0 else '일정하다')
+    out.append(('%s 과정에서 기체의 온도는 %s.' % (seg(i), c), truth, '%s에서 PV 가 %d → %d (×P₀V₀) 이므로 기체의 온도는 %s.' % (seg(i), Ts[i], Ts[(i + 1) % n], real), 'temp'))
+    # 최고 온도 상태
+    mx = max(Ts)
+    if Ts.count(mx) == 1:
+        c = r.randrange(n)
+        out.append(('기체의 온도가 가장 높은 상태는 %s이다.' % names[c], Ts[c] == mx, '각 상태의 PV 는 ' + ', '.join('%s: %d' % (names[j], Ts[j]) for j in range(n)) + ' (×P₀V₀) 이므로 온도가 가장 높은 상태는 %s이다.' % names[Ts.index(mx)], 'maxT'))
+    mn = min(Ts)
+    if Ts.count(mn) == 1:
+        c = r.randrange(n)
+        out.append(('기체의 온도가 가장 낮은 상태는 %s이다.' % names[c], Ts[c] == mn, '각 상태의 PV 는 ' + ', '.join('%s: %d' % (names[j], Ts[j]) for j in range(n)) + ' (×P₀V₀) 이므로 온도가 가장 낮은 상태는 %s이다.' % names[Ts.index(mn)], 'minT'))
+    # 열 출입
+    i = r.randrange(n)
+    dU, W, Q = seg_signs(kinds[i], sts[i], sts[(i + 1) % n])
+    c = r.choice(['흡수', '방출'])
+    out.append(('%s 과정에서 기체는 열을 %s한다.' % (seg(i), c), (Q > 0) == (c == '흡수'),
+                '%s에서 ΔU %s, W %s 이므로 Q = ΔU + W %s 이다. 기체는 열을 %s한다.' % (seg(i), _zs(dU), _zs(W), _zs(Q), '흡수' if Q > 0 else '방출'), 'Q'))
+    # 일
+    i = r.randrange(n)
+    dU, W, Q = seg_signs(kinds[i], sts[i], sts[(i + 1) % n])
+    c = r.choice(['외부에 일을 한다', '외부로부터 일을 받는다', '일을 하지도 받지도 않는다'])
+    truth = {'외부에 일을 한다': W > 0, '외부로부터 일을 받는다': W < 0, '일을 하지도 받지도 않는다': W == 0}[c]
+    real = {1: '외부에 일을 한다(팽창)', -1: '외부로부터 일을 받는다(압축)', 0: '일을 하지도 받지도 않는다(부피 일정)'}[W]
+    out.append(('%s 과정에서 기체는 %s.' % (seg(i), c), truth, '%s에서 부피가 %s 기체는 %s.' % (seg(i), {1: '증가하므로', -1: '감소하므로', 0: '변하지 않으므로'}[W], real), 'W'))
+    # 내부 에너지
+    i = r.randrange(n)
+    dU, W, Q = seg_signs(kinds[i], sts[i], sts[(i + 1) % n])
+    c = r.choice(['증가한다', '감소한다', '변하지 않는다'])
+    truth = {'증가한다': dU > 0, '감소한다': dU < 0, '변하지 않는다': dU == 0}[c]
+    real = {1: '증가한다', -1: '감소한다', 0: '변하지 않는다'}[dU]
+    out.append(('%s 과정에서 기체의 내부 에너지는 %s.' % (seg(i), c), truth, '내부 에너지는 온도에 비례하는데 %s에서 온도가 %s 내부 에너지는 %s.' % (seg(i), {1: '높아지므로', -1: '낮아지므로', 0: '변하지 않으므로'}[dU], real), 'dU'))
+    # 같은 온도
+    i, j = sorted(r.sample(range(n), 2))
+    out.append(('%s와 %s에서 기체의 온도는 같다.' % (names[i], names[j]), Ts[i] == Ts[j], '%s의 PV = %d, %s의 PV = %d (×P₀V₀) 이므로 온도는 %s.' % (names[i], Ts[i], names[j], Ts[j], '같다' if Ts[i] == Ts[j] else '같지 않다'), 'eqT'))
+    # 한 순환
+    Wn = net_work(sts, kinds)
+    assert abs(sum(seg_vals(kinds[i], sts[i], sts[(i + 1) % n])[0] for i in range(n))) < 1e-9
+    c = r.choice(['양(+)', '음(−)'])
+    out.append(('한 순환 동안 기체가 외부에 한 순 일은 %s이다.' % c, (Wn > 0) == (c == '양(+)'),
+                'P-V 그래프에서 순환이 %s이므로 한 순환 동안 기체가 한 순 일은 %s이다.' % (ccw_label(Wn), '양(+)' if Wn > 0 else '음(−)'), 'net'))
+    out.append(('한 순환을 마치고 처음 상태로 돌아오면 기체의 내부 에너지 변화는 0이다.', True, '내부 에너지는 상태(온도)에 따라 정해지므로 처음 상태로 돌아오면 변화량은 0이다.', 'cyc'))
+    out.append(('한 순환 동안 기체가 흡수한 열의 합은 방출한 열의 합보다 %s.' % ('크다' if Wn > 0 else '작다'), True,
+                '한 순환에서 ΔU = 0 이므로 순 흡수 열 = 한 일 = %s이다.' % ('양(+)' if Wn > 0 else '음(−)'), 'cyc2'))
+    out.append(('한 순환 동안 기체가 흡수한 열의 합은 방출한 열의 합과 항상 같다.', False, '한 순환에서 Q = W 이므로 한 일이 0이 아니면 흡수한 열과 방출한 열은 다르다.', 'cyc2'))
+    # 그래프 모양
+    i = r.randrange(n)
+    t = kinds[i]
+    if plane == 'PV':
+        c = r.choice(['P', 'V', 'T', 'A'] if 'A' in kinds else ['P', 'V', 'T'])
+        out.append(('%s 과정은 이 그래프에서 %s으로 나타난다.' % (seg(i), SHAPE['PV'][c]), c == t, '%s는 %s 과정이므로 P-V 그래프에서 %s으로 나타난다.' % (seg(i), KR[t], SHAPE['PV'][t]), 'geom'))
+    else:
+        q0, q1 = to_xy(plane, sts[i]), to_xy(plane, sts[(i + 1) % n])
+        tr = through_origin(q0, q1)
+        out.append(('%s 과정은 이 그래프에서 원점을 지나는 직선으로 나타난다.' % seg(i), tr,
+                    '%s는 %s 과정이므로 %s 그래프에서 %s으로 나타난다.' % (seg(i), KR[t], PLN[plane], SHAPE[plane][t]), 'geom'))
+    return out
+
+
+def _zs(s):
+    return {1: '> 0', -1: '< 0', 0: '= 0'}[s]
+
+
+def state_tab(names, sts):
+    return ', '.join('%s(P=%s, V=%s, PV=%s)' % (names[i], num(sts[i][0]), num(sts[i][1]), num(sts[i][0] * sts[i][1])) for i in range(len(sts)))
+
+
+# ============================================================ ph114 P-V · P-T · V-T 그래프의 전환
+def _intro(names, plane):
+    n = len(names)
+    path = '→'.join(names) + '→' + names[0]
+    return '그림은 일정량의 이상 기체의 상태가 %s를 따라 변할 때 기체의 %s를 나타낸 것이다.' % (path, PLK[plane])
+
+
+def _why_steps(names, sts, kinds, plane):
+    n = len(sts)
+    return ['과정 종류 : ' + ', '.join('%s→%s %s' % (names[i], names[(i + 1) % n], KR[kinds[i]]) for i in range(n)) + ' (%s)' % ', '.join(WHY[kinds[i]] for i in range(n)),
+            '%s 그래프에서의 모양 : ' % PLN[plane] + ', '.join('%s→%s %s' % (names[i], names[(i + 1) % n], SHAPE[plane][kinds[i]]) for i in range(n))]
+
+
+@T('ph114')
+def g114(r, k):
+    n = r.choice([3, 3, 3, 4])
+    got = pick_cycle(r, n)
+    if not got: return None
+    sts, seq = got
+    kinds = list(seq)
+    names = list(NMS[:n])
+    for i in range(n):
+        assert ptype(sts[i], sts[(i + 1) % n]) == kinds[i]
+    form = r.choice(['conv', 'conv', 'conv', 'pair', 'val', 'val', 'sign', 'bogi', 'bogi'])
+    steps_state = '상태값 (P₀, V₀, T₀ 단위, T = PV) : ' + ', '.join('%s(%d, %d, %d)' % (names[i], sts[i][0], sts[i][1], sts[i][0] * sts[i][1]) for i in range(n))
+    if form == 'conv':
+        src, dst = r.choice([('PV', 'PT'), ('PV', 'PT'), ('PV', 'VT'), ('PV', 'VT'), ('PT', 'PV'), ('VT', 'PV'), ('PT', 'VT'), ('VT', 'PT')])
+        try:
+            fig = loop_fig(src, names, sts, kinds, numbered=True)
+        except AssertionError:
+            return None
+        tset = make_thumb_set(r, dst, sts, names)
+        if not tset: return None
+        gs, pos = tset
+        # 정답 그래프의 도착 좌표계 특징이 맞는지 한 번 더 확인
+        for i in range(n):
+            a, b = sts[i], sts[(i + 1) % n]
+            q0, q1 = to_xy(dst, a), to_xy(dst, b)
+            if kinds[i] == 'V' and dst == 'PT' or kinds[i] == 'P' and dst == 'VT':
+                assert through_origin(q0, q1)
+            if kinds[i] == 'T' and dst != 'PV':
+                assert abs(q0[0] - q1[0]) < 1e-9
+        body = P(_intro(names, src) + ' 이 과정을 %s 그래프로 나타낸 것으로 가장 적절한 것은?' % PLN[dst]) + FIG(fig, '66%') + FIG(thumbs(dst, gs), '100%')
+        steps = _why_steps(names, sts, kinds, dst) + [steps_state, '이 모양과 상태 기호의 위치가 모두 일치하는 그래프는 %s이다.' % CAP[pos]]
+        lv = '상' if (n == 4 or src != 'PV') and r.random() < 0.6 else '중'
+        return mc_list(body, CAP, pos, steps=steps, lv=lv, fam='a',
+                       core='등압·등적·등온 과정은 P-V, P-T, V-T 그래프에서 각각 고유한 모양(원점을 지나는 직선, 축에 나란한 직선, 반비례 곡선)으로 나타난다.',
+                       point='과정의 종류를 먼저 판별하고 PV=nRT 로 다른 좌표계의 값을 구해 그래프를 바꾼다.')
+    if form == 'pair':
+        plane = r.choice(['PV', 'PT', 'VT'])
+        try:
+            fig = loop_fig(plane, names, sts, kinds, numbered=r.random() < 0.7)
+        except AssertionError:
+            return None
+        seg = ['%s→%s' % (names[i], names[(i + 1) % n]) for i in range(n)]
+        right = ', '.join(KR[c] for c in kinds)
+        wrongs = []
+        for _ in range(40):
+            c = list(kinds)
+            for j in r.sample(range(n), r.choice([1, 2])):
+                c[j] = r.choice([x for x in 'PVT' if x != c[j]])
+            wrongs.append(', '.join(KR[x] for x in c))
+        body = P(_intro(names, plane) + ' %s 과정을 각각 옳게 나타낸 것은?' % ', '.join(seg)) + FIG(fig, '66%')
+        steps = _why_steps(names, sts, kinds, plane)[::-1][:1] + ['따라서 %s 은(는) 차례로 %s 과정이다.' % (', '.join(seg), right)]
+        steps = ['%s 그래프에서 ' % PLN[plane] + ', '.join('%s는 %s' % (seg[i], SHAPE[plane][kinds[i]]) for i in range(n)) + '이므로', '%s 은(는) 차례로 %s 과정이다.' % (', '.join(seg), right)]
+        return mco(body, right, wrongs, steps=steps, lv='하' if plane == 'PV' else '중', fam='b', r=r,
+                   core='P-V 그래프의 수평선은 등압, 수직선은 등적, 반비례 곡선은 등온이고, P-T·V-T 그래프에서는 원점을 지나는 직선이 각각 등적·등압이다.',
+                   point='그래프의 모양으로 과정의 종류를 판별한다.')
+    if form == 'val':
+        sub_form = r.choice(['Tratio', 'Tratio', 'Vfrom', 'Pfrom'])
+        if sub_form == 'Tratio':
+            i, j = r.sample(range(n), 2)
+            Ti, Tj = sts[i][0] * sts[i][1], sts[j][0] * sts[j][1]
+            if Ti == Tj: return None
+            ans = Fraction(Tj, Ti)
+            try:
+                fig = loop_fig('PV', names, sts, kinds, numbered=True)
+            except AssertionError:
+                return None
+            body = P(_intro(names, 'PV') + ' 상태 %s에서 기체의 절대 온도는 상태 %s에서의 몇 배인가?' % (names[j], names[i])) + FIG(fig, '66%')
+            pa, pb = Fraction(sts[j][0], sts[i][0]), Fraction(sts[j][1], sts[i][1])
+            ws = [1 / ans, pa, pb, Fraction(sts[j][0] + sts[j][1], sts[i][0] + sts[i][1]), pa + pb, ans + 1, ans * 2]
+            right = fr_str(ans) + '배'
+            steps = ['PV = nRT 이므로 T ∝ PV 이다.', 'T%s ∝ %d × %d = %d, T%s ∝ %d × %d = %d' % (names[j], sts[j][0], sts[j][1], Tj, names[i], sts[i][0], sts[i][1], Ti),
+                     'T%s / T%s = %d / %d = %s' % (names[j], names[i], Tj, Ti, fr_str(ans))]
+            return mco(body, right, [fr_str(w) + '배' for w in ws if w > 0], steps=steps, lv='하', fam='c', r=r,
+                       core='이상 기체의 절대 온도는 PV 에 비례한다.', point='그래프에서 P, V 눈금을 읽어 PV 의 비를 구한다.')
+        if sub_form == 'Vfrom':
+            plane = 'PT'
+            try:
+                fig = loop_fig(plane, names, sts, kinds, numbered=True)
+            except AssertionError:
+                return None
+            i, j = r.sample(range(n), 2)
+            Ti, Tj = sts[i][0] * sts[i][1], sts[j][0] * sts[j][1]
+            Pi, Pj = sts[i][0], sts[j][0]
+            Vi = sts[i][1]
+            Vj = Fraction(Vi) * Fraction(Tj, Pj) / Fraction(Ti, Pi)
+            assert Vj == sts[j][1]
+            body = P(_intro(names, plane) + ' 상태 %s에서 기체의 부피가 %s V₀일 때, 상태 %s에서 기체의 부피는? (단, 눈금 단위는 P₀, T₀이다.)' % (names[i], num(Vi), names[j])) + FIG(fig, '66%')
+            ws = [Fraction(Vi) * Fraction(Tj, Ti), Fraction(Vi) * Fraction(Pj, Pi), Fraction(Vi) * Fraction(Pi, Pj), Fraction(Vi) * Fraction(Ti, Tj), Vj + 1, Vj * 2, Vj + 2]
+            steps = ['V = nRT/P 이므로 V ∝ T/P 이다.', 'V%s ∝ %d/%d, V%s ∝ %d/%d' % (names[i], Ti, Pi, names[j], Tj, Pj),
+                     'V%s = %s V₀ × (%d/%d) ÷ (%d/%d) = %s V₀' % (names[j], num(Vi), Tj, Pj, Ti, Pi, fr_str(Vj))]
+            return mco(body, fr_str(Vj) + ' V₀', [fr_str(w) + ' V₀' for w in ws if w > 0], steps=steps, lv='중', fam='c', r=r,
+                       core='V ∝ T/P 이므로 P-T 그래프에서 원점과 이은 직선의 기울기(P/T)가 클수록 부피가 작다.', point='P-T 그래프의 값에서 V 를 구한다.')
+        plane = 'VT'
+        try:
+            fig = loop_fig(plane, names, sts, kinds, numbered=True)
+        except AssertionError:
+            return None
+        i, j = r.sample(range(n), 2)
+        Ti, Tj = sts[i][0] * sts[i][1], sts[j][0] * sts[j][1]
+        Vi, Vj_ = sts[i][1], sts[j][1]
+        Pi = sts[i][0]
+        Pj = Fraction(Pi) * Fraction(Tj, Vj_) / Fraction(Ti, Vi)
+        assert Pj == sts[j][0]
+        body = P(_intro(names, plane) + ' 상태 %s에서 기체의 압력이 %s P₀일 때, 상태 %s에서 기체의 압력은? (단, 눈금 단위는 V₀, T₀이다.)' % (names[i], num(Pi), names[j])) + FIG(fig, '66%')
+        ws = [Fraction(Pi) * Fraction(Tj, Ti), Fraction(Pi) * Fraction(Vj_, Vi), Fraction(Pi) * Fraction(Vi, Vj_), Fraction(Pi) * Fraction(Ti, Tj), Pj + 1, Pj * 2, Pj + 2]
+        steps = ['P = nRT/V 이므로 P ∝ T/V 이다.', 'P%s ∝ %d/%d, P%s ∝ %d/%d' % (names[i], Ti, Vi, names[j], Tj, Vj_),
+                 'P%s = %s P₀ × (%d/%d) ÷ (%d/%d) = %s P₀' % (names[j], num(Pi), Tj, Vj_, Ti, Vi, fr_str(Pj))]
+        return mco(body, fr_str(Pj) + ' P₀', [fr_str(w) + ' P₀' for w in ws if w > 0], steps=steps, lv='중', fam='c', r=r,
+                   core='P ∝ T/V 이므로 V-T 그래프에서 원점과 이은 직선의 기울기(V/T)가 클수록 압력이 작다.', point='V-T 그래프의 값에서 P 를 구한다.')
+    if form == 'sign':
+        plane = r.choice(['PV', 'PT', 'VT'])
+        try:
+            fig = loop_fig(plane, names, sts, kinds, numbered=True)
+        except AssertionError:
+            return None
+        i = r.randrange(n)
+        a, b = sts[i], sts[(i + 1) % n]
+        dU, W, Q = seg_signs(kinds[i], a, b)
+        right = 'W %s 0, ΔU %s 0, Q %s 0' % tuple({1: '>', -1: '<', 0: '='}[x] for x in (W, dU, Q))
+        wr = []
+        for t in itertools.product([1, -1, 0], repeat=3):
+            if t != (W, dU, Q):
+                wr.append('W %s 0, ΔU %s 0, Q %s 0' % tuple({1: '>', -1: '<', 0: '='}[x] for x in (t[0], t[1], t[2])))
+        r.shuffle(wr)
+        # 그럴듯한 오답(부호 하나만 바꾼 것)을 앞으로
+        near = [x for x in wr if sum(1 for u, v in zip(x.split(', '), right.split(', ')) if u != v) == 1]
+        wr = near + [x for x in wr if x not in near]
+        seg = '%s→%s' % (names[i], names[(i + 1) % n])
+        body = P(_intro(names, plane) + ' %s 과정에서 기체가 외부에 한 일 W, 내부 에너지 변화량 ΔU, 기체가 흡수한 열량 Q 의 부호를 옳게 나타낸 것은? (단, 기체가 열을 흡수하면 Q > 0, 외부에 일을 하면 W > 0 이다.)' % seg) + FIG(fig, '66%')
+        steps = ['%s 은(는) %s 과정이다 (%s).' % (seg, KR[kinds[i]], WHY[kinds[i]]), steps_state,
+                 '부피 %s → W %s 0, 온도(PV) %d → %d → ΔU %s 0, Q = ΔU + W %s 0' % ('증가' if b[1] > a[1] else ('감소' if b[1] < a[1] else '일정'), {1: '>', -1: '<', 0: '='}[W], a[0] * a[1], b[0] * b[1], {1: '>', -1: '<', 0: '='}[dU], {1: '>', -1: '<', 0: '='}[Q])]
+        return mco(body, right, wr[:8], steps=steps, lv='중' if kinds[i] != 'T' else '상', fam='d', r=r,
+                   core='Q = ΔU + W. 팽창이면 W>0, 온도가 오르면 ΔU>0 이고, 등온이면 ΔU=0 이므로 Q=W 이다.', point='그래프에서 부피·온도 변화를 읽어 W, ΔU, Q 의 부호를 정한다.')
+    # bogi
+    plane = r.choice(['PV', 'PT', 'VT', 'PT', 'VT'])
+    try:
+        fig = loop_fig(plane, names, sts, kinds, numbered=r.random() < 0.7)
+    except AssertionError:
+        return None
+    bank = stmts_cycle(r, names, sts, kinds, plane)
+    sel = pick_stmts(r, bank)
+    if not sel: return None
+    return bogi(_intro(names, plane), sel, pre=FIG(fig, '66%'), r=r, lv='중' if n == 3 else '상', fam='e',
+                core='그래프에서 각 과정의 종류를 판별하면 온도·부피 변화로 ΔU, W, Q 의 부호를 알 수 있다.', point='과정 판별 후 열역학 제1법칙으로 <보기>를 판단한다.')
+
+
+# ============================================================ ph115 피스톤으로 나뉜 두 기체
+def _dots(f, x, y, w, h, n, col, seed):
+    for i in range(n):
+        px = x + 6 + ((i * 37 + seed * 11 + 5) % 97) / 97.0 * max(w - 12, 1)
+        py = y + 6 + ((i * 61 + seed * 7 + 3) % 89) / 89.0 * max(h - 12, 1)
+        f.circ(px, py, 2.7, col, 'none', 0)
+
+
+def piston_fig(nA, nB, vA, vB, tA='', tB='', fixed=False, conduct=True, labels=('A', 'B'), nmA='', nmB='', w=330, h=150):
+    """가로 실린더(단열 벽)와 피스톹. 부피 vA, vB 는 상대값(길이 비례)."""
+    f = Fig(w, h)
+    x0, x1 = 22, w - 22
+    L = x1 - x0 - 12
+    yt, yb = 46, 104
+    xp = x0 + 6 + L * vA / (vA + vB)
+    f.rect(x0, yt, xp - x0 - 3, yb - yt, '#e8f1fb', 'none', 0)
+    f.rect(xp + 3, yt, x1 - xp - 3, yb - yt, '#fdecea', 'none', 0)
+    _dots(f, x0, yt, xp - x0 - 3, yb - yt, nA, BL, 1)
+    _dots(f, xp + 3, yt, x1 - xp - 3, yb - yt, nB, RD, 2)
+    f.line(x0, yt - 2, x1, yt - 2, GR, 5)
+    f.line(x0, yb + 2, x1, yb + 2, GR, 5)
+    f.line(x0 - 2, yt - 4, x0 - 2, yb + 4, GR, 5)
+    f.line(x1 + 2, yt - 4, x1 + 2, yb + 4, GR, 5)
+    f.rect(xp - 3, yt, 6, yb - yt, '#9aa7b8' if conduct else '#586476', INK, 1.2)
+    if fixed:
+        f.rect(xp - 8, yt - 12, 16, 8, INK, INK, 1)
+        f.text(xp, yt - 17, '고정 핀', 11.5, 'middle', True, INK)
+    f.text((x0 + xp) / 2, yb + 24, labels[0] + (' ' + nmA if nmA else ''), 13, 'middle', True, BL)
+    f.text((xp + x1) / 2, yb + 24, labels[1] + (' ' + nmB if nmB else ''), 13, 'middle', True, RD)
+    if tA: f.text((x0 + xp) / 2, yb + 41, tA, 12, 'middle', False, GR)
+    if tB: f.text((xp + x1) / 2, yb + 41, tB, 12, 'middle', False, GR)
+    f.text(w / 2, 17, '(실린더 벽은 단열)', 11.5, 'middle', False, GR)
+    f.text(xp, yt - 26 if fixed else yt - 8, '' if fixed else ('열전도 피스톤' if conduct else '단열 피스톤'), 11.5, 'middle', True, GR)
+    return f.svg()
+
+
+NRAT = [(1, 2), (2, 1), (1, 3), (3, 1), (2, 3), (3, 2), (1, 4), (4, 1)]
+
+
+def _nn(n):
+    return ('N' if n == 1 else '%dN' % n)
+
+
+def _eq_stmts(r, a, b, nA, nB):
+    """열평형·힘의 평형 상태(열전도 피스톤, 단열 실린더)에서의 <보기> 후보."""
+    out = []
+    big = 'A' if nA > nB else 'B'
+    q = Fraction(nB, nA)
+    out.append(('A와 B의 압력은 같다.', True, '피스톤이 정지해 있으므로 두 기체가 피스톤을 미는 힘이 같고 단면적이 같으므로 압력이 같다.', 'P'))
+    out.append(('A의 압력이 B의 압력보다 크다.', False, '피스톤이 정지해 있으므로 두 기체의 압력은 같다.', 'P'))
+    out.append(('A와 B의 온도는 같다.', True, '열전도 피스톤을 통해 열평형에 도달했으므로 온도가 같다.', 'T'))
+    out.append(('A의 온도가 B의 온도보다 높다.', False, '열평형 상태이므로 두 기체의 온도는 같다.', 'T'))
+    out.append(('기체 분자 1개의 평균 운동 에너지는 A와 B가 같다.', True, '평균 운동 에너지는 절대 온도에 비례하는데 온도가 같다.', 'KE'))
+    out.append(('기체 분자 1개의 평균 운동 에너지는 분자 수가 많은 쪽이 더 크다.', False, '분자 1개의 평균 운동 에너지는 온도에만 비례하며 분자 수와 무관하다. 두 기체의 온도가 같으므로 같다.', 'KE'))
+    out.append(('A와 B의 내부 에너지의 비는 분자 수의 비와 같다(U<sub>A</sub> : U<sub>B</sub> = %d : %d).' % (nA, nB), True, '내부 에너지 U ∝ NT 이고 온도가 같으므로 분자 수의 비 %d : %d 와 같다.' % (nA, nB), 'U'))
+    out.append(('A와 B의 내부 에너지는 같다.', nA == nB, '내부 에너지 U ∝ NT 이고 온도가 같으므로 U<sub>A</sub> : U<sub>B</sub> = %d : %d 이다.' % (nA, nB) + (' 같다.' if nA == nB else ' 같지 않다.'), 'U'))
+    out.append(('부피는 분자 수가 많은 쪽 기체가 더 크다.', True, 'PV = NkT 에서 P, T 가 같으므로 V ∝ N 이다. 분자 수가 많은 %s의 부피가 더 크다.' % big, 'V'))
+    out.append(('부피는 분자 수가 많은 쪽 기체가 더 작다.', False, 'P, T 가 같으면 V ∝ N 이므로 분자 수가 많은 쪽의 부피가 더 크다.', 'V'))
+    out.append(('단위 부피당 분자 수는 A와 B가 같다.', True, 'N/V = P/kT 이고 P, T 가 같으므로 단위 부피당 분자 수가 같다.', 'rho'))
+    out.append(('단위 부피당 분자 수는 분자 수가 많은 쪽이 더 많다.', False, 'N/V = P/kT 로 P, T 가 같으면 N/V 도 같다.', 'rho'))
+    out.append(('A와 B의 부피의 비는 %d : %d 이다.' % (nA, nB), True, 'V ∝ N 이므로 V<sub>A</sub> : V<sub>B</sub> = %d : %d 이다.' % (nA, nB), 'Vr'))
+    out.append(('A와 B의 부피의 비는 %d : %d 이다.' % (nB, nA), nA == nB, 'V ∝ N 이므로 V<sub>A</sub> : V<sub>B</sub> = %d : %d 이다.' % (nA, nB), 'Vr'))
+    return out
+
+
+def _release_stmts(r, nA, nB, TA, TB, VA, VB):
+    """고정 핀 제거 직후 (열전도 피스톤, 처음 온도·부피가 다름)."""
+    out = []
+    PA, PB = Fraction(nA * TA, VA), Fraction(nB * TB, VB)
+    Tf = Fraction(nA * TA + nB * TB, nA + nB)
+    VAf = Fraction(VA + VB) * nA / (nA + nB)
+    hot = 'A' if TA > TB else 'B'
+    cold = 'B' if hot == 'A' else 'A'
+    right = PA > PB
+    out.append(('핀을 제거한 직후 피스톤은 %s 쪽으로 이동한다.' % ('B' if right else 'A'), True,
+                '처음 압력은 P<sub>A</sub> : P<sub>B</sub> = %s : %s 이므로 압력이 큰 %s의 기체가 피스톤을 밀어 %s 쪽으로 이동한다.' % (fr_str(PA), fr_str(PB), 'A' if right else 'B', 'B' if right else 'A'), 'move'))
+    out.append(('핀을 제거한 직후 피스톤은 %s 쪽으로 이동한다.' % ('A' if right else 'B'), False,
+                '압력이 큰 쪽 기체가 피스톤을 밀어 압력이 작은 쪽으로 이동한다. 처음 압력은 P<sub>A</sub> : P<sub>B</sub> = %s : %s 이다.' % (fr_str(PA), fr_str(PB)), 'move'))
+    out.append(('열은 %s에서 %s로 이동한다.' % (hot, cold), True, '열은 온도가 높은 %s(%d K)에서 낮은 %s(%d K)로 이동한다.' % (hot, max(TA, TB), cold, min(TA, TB)), 'heat'))
+    out.append(('열은 %s에서 %s로 이동한다.' % (cold, hot), False, '열은 온도가 높은 쪽에서 낮은 쪽으로 이동한다. 높은 쪽은 %s이다.' % hot, 'heat'))
+    out.append(('충분한 시간이 지난 뒤 A와 B의 온도는 같다.', True, '열전도 피스톤을 통해 열평형에 도달하므로 온도가 같아진다.', 'Tf'))
+    out.append(('충분한 시간이 지난 뒤 A와 B의 압력은 같다.', True, '피스톤이 정지하려면 힘이 평형이어야 하므로 압력이 같다.', 'Pf'))
+    out.append(('충분한 시간이 지난 뒤 기체 전체의 내부 에너지는 처음보다 증가한다.', False, '실린더가 단열이고 외부에 일을 하지 않으므로 전체 내부 에너지는 일정하다.', 'Utot'))
+    out.append(('충분한 시간이 지난 뒤 기체 전체의 내부 에너지는 처음과 같다.', True, '단열 실린더 안에서 외부와 열·일을 주고받지 않으므로 A와 B의 내부 에너지의 합은 일정하다.', 'Utot'))
+    out.append(('충분한 시간이 지난 뒤 나중 온도는 %s의 처음 온도와 %s의 처음 온도 사이의 값이다.' % ('A', 'B'), True, '나중 온도 %s K 는 처음 온도 %d K 와 %d K 사이이다.' % (fr_str(Tf), TA, TB), 'Tmid'))
+    out.append(('충분한 시간이 지난 뒤 A의 부피는 %s이다.' % ('처음보다 크다' if VAf > VA else '처음보다 작다'), True, '나중 부피 V<sub>A</sub>′ = (V<sub>A</sub>+V<sub>B</sub>) × N<sub>A</sub>/(N<sub>A</sub>+N<sub>B</sub>) = %s 이고 처음 %d 이다.' % (fr_str(VAf), VA), 'VAf'))
+    out.append(('충분한 시간이 지난 뒤 A의 부피는 %s이다.' % ('처음보다 작다' if VAf > VA else '처음보다 크다'), False, '나중 부피 V<sub>A</sub>′ = %s 이고 처음 %d 이므로 반대이다.' % (fr_str(VAf), VA), 'VAf'))
+    return out
+
+
+@T('ph115')
+def g115(r, k):
+    nA, nB = r.choice(NRAT)
+    form = r.choice(['eq', 'eq', 'rel', 'rel', 'ins', 'bogi', 'bogi', 'bogi'])
+    nmA, nmB = _nn(nA), _nn(nB)
+    q = Fraction(nB, nA)
+    if form == 'eq':
+        ask = r.choice(['V', 'U', 'P', 'T', 'KE', 'rho', 'Vnum'])
+        Vt = r.choice([30, 60, 90, 120, 150])
+        if ask == 'Vnum' and Vt % (nA + nB): return None
+        vA = Fraction(nA, nA + nB)
+        fig = piston_fig(nA * 2, nB * 2, nA, nB, nmA=nmA, nmB=nmB, conduct=True) if nA + nB <= 6 else piston_fig(nA, nB, nA, nB, nmA=nmA, nmB=nmB)
+        base = '그림은 단열된 실린더가 열전도가 잘 되는 움직이는 피스톤으로 나뉘어 있는 것을 나타낸 것이다. 기체 A, B는 같은 종류의 이상 기체이고 분자 수는 각각 %s, %s이다. 피스톤이 정지해 있고 열평형 상태이다. ' % (nmA, nmB)
+        if ask == 'V':
+            right, ws = '%d : %d' % (nA, nB), ['%d : %d' % (nB, nA), '1 : 1', '%d : %d' % (nA * nA, nB * nB), '%d : %d' % (nB * nB, nA * nA), '%d : %d' % (nA + 1, nB), '%d : %d' % (nA, nB + 1)]
+            q_ = '기체의 부피의 비 V<sub>A</sub> : V<sub>B</sub> 는?'
+            st = ['피스톤이 정지하므로 P<sub>A</sub> = P<sub>B</sub>, 열평형이므로 T<sub>A</sub> = T<sub>B</sub> 이다.', 'PV = NkT 에서 V ∝ N 이므로 V<sub>A</sub> : V<sub>B</sub> = %d : %d' % (nA, nB)]
+            core = '압력과 온도가 같은 같은 종류의 기체는 부피가 분자 수에 비례한다.'
+        elif ask == 'U':
+            right, ws = '%d : %d' % (nA, nB), ['%d : %d' % (nB, nA), '1 : 1', '%d : %d' % (nA * nA, nB * nB), '%d : %d' % (nA + nB, nB), '%d : %d' % (nA, nA + nB)]
+            q_ = '내부 에너지의 비 U<sub>A</sub> : U<sub>B</sub> 는?'
+            st = ['열평형이므로 T<sub>A</sub> = T<sub>B</sub> 이고, 이상 기체의 내부 에너지는 U ∝ NT 이다.', 'U<sub>A</sub> : U<sub>B</sub> = N<sub>A</sub> : N<sub>B</sub> = %d : %d' % (nA, nB)]
+            core = '이상 기체의 내부 에너지는 분자 수와 절대 온도에 비례한다.'
+        elif ask == 'P':
+            right, ws = '1 : 1', ['%d : %d' % (nA, nB), '%d : %d' % (nB, nA), '%d : %d' % (nA * nA, nB * nB), '%d : %d' % (nA + 1, nB), '%d : %d' % (nA, nB + 1)]
+            q_ = '압력의 비 P<sub>A</sub> : P<sub>B</sub> 는?'
+            st = ['피스톤이 정지해 있으므로 피스톤이 받는 힘이 평형이다. 단면적이 같으므로 P<sub>A</sub> = P<sub>B</sub>', 'P<sub>A</sub> : P<sub>B</sub> = 1 : 1']
+            core = '정지한 피스톤의 양쪽 기체 압력은 같다.'
+        elif ask == 'T':
+            right, ws = '1 : 1', ['%d : %d' % (nA, nB), '%d : %d' % (nB, nA), '%d : %d' % (nA * nA, nB * nB), '%d : %d' % (nA + 1, nB), '%d : %d' % (nA, nB + 1)]
+            q_ = '절대 온도의 비 T<sub>A</sub> : T<sub>B</sub> 는?'
+            st = ['열전도 피스톤으로 열이 이동하여 열평형에 도달했으므로 온도가 같다.', 'T<sub>A</sub> : T<sub>B</sub> = 1 : 1']
+            core = '열평형 상태에서는 온도가 같다.'
+        elif ask == 'KE':
+            right, ws = '1 : 1', ['%d : %d' % (nA, nB), '%d : %d' % (nB, nA), '%d : %d' % (nA * nA, nB * nB), '%d : %d' % (nA + 1, nB), '%d : %d' % (nA, nB + 1)]
+            q_ = '기체 분자 1개의 평균 운동 에너지의 비 A : B 는?'
+            st = ['분자 1개의 평균 운동 에너지는 절대 온도에만 비례한다(분자 수와 무관).', '열평형이므로 T<sub>A</sub> = T<sub>B</sub> 이다. 따라서 1 : 1']
+            core = '기체 분자 1개의 평균 운동 에너지는 절대 온도에 비례한다.'
+        elif ask == 'rho':
+            right, ws = '1 : 1', ['%d : %d' % (nA, nB), '%d : %d' % (nB, nA), '%d : %d' % (nA * nA, nB * nB), '%d : %d' % (nA + 1, nB), '%d : %d' % (nA, nB + 1)]
+            q_ = '단위 부피당 분자 수의 비 A : B 는?'
+            st = ['N/V = P/(kT) 이고 P, T 가 같다.', '따라서 단위 부피당 분자 수의 비는 1 : 1']
+            core = '압력과 온도가 같으면 단위 부피당 분자 수가 같다.'
+        else:
+            tot = Vt
+            vAn = Fraction(Vt * nA, nA + nB)
+            right = fr_str(vAn) + ' cm³'
+            ws = [fr_str(Fraction(Vt * nB, nA + nB)) + ' cm³', fr_str(Fraction(Vt, 2)) + ' cm³', fr_str(Fraction(Vt, nA)) + ' cm³', fr_str(Fraction(Vt, nB)) + ' cm³', fr_str(vAn + 10) + ' cm³', fr_str(Fraction(Vt * nA, nB)) + ' cm³']
+            q_ = '두 기체의 부피의 합이 %d cm³ 일 때, A의 부피는?' % Vt
+            st = ['V<sub>A</sub> : V<sub>B</sub> = N<sub>A</sub> : N<sub>B</sub> = %d : %d (P, T 같음)' % (nA, nB), 'V<sub>A</sub> = %d × %d/%d = %s cm³' % (Vt, nA, nA + nB, fr_str(vAn))]
+            core = '압력과 온도가 같은 기체의 부피는 분자 수에 비례한다.'
+        body = P(base + q_) + FIG(fig, '78%')
+        return mco(body, right, ws, steps=st, core=core, point='피스톤의 힘의 평형(압력 같음)과 열평형(온도 같음)을 이용한다.', lv='하' if ask in ('P', 'T', 'KE', 'rho') else '중', fam='a', r=r,
+                   sort='num' if ask == 'Vnum' else 'shuf')
+    if form == 'rel':
+        TA, TB = r.choice([100, 200, 300, 400, 500, 600]), r.choice([100, 200, 300, 400, 500, 600])
+        if TA == TB or (nA * TA + nB * TB) % (nA + nB): return None
+        VA, VB = r.choice([1, 2, 3, 4, 5, 6]), r.choice([1, 2, 3, 4, 5, 6])
+        PA, PB = Fraction(nA * TA, VA), Fraction(nB * TB, VB)
+        Tf = Fraction(nA * TA + nB * TB, nA + nB)
+        VAf = Fraction((VA + VB) * nA, nA + nB)
+        if PA == PB or VAf == VA: return None
+        ask = r.choice(['Tf', 'VAf', 'dir'])
+        fig = piston_fig(nA * 2 if nA + nB <= 6 else nA, nB * 2 if nA + nB <= 6 else nB, VA, VB, tA='%d K, %d L' % (TA, VA), tB='%d K, %d L' % (TB, VB), fixed=True, nmA=nmA, nmB=nmB)
+        base = '그림은 단열된 실린더 안의 같은 종류의 이상 기체 A(분자 수 %s)와 B(분자 수 %s)가 열전도 피스톤으로 나뉘어 고정 핀으로 고정되어 있는 것을 나타낸 것이다. 고정 핀을 제거하여 충분한 시간이 지난 뒤 두 기체는 열평형 상태가 되어 피스톤이 정지하였다. ' % (nmA, nmB)
+        st0 = '처음 온도·부피 : A %d K, %d L / B %d K, %d L' % (TA, VA, TB, VB)
+        if ask == 'Tf':
+            right = num(float(Tf)) + ' K'
+            ws = [num((TA + TB) / 2) + ' K', num(TA) + ' K', num(TB) + ' K', num(float(Fraction(nB * TA + nA * TB, nA + nB))) + ' K', num(TA + TB) + ' K', num(abs(TA - TB)) + ' K']
+            body = P(base + '나중 두 기체의 온도는? (단, 외부와의 열 출입은 없고, 피스톤의 열용량은 무시한다.)') + FIG(fig, '78%')
+            steps = [st0, '단열 실린더이므로 전체 내부 에너지가 일정하다 : N<sub>A</sub>T<sub>A</sub> + N<sub>B</sub>T<sub>B</sub> = (N<sub>A</sub> + N<sub>B</sub>)T', '(%d × %d + %d × %d) = %d T 에서 T = %s K' % (nA, TA, nB, TB, nA + nB, fr_str(Tf))]
+            return mco(body, right, ws, steps=steps, lv='중', fam='b', r=r, sort='num', core='단열된 계에서 열평형이 될 때 내부 에너지의 합(∝ΣNT)이 보존된다.', point='U ∝ NT 의 합이 일정함을 이용한다.')
+        if ask == 'VAf':
+            right = fr_str(VAf) + ' L'
+            ws = [fr_str(VA) + ' L', fr_str(Fraction(VA + VB, 2)) + ' L', fr_str(Fraction((VA + VB) * nB, nA + nB)) + ' L', fr_str(VB) + ' L', fr_str(VAf + 1) + ' L', fr_str(VA + VB) + ' L']
+            body = P(base + '나중 A의 부피는? (단, 외부와의 열 출입은 없다.)') + FIG(fig, '78%')
+            steps = [st0, '나중에는 압력과 온도가 같으므로 V ∝ N 이다 : V<sub>A</sub>′ : V<sub>B</sub>′ = %d : %d' % (nA, nB),
+                     '전체 부피 %d + %d = %d L 이므로 V<sub>A</sub>′ = %d × %d/%d = %s L' % (VA, VB, VA + VB, VA + VB, nA, nA + nB, fr_str(VAf))]
+            return mco(body, right, ws, steps=steps, lv='중', fam='b', r=r, core='열평형·힘의 평형 후에는 P, T 가 같아 부피가 분자 수에 비례한다.', point='전체 부피를 분자 수의 비로 나눈다.')
+        mv = 'B 쪽(오른쪽)' if PA > PB else 'A 쪽(왼쪽)'
+        hv = 'A에서 B로' if TA > TB else 'B에서 A로'
+        right = '피스톤 : %s, 열 : %s' % (mv, hv)
+        ws = ['피스톤 : %s, 열 : %s' % (mv2, hv2) for mv2 in ('B 쪽(오른쪽)', 'A 쪽(왼쪽)') for hv2 in ('A에서 B로', 'B에서 A로')] + ['피스톤 : 움직이지 않음, 열 : 이동하지 않음']
+        body = P(base.split(' 고정 핀을 제거하여')[0] + ' 핀을 제거한 직후 피스톤이 이동하는 방향과 열이 이동하는 방향을 옳게 짝지은 것은? (그림에서 왼쪽이 A이다.)') + FIG(fig, '78%')
+        steps = [st0, '압력 P ∝ NT/V : P<sub>A</sub> ∝ %d×%d/%d = %s, P<sub>B</sub> ∝ %d×%d/%d = %s' % (nA, TA, VA, fr_str(PA), nB, TB, VB, fr_str(PB)),
+                 '압력이 큰 쪽이 피스톤을 밀어 %s으로 이동하고, 열은 온도가 높은 쪽(%s)에서 낮은 쪽으로 이동한다.' % (mv, 'A' if TA > TB else 'B')]
+        return mco(body, right, ws, steps=steps, lv='상', fam='b', r=r, core='압력이 큰 쪽이 피스톤을 밀고, 열은 고온에서 저온으로 이동한다.', point='처음 압력과 온도를 각각 비교한다.')
+    if form == 'ins':
+        TA, TB = r.choice([100, 200, 300, 400, 600]), r.choice([100, 200, 300, 400, 600])
+        if TA == TB: return None
+        wA, wB = nA * TA, nB * TB
+        g = math.gcd(wA, wB)
+        Vt = r.choice([20, 24, 30, 36, 40, 48, 60])
+        ask = r.choice(['V', 'U', 'KE', 'Vn'])
+        vAn = Fraction(Vt * wA, wA + wB)
+        if ask == 'Vn' and vAn.denominator != 1: return None
+        fig = piston_fig(nA * 2 if nA + nB <= 6 else nA, nB * 2 if nA + nB <= 6 else nB, wA, wB, tA='%d K' % TA, tB='%d K' % TB, conduct=False, nmA=nmA, nmB=nmB)
+        base = '그림은 단열된 실린더가 움직이는 단열 피스톤으로 나뉘어 있는 것을 나타낸 것이다. 같은 종류의 이상 기체 A(분자 수 %s, 온도 %d K)와 B(분자 수 %s, 온도 %d K)가 있고, 피스톤은 정지해 있다. ' % (nmA, TA, nmB, TB)
+        if ask == 'V':
+            right = '%d : %d' % (wA // g, wB // g)
+            ws = ['%d : %d' % (nA, nB), '%d : %d' % (TA // math.gcd(TA, TB), TB // math.gcd(TA, TB)), '%d : %d' % (wB // g, wA // g), '1 : 1', '%d : %d' % (nB * TA // math.gcd(nB * TA, nA * TB), nA * TB // math.gcd(nB * TA, nA * TB))]
+            body = P(base + '부피의 비 V<sub>A</sub> : V<sub>B</sub> 는?') + FIG(fig, '78%')
+            steps = ['피스톤이 정지하므로 P<sub>A</sub> = P<sub>B</sub> = P 이다.', 'V = NkT/P 이므로 V<sub>A</sub> : V<sub>B</sub> = N<sub>A</sub>T<sub>A</sub> : N<sub>B</sub>T<sub>B</sub> = %d×%d : %d×%d = %s' % (nA, TA, nB, TB, right)]
+            return mco(body, right, ws, steps=steps, lv='중', fam='c', r=r, core='압력이 같을 때 이상 기체의 부피는 NT 에 비례한다.', point='단열 피스톤이면 온도가 달라도 압력은 같다.')
+        if ask == 'U':
+            right = '%d : %d' % (wA // g, wB // g)
+            ws = ['%d : %d' % (nA, nB), '%d : %d' % (TA // math.gcd(TA, TB), TB // math.gcd(TA, TB)), '%d : %d' % (wB // g, wA // g), '1 : 1', '%d : %d' % (nB, nA)]
+            body = P(base + '내부 에너지의 비 U<sub>A</sub> : U<sub>B</sub> 는?') + FIG(fig, '78%')
+            steps = ['내부 에너지 U ∝ NT 이므로 U<sub>A</sub> : U<sub>B</sub> = %d×%d : %d×%d' % (nA, TA, nB, TB), '= %s' % right]
+            return mco(body, right, ws, steps=steps, lv='하', fam='c', r=r, core='이상 기체의 내부 에너지는 NT 에 비례한다.', point='분자 수와 온도를 곱해 비교한다.')
+        if ask == 'KE':
+            tg = math.gcd(TA, TB)
+            right = '%d : %d' % (TA // tg, TB // tg)
+            ws = ['%d : %d' % (TB // tg, TA // tg), '%d : %d' % (nA, nB), '1 : 1', '%d : %d' % (wA // g, wB // g), '%d : %d' % (nB, nA)]
+            body = P(base + '기체 분자 1개의 평균 운동 에너지의 비 A : B 는?') + FIG(fig, '78%')
+            steps = ['분자 1개의 평균 운동 에너지는 절대 온도에 비례한다.', 'A : B = T<sub>A</sub> : T<sub>B</sub> = %d : %d = %s' % (TA, TB, right)]
+            return mco(body, right, ws, steps=steps, lv='하', fam='c', r=r, core='분자 1개의 평균 운동 에너지는 절대 온도에만 비례한다.', point='분자 수가 달라도 평균 운동 에너지는 온도로 비교한다.')
+        right = fr_str(vAn) + ' L'
+        ws = [fr_str(Fraction(Vt * wB, wA + wB)) + ' L', fr_str(Fraction(Vt * nA, nA + nB)) + ' L', fr_str(Fraction(Vt, 2)) + ' L', fr_str(Fraction(Vt * TA, TA + TB)) + ' L', fr_str(Fraction(Vt * nB, nA + nB)) + ' L']
+        body = P(base + '두 기체의 부피의 합이 %d L 일 때 A의 부피는?' % Vt) + FIG(fig, '78%')
+        steps = ['P 가 같으므로 V<sub>A</sub> : V<sub>B</sub> = N<sub>A</sub>T<sub>A</sub> : N<sub>B</sub>T<sub>B</sub> = %d : %d' % (wA, wB), 'V<sub>A</sub> = %d × %d/%d = %s L' % (Vt, wA, wA + wB, fr_str(vAn))]
+        return mco(body, right, ws, steps=steps, lv='중', fam='c', r=r, sort='num', core='압력이 같을 때 부피는 NT 에 비례한다.', point='NT 의 비로 전체 부피를 나눈다.')
+    # bogi
+    setup = r.choice(['eq', 'eq', 'rel'])
+    if setup == 'eq':
+        fig = piston_fig(nA * 2 if nA + nB <= 6 else nA, nB * 2 if nA + nB <= 6 else nB, nA, nB, nmA=nmA, nmB=nmB)
+        bank = _eq_stmts(r, 'A', 'B', nA, nB)
+        sel = pick_stmts(r, bank)
+        if not sel: return None
+        intro = '그림은 단열된 실린더가 열전도가 잘 되는 움직이는 피스톤으로 나뉘어 있는 것을 나타낸 것이다. 같은 종류의 이상 기체 A, B의 분자 수는 각각 %s, %s이고, 피스톤은 정지해 있으며 두 기체는 열평형 상태이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?' % (nmA, nmB)
+        return bogi(intro, sel, pre=FIG(fig, '78%'), ask='', r=r, lv='하' if r.random() < 0.5 else '중', fam='d', core='정지한 피스톤은 양쪽 압력이 같고, 열평형이면 온도가 같다. 이때 V ∝ N, U ∝ NT.', point='압력·온도가 같은 두 기체의 부피, 내부 에너지, 평균 운동 에너지를 비교한다.')
+    TA, TB = r.choice([100, 200, 300, 400, 500, 600]), r.choice([100, 200, 300, 400, 500, 600])
+    if TA == TB or (nA * TA + nB * TB) % (nA + nB): return None
+    VA, VB = r.choice([1, 2, 3, 4, 5, 6]), r.choice([1, 2, 3, 4, 5, 6])
+    if Fraction(nA * TA, VA) == Fraction(nB * TB, VB) or Fraction((VA + VB) * nA, nA + nB) == VA: return None
+    fig = piston_fig(nA * 2 if nA + nB <= 6 else nA, nB * 2 if nA + nB <= 6 else nB, VA, VB, tA='%d K, %d L' % (TA, VA), tB='%d K, %d L' % (TB, VB), fixed=True, nmA=nmA, nmB=nmB)
+    bank = _release_stmts(r, nA, nB, TA, TB, VA, VB)
+    sel = pick_stmts(r, bank)
+    if not sel: return None
+    intro = '그림은 단열된 실린더 안의 같은 종류의 이상 기체 A(분자 수 %s), B(분자 수 %s)가 열전도 피스톤으로 나뉘어 고정 핀으로 고정되어 있는 것을 나타낸 것이다. 고정 핀을 제거하였더니 피스톤이 움직이다가 충분한 시간이 지난 뒤 정지하였다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은? (단, 그림에서 왼쪽이 A이다.)' % (nmA, nmB)
+    return bogi(intro, sel, pre=FIG(fig, '78%'), ask='', r=r, lv='상' if r.random() < 0.5 else '중', fam='e', core='고정 핀 제거 후 압력이 큰 쪽이 피스톤을 밀고, 열은 고온에서 저온으로 이동하며, 단열 실린더 안 전체 내부 에너지는 보존된다.', point='처음 압력과 온도를 비교하고 평형 상태의 성질을 적용한다.')
+
+
+# ============================================================ ph116 열량·압력·부피의 단위 변환
+KCAL = 4200
+
+
+def _jf(x):
+    """J 값 문자열(정수)."""
+    return '%d J' % round(x)
+
+
+def _pv_work_fig(P1, P2, V1, V2, unit_p='기압', unit_v='L'):
+    """P-V 그래프(직선 경로). 점 (V1,P1)→(V2,P2)."""
+    pm, vm = max(P1, P2), max(V1, V2)
+    p = Plot(300, 210, vm * 1.25, pm * 1.3, ml=52, mr=16, mt=26, mb=34)
+    xt = sorted({0, V1, V2}); yt = sorted({0, P1, P2})
+    p.axes('', '', xticks=xt, yticks=yt)
+    p.text(288, 205, 'V (%s)' % unit_v, 12.5, 'end', True, GR)
+    p.text(60, 14, 'P (%s)' % unit_p, 12.5, 'start', True, GR)
+    p.fill_under([(V1, P1), (V2, P2)], '#d5e6f8', 0)
+    p.dash_to_axes(V1, P1); p.dash_to_axes(V2, P2)
+    p.pl([(V1, P1), (V2, P2)], BL, 2.8)
+    m1, m2 = _along([(p.px(V1), p.py(P1)), (p.px(V2), p.py(P2))], 0.46), _along([(p.px(V1), p.py(P1)), (p.px(V2), p.py(P2))], 0.56)
+    p._head(m1[0], m1[1], m2[0], m2[1], BL, 2.4, 10)
+    for (v, pp, nm) in ((V1, P1, 'A'), (V2, P2, 'B')):
+        p.circ(p.px(v), p.py(pp), 3.6, INK, INK, 1)
+        p.text(p.px(v) + (-11 if nm == 'A' else 11), p.py(pp) - 8, nm, 14, 'middle', True, INK, True)
+    return p.svg()
+
+
+@T('ph116')
+def g116(r, k):
+    form = r.choice(['W', 'W', 'WV', 'QU', 'QU', 'dV', 'kcal', 'fig', 'comp', 'W2'])
+    Pn = r.choice([1, 2, 3, 4, 5, 6, 8])          # ×10⁵ Pa
+    if form == 'W':
+        V1 = r.choice([5, 10, 15, 20, 25, 30, 40]); dV = r.choice([2, 4, 5, 6, 8, 10, 12, 15, 20])
+        V2 = V1 + dV
+        W = Pn * 1e5 * dV * 1e-3
+        useatm = r.random() < 0.5
+        pstr = ('%d기압' % Pn) if useatm else ('%d × 10⁵ Pa' % Pn)
+        body = P('일정한 압력 %s 에서 이상 기체가 %d L 에서 %d L 로 팽창하였다. 이 과정에서 기체가 외부에 한 일은? (단, 1기압 = 1.0 × 10⁵ Pa, 1 L = 1.0 × 10⁻³ m³ 이다.)' % (pstr, V1, V2))
+        right = _jf(W)
+        wr = [_jf(W * 1000), _jf(W / 1000), _jf(W / 10), _jf(W * 10), _jf(Pn * 1e5 * V2 * 1e-3), _jf(Pn * 1e5 * V1 * 1e-3)]
+        steps = ['압력 P = %d × 10⁵ Pa, 부피 변화 ΔV = %d - %d = %d L = %d × 10⁻³ m³' % (Pn, V2, V1, dV, dV), 'W = PΔV = %d × 10⁵ × %d × 10⁻³ = %d J' % (Pn, dV, W)]
+        assert abs(W - Pn * dV * 100) < 1e-6
+        return mco(body, right, wr, steps=steps, lv='하', fam='a', r=r, sort='num', core='등압 과정에서 기체가 한 일은 W = PΔV 이다. 1기압·1 L = 100 J.', point='L 를 m³ 로 바꾸어 압력과 곱한다.')
+    if form == 'W2':
+        # 압축: 외부가 한 일
+        V1 = r.choice([20, 30, 40, 50, 60]); dV = r.choice([4, 5, 8, 10, 12, 15])
+        W = Pn * dV * 100
+        body = P('피스톤이 달린 실린더 속 이상 기체에 %d × 10⁵ Pa 의 일정한 압력을 유지하며 부피를 %d L 에서 %d L 로 줄였다. 이 과정에서 외부가 기체에 한 일은? (단, 1 L = 1.0 × 10⁻³ m³ 이다.)' % (Pn, V1, V1 - dV))
+        right = _jf(W)
+        wr = [_jf(-W), _jf(W * 1000), _jf(W / 1000), _jf(Pn * 1e5 * V1 * 1e-3), _jf(W * 10)]
+        steps = ['ΔV = %d - %d = -%d L = -%d × 10⁻³ m³ (기체가 한 일 W = PΔV = %d × 10⁵ × (-%d × 10⁻³) = -%d J)' % (V1 - dV, V1, dV, dV, Pn, dV, W),
+                 '외부가 기체에 한 일은 기체가 한 일의 부호를 바꾼 값이므로 %d J 이다.' % W]
+        return mco(body, right, wr, steps=steps, lv='중', fam='a', r=r, sort='num', core='압축될 때 기체가 한 일은 음(−)이며, 외부가 기체에 한 일은 그 크기와 같다.', point='부호와 단위(L→m³)에 주의한다.')
+    if form == 'WV':
+        dVm = r.choice([0.002, 0.004, 0.005, 0.01, 0.02, 0.03, 0.05])
+        W = Pn * 1e5 * dVm
+        body = P('압력이 %d × 10⁵ Pa 로 일정한 기체의 부피가 %s m³ 만큼 증가하였다. 기체가 한 일은 몇 kJ 인가?' % (Pn, num(dVm, 3)))
+        right = num(W / 1000, 3) + ' kJ'
+        wr = [num(W, 3) + ' kJ', num(W / 1e6, 4) + ' kJ', num(W * 1000 / 1000 * 10, 3) + ' kJ', num(W / 100, 3) + ' kJ', num(W / 10000, 4) + ' kJ']
+        steps = ['W = PΔV = %d × 10⁵ Pa × %s m³ = %s J' % (Pn, num(dVm, 3), num(W, 3)), '1 kJ = 1000 J 이므로 %s kJ' % num(W / 1000, 3)]
+        return mco(body, right, wr, steps=steps, lv='중', fam='a', r=r, core='W = PΔV 에서 Pa·m³ = J 이다.', point='J 를 kJ 로 환산한다.')
+    if form == 'QU':
+        Qk = r.choice([2, 3, 4, 5, 6, 8, 10, 12, 15, 20])
+        V1 = r.choice([10, 20, 30]); dV = r.choice([5, 10, 15, 20])
+        W = Pn * dV * 100
+        Qj = Qk * KCAL
+        if Qj <= W: return None
+        dU = Qj - W
+        body = P('일정한 압력 %d × 10⁵ Pa 인 기체에 열량 %d kcal 를 가했더니 기체의 부피가 %d L 에서 %d L 로 팽창하였다. 기체의 내부 에너지 증가량은? (단, 1 kcal = 4200 J, 1 L = 1.0 × 10⁻³ m³ 이다.)' % (Pn, Qk, V1, V1 + dV))
+        right = _jf(dU)
+        wr = [_jf(Qj + W), _jf(Qk - W), _jf(Qk * 4.2 - W), _jf(W), _jf(Qj), _jf(Qk * 4200 - W * 1000)]
+        steps = ['Q = %d × 4200 = %d J, W = PΔV = %d × 10⁵ × %d × 10⁻³ = %d J' % (Qk, Qj, Pn, dV, W), '제1법칙 Q = ΔU + W 에서 ΔU = Q - W = %d - %d = %d J' % (Qj, W, dU)]
+        return mco(body, right, wr, steps=steps, lv='중' if W < Qj / 3 else '상', fam='b', r=r, sort='num', core='열역학 제1법칙 Q = ΔU + W. 열량(kcal)을 J 로 바꾼 뒤 일(J)과 같은 단위로 계산한다.', point='kcal→J, L→m³ 단위를 맞추어 제1법칙을 적용한다.')
+    if form == 'dV':
+        Qk = r.choice([2, 3, 4, 5, 6, 8, 10])
+        Qj = Qk * KCAL
+        dUk = r.choice([0.5, 1, 1.5, 2, 3, 4, 5])
+        if dUk >= Qk: return None
+        dUj = dUk * KCAL
+        W = Qj - dUj
+        dV = W / (Pn * 100)
+        if abs(dV - round(dV)) > 1e-9 or dV < 1 or dV > 60: return None
+        dV = int(round(dV))
+        body = P('압력이 %d × 10⁵ Pa 로 일정한 상태에서 이상 기체가 %d kcal 의 열을 흡수하여 내부 에너지가 %s kcal 증가하였다. 기체의 부피 증가량은? (단, 1 kcal = 4200 J, 1 L = 1.0 × 10⁻³ m³ 이다.)' % (Pn, Qk, num(dUk)))
+        right = '%d L' % dV
+        wr = ['%d L' % (dV * 10), '%s L' % num(dV / 10), '%d L' % (dV * 1000), '%s L' % num(Qj / (Pn * 100)), '%s L' % num(dUj / (Pn * 100)), '%d L' % (dV + 5)]
+        steps = ['Q = %d × 4200 = %d J, ΔU = %s × 4200 = %d J' % (Qk, Qj, num(dUk), dUj), 'W = Q - ΔU = %d - %d = %d J' % (Qj, dUj, W),
+                 'W = PΔV 에서 ΔV = %d / (%d × 10⁵) = %s × 10⁻³ m³ = %d L' % (W, Pn, num(W / Pn / 100), dV)]
+        return mco(body, right, wr, steps=steps, lv='상', fam='c', r=r, sort='num', core='Q = ΔU + W, W = PΔV.', point='열량에서 내부 에너지를 뺀 일로 부피 변화를 구한다.')
+    if form == 'kcal':
+        Wk = r.choice([0.5, 1, 1.5, 2, 3, 4, 5, 6, 10])
+        Wj = Wk * KCAL
+        body = P('이상 기체가 외부에 %d J 의 일을 하는 동안 내부 에너지는 변하지 않았다. 이 과정에서 기체가 흡수한 열량은 몇 kcal 인가? (단, 1 kcal = 4200 J 이다.)' % Wj)
+        right = num(Wk) + ' kcal'
+        wr = [num(Wk * 1000) + ' kcal', num(Wk / 4.2) + ' kcal', num(Wk * 4.2) + ' kcal', '0 kcal', num(Wk * 2) + ' kcal', num(Wk / 2) + ' kcal']
+        steps = ['내부 에너지 변화가 없으므로 ΔU = 0, Q = W = %d J' % Wj, '%d J ÷ 4200 J/kcal = %s kcal' % (Wj, num(Wk))]
+        return mco(body, right, wr, steps=steps, lv='하', fam='d', r=r, core='ΔU = 0 이면 Q = W 이고, 1 kcal = 4200 J 이다.', point='J 를 kcal 로 환산한다.')
+    if form == 'fig':
+        P1 = r.choice([1, 2, 3, 4]); P2 = P1 if r.random() < 0.5 else r.choice([2, 3, 4, 5, 6])
+        V1 = r.choice([1, 2, 3, 5]) * r.choice([1, 2, 5]); V2 = V1 + r.choice([2, 4, 6, 8, 10])
+        area = (P1 + P2) / 2.0 * (V2 - V1)
+        W = area * 100
+        if abs(W - round(W)) > 1e-9: return None
+        fig = _pv_work_fig(P1, P2, V1, V2)
+        body = P('그림은 일정량의 이상 기체의 상태가 A에서 B로 변할 때 압력 P 와 부피 V 를 나타낸 것이다. A→B 과정에서 기체가 외부에 한 일은? (단, 1기압 = 1.0 × 10⁵ Pa, 1 L = 1.0 × 10⁻³ m³ 이다.)') + FIG(fig, '66%')
+        right = _jf(W)
+        wr = [_jf(W * 1000), _jf(W / 1000), _jf(W / 10), _jf(W * 10), _jf(P2 * V2 * 100), _jf(P1 * (V2 - V1) * 100 if P1 != P2 else P1 * V2 * 100), _jf(max(P1, P2) * (V2 - V1) * 100 + 100)]
+        steps = ['그래프 아래 넓이가 기체가 한 일이다 : (%s + %s)/2 × (%d - %d) = %s 기압·L' % (num(P1), num(P2), V2, V1, num(area)), '1기압·L = 10⁵ Pa × 10⁻³ m³ = 100 J 이므로 W = %s × 100 = %d J' % (num(area), W)]
+        return mco(body, right, wr, steps=steps, lv='중', fam='e', r=r, sort='num', core='P-V 그래프 아래 넓이는 기체가 한 일이며 1기압·L = 100 J 이다.', point='그래프 눈금(기압, L)에서 넓이를 구해 J 로 환산한다.')
+    # comp: 부호 조합(압축 + 방열)
+    Qk = r.choice([2, 3, 5, 10]); V1 = r.choice([20, 30, 40]); dV = r.choice([5, 10])
+    W = Pn * dV * 100
+    Qj = Qk * KCAL
+    dU = -Qj + W
+    body = P('압력이 %d × 10⁵ Pa 로 일정한 이상 기체가 %d kcal 의 열을 방출하면서 부피가 %d L 에서 %d L 로 줄어들었다. 이 과정에서 기체의 내부 에너지 변화량 ΔU 는? (단, 1 kcal = 4200 J, 1 L = 1.0 × 10⁻³ m³ 이다.)' % (Pn, Qk, V1, V1 - dV))
+    right = sj(dU)
+    wr = [sj(-Qj - W), sj(Qj - W), sj(Qj + W), sj(-Qj), sj(-(Qj - W) / 10)]
+    steps = ['열 방출이므로 Q = -%d × 4200 = -%d J' % (Qk, Qj), '압축이므로 W = PΔV = %d × 10⁵ × (-%d × 10⁻³) = -%d J' % (Pn, dV, W),
+            'ΔU = Q - W = -%d - (-%d) = %s' % (Qj, W, sj(dU))]
+    return mco(body, right, wr, steps=steps, lv='상', fam='f', r=r, core='Q = ΔU + W 에서 방출은 Q<0, 압축은 W<0 으로 넣는다.', point='열 방출·압축의 부호와 단위를 모두 맞춘다.')
+
+
+# ============================================================ 정성적 순환 과정(P-V, 단열 포함)
+LDIR = {'P': (1.0, 0.0), 'V': (0.0, 1.0), 'T': (1.0, -1.0), 'A': (1.0, -GAM)}   # (ln V, ln P) 평면에서의 방향
+
+
+def qual_cycle(r, kinds, vmax=7.0, pmax=9.0):
+    """과정 종류(kinds) 순서로 이루어진 단순 폐곡선. 반환 [(P,V)…] 또는 None."""
+    n = len(kinds)
+    ls = [r.choice([-1, 1]) * r.choice([0.35, 0.5, 0.7, 0.9]) for _ in range(n - 2)]
+    d = [LDIR[c] for c in kinds]
+    sx = -sum(ls[i] * d[i][0] for i in range(n - 2))
+    sy = -sum(ls[i] * d[i][1] for i in range(n - 2))
+    (a, b), (c, e) = d[n - 2], d[n - 1]
+    det = a * e - b * c
+    if abs(det) < 1e-6: return None
+    l1 = (sx * e - sy * c) / det
+    l2 = (a * sy - b * sx) / det
+    ls += [l1, l2]
+    if min(abs(x) for x in ls) < 0.25: return None
+    pts = [(0.0, 0.0)]
+    for i in range(n - 1):
+        pts.append((pts[-1][0] + ls[i] * d[i][0], pts[-1][1] + ls[i] * d[i][1]))
+    lx = [p[0] for p in pts]; ly = [p[1] for p in pts]
+    v0 = r.uniform(1.0, 1.8); p0 = r.uniform(1.0, 1.8)
+    sts = [(p0 * math.exp(y - min(ly)), v0 * math.exp(x - min(lx))) for (x, y) in pts]
+    if max(s[1] for s in sts) > vmax or max(s[0] for s in sts) > pmax: return None
+    if not loop_simple(sts): return None
+    # 닫힘 검사
+    for i in range(n):
+        a_, b_ = sts[i], sts[(i + 1) % n]
+        k = kinds[i]
+        if k == 'P': assert abs(a_[0] - b_[0]) < 1e-9
+        elif k == 'V': assert abs(a_[1] - b_[1]) < 1e-9
+        elif k == 'T': assert abs(a_[0] * a_[1] - b_[0] * b_[1]) < 1e-9
+        else: assert abs(a_[0] * a_[1] ** GAM - b_[0] * b_[1] ** GAM) < 1e-7
+    return sts
+
+
+def qual_fig(names, sts, kinds, w=270, h=214):
+    return loop_fig('PV', names, sts, kinds, numbered=False, w=w, h=h, ext=False)
+
+
+def sign_table(sts, kinds):
+    n = len(sts)
+    return [seg_signs(kinds[i], sts[i], sts[(i + 1) % n]) for i in range(n)]   # (dU, W, Q)
+
+
+PROPS = [
+    ('열을 흡수하는', lambda s: s[2] > 0, 'Q > 0'),
+    ('열을 방출하는', lambda s: s[2] < 0, 'Q < 0'),
+    ('내부 에너지가 증가하는', lambda s: s[0] > 0, 'ΔU > 0 (온도 상승)'),
+    ('내부 에너지가 감소하는', lambda s: s[0] < 0, 'ΔU < 0 (온도 하강)'),
+    ('기체가 외부에 일을 하는', lambda s: s[1] > 0, 'W > 0 (부피 증가)'),
+    ('기체가 외부로부터 일을 받는', lambda s: s[1] < 0, 'W < 0 (부피 감소)'),
+    ('열의 출입이 없는', lambda s: s[2] == 0, 'Q = 0'),
+    ('기체가 일을 하지도 받지도 않는', lambda s: s[1] == 0, 'W = 0'),
+    ('내부 에너지가 변하지 않는', lambda s: s[0] == 0, 'ΔU = 0'),
+    ('열을 흡수하면서 내부 에너지가 증가하는', lambda s: s[2] > 0 and s[0] > 0, 'Q > 0 이고 ΔU > 0'),
+    ('열을 방출하면서 외부로부터 일을 받는', lambda s: s[2] < 0 and s[1] < 0, 'Q < 0 이고 W < 0'),
+    ('외부에 일을 하면서 내부 에너지가 감소하는', lambda s: s[1] > 0 and s[0] < 0, 'W > 0 이고 ΔU < 0'),
+    ('흡수한 열이 모두 기체가 하는 일로 쓰이는', lambda s: s[0] == 0 and s[1] > 0, 'ΔU = 0 이고 W > 0'),
+    ('받은 일이 모두 내부 에너지로 쓰이는', lambda s: s[2] == 0 and s[1] < 0, 'Q = 0 이고 W < 0'),
+]
+
+KSET4 = [''.join(p) for p in itertools.permutations('PVTA')]
+KSET3 = [''.join(p) for p in itertools.permutations('PVTA', 3)]
+
+
+def _sets_str(idx, names, n):
+    return ', '.join('%s→%s' % (names[i], names[(i + 1) % n]) for i in idx)
+
+
+def _kind_text(kind, sg_):
+    dU, W, Q = sg_
+    up = W > 0
+    return {'P': '등압 %s' % ('팽창' if up else '압축'), 'V': '등적 %s' % ('가열' if dU > 0 else '냉각'),
+            'T': '등온 %s' % ('팽창' if up else '압축'), 'A': '단열 %s' % ('팽창' if up else '압축')}[kind]
+
+
+@T('ph117')
+def g117(r, k):
+    n = r.choice([3, 4, 4, 4])
+    kinds = list(r.choice(KSET4 if n == 4 else KSET3))
+    sts = qual_cycle(r, kinds)
+    if not sts: return None
+    names = list(NMS[:n])
+    tab = sign_table(sts, kinds)
+    fig = FIG(qual_fig(names, sts, kinds), '62%')
+    seglab = ['%s→%s' % (names[i], names[(i + 1) % n]) for i in range(n)]
+    kd = ' / '.join('%s %s' % (seglab[i], _kind_text(kinds[i], tab[i])) for i in range(n))
+    form = r.choice(['set', 'set', 'tri', 'tri', 'bogi', 'bogi', 'cnt', 'cnt'])
+    path = '→'.join(names) + '→' + names[0]
+    intro = '그림은 일정량의 이상 기체의 상태가 %s를 따라 변할 때 압력 P 와 부피 V 를 나타낸 것이다. 곡선 중 하나는 단열 과정, 하나는 등온 과정이다.' % path if ('A' in kinds and 'T' in kinds) else '그림은 일정량의 이상 기체의 상태가 %s를 따라 변할 때 압력 P 와 부피 V 를 나타낸 것이다.' % path
+    if 'A' in kinds and 'T' not in kinds:
+        intro = '그림은 일정량의 이상 기체의 상태가 %s를 따라 변할 때 압력 P 와 부피 V 를 나타낸 것이다. 곡선으로 나타낸 과정은 단열 과정이다.' % path
+    if 'T' in kinds and 'A' not in kinds:
+        intro = '그림은 일정량의 이상 기체의 상태가 %s를 따라 변할 때 압력 P 와 부피 V 를 나타낸 것이다. 곡선으로 나타낸 과정은 등온 과정이다.' % path
+    if form == 'set':
+        pr = r.choice(PROPS)
+        S = [i for i in range(n) if pr[1](tab[i])]
+        if not S or len(S) == n: return None
+        right = _sets_str(S, names, n)
+        cands = []
+        for sz in (1, 2, 3):
+            for c in itertools.combinations(range(n), sz):
+                if list(c) != S: cands.append(_sets_str(c, names, n))
+        r.shuffle(cands)
+        near = [_sets_str(c, names, n) for c in ([x for x in range(n) if x not in S] ,) if c]
+        wrongs = near + cands
+        body = P(intro + ' %s 과정만을 있는 대로 고른 것은?' % pr[0]) + fig
+        steps = ['과정 : ' + kd + '.', '각 과정의 (ΔU, W, Q) 부호 : ' + ', '.join('%s (%s, %s, %s)' % (seglab[i], sgs(tab[i][0]), sgs(tab[i][1]), sgs(tab[i][2])) for i in range(n)),
+                 '%s 조건(%s)을 만족하는 과정은 %s 이다.' % (pr[0], pr[2], right)]
+        return mco(body, right, wrongs, steps=steps, lv='중' if len(pr[0]) < 14 else '상', fam='a', r=r,
+                   core='팽창이면 W>0, 온도 상승이면 ΔU>0, Q=ΔU+W. 단열이면 Q=0, 등온이면 ΔU=0, 등적이면 W=0.', point='과정별 ΔU·W·Q 부호표를 만들어 조건에 맞는 과정을 찾는다.')
+    if form == 'tri':
+        i = r.randrange(n)
+        dU, W, Q = tab[i]
+        f = lambda x: {1: '+', -1: '−', 0: '0'}[x]
+        right = '(%s, %s, %s)' % (f(dU), f(W), f(Q))
+        wr = ['(%s, %s, %s)' % (f(a), f(b), f(c)) for a in (1, -1, 0) for b in (1, -1, 0) for c in (1, -1, 0) if (a, b, c) != (dU, W, Q)]
+        wr.sort(key=lambda x: sum(1 for u, v in zip(x.strip('()').split(', '), right.strip('()').split(', ')) if u != v))
+        body = P(intro + ' %s 과정에서 기체의 내부 에너지 변화량 ΔU, 기체가 외부에 한 일 W, 기체가 흡수한 열량 Q 의 부호를 (ΔU, W, Q) 순서로 옳게 나타낸 것은? (기체가 열을 흡수하면 Q > 0, 외부에 일을 하면 W > 0 이다.)' % seglab[i]) + fig
+        steps = ['%s 은(는) %s 과정이다.' % (seglab[i], _kind_text(kinds[i], tab[i])), '부피 %s → W %s, 온도 %s → ΔU %s' % ({1: '증가', -1: '감소', 0: '일정'}[W], f(W), {1: '상승', -1: '하강', 0: '일정'}[dU], f(dU)),
+                 'Q = ΔU + W %s' % ('= 0 (단열)' if kinds[i] == 'A' else '→ %s' % f(Q)), '따라서 %s' % right]
+        return mco(body, right, wr[:8], steps=steps, lv='하' if kinds[i] in 'PV' else ('중' if kinds[i] == 'T' else '상'), fam='b', r=r, core='ΔU ∝ ΔT, W 의 부호는 ΔV 의 부호, Q = ΔU + W.', point='과정의 종류를 알면 ΔU, W, Q 의 부호가 정해진다.')
+    if form == 'cnt':
+        which = r.choice([0, 1, 2])
+        label, fn, why = [('열을 흡수하는', lambda s: s[2] > 0, 'Q > 0'), ('외부에 일을 하는', lambda s: s[1] > 0, 'W > 0'), ('내부 에너지가 증가하는', lambda s: s[0] > 0, 'ΔU > 0')][which]
+        cnt = sum(1 for s in tab if fn(s))
+        body = P(intro + ' %s 과정은 모두 몇 개인가?' % label) + fig
+        ws = [str(x) + '개' for x in range(0, 5) if x != cnt]
+        steps = ['각 과정의 (ΔU, W, Q) 부호 : ' + ', '.join('%s (%s, %s, %s)' % (seglab[i], sgs(tab[i][0]), sgs(tab[i][1]), sgs(tab[i][2])) for i in range(n)), '%s 조건(%s)을 만족하는 과정은 %d개이다.' % (label, why, cnt)]
+        return mco(body, '%d개' % cnt, ws, steps=steps, lv='하', fam='c', r=r, sort='num', core='각 과정의 ΔU, W, Q 부호를 표로 정리하면 조건에 맞는 과정을 센다.', point='부호표 작성.')
+    bank = stmts_cycle(r, names, sts, kinds, 'PV')
+    # 단열 관련 문장 추가
+    for i in range(n):
+        if kinds[i] == 'A':
+            out_ = '%s 과정에서 기체와 외부 사이의 열 출입은 없다.' % seglab[i]
+            bank.append((out_, True, '단열 과정이므로 Q = 0 이다.', 'adi'))
+            up = tab[i][1] > 0
+            bank.append(('%s 과정에서 기체의 온도는 %s.' % (seglab[i], '낮아진다' if up else '높아진다'), True, '단열 %s 에서는 Q=0 이므로 ΔU = -W 이다. %s하므로 온도가 %s.' % ('팽창' if up else '압축', '기체가 일을 ' if up else '외부가 일을 ', '낮아진다' if up else '높아진다'), 'adi2'))
+            bank.append(('%s 과정에서 기체의 온도는 일정하다.' % seglab[i], False, '단열 과정은 Q = 0 이므로 W 만큼 내부 에너지가 변해 온도가 변한다. 온도가 일정한 것은 등온 과정이다.', 'adi2'))
+        if kinds[i] == 'T':
+            bank.append(('%s 과정에서 기체가 흡수(방출)한 열은 기체가 한(받은) 일과 같다.' % seglab[i], True, '등온 과정은 ΔU = 0 이므로 Q = W 이다.', 'iso'))
+            bank.append(('%s 과정에서 기체의 내부 에너지가 변한다.' % seglab[i], False, '등온 과정은 온도가 일정하므로 ΔU = 0 이다.', 'iso'))
+    sel = pick_stmts(r, bank)
+    if not sel: return None
+    return bogi(intro + ' 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, pre=fig, ask='', r=r, lv='중' if n == 3 else '상', fam='d',
+                core='각 과정의 (ΔU, W, Q) 부호: 등압 팽창 (+,+,+), 등적 가열 (+,0,+), 등온 팽창 (0,+,+), 단열 팽창 (−,+,0).', point='과정 종류를 판별하고 부호표로 <보기>를 판단한다.')
+
+
+# ============================================================ ph118 내부 에너지 변화량과 온도 비교(순환 과정)
+def _pairs(names, idx):
+    return '와 '.join(names[i] for i in idx) if False else '%s와 %s' % (names[idx[0]], names[idx[1]])
+
+
+@T('ph118')
+def g118(r, k):
+    form = r.choice(['eqT', 'eqT', 'ratio', 'ratio', 'dU', 'dU', 'close', 'cmp', 'bogi', 'bogi'])
+    n = r.choice([3, 4, 4])
+    if form == 'eqT':
+        got = pick_cycle(r, n, need=lambda c, s: len({p * v for p, v in c}) == len(c) - 1)
+    elif form == 'cmp':
+        got = pick_cycle(r, 4, need=lambda c, s: True)
+    else:
+        got = pick_cycle(r, n)
+    if not got: return None
+    sts, seq = got
+    n = len(sts)
+    kinds = list(seq)
+    names = list(NMS[:n])
+    Ts = [p * v for p, v in sts]
+    try:
+        fig = FIG(loop_fig('PV', names, sts, kinds, numbered=True), '66%')
+    except AssertionError:
+        return None
+    path = '→'.join(names) + '→' + names[0]
+    intro = '그림은 일정량의 이상 기체의 상태가 %s를 따라 변할 때 압력 P 와 부피 V 를 나타낸 것이다.' % path
+    tabs = '각 상태의 PV (P₀V₀ 단위) : ' + ', '.join('%s = %d' % (names[i], Ts[i]) for i in range(n)) + '. 절대 온도는 PV 에 비례한다.'
+    seg = lambda i: '%s→%s' % (names[i], names[(i + 1) % n])
+    dUs = [Fraction(3, 2) * (Ts[(i + 1) % n] - Ts[i]) for i in range(n)]   # P₀V₀ 단위
+    assert sum(dUs) == 0
+    for i in range(n):
+        assert abs(float(dUs[i]) - seg_vals(kinds[i], sts[i], sts[(i + 1) % n])[0]) < 1e-9
+    if form == 'eqT':
+        pairs = list(itertools.combinations(range(n), 2))
+        good = [p for p in pairs if Ts[p[0]] == Ts[p[1]]]
+        if len(good) != 1: return None
+        g = good[0]
+        right = '%s와 %s' % (names[g[0]], names[g[1]])
+        wr = ['%s와 %s' % (names[p[0]], names[p[1]]) for p in pairs if p != g]
+        if n == 3: wr += ['A, B, C 모두 같다', '온도가 같은 상태는 없다']
+        else: wr += ['온도가 같은 상태는 없다', '네 상태의 온도가 모두 같다']
+        body = P(intro + ' 기체의 온도가 서로 같은 두 상태는?') + fig
+        steps = [tabs, '%s 의 PV 는 %d 로 같다(등온 곡선 위). 다른 상태는 PV 가 모두 다르다.' % (right, Ts[g[0]])]
+        return mco(body, right, wr, steps=steps, lv='하', fam='a', r=r, core='이상 기체의 절대 온도는 PV 에 비례하므로 PV 가 같은 상태는 온도가 같다.', point='눈금에서 P×V 값을 구해 비교한다.')
+    if form == 'ratio':
+        right = ' : '.join(num(0)) if False else ratio_list(Ts)
+        tl = ' : '.join('T%s' % names[i] for i in range(n))
+        wr = [ratio_list([p for p, v in sts]), ratio_list([v for p, v in sts]), ratio_list([p + v for p, v in sts]), ratio_list(Ts[::-1]), ratio_list([Fraction(p, v) for p, v in sts]), ratio_list([t + 1 for t in Ts]), ratio_list([Ts[(i + 1) % n] for i in range(n)])]
+        body = P(intro + ' 상태 %s의 절대 온도의 비 %s 는?' % (', '.join(names), tl.replace('T', 'T')) ) + fig
+        steps = [tabs, 'T ∝ PV 이므로 %s = %s' % (tl, ' : '.join(str(t) for t in Ts)), '간단히 하면 %s' % right]
+        return mco(body, right, wr, steps=steps, lv='중', fam='b', r=r, core='PV = nRT 이므로 T ∝ PV 이다.', point='각 상태의 P, V 눈금을 곱해 온도 비를 구한다.')
+    if form == 'dU':
+        u = r.choice([100, 200, 400, 500, 600, 800])
+        i = r.randrange(n)
+        val = float(dUs[i]) * u
+        if abs(val - round(val)) > 1e-9 or val == 0: return None
+        right = sj(val)
+        wr = [sj(-val), sj(val * 2 / 3), sj(val * 2), sj(float(Ts[(i + 1) % n] - Ts[i]) * u), sj(float(Ts[(i + 1) % n]) * u * 1.5), sj(val + u)]
+        body = P(intro + ' P₀V₀ = %d J 이고, 이 기체의 내부 에너지는 U = (3/2)PV 이다. %s 과정에서 기체의 내부 에너지 변화량은?' % (u, seg(i))) + fig
+        steps = [tabs, 'ΔU = (3/2)(P<sub>%s</sub>V<sub>%s</sub> - P<sub>%s</sub>V<sub>%s</sub>) = (3/2)(%d - %d) P₀V₀ = %s P₀V₀' % (names[(i + 1) % n], names[(i + 1) % n], names[i], names[i], Ts[(i + 1) % n], Ts[i], fr_str(dUs[i])),
+                 '= %s × %d J = %s' % (fr_str(dUs[i]), u, sj(val))]
+        return mco(body, right, wr, steps=steps, lv='중', fam='c', r=r, core='단원자 분자 이상 기체의 내부 에너지는 U = (3/2)PV 이므로 ΔU = (3/2)Δ(PV).', point='시작·끝 상태의 PV 로 ΔU 를 구한다.')
+    if form == 'close':
+        u = r.choice([100, 200, 400, 600])
+        vals = [float(d) * u for d in dUs]
+        if any(abs(v - round(v)) > 1e-9 for v in vals): return None
+        miss = r.randrange(n)
+        given = [i for i in range(n) if i != miss]
+        ans = vals[miss]
+        if abs(ans) < 1e-9: return None
+        ph = ', '.join('%s %s' % (seg(i), sj(vals[i])) for i in given)
+        right = sj(ans)
+        wr = [sj(-ans), sj(sum(vals[i] for i in given)), sj(abs(ans) + u), sj(ans + u), sj(ans / 2), sj(0)]
+        body = P(intro + ' 한 순환 동안 과정별 내부 에너지 변화량이 %s 일 때, %s 과정에서 기체의 내부 에너지 변화량은?' % (ph, seg(miss))) + fig
+        steps = ['한 순환 후 처음 상태로 돌아오므로 내부 에너지 변화량의 합은 0이다.', '%s = -(%s) = %s' % (seg(miss), ' + '.join('(%s)' % sj(vals[i]) for i in given), sj(ans)),
+                 '(검산) (3/2)(PV₍%s₎ - PV₍%s₎) = %s' % (names[(miss + 1) % n], names[miss], sj(float(dUs[miss]) * u))]
+        return mco(body, right, wr, steps=steps, lv='중', fam='d', r=r, core='한 순환에서 ΔU = 0 이므로 모든 과정의 ΔU 를 더하면 0이다.', point='순환 후 내부 에너지 변화 0 을 이용한다.')
+    if form == 'cmp':
+        # A→B 와 C→D 비교(4상태)
+        i, j = 0, 2
+        di, dj = dUs[i], dUs[j]
+        if di == 0 or dj == 0: return None
+        right = ratio_list([di, dj]) if (di > 0) == (dj > 0) else ratio_list([abs(di), abs(dj)]).replace(' : ', ' : −')
+        if (di > 0) != (dj > 0):
+            right = ('' if di > 0 else '−') + ratio_list([abs(di), abs(dj)]).split(' : ')[0] + ' : ' + ('' if dj > 0 else '−') + ratio_list([abs(di), abs(dj)]).split(' : ')[1]
+        else:
+            a_, b_ = ratio_list([abs(di), abs(dj)]).split(' : ')
+            right = ('−' if di < 0 else '') + a_ + ' : ' + ('−' if dj < 0 else '') + b_
+        a_, b_ = ratio_list([abs(di), abs(dj)]).split(' : ')
+        wr = ['%s : %s' % (a_, b_), '−%s : %s' % (a_, b_), '%s : −%s' % (a_, b_), '−%s : −%s' % (a_, b_), '%s : %s' % (b_, a_), '−%s : %s' % (b_, a_), '%s : −%s' % (b_, a_), '%d : %d' % (abs(Ts[1] - Ts[0]), abs(Ts[3] - Ts[2]))]
+        body = P(intro + ' %s 과정과 %s 과정에서 기체의 내부 에너지 변화량의 비 ΔU<sub>%s</sub> : ΔU<sub>%s</sub> 는?' % (seg(i), seg(j), seg(i).replace('→', ''), seg(j).replace('→', ''))) + fig
+        steps = [tabs, 'ΔU<sub>%s</sub> ∝ %d - %d = %d, ΔU<sub>%s</sub> ∝ %d - %d = %d' % (seg(i).replace('→', ''), Ts[1], Ts[0], Ts[1] - Ts[0], seg(j).replace('→', ''), Ts[3], Ts[2], Ts[3] - Ts[2]), '비는 %s' % right]
+        return mco(body, right, wr, steps=steps, lv='상', fam='e', r=r, core='ΔU 는 온도 변화(PV 변화)에 비례하며 온도가 올라가면 +, 내려가면 −이다.', point='부호까지 포함하여 두 과정의 ΔU 를 비교한다.')
+    # bogi
+    bank = stmts_cycle(r, names, sts, kinds, 'PV')
+    i, j = r.sample(range(n), 2)
+    if abs(dUs[i]) == abs(dUs[j]) and dUs[i] != 0:
+        eq = dUs[i] == -dUs[j]
+        bank.append(('%s 과정과 %s 과정에서 기체의 내부 에너지 변화량은 크기가 같고 부호가 반대이다.' % (seg(i), seg(j)), eq, '%s의 ΔU ∝ %d, %s의 ΔU ∝ %d (×(3/2)P₀V₀) 이므로 %s.' % (seg(i), Ts[(i + 1) % n] - Ts[i], seg(j), Ts[(j + 1) % n] - Ts[j], '크기가 같고 부호가 반대이다' if eq else '크기가 같고 부호도 같다'), 'cmp'))
+    else:
+        bank.append(('%s 과정과 %s 과정에서 기체의 내부 에너지 변화량은 크기가 같다.' % (seg(i), seg(j)), abs(dUs[i]) == abs(dUs[j]), '%s의 |ΔU| ∝ %d, %s의 |ΔU| ∝ %d (×(3/2)P₀V₀) 이므로 %s.' % (seg(i), abs(Ts[(i + 1) % n] - Ts[i]), seg(j), abs(Ts[(j + 1) % n] - Ts[j]), '같다' if abs(dUs[i]) == abs(dUs[j]) else '같지 않다'), 'cmp'))
+    if list(dUs).count(max(dUs)) == 1:
+        c = r.randrange(n)
+        bank.append(('기체의 내부 에너지 변화량(ΔU)이 가장 큰 과정은 %s이다.' % seg(c), dUs[c] == max(dUs), '각 과정의 ΔU(단위 (3/2)P₀V₀) : ' + ', '.join('%s %s' % (seg(x), fr_str(dUs[x] * Fraction(2, 3))) for x in range(n)) + ' 이므로 ΔU 가 가장 큰 과정은 %s이다.' % seg(max(range(n), key=lambda x: dUs[x])), 'maxdU'))
+    bank = [b for b in bank if b[1] is not None]
+    sel = pick_stmts(r, bank)
+    if not sel: return None
+    return bogi(intro + ' 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, pre=fig, ask='', r=r, lv='중' if n == 3 else '상', fam='f',
+                core='절대 온도는 PV 에 비례하고 ΔU ∝ ΔT 이므로, 눈금의 P×V 값으로 온도와 ΔU 를 비교한다. 한 순환에서 ΔU = 0 이다.', point='PV 눈금을 곱해 온도·ΔU 를 비교하고 순환 과정의 성질을 적용한다.')
+
+
+# ============================================================ ph119 열역학 과정 실험과 장치(<보기>)
+def dev_fig(key):
+    f = Fig(300, 140)
+    if key == 'syringe':
+        f.rect(70, 50, 120, 44, '#e8f1fb', INK, 2)
+        for (cx, cy) in ((82, 66), (90, 76), (84, 84), (96, 68)):
+            f.circ(cx, cy, 7, '#f6e7c8', '#b59a62', 1)
+        f.rect(176, 46, 8, 52, '#9aa7b8', INK, 1.4)
+        f.line(184, 72, 250, 72, INK, 3)
+        f.line(250, 58, 250, 86, INK, 4)
+        f.arrow(232, 34, 196, 34, RD, 2.6)
+        f.text(214, 24, '빠르게 누름', 12, 'middle', True, RD)
+        f.text(130, 118, '솜', 12, 'middle', True, GR)
+        f.text(150, 118, '', 12)
+    elif key == 'cooker':
+        f.poly([(90, 50), (210, 50), (200, 110), (100, 110)], '#e8f1fb', INK, 2.2)
+        f.rect(84, 42, 132, 8, '#9aa7b8', INK, 1.6)
+        f.rect(140, 32, 20, 10, '#586476', INK, 1.4)
+        f.text(150, 24, '추', 12, 'middle', True, GR)
+        for dx in (-30, 0, 30):
+            f.path('M %d 128 Q %d 116 %d 124 Q %d 114 %d 122' % (150 + dx - 8, 150 + dx, 150 + dx + 2, 150 + dx + 4, 150 + dx + 10), 'none', RD, 2.2)
+        f.text(150, 84, '밀폐된 기체', 12, 'middle', True, BL)
+    elif key == 'bottle':
+        for (x, deform) in ((80, 0), (210, 1)):
+            w = 36 - 8 * deform
+            f.rect(x - 5, 28, 10, 12, '#9aa7b8', INK, 1.4)
+            f.path('M %d 40 Q %d 48 %d 60 L %d 110 Q %d 120 %d 120 Q %d 120 %d 110 L %d 60 Q %d 48 %d 40 Z' % (x - 5, x - 18, x - w // 2, x - w // 2, x - w // 2, x, x + w // 2, x + w // 2, x + w // 2, x + 18, x + 5), '#e8f1fb' if not deform else '#dde7f4', INK, 2)
+            if deform:
+                f.path('M %d 70 Q %d 78 %d 86' % (x - 14, x - 8, x - 14), 'none', INK, 1.4)
+                f.path('M %d 88 Q %d 96 %d 104' % (x + 14, x + 8, x + 14), 'none', INK, 1.4)
+        f.arrow(112, 78, 176, 78, INK, 2.6)
+        f.text(80, 136, '뜨거운 곳(뚜껑 닫음)', 11.5, 'middle', True, RD)
+        f.text(210, 136, '찬 곳', 11.5, 'middle', True, BL)
+    return f.svg()
+
+
+# 현상 은행: key, 이름, 서술(과정을 직접 말하지 않음), 과정 종류, 장치 그림, 문장들(문장, 참거짓, 풀이문)
+PH119 = [
+    dict(key='syringe', name='솜이 든 주사기', fig='syringe', kind='단열 압축',
+         desc='솜을 넣은 주사기 모양 실린더의 피스톤을 빠르게 눌렀더니 솜이 타올랐다.',
+         intro='그림과 같이 솜 조각을 넣은 투명한 실린더의 피스톤을 빠르게 눌렀더니 솜이 타올랐다.',
+         st=[('실린더 속 공기가 압축되는 동안 외부와 주고받는 열은 거의 없다.', True, '빠르게 누르면 열이 이동할 시간이 없어 Q ≈ 0 인 단열 압축 과정이다.'),
+             ('실린더 속 공기의 내부 에너지는 증가한다.', True, 'Q = 0 이고 외부가 기체에 일을 하므로 ΔU = -W > 0 이다.'),
+             ('실린더 속 공기의 온도가 높아져 솜이 탄다.', True, '내부 에너지가 증가하여 온도가 높아진다.'),
+             ('실린더 속 공기가 외부에 일을 한다.', False, '부피가 감소하므로 외부가 기체에 일을 한다(기체가 한 일은 음).'),
+             ('이 과정은 온도가 일정한 등온 과정이다.', False, '온도가 높아져 솜이 타므로 등온이 아니라 단열 압축이다.'),
+             ('공기가 열을 방출하기 때문에 솜이 탄다.', False, '단열 과정이므로 열 출입이 없다. 솜이 타는 것은 압축으로 온도가 올랐기 때문이다.'),
+             ('공기의 압력은 처음보다 증가한다.', True, '부피가 줄고 온도가 높아지므로 압력은 증가한다.')]),
+    dict(key='bottle', name='찌그러진 병', fig='bottle', kind='등압 압축',
+         desc='뜨거운 곳에서 뚜껑을 닫은 빈 페트병을 찬 곳으로 옮기자 병이 찌그러졌다.',
+         intro='그림과 같이 뜨거운 곳에서 뚜껑을 닫은 빈 페트병을 찬 곳으로 옮겼더니 병이 찌그러졌다. (단, 병 속 공기의 압력은 외부 대기압과 거의 같다고 본다.)',
+         st=[('병 속 공기는 열을 방출한다.', True, '온도가 낮아지므로 ΔU < 0 이고, 부피가 줄어 W < 0 이므로 Q = ΔU + W < 0 이다.'),
+             ('병 속 공기의 내부 에너지는 감소한다.', True, '온도가 낮아졌으므로 내부 에너지가 감소한다.'),
+             ('병 속 공기의 부피는 증가한다.', False, '병이 찌그러졌으므로 부피가 감소한다.'),
+             ('병 속 공기는 외부로부터 일을 받는다.', True, '부피가 감소하므로 외부(대기)가 기체에 일을 한다.'),
+             ('병 속 공기가 외부에 일을 한다.', False, '부피가 줄어드는 과정이므로 외부가 기체에 일을 한다.'),
+             ('이 과정은 근사적으로 압력이 일정한 과정이다.', True, '병이 쉽게 찌그러지므로 병 속 압력이 대기압과 거의 같게 유지된다.'),
+             ('병 속 공기의 온도가 높아져 병이 찌그러진다.', False, '온도가 낮아져 부피가 줄어든 것이다.')]),
+    dict(key='pump', name='자전거 펌프', fig=None, kind='단열 압축',
+         desc='자전거 펌프의 출구를 막고 손잡이를 빠르게 눌렀더니 펌프 아랫부분이 뜨거워졌다.',
+         intro='자전거 펌프의 출구를 막고 손잡이를 빠르게 눌렀더니 펌프 아랫부분이 뜨거워졌다.',
+         st=[('펌프 속 공기는 단열 압축된다.', True, '빠르게 누르므로 열 출입이 거의 없는 단열 압축이다.'),
+             ('외부가 공기에 한 일은 공기의 내부 에너지 증가로 나타난다.', True, 'Q = 0 이므로 외부가 한 일이 모두 내부 에너지 증가로 쓰인다.'),
+             ('공기의 부피가 늘어나므로 온도가 높아진다.', False, '공기는 압축되어 부피가 줄어든다.'),
+             ('펌프 속 공기의 압력은 감소한다.', False, '부피가 줄고 온도가 높아지므로 압력은 증가한다.'),
+             ('손잡이를 아주 천천히 누르면 온도 상승이 더 작다.', True, '천천히 누르면 열이 바깥으로 빠져나가 등온에 가까워지므로 온도 상승이 작다.'),
+             ('펌프 속 공기의 온도는 높아진다.', True, '내부 에너지가 증가하므로 온도가 높아진다.')]),
+    dict(key='cooker', name='압력밥솥', fig='cooker', kind='등적 가열',
+         desc='뚜껑을 꼭 닫은 압력밥솥 속의 기체를 가열하였다.',
+         intro='그림과 같이 뚜껑을 꼭 닫아 밀폐한 압력밥솥을 가열하였다. 솥 속 기체의 부피는 변하지 않는다고 본다.',
+         st=[('솥 속 기체는 외부에 일을 하지 않는다.', True, '부피 변화가 없으므로 W = 0 이다.'),
+             ('기체가 흡수한 열은 모두 내부 에너지 증가에 쓰인다.', True, 'W = 0 이므로 Q = ΔU 이다.'),
+             ('솥 속 기체의 압력은 증가한다.', True, '부피가 일정할 때 온도가 오르면 압력이 증가한다(P ∝ T).'),
+             ('솥 속 기체의 부피는 증가한다.', False, '밀폐되어 있으므로 부피는 일정하다.'),
+             ('이 과정은 열의 출입이 없는 단열 과정이다.', False, '가열하므로 열을 흡수한다. 부피가 일정한 등적 과정이다.'),
+             ('이 과정을 P-V 그래프로 나타내면 P 축에 나란한 직선이다.', True, '부피가 일정하므로 V 가 일정한 수직선이다.'),
+             ('기체의 온도는 일정하게 유지된다.', False, '열을 흡수하여 온도가 높아진다.')]),
+    dict(key='spray', name='스프레이 통', fig=None, kind='단열 팽창',
+         desc='스프레이 통의 노즐을 눌러 내용물을 분사하자 통이 차가워졌다.',
+         intro='스프레이 통의 노즐을 눌러 기체와 함께 내용물을 빠르게 분사하였더니 통이 차가워졌다.',
+         st=[('분사되는 기체는 급격히 팽창하며 외부에 일을 한다.', True, '압력이 높은 기체가 대기 중으로 팽창하므로 외부에 일을 한다.'),
+             ('분사되는 동안 기체의 내부 에너지는 감소한다.', True, '열 출입이 거의 없이(Q ≈ 0) 일을 하므로 ΔU = -W < 0 이다.'),
+             ('기체가 열을 방출하여 통이 차가워진다.', False, '열 출입이 거의 없는 단열 팽창으로 온도가 내려간 것이다.'),
+             ('분사되는 동안 기체가 외부로부터 일을 받는다.', False, '기체가 팽창하므로 외부에 일을 한다.'),
+             ('이 과정은 단열 팽창 과정으로 볼 수 있다.', True, '빠르게 일어나므로 열 출입이 거의 없다.'),
+             ('분사 후 통 속 기체의 온도는 높아진다.', False, '단열 팽창에서는 온도가 낮아진다.')]),
+    dict(key='cloud', name='구름의 생성', fig=None, kind='단열 팽창',
+         desc='공기 덩어리가 상승하면서 팽창하여 온도가 내려가 구름이 생겼다.',
+         intro='수증기를 포함한 공기 덩어리가 상승하면서 구름이 만들어진다. 상승하는 공기 덩어리는 주위와 열을 거의 주고받지 않는다.',
+         st=[('상승하는 공기 덩어리는 주위 압력이 낮아져 팽창한다.', True, '높이 올라갈수록 대기압이 낮아져 공기 덩어리의 부피가 커진다.'),
+             ('공기 덩어리의 팽창은 단열 팽창이다.', True, '주위와 열을 거의 주고받지 않으므로 Q ≈ 0 이다.'),
+             ('팽창하면서 공기 덩어리의 온도가 낮아져 수증기가 응결한다.', True, 'ΔU = -W < 0 이므로 온도가 내려가고 수증기가 응결하여 구름이 된다.'),
+             ('공기 덩어리는 팽창하면서 외부로부터 일을 받는다.', False, '팽창하므로 공기 덩어리가 주위에 일을 한다.'),
+             ('공기 덩어리의 내부 에너지는 증가한다.', False, '단열 팽창에서는 내부 에너지가 감소한다.'),
+             ('공기 덩어리의 온도가 높아져 구름이 생긴다.', False, '온도가 낮아져 수증기가 응결하는 것이다.')]),
+    dict(key='puff', name='뻥튀기', fig=None, kind='등적 가열',
+         desc='밀폐된 뻥튀기 통을 가열하여 통 속 기체의 압력을 높였다.',
+         intro='뻥튀기 기계는 곡물이 든 통을 밀폐한 채 가열하여 압력을 높인 뒤, 뚜껑을 갑자기 열어 곡물을 부풀린다.',
+         st=[('밀폐하고 가열하는 동안 통 속 기체의 압력은 증가한다.', True, '부피가 일정할 때 온도가 올라가므로 압력이 증가한다(등적 가열).'),
+             ('뚜껑을 여는 순간 통 속 기체는 급격히 팽창하며 외부에 일을 한다.', True, '고압의 기체가 대기압으로 팽창하므로 기체가 일을 한다.'),
+             ('뚜껑을 여는 순간의 급팽창은 근사적으로 단열 과정이다.', True, '짧은 시간에 일어나므로 열 출입이 거의 없다.'),
+             ('급팽창하는 동안 기체의 온도는 높아진다.', False, '단열 팽창은 ΔU = -W < 0 이므로 온도가 낮아진다.'),
+             ('가열하는 동안 통 속 기체가 외부에 일을 한다.', False, '밀폐되어 부피가 일정하므로 일을 하지 않는다.'),
+             ('가열하는 동안 기체가 흡수한 열은 모두 내부 에너지 증가에 쓰인다.', True, 'W = 0 이므로 Q = ΔU 이다.')]),
+    dict(key='diesel', name='디젤 엔진', fig=None, kind='단열 압축',
+         desc='디젤 엔진은 압축 행정에서 공기를 빠르게 압축하여 온도를 높여 연료를 점화한다.',
+         intro='디젤 엔진은 실린더 안의 공기를 피스톤으로 빠르게 압축하여 온도를 높인 뒤 연료를 분사하여 점화한다.',
+         st=[('압축 행정에서 공기는 단열 압축된다.', True, '빠르게 압축하여 열 출입이 거의 없다.'),
+             ('압축 행정에서 공기가 외부에 일을 한다.', False, '부피가 줄어들므로 피스톤이 공기에 일을 한다.'),
+             ('압축된 공기의 온도가 높아져 점화 장치 없이도 연료가 탈 수 있다.', True, '단열 압축으로 온도가 연료의 발화점 이상으로 오른다.'),
+             ('연소 후 고온·고압의 기체가 단열 팽창하면서 피스톤에 일을 한다.', True, '기체가 팽창하며 외부에 일을 한다.'),
+             ('단열 팽창하는 동안 기체의 내부 에너지는 증가한다.', False, 'Q = 0 이고 W > 0 이므로 ΔU = -W < 0 이다.'),
+             ('단열 팽창하는 동안 기체의 온도는 낮아진다.', True, '내부 에너지가 감소하므로 온도가 낮아진다.')]),
+    dict(key='slow', name='열전도가 좋은 실린더', fig=None, kind='등온 압축',
+         desc='열이 잘 전달되는 실린더 속 기체를 피스톤으로 아주 천천히 압축하였다.',
+         intro='열이 잘 전달되는 실린더 속의 일정량의 이상 기체를 피스톤으로 아주 천천히 압축하였다. 실린더 바깥의 온도는 일정하다.',
+         st=[('기체의 온도는 일정하게 유지된다.', True, '천천히 압축하면 열평형이 유지되어 등온 과정이다.'),
+             ('기체의 내부 에너지 변화량은 0이다.', True, '온도가 일정하므로 ΔU = 0 이다.'),
+             ('기체는 외부로부터 받은 일만큼 열을 방출한다.', True, 'ΔU = 0 이므로 Q = W 이다. W < 0 이므로 Q < 0 (방출)이다.'),
+             ('기체의 압력은 일정하게 유지된다.', False, '등온 압축에서는 PV 가 일정하므로 부피가 줄면 압력이 증가한다.'),
+             ('기체는 열을 흡수한다.', False, '압축될 때 W < 0 이고 ΔU = 0 이므로 Q < 0 이다. 열을 방출한다.'),
+             ('기체의 압력과 부피의 곱은 일정하다.', True, '등온 과정에서 PV = nRT 로 일정하다(보일 법칙).')]),
+    dict(key='balloon', name='열기구', fig=None, kind='등압 가열',
+         desc='열기구 풍선 속 공기를 버너로 가열하자 공기가 팽창하여 풍선이 부풀었다(풍선 입구는 열려 있어 압력은 대기압과 같다).',
+         intro='열기구 풍선 속 공기를 버너로 가열하면 공기가 팽창한다. 풍선 입구가 열려 있어 풍선 속 압력은 대기압과 같다고 본다.',
+         st=[('풍선 속 공기는 압력이 일정한 상태에서 팽창한다.', True, '대기압과 같은 압력을 유지하므로 등압 팽창이다.'),
+             ('공기가 흡수한 열은 모두 내부 에너지 증가에 쓰인다.', False, '팽창하며 외부에 일을 하므로 Q = ΔU + W 에서 열의 일부는 일로 쓰인다.'),
+             ('공기의 온도는 높아진다.', True, '열을 흡수하여 온도가 높아진다.'),
+             ('공기가 외부에 일을 한다.', True, '부피가 증가하므로 외부에 일을 한다.'),
+             ('공기의 내부 에너지는 감소한다.', False, '온도가 높아지므로 내부 에너지는 증가한다.')]),
+]
+KIND_SIGN = {'단열 압축': '', '단열 팽창': '', '등적 가열': '', '등압 압축': '', '등압 가열': '', '등온 압축': ''}
+
+
+@T('ph119')
+def g119(r, k):
+    form = r.choice(['one', 'one', 'one', 'mix', 'mix', 'which', 'pair'])
+    if form == 'one':
+        th = r.choice(PH119)
+        bank = [(s[0], s[1], s[2], i) for i, s in enumerate(th['st'])]
+        sel = pick_stmts(r, bank)
+        if not sel: return None
+        pre = FIG(dev_fig(th['fig']), '62%') if th['fig'] else ''
+        return bogi(th['intro'] + ' 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, pre=pre, ask='', r=r, lv=r.choice(['하', '하', '중']), fam='a',
+                    core='빠른 압축·팽창은 단열(Q=0), 밀폐 가열은 등적(W=0), 느린 변화는 등온(ΔU=0)으로 근사하고 Q = ΔU + W 로 판단한다.', point='현상을 열역학 과정으로 해석한다.')
+    if form == 'mix':
+        ths = r.sample(PH119, 3)
+        sel = []
+        for th in ths:
+            s = r.choice(th['st'])
+            sel.append(('[%s] %s' % (th['name'], s[0]), s[1], s[2]))
+        if not any(s[1] for s in sel): return None
+        return bogi('다음은 일상 속에서 볼 수 있는 열역학 과정과 관련된 현상이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, ask='', r=r, lv='중', fam='b',
+                    core='단열 압축은 온도 상승, 단열 팽창은 온도 하강, 등적 가열은 W=0, 등온은 ΔU=0 이다.', point='여러 현상에서 열역학 과정의 종류와 부호를 판단한다.')
+    if form == 'which':
+        kinds = sorted({t['kind'] for t in PH119})
+        kd = r.choice(kinds)
+        goods = [t for t in PH119 if t['kind'] == kd]
+        bads = [t for t in PH119 if t['kind'] != kd]
+        g = r.choice(goods)
+        ws = r.sample(bads, 4)
+        # 같은 이름이 겹치지 않도록
+        body = P('다음 중 기체의 상태 변화가 %s 과정에 가장 가까운 현상은?' % kd)
+        steps = ['%s : %s → %s 과정' % (g['name'], g['desc'], g['kind'])] + ['%s : %s 과정' % (w['name'], w['kind']) for w in ws]
+        return mco(body, g['desc'], [w['desc'] for w in ws], steps=steps, lv='중', fam='c', r=r,
+                   core='급격한 압축·팽창은 단열, 밀폐 용기의 가열은 등적, 대기압 아래의 가열·냉각은 등압, 느린 변화는 등온 과정이다.', point='현상에서 열 출입·부피 변화 조건을 읽어 과정을 판별한다.')
+    ths = r.sample(PH119, 3)
+    if len({t['kind'] for t in ths}) < 3: return None
+    right = ', '.join(t['kind'] for t in ths)
+    allk = ['단열 압축', '단열 팽창', '등적 가열', '등압 압축', '등압 가열', '등온 압축']
+    wr = []
+    for _ in range(40):
+        c = [t['kind'] for t in ths]
+        j = r.randrange(3)
+        c[j] = r.choice([x for x in allk if x != c[j]])
+        if r.random() < 0.5:
+            j2 = r.randrange(3)
+            c[j2] = r.choice([x for x in allk if x != c[j2]])
+        wr.append(', '.join(c))
+    body = P('다음은 일상 속에서 볼 수 있는 세 가지 현상이다.') + BOX(['(가) %s' % ths[0]['desc'], '(나) %s' % ths[1]['desc'], '(다) %s' % ths[2]['desc']]) + P('(가)~(다)에서 기체가 겪는 과정을 순서대로 옳게 짝지은 것은?')
+    steps = ['(가) %s : %s' % (ths[0]['name'], ths[0]['kind']), '(나) %s : %s' % (ths[1]['name'], ths[1]['kind']), '(다) %s : %s' % (ths[2]['name'], ths[2]['kind']), '따라서 %s' % right]
+    return mco(body, right, wr, steps=steps, lv='상', fam='d', r=r, core='현상의 조건(밀폐·급격·느림·대기압)으로 과정의 종류를 판단한다.', point='일상 현상과 열역학 과정을 짝짓는다.')
+
+
+# ============================================================ ph120 카르노 기관과 최대 열효율
+def carnot_cycle_pts(l1, l2, stirling=False):
+    """(ln V, ln P) 좌표에서 정해 (P,V) 상태 4개. A→B 등온 팽창이 위쪽."""
+    if stirling:
+        pts = [(0, 0), (l1, -l1), (l1, -l1 - l2), (0, -l2)]
+    else:
+        pts = [(0, 0), (l1, -l1), (l1 + l2, -l1 - GAM * l2), (l2, -GAM * l2)]
+    ly = min(y for _, y in pts)
+    return [(1.6 * math.exp(y - ly) , 1.1 * math.exp(x)) for (x, y) in pts]
+
+
+def carnot_fig(sts, stirling=False, th='T_H', tl='T_L', w=300, h=230, marks=True):
+    kinds = ['T', 'V', 'T', 'V'] if stirling else ['T', 'A', 'T', 'A']
+    pts = []
+    for i in range(4):
+        pts += curve_xy('PV', sts[i], sts[(i + 1) % 4], kinds[i])
+    xm = max(x for x, _ in pts) * 1.2
+    ym = max(y for _, y in pts) * 1.2
+    p = Plot(w, h, xm, ym, ml=30, mr=16, mt=26, mb=36)
+    p.axes('', '', xticks=(), yticks=(), grid=False)
+    p.text(w - 14, h - 16, 'V', 14, 'end', True, GR, True)
+    p.text(p.ml + 8, 16, 'P', 14, 'start', True, GR, True)
+    p.text(p.ml - 8, h - 23, 'O', 12, 'end', False, GR)
+    cols = [RD, GR, BL, GR]
+    for i in range(4):
+        poly = curve_xy('PV', sts[i], sts[(i + 1) % 4], kinds[i])
+        p.pl(poly, cols[i], 2.8)
+        m1, m2 = _along(poly, 0.46), _along(poly, 0.56)
+        p._head(p.px(m1[0]), p.py(m1[1]), p.px(m2[0]), p.py(m2[1]), cols[i], 2.4, 10)
+    cx = sum(s[1] for s in sts) / 4; cy = sum(s[0] for s in sts) / 4
+    for i, s in enumerate(sts):
+        x, y = s[1], s[0]
+        p.circ(p.px(x), p.py(y), 3.6, INK, INK, 1)
+        ox, oy = p.px(x) - p.px(cx), p.py(y) - p.py(cy)
+        ln = math.hypot(ox, oy) or 1
+        p.text(p.px(x) + 13 * ox / ln, p.py(y) + 13 * oy / ln + 5, NMS[i], 14.5, 'middle', True, INK, True)
+    if marks:
+        def onc(sa, sb, f):
+            v = sa[1] + (sb[1] - sa[1]) * f
+            return (v, sa[0] * sa[1] / v)
+        a1 = onc(sts[0], sts[1], 0.22); c1 = onc(sts[2], sts[3], 0.82)
+        p.text(p.px(a1[0]) + 22, p.py(a1[1]) - 10, th, 13, 'middle', True, RD, True)
+        p.text(p.px(c1[0]) - 14, p.py(c1[1]) + 22, tl, 13, 'middle', True, BL, True)
+        a2 = onc(sts[0], sts[1], 0.78); c2 = onc(sts[2], sts[3], 0.4)
+        p.arrow(p.px(a2[0]), p.py(a2[1]) - 30, p.px(a2[0]), p.py(a2[1]) - 4, RD, 2.4)
+        p.text(p.px(a2[0]) - 6, p.py(a2[1]) - 36, 'Q_H', 12.5, 'middle', True, RD, True)
+        p.arrow(p.px(c2[0]), p.py(c2[1]) + 4, p.px(c2[0]), p.py(c2[1]) + 30, BL, 2.4)
+        p.text(p.px(c2[0]) + 4, p.py(c2[1]) + 44, 'Q_L', 12.5, 'middle', True, BL, True)
+    return p.svg()
+
+
+def new_carnot(r, stirling=False):
+    l1 = r.choice([1.5, 1.7, 1.9]); l2 = r.choice([0.6, 0.8]) if not stirling else r.choice([0.8, 1.0, 1.2])
+    sts = carnot_cycle_pts(l1, l2, stirling)
+    kinds = ['T', 'V', 'T', 'V'] if stirling else ['T', 'A', 'T', 'A']
+    for i in range(4):
+        a_, b_ = sts[i], sts[(i + 1) % 4]
+        k_ = kinds[i]
+        if k_ == 'T': assert abs(a_[0] * a_[1] - b_[0] * b_[1]) < 1e-9
+        elif k_ == 'V': assert abs(a_[1] - b_[1]) < 1e-9
+        else: assert abs(a_[0] * a_[1] ** GAM - b_[0] * b_[1] ** GAM) < 1e-7
+    assert loop_simple(sts)
+    # 위쪽 등온(AB)이 고온: PV 값 비교
+    assert sts[0][0] * sts[0][1] > sts[2][0] * sts[2][1]
+    assert net_work(sts, kinds) > 0
+    return sts, kinds
+
+
+TPAIRS = [(400, 200), (400, 300), (500, 250), (500, 300), (600, 300), (600, 400), (600, 450), (800, 400), (800, 600), (900, 300), (1000, 500), (1000, 600), (1200, 300), (1200, 600), (1200, 900), (800, 200), (500, 400), (600, 200), (900, 450), (1000, 750)]
+
+
+def REF(ref):
+    def deco(f):
+        def g(r, k):
+            it = f(r, k)
+            if it is not None: it.ref = list(ref)
+            return it
+        g.__name__ = f.__name__
+        g.__doc__ = f.__doc__
+        return g
+    return deco
+
+
+def pct(x):
+    return num(x * 100) + ' %'
+
+
+@T('ph120')
+@REF([1])
+def g120(r, k):
+    form = r.choice(['calc', 'calc', 'celsius', 'findT', 'findT', 'Q', 'Q', 'change', 'seg', 'bogi', 'bogi', 'possible'])
+    TH, TL = r.choice(TPAIRS)
+    e = Fraction(TH - TL, TH)
+    if form == 'calc':
+        body = P('고열원의 온도가 %d K, 저열원의 온도가 %d K 인 카르노 기관의 열효율은?' % (TH, TL))
+        right = pct(float(e))
+        wr = [pct(TL / TH), pct(1 - TH / TL if False else (TH - TL) / TL if (TH - TL) / TL < 1 else TL / (TH + TL)), pct(TL / (TH + TL)), pct((TH - TL) / (TH + TL)), pct(float(e) / 2), pct(min(0.99, float(e) + 0.1))]
+        steps = ['카르노 기관의 열효율 e = 1 - T<sub>L</sub>/T<sub>H</sub>', 'e = 1 - %d/%d = %s' % (TL, TH, num(float(e), 3)), '열효율은 %s 이다.' % pct(float(e))]
+        return mco(body, right, wr, steps=steps, lv='하', fam='a', r=r, core='카르노 기관의 열효율은 e = 1 - T_L/T_H (온도는 절대 온도)이다.', point='절대 온도를 대입하여 열효율을 구한다.')
+    if form == 'celsius':
+        h, l = TH - 273, TL - 273
+        if l <= 0: return None
+        body = P('고열원의 온도가 %d °C, 저열원의 온도가 %d °C 인 카르노 기관의 열효율은? (단, 0 °C = 273 K 이다.)' % (h, l))
+        right = pct(float(e))
+        wr = [pct(1 - l / h), pct(l / h), pct(l / TH), pct(float(e) / 2), pct(1 - TL / (h + l))]
+        steps = ['절대 온도로 바꾼다 : T<sub>H</sub> = %d + 273 = %d K, T<sub>L</sub> = %d + 273 = %d K' % (h, TH, l, TL), 'e = 1 - %d/%d = %s = %s' % (TL, TH, num(float(e), 3), pct(float(e)))]
+        return mco(body, right, wr, steps=steps, lv='중', fam='a', r=r, core='열효율 계산에는 절대 온도(K)를 써야 한다. T(K) = t(°C) + 273.', point='섭씨온도를 절대 온도로 바꾸어 대입한다.')
+    if form == 'findT':
+        ee = r.choice([Fraction(1, 5), Fraction(1, 4), Fraction(1, 3), Fraction(2, 5), Fraction(1, 2), Fraction(3, 5), Fraction(3, 4)])
+        if r.random() < 0.5:
+            TLv = r.choice([200, 240, 300, 360, 400, 450])
+            THv = Fraction(TLv) / (1 - ee)
+            if THv.denominator != 1: return None
+            THv = int(THv)
+            body = P('저열원의 온도가 %d K 인 카르노 기관의 열효율이 %s 이다. 고열원의 온도는?' % (TLv, pct(float(ee))))
+            right = '%d K' % THv
+            wr = ['%d K' % round(TLv * (1 + float(ee))), '%d K' % round(TLv / float(ee)), '%d K' % round(TLv * (1 - float(ee))), '%d K' % round(TLv * float(ee)), '%d K' % (THv + 100)]
+            steps = ['e = 1 - T<sub>L</sub>/T<sub>H</sub> 에서 T<sub>L</sub>/T<sub>H</sub> = 1 - %s = %s' % (num(float(ee), 3), fr_str(1 - ee)), 'T<sub>H</sub> = %d ÷ %s = %d K' % (TLv, fr_str(1 - ee), THv)]
+            assert abs(1 - TLv / THv - float(ee)) < 1e-9
+            return mco(body, right, wr, steps=steps, lv='중', fam='b', r=r, sort='num', core='e = 1 - T_L/T_H 를 T_H 에 대해 정리한다.', point='열효율에서 온도 비 T_L/T_H = 1 - e 를 구한다.')
+        THv = r.choice([300, 400, 500, 600, 800, 1000, 1200])
+        TLv = THv * (1 - ee)
+        if TLv.denominator != 1: return None
+        TLv = int(TLv)
+        body = P('고열원의 온도가 %d K 인 카르노 기관의 열효율이 %s 이다. 저열원의 온도는?' % (THv, pct(float(ee))))
+        right = '%d K' % TLv
+        wr = ['%d K' % round(THv * float(ee)), '%d K' % round(THv * (1 + float(ee))), '%d K' % round(THv / (1 - float(ee))), '%d K' % (THv - TLv), '%d K' % (TLv + 100)]
+        steps = ['e = 1 - T<sub>L</sub>/T<sub>H</sub> 에서 T<sub>L</sub> = T<sub>H</sub>(1 - e)', 'T<sub>L</sub> = %d × %s = %d K' % (THv, fr_str(1 - ee), TLv)]
+        return mco(body, right, wr, steps=steps, lv='중', fam='b', r=r, sort='num', core='e = 1 - T_L/T_H 에서 T_L = T_H(1 - e).', point='열효율 식을 T_L 에 대해 정리한다.')
+    if form == 'Q':
+        QH = r.choice([400, 600, 800, 1000, 1200, 1600, 2000, 2400])
+        QL = Fraction(QH) * TL / TH
+        W = QH - QL
+        if QL.denominator != 1 or QL % 10: return None
+        QL = int(QL); W = int(W)
+        which = r.choice(['W', 'QL'])
+        body = P('고열원 %d K 와 저열원 %d K 사이에서 작동하는 카르노 기관이 한 번 순환하는 동안 고열원에서 %d J 의 열을 흡수한다. %s?' % (TH, TL, QH, '이 기관이 한 번 순환하는 동안 한 일은' if which == 'W' else '이 기관이 저열원으로 방출하는 열은'))
+        if which == 'W':
+            right = '%d J' % W
+            wr = ['%d J' % QL, '%d J' % QH, '%d J' % (QH * TL // TH if False else round(QH * TL / TH * 0.5)), '%d J' % (W + 100), '%d J' % round(QH * (TH - TL) / TL)]
+        else:
+            right = '%d J' % QL
+            wr = ['%d J' % W, '%d J' % QH, '%d J' % (QL + 100), '%d J' % round(QH * TH / TL), '%d J' % round(QH * (TH - TL) / TL)]
+        steps = ['카르노 기관에서 Q<sub>L</sub>/Q<sub>H</sub> = T<sub>L</sub>/T<sub>H</sub> = %d/%d', 'Q<sub>L</sub> = %d × %d/%d = %d J' % (QH, TL, TH, QL), 'W = Q<sub>H</sub> - Q<sub>L</sub> = %d - %d = %d J (열효율 e = %s)' % (QH, QL, W, pct(float(e)))]
+        steps[0] = steps[0] % (TL, TH)
+        assert abs(W - float(e) * QH) < 1e-6
+        return mco(body, right, wr, steps=steps, lv='중', fam='c', r=r, sort='num', core='카르노 기관에서 Q_L/Q_H = T_L/T_H 이고 W = Q_H - Q_L = eQ_H 이다.', point='열효율로 일과 방출 열을 구한다.')
+    if form == 'change':
+        d = r.choice([100, 200, 50, 150])
+        mode = r.choice(['H', 'L'])
+        if mode == 'H': e2 = Fraction(TH + d - TL, TH + d)
+        else:
+            if TL - d <= 0: return None
+            e2 = Fraction(TH - (TL - d), TH)
+        if (e2 * 1000).denominator != 1: return None
+        body = P('고열원의 온도가 %d K, 저열원의 온도가 %d K 인 카르노 기관이 있다. %s 열효율은?' % (TH, TL, ('고열원의 온도만 %d K 높이면' % d) if mode == 'H' else ('저열원의 온도만 %d K 낮추면' % d)))
+        right = pct(float(e2))
+        other = Fraction(TH + d - TL, TH + d) if mode == 'L' else Fraction(TH - (TL - d), TH)
+        wr = [pct(float(e)), pct(float(other)), pct(float(e) + d / 1000), pct(float(e2) / 2), pct(1 - (TL + d) / TH) if TL + d < TH else pct(0.1), pct(1 - TL / (TH - d)) if TH - d > TL else pct(0.05)]
+        T2 = (TH + d, TL) if mode == 'H' else (TH, TL - d)
+        steps = ['나중 온도 : T<sub>H</sub> = %d K, T<sub>L</sub> = %d K' % T2, 'e = 1 - %d/%d = %s' % (T2[1], T2[0], pct(float(e2)))]
+        return mco(body, right, wr, steps=steps, lv='상', fam='d', r=r, core='열효율은 고열원 온도가 높을수록, 저열원 온도가 낮을수록 커진다.', point='변화된 온도를 e = 1 - T_L/T_H 에 대입한다.')
+    sts, kinds = new_carnot(r)
+    fig = FIG(carnot_fig(sts), '80%')
+    intro = '그림은 일정량의 이상 기체를 작업 물질로 하는 카르노 기관의 순환 과정 A→B→C→D→A 를 P-V 그래프로 나타낸 것이다. A→B 와 C→D 는 등온 과정이고 B→C, D→A 는 단열 과정이며, 고열원과 저열원의 온도는 각각 T<sub>H</sub>, T<sub>L</sub> 이다.'
+    if form == 'seg':
+        right = 'A→B : 등온 팽창, B→C : 단열 팽창, C→D : 등온 압축, D→A : 단열 압축'
+        full = ['등온 팽창', '단열 팽창', '등온 압축', '단열 압축']
+        allk = ['등온 팽창', '단열 팽창', '등온 압축', '단열 압축', '등적 가열', '등압 팽창']
+        wr = []
+        for _ in range(30):
+            c = list(full)
+            for j in r.sample(range(4), r.choice([1, 2])):
+                c[j] = r.choice([x for x in allk if x != c[j]])
+            if c != full and len(set(c)) >= 3: wr.append('A→B : %s, B→C : %s, C→D : %s, D→A : %s' % tuple(c))
+        body = P(intro + ' 각 과정을 옳게 나타낸 것은?') + fig
+        steps = ['A→B : 곡선이 완만(등온)하고 부피 증가 → 등온 팽창 (고열원에서 Q<sub>H</sub> 흡수)', 'B→C : 곡선이 더 가파름(단열)하고 부피 증가 → 단열 팽창', 'C→D : 등온이고 부피 감소 → 등온 압축 (저열원으로 Q<sub>L</sub> 방출)', 'D→A : 단열이고 부피 감소 → 단열 압축']
+        return mco(body, right, wr, steps=steps, lv='중', fam='e', r=r, core='카르노 순환은 등온 팽창 → 단열 팽창 → 등온 압축 → 단열 압축의 네 과정으로 이루어진다.', point='그래프에서 등온·단열 곡선과 부피 변화를 읽는다.')
+    if form == 'possible':
+        QH = r.choice([400, 500, 600, 800, 1000, 1200])
+        W = r.choice([w for w in range(50, QH, 50)])
+        ea = Fraction(W, QH)
+        rel = '작' if ea < e else ('같' if ea == e else '크')
+        if rel == '같' and r.random() < 0.7: return None
+        ok = ea <= e
+        body = P('한 열기관이 %d K 의 고열원에서 한 번 순환하는 동안 %d J 의 열을 흡수하여 %d J 의 일을 하고, 나머지 열을 %d K 의 저열원으로 방출한다고 한다. 이 열기관이 가능한지에 대한 설명으로 옳은 것은?' % (TH, QH, W, TL))
+        def opt(v, rl):
+            return '%s하다. 열효율 %s 가 최대 열효율 %s 보다 %s기 때문이다.' % ('가능' if v else '불가능', pct(float(ea)), pct(float(e)), {'작': '작', '같': '같', '크': '크'}[rl] if rl != '같' else '같')
+        combos = [(v, rl) for v in (True, False) for rl in ('작', '같', '크')]
+        right_c = (ok, rel)
+        right = opt(*right_c).replace('같기 때문이다', '같기 때문이다').replace('보다 같', '와 같')
+        ws = [opt(v, rl).replace('보다 같', '와 같') for (v, rl) in combos if (v, rl) != right_c]
+        steps = ['열효율 e = W/Q<sub>H</sub> = %d/%d = %s' % (W, QH, pct(float(ea))), '두 열원 사이의 최대 열효율(카르노) e<sub>max</sub> = 1 - %d/%d = %s' % (TL, TH, pct(float(e))),
+                 '열효율이 최대 열효율보다 %s므로 %s하다.' % ({'작': '작으', '같': '같으', '크': '크'}[rel], '가능' if ok else '불가능')]
+        return mco(body, right, ws, steps=steps, lv='상', fam='g', r=r, core='같은 두 열원 사이에서 작동하는 모든 열기관의 열효율은 카르노 기관의 열효율을 넘을 수 없다.', point='실제 열효율과 최대 열효율을 비교한다.')
+    # bogi: 카르노·스털링
+    stir = r.random() < 0.4
+    sts, kinds = new_carnot(r, stir)
+    fig = FIG(carnot_fig(sts, stirling=stir), '80%')
+    if not stir:
+        bank = [
+            ('A→B 과정에서 기체는 고열원으로부터 열을 흡수한다.', True, 'A→B 는 등온 팽창이며 ΔU = 0, W > 0 이므로 Q = W > 0 (흡열)이다.', 'ab'),
+            ('A→B 과정에서 기체의 내부 에너지는 증가한다.', False, '등온 과정이므로 내부 에너지 변화는 0 이다.', 'ab'),
+            ('B→C 과정에서 기체의 온도는 낮아진다.', True, '단열 팽창이므로 Q = 0, W > 0 이고 ΔU = -W < 0 이다.', 'bc'),
+            ('B→C 과정에서 기체는 외부로부터 열을 흡수한다.', False, '단열 과정이므로 열 출입이 없다.', 'bc'),
+            ('C→D 과정에서 기체는 저열원으로 열을 방출한다.', True, 'C→D 는 등온 압축이므로 ΔU = 0, W < 0 이고 Q = W < 0 (방열)이다.', 'cd'),
+            ('C→D 과정에서 기체가 외부에 일을 한다.', False, '부피가 감소하므로 외부가 기체에 일을 한다.', 'cd'),
+            ('D→A 과정에서 기체의 온도는 높아진다.', True, '단열 압축이므로 Q = 0, W < 0 이고 ΔU = -W > 0 이다.', 'da'),
+            ('D→A 과정에서 기체의 내부 에너지는 감소한다.', False, '단열 압축에서는 외부가 한 일만큼 내부 에너지가 증가한다.', 'da'),
+            ('한 번 순환하는 동안 기체가 한 일은 Q<sub>H</sub> - Q<sub>L</sub> 이다.', True, '한 순환에서 ΔU = 0 이므로 W = Q<sub>H</sub> - Q<sub>L</sub> 이다.', 'w'),
+            ('한 번 순환하는 동안 기체가 한 일은 Q<sub>H</sub> 와 같다.', False, 'Q<sub>L</sub> 이 방출되므로 W = Q<sub>H</sub> - Q<sub>L</sub> 이다.', 'w'),
+            ('이 기관의 열효율은 1 - T<sub>L</sub>/T<sub>H</sub> 이다.', True, '카르노 기관의 열효율이다.', 'e'),
+            ('이 기관의 열효율은 T<sub>L</sub>/T<sub>H</sub> 이다.', False, '열효율은 1 - T<sub>L</sub>/T<sub>H</sub> 이다.', 'e'),
+            ('이 기관의 열효율은 100 % 가 될 수 있다.', False, 'T<sub>L</sub> = 0 K 이어야 하므로 불가능하다.', 'e2'),
+            ('Q<sub>L</sub> / Q<sub>H</sub> = T<sub>L</sub> / T<sub>H</sub> 이다.', True, '카르노 기관에서 방출하는 열과 흡수한 열의 비는 열원의 절대 온도의 비와 같다.', 'qr'),
+            ('T<sub>H</sub> 가 T<sub>L</sub> 보다 높다.', True, '고열원에서 열을 흡수하는 A→B 가 위쪽 등온선(온도가 더 높은 곡선)이다.', 'tt'),
+            ('이 순환 과정에서 기체가 한 일은 P-V 그래프로 둘러싸인 넓이와 같다.', True, '순환 과정의 일은 닫힌 곡선의 넓이이다.', 'area'),
+            ('저열원의 온도를 낮추면 열효율이 증가한다.', True, 'e = 1 - T<sub>L</sub>/T<sub>H</sub> 에서 T<sub>L</sub> 이 작을수록 e 가 커진다.', 'e3'),
+            ('고열원의 온도를 낮추면 열효율이 증가한다.', False, 'T<sub>H</sub> 를 낮추면 T<sub>L</sub>/T<sub>H</sub> 가 커져 열효율이 감소한다.', 'e3'),
+        ]
+        intro_b = '그림은 일정량의 이상 기체를 작업 물질로 하는 카르노 기관의 순환 과정 A→B→C→D→A 를 P-V 그래프로 나타낸 것이다. A→B, C→D 는 등온 과정, B→C, D→A 는 단열 과정이다. Q<sub>H</sub> 는 고열원에서 흡수한 열, Q<sub>L</sub> 은 저열원으로 방출한 열이다.'
+    else:
+        bank = [
+            ('A→B 과정에서 기체는 열을 흡수한다.', True, 'A→B 는 고온(T<sub>H</sub>)에서의 등온 팽창이므로 Q = W > 0 이다.', 'ab'),
+            ('A→B 과정에서 기체의 내부 에너지는 증가한다.', False, '등온 과정이므로 ΔU = 0 이다.', 'ab'),
+            ('B→C 과정에서 기체가 외부에 하는 일은 0 이다.', True, 'B→C 는 부피가 일정한 등적 과정이므로 W = 0 이다.', 'bc'),
+            ('B→C 과정에서 기체는 열을 방출한다.', True, '등적 냉각이므로 W = 0, ΔU < 0 이고 Q = ΔU < 0 이다.', 'bc'),
+            ('B→C 과정에서 기체의 온도는 높아진다.', False, '압력이 감소하는 등적 과정이므로 온도가 낮아진다.', 'bc'),
+            ('C→D 과정에서 기체는 외부로부터 일을 받는다.', True, 'C→D 는 등온 압축이므로 W < 0 이다.', 'cd'),
+            ('C→D 과정에서 기체의 내부 에너지는 감소한다.', False, '등온 과정이므로 ΔU = 0 이다.', 'cd'),
+            ('D→A 과정에서 기체는 열을 흡수한다.', True, '등적 가열이므로 W = 0, ΔU > 0 이고 Q = ΔU > 0 이다.', 'da'),
+            ('D→A 과정은 단열 과정이다.', False, 'D→A 는 부피가 일정한 등적 과정이다.', 'da'),
+            ('이 순환 과정은 두 개의 등온 과정과 두 개의 등적 과정으로 이루어진다.', True, 'A→B, C→D 는 등온, B→C, D→A 는 등적 과정이다(스털링 기관).', 'kind'),
+            ('이 순환 과정은 두 개의 단열 과정을 포함한다.', False, '단열 과정은 없고 등적 과정이 두 개 있다.', 'kind'),
+            ('한 번 순환하는 동안 기체의 내부 에너지 변화는 0 이다.', True, '처음 상태로 돌아오므로 ΔU = 0 이다.', 'cyc'),
+            ('한 번 순환하는 동안 기체가 한 일은 P-V 그래프로 둘러싸인 넓이와 같다.', True, '순환 과정에서 한 일은 닫힌 곡선의 넓이이다.', 'area'),
+            ('B→C 에서 방출한 열을 저장해 D→A 에서 다시 쓰면 외부에서 흡수하는 열이 줄어 열효율이 높아진다.', True, '스털링 기관의 재생기는 B→C 에서 방출한 열을 D→A 에서 흡수하도록 되돌려 쓴다.', 'regen'),
+            ('이상적인 스털링 기관의 열효율은 같은 두 열원 사이의 카르노 기관의 열효율보다 클 수 있다.', False, '같은 두 열원 사이에서 어떤 열기관도 카르노 기관의 열효율보다 클 수 없다.', 'e'),
+            ('A→B 에서 고열원의 온도 T<sub>H</sub> 는 C→D 에서 저열원의 온도 T<sub>L</sub> 보다 높다.', True, 'A→B 의 등온선이 C→D 의 등온선보다 위에 있어 PV(온도)가 더 크다.', 'tt'),
+            ('C→D 과정에서 기체는 고열원으로 열을 방출한다.', False, 'C→D 에서는 저온(T<sub>L</sub>)의 저열원으로 열을 방출한다.', 'cd2'),
+        ]
+        intro_b = '그림은 일정량의 이상 기체를 작업 물질로 하는 스털링 기관의 순환 과정 A→B→C→D→A 를 P-V 그래프로 나타낸 것이다. A→B, C→D 는 등온 과정이고 B→C, D→A 는 부피가 일정한 과정이다.'
+    sel = pick_stmts(r, bank)
+    if not sel: return None
+    return bogi(intro_b + ' 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, pre=fig, ask='', r=r, lv='중' if not stir else '상', fam='f',
+                core='카르노 순환은 등온 팽창·단열 팽창·등온 압축·단열 압축이고 e = 1 - T_L/T_H 이다. 스털링 순환은 두 등온과 두 등적 과정이다.', point='각 과정에서 ΔU, W, Q 부호와 열효율 식으로 판단한다.')
+
+
+# ============================================================ ph121 엔트로피 변화량 ΔS = Q/T
+def _dS(x):
+    """J/K 값 문자열(부호 포함)."""
+    if abs(x) < 1e-9: return '0 J/K'
+    return ('+' if x > 0 else '−') + num(abs(x), 3) + ' J/K'
+
+
+def _entropy_pair(r):
+    TH = r.choice([300, 400, 500, 600, 800, 1000])
+    TL = r.choice([100, 200, 250, 300, 400, 500, 600])
+    if TL >= TH: return None
+    l = TH * TL // math.gcd(TH, TL)
+    Q = l * r.choice([1, 2, 3, 4, 5]) if l <= 2000 else None
+    if Q is None: return None
+    return TH, TL, Q
+
+
+def _heat_fig(TH, TL, Q, rev=False):
+    f = Fig(300, 120)
+    f.rect(20, 25, 90, 70, '#fdecea', INK, 2, 6)
+    f.rect(190, 25, 90, 70, '#e8f1fb', INK, 2, 6)
+    f.text(65, 56, '물체 H' if not rev else '물체 H', 13, 'middle', True, RD)
+    f.text(65, 78, '%d K' % TH, 13, 'middle', False, INK)
+    f.text(235, 56, '물체 L', 13, 'middle', True, BL)
+    f.text(235, 78, '%d K' % TL, 13, 'middle', False, INK)
+    if not rev:
+        f.arrow(116, 60, 184, 60, RD, 3)
+    else:
+        f.arrow(184, 60, 116, 60, BL, 3)
+    f.text(150, 48, 'Q = %d J' % Q, 12.5, 'middle', True, INK)
+    return f.svg()
+
+
+@T('ph121')
+@REF([2])
+def g121(r, k):
+    form = r.choice(['pair', 'pair', 'pair', 'rev', 'iso', 'phase', 'engine', 'bogi', 'bogi'])
+    if form in ('pair', 'rev'):
+        got = _entropy_pair(r)
+        if not got: return None
+        TH, TL, Q = got
+        sH, sL = Fraction(-Q, TH), Fraction(Q, TL)
+        if form == 'pair':
+            ask = r.choice(['H', 'L', 'tot', 'tot'])
+            fig = FIG(_heat_fig(TH, TL, Q), '70%')
+            body0 = '그림과 같이 단열된 용기 속에서 온도가 %d K 인 물체 H 에서 온도가 %d K 인 물체 L 로 열 %d J 이 이동하였다. 두 물체의 온도는 열이 이동하는 동안 변하지 않는다고 본다. ' % (TH, TL, Q)
+            if ask == 'H':
+                right = _dS(float(sH))
+                wr = [_dS(float(sL)), _dS(-float(sL)), _dS(float(-sH)), _dS(float(sH + sL)), _dS(-Q / (TH + TL)), _dS(float(sH) * 2)]
+                body = P(body0 + '물체 H 의 엔트로피 변화량은?') + fig
+                steps = ['ΔS = Q/T 에서 열을 잃은 H 는 Q = -%d J 이다.' % Q, 'ΔS<sub>H</sub> = -%d J / %d K = %s' % (Q, TH, right)]
+                lv = '하'
+            elif ask == 'L':
+                right = _dS(float(sL))
+                wr = [_dS(float(sH)), _dS(-float(sL)), _dS(float(sH + sL)), _dS(Q / TH), _dS(Q / (TH + TL)), _dS(float(sL) * 2)]
+                body = P(body0 + '물체 L 의 엔트로피 변화량은?') + fig
+                steps = ['열을 얻은 L 의 Q = +%d J 이다.' % Q, 'ΔS<sub>L</sub> = +%d J / %d K = %s' % (Q, TL, right)]
+                lv = '하'
+            else:
+                tot = sH + sL
+                right = _dS(float(tot))
+                wr = [_dS(float(sH)), _dS(float(sL)), _dS(-float(tot)), _dS(0), _dS(Q / (TH - TL)), _dS(float(sL - sH) * 2)]
+                body = P(body0 + '두 물체의 엔트로피 변화량의 합은?') + fig
+                steps = ['ΔS<sub>H</sub> = -%d/%d = %s, ΔS<sub>L</sub> = +%d/%d = %s' % (Q, TH, _dS(float(sH)), Q, TL, _dS(float(sL))), '합 = %s + %s = %s' % (_dS(float(sH)), _dS(float(sL)), right), '엔트로피가 증가하므로 자연스럽게 일어나는 (비가역) 과정이다.']
+                lv = '중'
+            assert tot_check(sH, sL)
+            return mco(body, right, wr, steps=steps, lv=lv, fam='a', r=r, core='열 Q 가 온도 T 인 물체로 출입할 때 엔트로피 변화량은 ΔS = Q/T 이다(들어오면 +, 나가면 −).', point='고온 물체의 감소량보다 저온 물체의 증가량이 커서 전체 엔트로피는 증가한다.')
+        # rev: 저온 → 고온 자발적 이동이 가능한가
+        fig = FIG(_heat_fig(TH, TL, Q, rev=True), '70%')
+        tot = float(sH + sL)
+        body = P('그림과 같이 단열된 용기 속에서 온도가 %d K 인 물체 L 에서 온도가 %d K 인 물체 H 로 열 %d J 이 저절로 이동하였다고 한다. 두 물체의 온도는 변하지 않는다고 본다. 이 현상에 대한 설명으로 옳은 것은?' % (TL, TH, Q)) + fig
+        right = '두 물체의 엔트로피 변화량의 합이 %s 이므로 일어날 수 없다.' % _dS(-tot)
+        wr = ['두 물체의 엔트로피 변화량의 합이 %s 이므로 일어날 수 있다.' % _dS(-tot), '두 물체의 엔트로피 변화량의 합이 %s 이므로 일어날 수 있다.' % _dS(tot), '두 물체의 엔트로피 변화량의 합이 %s 이므로 일어날 수 없다.' % _dS(tot), '두 물체의 엔트로피 변화량의 합이 0 이므로 일어날 수 있다.', '에너지가 보존되지 않으므로 일어날 수 없다.']
+        steps = ['저온 L 에서 열을 잃음 : ΔS<sub>L</sub> = -%d/%d = %s' % (Q, TL, _dS(float(-sL))), '고온 H 가 열을 얻음 : ΔS<sub>H</sub> = +%d/%d = %s' % (Q, TH, _dS(float(-sH))),
+                 '합 = %s < 0 이므로 열역학 제2법칙(고립계의 엔트로피는 감소하지 않는다)에 어긋나 저절로 일어날 수 없다.' % _dS(-tot)]
+        assert -tot < 0
+        return mco(body, right, wr, steps=steps, lv='상', fam='b', r=r, core='고립계에서 자발적으로 일어나는 변화는 전체 엔트로피가 증가하는 방향이다.', point='열이 저온에서 고온으로 저절로 이동할 때의 ΔS 합의 부호를 구한다.')
+    if form == 'iso':
+        T = r.choice([200, 250, 300, 400, 500, 600])
+        dS = r.choice([1, 2, 3, 4, 5, 6, 8, 10])
+        Q = T * dS
+        ask = r.choice(['gas', 'res', 'tot'])
+        body0 = '일정한 온도 %d K 의 열원과 접촉한 실린더 속 이상 기체가 천천히 팽창하면서 열원으로부터 %d J 의 열을 흡수하였다. ' % (T, Q)
+        if ask == 'gas':
+            right = _dS(dS)
+            wr = [_dS(-dS), _dS(0), _dS(dS * 2), _dS(Q), _dS(dS / 2), _dS(T / Q)]
+            body = P(body0 + '기체의 엔트로피 변화량은?')
+            steps = ['등온 과정에서 기체가 흡수한 열 Q = %d J' % Q, 'ΔS = Q/T = %d / %d = %s' % (Q, T, right)]
+            lv = '하'
+        elif ask == 'res':
+            right = _dS(-dS)
+            wr = [_dS(dS), _dS(0), _dS(-dS * 2), _dS(-Q), _dS(-dS / 2)]
+            body = P(body0 + '열원의 엔트로피 변화량은?')
+            steps = ['열원은 열 %d J 을 잃는다 : Q = -%d J' % (Q, Q), 'ΔS = -%d / %d = %s' % (Q, T, right)]
+            lv = '중'
+        else:
+            right = _dS(0)
+            wr = [_dS(dS), _dS(-dS), _dS(2 * dS), _dS(Q / T / 2), _dS(Q)]
+            body = P(body0 + '기체와 열원의 엔트로피 변화량의 합은? (단, 천천히 일어나는 가역 과정이다.)')
+            steps = ['기체 : ΔS = +%d/%d = %s, 열원 : ΔS = -%d/%d = %s' % (Q, T, _dS(dS), Q, T, _dS(-dS)), '합 = 0 (가역 과정에서는 전체 엔트로피가 변하지 않는다)']
+            lv = '중'
+        return mco(body, right, wr, steps=steps, lv=lv, fam='c', r=r, core='가역 등온 과정에서 열 Q 를 흡수하면 ΔS = Q/T 이고, 열원과 합하면 전체 ΔS 는 0 이다.', point='ΔS = Q/T 를 부호와 함께 쓴다.')
+    if form == 'phase':
+        which = r.choice([('얼음이 0 °C 에서 녹는 동안', 273, '융해'), ('물이 100 °C 에서 끓어 수증기가 되는 동안', 373, '기화')])
+        T = which[1]
+        n = r.choice([2, 3, 4, 5, 6, 8, 10])
+        Q = T * n
+        body = P('%s %d J 의 열을 흡수하였다. 온도는 일정하다고 할 때 이 물질의 엔트로피 변화량은? (단, 0 °C = 273 K 이다.)' % (which[0], Q))
+        right = _dS(n)
+        wr = [_dS(-n), _dS(Q / 100 if T == 373 else Q / 273.0 * 373 / 373 * 0 + Q / 100), _dS(Q / (T - 273) if T != 273 else Q), _dS(n + 1), _dS(Q / (T + 273))]
+        steps = ['상태 변화 중 온도는 %d K 로 일정하다.' % T, 'ΔS = Q/T = %d / %d = %s' % (Q, T, right)]
+        return mco(body, right, wr, steps=steps, lv='중', fam='d', r=r, core='상태가 변하는 동안 온도가 일정하면 ΔS = Q/T 이다(T 는 절대 온도).', point='섭씨온도를 절대 온도로 바꾸어 대입한다.')
+    if form == 'engine':
+        TH = r.choice([400, 500, 600, 800, 900, 1200]); TL = r.choice([200, 250, 300, 400, 450, 600])
+        if TL >= TH: return None
+        QH = r.choice([600, 800, 1200, 1500, 1800, 2400, 3000])
+        QLc = Fraction(QH * TL, TH)
+        if QLc.denominator != 1 or QH % TH or int(QLc) % TL: return None
+        QLc = int(QLc)
+        real = r.random() < 0.5
+        extra = r.choice([100, 200, 300]) if real else 0
+        QL = QLc + extra
+        if QL % TL: return None
+        W = QH - QL
+        sH, sL = Fraction(-QH, TH), Fraction(QL, TL)
+        tot = sH + sL
+        ask = r.choice(['tot', 'sign'])
+        eng = '열기관이 고열원(%d K)에서 한 번 순환하는 동안 %d J 의 열을 흡수하여 %d J 의 일을 하고, 저열원(%d K)으로 %d J 의 열을 방출한다. ' % (TH, QH, W, TL, QL)
+        if ask == 'tot':
+            body = P(eng + '한 번 순환하는 동안 열기관 자체의 엔트로피 변화는 0 이다. 두 열원의 엔트로피 변화량의 합은?')
+            right = _dS(float(tot))
+            wr = [_dS(float(sH)), _dS(float(sL)), _dS(-float(tot)) if tot != 0 else _dS(1), _dS(float(sL - sH)), _dS(0 if tot != 0 else 2), _dS(float(tot) + 1)]
+            steps = ['고열원 : ΔS = -%d/%d = %s' % (QH, TH, _dS(float(sH))), '저열원 : ΔS = +%d/%d = %s' % (QL, TL, _dS(float(sL))), '합 = %s' % right]
+            lv = '중'
+        else:
+            body = P(eng + '이 열기관에 대한 설명으로 옳은 것은?')
+            kind = '카르노 기관(가역 기관)이다' if tot == 0 else '비가역 기관이다'
+            right = '두 열원의 엔트로피 변화량의 합이 %s 이므로 %s.' % (_dS(float(tot)), kind)
+            wr = ['두 열원의 엔트로피 변화량의 합이 %s 이므로 %s.' % (_dS(float(tot)), '비가역 기관이다' if tot == 0 else '카르노 기관(가역 기관)이다'),
+                  '두 열원의 엔트로피 변화량의 합이 %s 이므로 제2법칙에 어긋나 불가능하다.' % _dS(float(tot)),
+                  '두 열원의 엔트로피 변화량의 합이 %s 이므로 열효율이 100 %% 이다.' % _dS(float(tot)),
+                  '두 열원의 엔트로피 변화량의 합이 %s 이므로 에너지가 보존되지 않는다.' % _dS(float(tot)),
+                  '두 열원의 엔트로피 변화량의 합이 %s 이므로 저열원의 온도가 올라간다.' % _dS(-float(tot) if tot != 0 else 1)]
+            steps = ['ΔS<sub>H</sub> = -%d/%d = %s, ΔS<sub>L</sub> = +%d/%d = %s' % (QH, TH, _dS(float(sH)), QL, TL, _dS(float(sL))), '합 = %s 이므로 %s.' % (_dS(float(tot)), kind),
+                     '(제2법칙 : 합 ≥ 0, 같으면 가역 과정)']
+            lv = '상'
+        assert tot >= 0
+        return mco(body, right, wr, steps=steps, lv=lv, fam='e', r=r, core='열기관이 한 순환하는 동안 두 열원의 ΔS 의 합은 0 이상이며, 카르노 기관(가역)이면 0 이다.', point='ΔS = Q/T 를 고열원(−)·저열원(+)에 적용한다.')
+    # bogi
+    got = _entropy_pair(r)
+    if not got: return None
+    TH, TL, Q = got
+    sH, sL = Fraction(Q, TH), Fraction(Q, TL)
+    bank = [
+        ('고온 물체에서 저온 물체로 열이 이동할 때 고온 물체의 엔트로피는 감소한다.', True, '열을 잃으므로 ΔS = -Q/T<sub>H</sub> < 0 이다.', 'h'),
+        ('고온 물체에서 저온 물체로 열이 이동할 때 저온 물체의 엔트로피는 감소한다.', False, '열을 얻으므로 ΔS = +Q/T<sub>L</sub> > 0 으로 증가한다.', 'h'),
+        ('같은 열량이 출입할 때 엔트로피 변화량의 크기는 온도가 낮은 쪽이 더 크다.', True, 'ΔS = Q/T 에서 Q 가 같으면 T 가 작을수록 |ΔS| 가 크다.', 'cmp'),
+        ('같은 열량이 출입할 때 엔트로피 변화량의 크기는 온도가 높은 쪽이 더 크다.', False, 'ΔS = Q/T 에서 T 가 클수록 |ΔS| 는 작다.', 'cmp'),
+        ('고온 물체에서 저온 물체로 열이 이동할 때 두 물체의 엔트로피 변화량의 합은 0보다 크다.', True, '|ΔS<sub>L</sub>| = Q/T<sub>L</sub> > Q/T<sub>H</sub> = |ΔS<sub>H</sub>| 이다.', 'tot'),
+        ('고온 물체에서 저온 물체로 열이 이동할 때 두 물체의 엔트로피 변화량의 합은 0이다.', False, '두 물체의 ΔS 크기가 다르므로 합은 0보다 크다.', 'tot'),
+        ('열이 저온 물체에서 고온 물체로 저절로 이동하면 전체 엔트로피가 감소하므로 일어나지 않는다.', True, '합 = -Q/T<sub>L</sub> + Q/T<sub>H</sub> < 0 이어서 제2법칙에 어긋난다.', 'rev'),
+        ('열이 저온 물체에서 고온 물체로 저절로 이동해도 에너지가 보존되므로 제2법칙에 어긋나지 않는다.', False, '에너지 보존(제1법칙)과 별개로 전체 엔트로피가 감소하므로 제2법칙에 어긋난다.', 'rev'),
+        ('가역 과정에서는 고립계의 전체 엔트로피가 변하지 않는다.', True, '가역 과정에서는 ΔS<sub>전체</sub> = 0 이다.', 'revp'),
+        ('자연에서 일어나는 대부분의 과정은 고립계의 전체 엔트로피가 증가하는 방향이다.', True, '비가역 과정에서는 ΔS<sub>전체</sub> > 0 이다.', 'revp'),
+        ('고립계의 전체 엔트로피는 시간이 지나면 감소하는 방향으로 변한다.', False, '고립계의 엔트로피는 감소하지 않고 증가하거나 일정하다.', 'revp'),
+        ('엔트로피의 단위는 J/K 이다.', True, 'ΔS = Q/T 이므로 단위는 J/K 이다.', 'u'),
+        ('엔트로피 변화량은 물체가 흡수한 열을 섭씨온도로 나누어 구한다.', False, '절대 온도(K)로 나누어야 한다.', 'u'),
+        ('얼음이 녹는 동안 얼음의 엔트로피는 증가한다.', True, '열을 흡수하고 질서 있던 상태가 무질서해지므로 엔트로피가 증가한다.', 'melt'),
+        ('물이 얼면서 열을 방출할 때 물의 엔트로피는 감소한다.', True, '열을 방출하므로 ΔS = Q/T < 0 이다. (주변은 증가하여 전체는 증가한다.)', 'melt'),
+        ('뜨거운 커피가 식어 주변과 같은 온도가 될 때 전체(커피+주변) 엔트로피는 증가한다.', True, '열이 고온에서 저온으로 이동하므로 전체 엔트로피가 증가한다.', 'cool'),
+        ('뜨거운 커피가 식는 동안 커피의 엔트로피는 감소하지만 주변의 엔트로피 증가량이 더 크다.', True, '|ΔS<sub>주변</sub>| = Q/T<sub>주변</sub> > Q/T<sub>커피</sub>.', 'cool'),
+        ('섞여 있던 두 종류의 기체가 저절로 분리되는 것은 엔트로피 증가 방향이다.', False, '분리는 엔트로피가 감소하는 방향이라 저절로 일어나지 않는다.', 'mix'),
+    ]
+    sel = pick_stmts(r, bank)
+    if not sel: return None
+    return bogi('엔트로피와 열역학 제2법칙에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, ask='', r=r, lv='하' if r.random() < 0.5 else '중', fam='f',
+                core='ΔS = Q/T. 고립계의 전체 엔트로피는 감소하지 않으며 가역 과정에서만 일정하다.', point='열의 이동 방향과 엔트로피 변화의 부호를 판단한다.')
+
+
+def tot_check(sH, sL):
+    return sH + sL > 0
+
+
+# ============================================================ ph122 기체의 확산과 엔트로피(확률)
+def box_fig(cfgs, N, w=330, h=None, split=Fraction(1, 2), labels=True):
+    """cfgs: [(왼쪽 입자 수, ...)]. 칸막이로 나뉜 용기 그림(여러 개 가로로)."""
+    n = len(cfgs)
+    cw = 98 if n >= 3 else 130
+    h = h or (132 if labels else 100)
+    f = Fig(w, h)
+    gap = (w - n * cw) / (n + 1)
+    for gi, kL in enumerate(cfgs):
+        x0 = gap + gi * (cw + gap)
+        y0 = 18
+        bh = 70
+        xm = x0 + cw * float(split)
+        f.rect(x0, y0, cw, bh, '#f7f9fc', INK, 2)
+        f.line(xm, y0, xm, y0 + bh, INK, 2, '5 3')
+        Lw, Rw = xm - x0, x0 + cw - xm
+        for side, cnt, xs, ws_ in (('L', kL, x0, Lw), ('R', N - kL, xm, Rw)):
+            cols = max(1, int(math.ceil(math.sqrt(cnt * ws_ / bh * 1.2)))) if cnt else 1
+            rows = int(math.ceil(cnt / cols)) if cnt else 1
+            for i in range(cnt):
+                cx = xs + ws_ * ((i % cols) + 0.5) / cols + (3 if (i // cols) % 2 else -3) * 0.5
+                cy = y0 + bh * ((i // cols) + 0.5) / rows
+                f.circ(cx, cy, 4.2, BL if side == 'L' else RD, 'none', 0)
+        if labels:
+            f.text(x0 + cw / 2, y0 + bh + 17, CAP[gi], 12.5, 'middle', True, INK)
+    return f.svg()
+
+
+def _fr(p, q):
+    f = Fraction(p, q)
+    return '%d/%d' % (f.numerator, f.denominator) if f.denominator != 1 else str(f.numerator)
+
+
+@T('ph122')
+@REF([2])
+def g122(r, k):
+    form = r.choice(['allone', 'allone', 'count', 'count', 'fig', 'fig', 'third', 'bogi', 'bogi'])
+    if form == 'allone':
+        N = r.choice([2, 3, 4, 5, 6, 7, 8, 10])
+        either = r.random() < 0.4
+        exp = N - 1 if either else N
+        right = '(1/2)<sup>%d</sup> = 1/%d' % (exp, 2 ** exp) if exp > 1 else '1/2'
+        body = P('그림과 같이 칸막이로 부피가 같은 두 부분으로 나뉜 용기의 한쪽에 서로 구별되지 않는 기체 입자 %d개가 모여 있다. 칸막이를 제거하여 충분한 시간이 지났을 때, 입자 %d개가 %s 있을 확률은? (단, 각 입자가 어느 쪽에 있을 확률은 같고 서로 독립이다.)' % (N, N, '모두 한쪽에만(왼쪽 또는 오른쪽)' if either else '모두 왼쪽에만')) + FIG(box_fig([N], N, labels=False), '48%')
+        ws = ['(1/2)<sup>%d</sup> = 1/%d' % (N + 1, 2 ** (N + 1)) if (N + 1) != exp else '1/%d' % (2 ** (N + 2)), '1/%d' % (2 * N), '1/%d' % (N * N), '1/%d' % N, '1/2', '(1/2)<sup>%d</sup> = 1/%d' % (N - 1 if not either else N, 2 ** (N - 1 if not either else N)) if N - 1 > 1 else '1/4']
+        if exp == 1: right = '1/2'
+        steps = ['입자 1개가 왼쪽에 있을 확률은 1/2 이다.', '%d개 모두 %s : (1/2)<sup>%d</sup> = 1/%d%s' % (N, '왼쪽' if not either else '왼쪽에 있을 확률', N, 2 ** N, ' → 오른쪽에 모두 있을 경우까지 2배하면 2 × 1/%d = 1/%d' % (2 ** N, 2 ** (N - 1)) if either else '')]
+        return mco(body, right, ws, steps=steps, lv='하' if not either else '중', fam='a', r=r, core='N 개 입자가 모두 한쪽에 모일 확률은 (1/2)^N 이다.', point='입자 하나하나의 확률 1/2 을 N 번 곱한다.')
+    if form == 'count':
+        N = r.choice([4, 5, 6])
+        kk = r.randrange(0, N + 1)
+        ask = r.choice(['ways', 'prob', 'total', 'best'])
+        c = math.comb(N, kk)
+        fig = FIG(box_fig([kk], N, labels=False), '48%')
+        desc = '구별되는 입자 A, B, … 로 보고' if True else ''
+        base = '칸막이로 부피가 같은 두 부분으로 나뉜 용기 안에 서로 구별되는 기체 입자 %d개가 자유롭게 움직인다. 각 입자는 두 부분 중 어느 쪽에나 같은 확률로 있을 수 있다. ' % N
+        if ask == 'ways':
+            body = P(base + '왼쪽에 %d개, 오른쪽에 %d개가 있는 경우의 수는?' % (kk, N - kk)) 
+            right = '%d가지' % c
+            wr = ['%d가지' % (2 ** N), '%d가지' % (N * kk if kk else N), '%d가지' % (c + 1), '%d가지' % math.perm(N, kk), '%d가지' % (N - kk + 1), '%d가지' % (c * 2)]
+            steps = ['N = %d 개 중 왼쪽에 놓일 %d개를 고르는 방법의 수 : C(%d, %d) = %d' % (N, kk, N, kk, c)]
+            lv = '중'
+            return mco(body, right, wr, steps=steps, lv=lv, fam='b', r=r, sort='num', core='왼쪽에 k개가 있는 경우의 수는 조합 C(N, k) 이다.', point='조합으로 경우의 수를 센다.')
+        if ask == 'prob':
+            body = P(base + '왼쪽에 %d개, 오른쪽에 %d개가 있을 확률은?' % (kk, N - kk))
+            right = _fr(c, 2 ** N)
+            wr = [_fr(1, 2 ** N), _fr(1, N + 1), _fr(c, 2 ** (N + 1)), _fr(c + 1, 2 ** N), _fr(N, 2 ** N), _fr(math.comb(N, kk) * 2, 2 ** N), _fr(c, N * N)]
+            steps = ['전체 경우의 수 = 2<sup>%d</sup> = %d' % (N, 2 ** N), '왼쪽에 %d개 있는 경우의 수 C(%d, %d) = %d' % (kk, N, kk, c), '확률 = %d/%d = %s' % (c, 2 ** N, right)]
+            return mco(body, right, wr, steps=steps, lv='중', fam='b', r=r, core='확률 = (해당 경우의 수) / 2^N.', point='전체 경우의 수 2^N 과 조합을 쓴다.')
+        if ask == 'total':
+            body = P(base + '입자가 두 부분에 나뉘어 있는 전체 경우의 수는?')
+            right = '%d가지' % (2 ** N)
+            wr = ['%d가지' % (N * N), '%d가지' % (2 * N), '%d가지' % math.factorial(N), '%d가지' % (2 ** N - 1), '%d가지' % (2 ** (N - 1)), '%d가지' % (N + 1)]
+            steps = ['각 입자가 왼쪽·오른쪽 2가지 중 하나이므로 2 × 2 × … = 2<sup>%d</sup> = %d' % (N, 2 ** N)]
+            return mco(body, right, wr, steps=steps, lv='하', fam='b', r=r, sort='num', core='N 개 입자의 배치 경우의 수는 2^N 이다.', point='입자마다 2가지 선택.')
+        # best: 가장 경우의 수 많은 배열
+        right = '왼쪽 %d개, 오른쪽 %d개' % (N // 2, N - N // 2)
+        cand = [(j, N - j) for j in range(0, N + 1) if (j, N - j) != (N // 2, N - N // 2)]
+        if N % 2 == 0:
+            cand = [x for x in cand]
+        ws = ['왼쪽 %d개, 오른쪽 %d개' % x for x in cand]
+        if N % 2 == 1:
+            # N//2 와 N-N//2 대칭인 배열도 같은 경우의 수라서 제외
+            ws = ['왼쪽 %d개, 오른쪽 %d개' % x for x in cand if x != (N - N // 2, N // 2)]
+            right = '왼쪽 %d개, 오른쪽 %d개' % (N // 2, N - N // 2)
+            body = P(base + '다음 중 일어날 확률이 가장 큰 배열은? (단, 왼쪽 %d개·오른쪽 %d개와 왼쪽 %d개·오른쪽 %d개는 같은 확률이므로 보기에 한 가지만 들어 있다.)' % (N // 2, N - N // 2, N - N // 2, N // 2))
+        else:
+            body = P(base + '다음 중 일어날 확률이 가장 큰 배열은?')
+        steps = ['왼쪽에 j개 있는 경우의 수는 C(%d, j) 이다 : ' % N + ', '.join('j=%d → %d' % (j, math.comb(N, j)) for j in range(0, N + 1))] + ['경우의 수가 가장 많은 배열은 %s 이다.' % right]
+        return mco(body, right, ws, steps=steps, lv='중', fam='b', r=r, core='입자가 고르게 퍼진 배열이 경우의 수가 가장 많아 가장 일어나기 쉽다.', point='C(N, k) 가 최대인 배열을 찾는다.')
+    if form == 'fig':
+        N = r.choice([6, 8])
+        ks = r.sample(range(0, N + 1), 3)
+        cs = [math.comb(N, kk) for kk in ks]
+        if len(set(cs)) < 3: return None
+        ask = r.choice(['max', 'min'])
+        best = cs.index(max(cs)) if ask == 'max' else cs.index(min(cs))
+        fig = FIG(box_fig(ks, N), '96%')
+        body = P('그림 (가)~(다)는 칸막이로 부피가 같은 두 부분으로 나뉜 용기 안에 서로 구별되지 않는 기체 입자 %d개가 나뉘어 있는 서로 다른 세 상태를 나타낸 것이다. 각 입자는 어느 쪽에나 같은 확률로 있을 수 있다. %s' % (N, '엔트로피가 가장 큰 상태는?' if ask == 'max' else '엔트로피가 가장 작은 상태는?')) + fig
+        wr_ = [CAP[i] for i in range(3) if i != best] + ['(가), (나)', '(나), (다)', '(가), (다)']
+        right = CAP[best]
+        steps = ['각 상태에서 (왼쪽, 오른쪽) 입자 수 : ' + ', '.join('%s (%d, %d)' % (CAP[i], ks[i], N - ks[i]) for i in range(3)),
+                 '나타날 수 있는 경우의 수 C(%d, k) : ' % N + ', '.join('%s %d' % (CAP[i], cs[i]) for i in range(3)),
+                 '엔트로피는 경우의 수가 %s 상태가 %s : %s' % ('많은' if ask == 'max' else '적은', '크다' if ask == 'max' else '작다', right)]
+        return mco(body, right, wr_[:4] + [wr_[4]], steps=steps, lv='중', fam='c', r=r, core='경우의 수(무질서한 정도)가 클수록 엔트로피가 크다. 입자가 고르게 퍼진 상태가 엔트로피가 가장 크다.', point='그림에서 입자 수를 세어 경우의 수 C(N, k) 를 비교한다.')
+    if form == 'third':
+        N = r.choice([2, 3, 4, 5])
+        b = r.choice([2, 3, 4])
+        # 용기 전체 부피 중 처음 부분 부피비 1/b
+        body = P('그림과 같이 칸막이가 전체 용기를 부피 비 1 : %d 로 나누고 있다. 작은 쪽 용기에만 기체 입자 %d개가 들어 있다. 칸막이를 제거하여 충분한 시간이 지난 뒤, 입자 %d개가 모두 처음의 작은 쪽 부분(전체 부피의 1/%d)에 다시 모여 있을 확률은? (단, 입자가 있을 확률은 부피에 비례하고 서로 독립이다.)' % (b - 1, N, N, b)) + FIG(box_fig([N], N, labels=False, split=Fraction(1, b)), '48%')
+        right = '(1/%d)<sup>%d</sup> = 1/%d' % (b, N, b ** N)
+        ws = ['(1/2)<sup>%d</sup> = 1/%d' % (N, 2 ** N), '1/%d' % (b * N), '(1/%d)<sup>%d</sup> = 1/%d' % (b, N + 1, b ** (N + 1)), '1/%d' % b, '(%d/%d)<sup>%d</sup>' % (b - 1, b, N)]
+        steps = ['입자 1개가 작은 쪽에 있을 확률 = 부피비 = 1/%d' % b, '%d개 모두 : (1/%d)<sup>%d</sup> = 1/%d' % (N, b, N, b ** N)]
+        return mco(body, right, ws, steps=steps, lv='상', fam='d', r=r, core='입자 1개가 어떤 부분에 있을 확률은 그 부분의 부피 비율이고, N 개가 모두 있을 확률은 N 제곱이다.', point='부피 비를 확률로 바꾸어 거듭제곱한다.')
+    # bogi
+    N = r.choice([2, 4, 6, 10, 20, 100])
+    bank = [
+        ('칸막이를 제거하면 한쪽에만 있던 기체는 용기 전체로 퍼져 나간다. 이 확산은 엔트로피가 증가하는 방향이다.', True, '입자가 더 많은 배치(경우의 수)를 가지게 되므로 엔트로피가 증가한다.', 'dir'),
+        ('확산한 기체가 저절로 다시 한쪽으로 모여 처음 상태로 돌아가는 것은 에너지 보존 법칙에 어긋나므로 일어날 수 없다.', False, '에너지 보존에는 어긋나지 않으며 엔트로피가 감소하는 방향이라 일어날 확률이 극히 작을 뿐이다.', 'back'),
+        ('입자 수가 많을수록 입자 전체가 한쪽에 다시 모일 확률은 작아진다.', True, '확률 (1/2)<sup>N</sup> 은 N 이 클수록 작아진다.', 'N'),
+        ('입자 %d개가 모두 한쪽(정해진 쪽)에 모일 확률은 (1/2)<sup>%d</sup> 이다.' % (N, N), True, '각 입자가 정해진 쪽에 있을 확률 1/2 을 %d번 곱한다.' % N, 'prob'),
+        ('입자 %d개가 모두 한쪽(정해진 쪽)에 모일 확률은 1/%d 이다.' % (N, 2 * N), False, '확률은 (1/2)<sup>%d</sup> 이다.' % N, 'prob'),
+        ('기체의 확산은 비가역 과정이다.', True, '저절로 처음 상태로 되돌아가지 않으므로 비가역 과정이다.', 'irr'),
+        ('기체가 진공 속으로 단열 자유 팽창하는 과정은 가역 과정이다.', False, '자유 팽창은 저절로 되돌아가지 않는 비가역 과정이다.', 'irr'),
+        ('입자가 양쪽 용기에 고르게 퍼진 상태는 한쪽에 모여 있는 상태보다 경우의 수가 많다.', True, '고르게 퍼진 배열의 경우의 수 C(N, N/2) 가 모두 한쪽에 있는 경우의 수 1 보다 크다.', 'cnt'),
+        ('입자가 한쪽에 모두 모여 있는 상태는 고르게 퍼진 상태보다 엔트로피가 크다.', False, '한쪽에 모인 상태는 경우의 수가 가장 적어 엔트로피가 가장 작다.', 'cnt'),
+        ('엔트로피가 큰 상태일수록 그 상태가 나타날 확률은 대체로 크다.', True, '엔트로피는 경우의 수의 로그에 비례하며 경우의 수가 많을수록 일어날 확률이 크다.', 'S'),
+        ('칸막이 제거 후 이상 기체가 외부에 일을 하지 않고 열도 출입하지 않으면 기체의 온도는 변하지 않는다.', True, 'Q = 0, W = 0 이므로 ΔU = 0 이고 이상 기체는 온도가 변하지 않는다.', 'T'),
+        ('칸막이 제거 후 이상 기체가 진공으로 확산하면 외부에 일을 하므로 내부 에너지가 감소한다.', False, '진공으로의 자유 팽창에서는 외부에 일을 하지 않으므로 내부 에너지가 변하지 않는다.', 'T'),
+        ('확산 과정에서 기체의 엔트로피는 증가한다.', True, '입자가 가질 수 있는 배치가 늘어나므로 엔트로피가 증가한다.', 'dS'),
+        ('잉크 한 방울을 물에 떨어뜨리면 저절로 퍼지는 것은 엔트로피가 증가하는 방향의 변화이다.', True, '퍼진 상태가 더 무질서(경우의 수가 많음)하다.', 'ink'),
+        ('퍼진 잉크가 저절로 한 방울로 다시 모이는 것은 엔트로피가 증가하는 변화이다.', False, '다시 모이면 엔트로피가 감소하므로 저절로 일어나지 않는다.', 'ink'),
+        ('입자 수가 매우 적으면(예 : 2개) 한쪽에 모두 모이는 일이 비교적 자주 일어날 수 있다.', True, '입자 2개라면 모두 한쪽에 있을 확률은 (1/2)<sup>2</sup> = 1/4 로 작지 않다.', 'few'),
+        ('엔트로피가 증가하는 방향으로의 변화는 확률이 높은 방향으로의 변화이다.', True, '경우의 수가 많은 상태로 변하는 것이 확률적으로 훨씬 일어나기 쉽다.', 'S2'),
+    ]
+    sel = pick_stmts(r, bank)
+    if not sel: return None
+    return bogi('칸막이로 나뉜 용기의 한쪽에 들어 있던 기체를 칸막이를 제거하여 용기 전체로 확산시키는 현상에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?', sel, pre=FIG(box_fig([N], N, labels=False), '48%') if N <= 12 else '', ask='', r=r, lv='하' if r.random() < 0.5 else '중', fam='e',
+                core='확산은 엔트로피가 증가하는(경우의 수가 많아지는) 방향이며, N 개 입자가 모두 한쪽에 모일 확률은 (1/2)^N 이다.', point='확산·비가역·확률의 관계를 설명한다.')
