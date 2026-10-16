@@ -5,14 +5,14 @@ const DEVNAV=[
  ['콘텐츠',[['notice','사이트 공지'],['db','문항 관리'],['ovr','수정·숨김 목록'],['types','과목·유형 현황'],['scan','DB 점검'],['qstat','문항 통계']]],
  ['사용자',[['users','계정·개발자'],['students','학생 목록'],['signups','가입 신청'],['attempts','최근 채점'],['bugs','버그 신고']]],
  ['사이트',[['site','배너·과목·기능'],['maint','점검 모드'],['deploy','업데이트 배포']]],
- ['시스템',[['pk','패스키 진단'],['srv','서버 설정 점검'],['health','연결·성능'],['store','브라우저 저장소'],['tools','정리·도구'],['about','버전 정보']]],
+ ['시스템',[['pk','패스키 진단'],['curl','eBook 효과 진단'],['srv','서버 설정 점검'],['health','연결·성능'],['store','브라우저 저장소'],['tools','정리·도구'],['about','버전 정보']]],
  ['기록',[['log','활동 기록'],['export','내보내기']]]
 ];
 const DEVSEC=()=>DEVNAV.flatMap(g=>g[1]);
 const DVP=()=>document.getElementById('devb');
 const DVS={home:()=>devHome(),daily:()=>devDaily(),notice:()=>devNotice(),db:()=>devDb(),ovr:()=>devOvr(),types:()=>devTypes(),scan:()=>devScanView(),qstat:()=>devQstat(),
  users:()=>devUsers(),students:()=>devStudents(),signups:()=>devSignups(),attempts:()=>devAttempts(),bugs:()=>devBugs(),site:()=>devSite(),maint:()=>devMaint(),deploy:()=>devDeploy(),
- pk:()=>devPk(),srv:()=>devSrv(),health:()=>devHealth(),store:()=>devStore(),tools:()=>devTools(),about:()=>devAbout(),log:()=>devLogView(),export:()=>devExport()};
+ pk:()=>devPk(),curl:()=>devCurl(),srv:()=>devSrv(),health:()=>devHealth(),store:()=>devStore(),tools:()=>devTools(),about:()=>devAbout(),log:()=>devLogView(),export:()=>devExport()};
 function devMain(){
  if(!DEV.ok){$('#main').innerHTML='<div class="card empty">개발자 계정으로 로그인해야 볼 수 있어요.</div>';return}
  if(!DVS[DEV.sec])DEV.sec='home';
@@ -215,3 +215,24 @@ async function devAbout(){let sw='없음';try{const ks=await caches.keys();sw=ks
  const bk=[...document.scripts].map(s=>s.src).filter(s=>/books\.js|dev\.js/.test(s)).map(s=>s.split('/').pop()).join(', ');
  const rows=[['앱 버전',typeof APPV!=='undefined'?APPV:'-'],['불러온 스크립트',bk],['서비스 워커 캐시',sw],['사이트 주소',location.origin],['브라우저',navigator.userAgent],['화면',innerWidth+'×'+innerHeight+' @'+devicePixelRatio+'x'],['과목 수',Object.keys(SNAME).length],['불러온 문항',Object.keys(byCode).length.toLocaleString()],['수정·숨김 문항',Object.keys(QOV).length],['공지(공개)',SITE.notices.length],['업데이트 소식',UPDATES.length+'건 (최신: '+(UPDATES[0]||{}).title+')']];
  document.getElementById('devb').innerHTML=`<div class="card"><h3 style="margin-top:0">버전 정보</h3><div class="tw"><table>${rows.map(([k,v])=>`<tr><th style="width:150px">${k}</th><td class="l" style="word-break:break-all">${esc(String(v))}</td></tr>`).join('')}</table></div></div>`}
+
+/* --- eBook 말아 올리기 효과 진단: 이 기기에서 WebGL·쪽 그림 만들기가 되는지 확인 --- */
+async function devCurl(){const el=document.getElementById('devb');el.innerHTML='<div class="card"><h3 style="margin-top:0">eBook 말아 올리기 효과 진단</h3><div class="m">이 기기(브라우저)에서 효과에 필요한 기능이 되는지 확인해요. 효과가 안 나오는 기기에서 열어 보세요.</div><div id="cvr" class="srvck" style="margin-top:10px"></div></div>';
+ const out=[];const add=(ok,l,m,h)=>{out.push(`<div class="${ok?'ok':'bad'}"><i></i><span>${l}</span><em>${esc(m)}${!ok&&h?' — '+esc(h):''}</em></div>`);document.getElementById('cvr').innerHTML=out.join('')};
+ try{await bkLoad()}catch(e){add(false,'교재 스크립트','불러오지 못함');return}
+ add(true,'브라우저',navigator.userAgent.slice(0,90));
+ let gl=null;try{const c=document.createElement('canvas');gl=c.getContext('webgl')||c.getContext('experimental-webgl')}catch(e){}
+ if(!gl){add(false,'WebGL','사용 불가','Safari 설정(고급 ▸ 실험적 기능)에서 WebGL이 꺼져 있거나, 저전력 모드/하드웨어 가속이 꺼져 있을 수 있어요');return}
+ let rend='';try{const x=gl.getExtension('WEBGL_debug_renderer_info');rend=x?gl.getParameter(x.UNMASKED_RENDERER_WEBGL):''}catch(e){}
+ add(true,'WebGL','사용 가능 · 최대 텍스처 '+gl.getParameter(gl.MAX_TEXTURE_SIZE)+(rend?' · '+rend:''));
+ const sh=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return gl.getShaderParameter(o,gl.COMPILE_STATUS)?'':gl.getShaderInfoLog(o)};
+ const e1=sh(gl.VERTEX_SHADER,EBVS),e2=sh(gl.FRAGMENT_SHADER,EBFS);add(!e1&&!e2,'셰이더 컴파일',e1||e2||'정상');
+ try{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);const cv=document.createElement('canvas');cv.width=714;cv.height=1010;cv.getContext('2d').fillRect(0,0,9,9);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cv);const er=gl.getError();add(er===0,'그림 올리기(텍스처)',er===0?'정상':'오류 '+er)}catch(e){add(false,'그림 올리기(텍스처)',String(e.message||e))}
+ try{await bkLoadJs('lib/html2canvas.min.js',()=>window.html2canvas);add(!!window.html2canvas,'쪽 그림 라이브러리','불러옴')}catch(e){add(false,'쪽 그림 라이브러리','불러오지 못함');return}
+ try{await bkInit();await conceptLoad();const plan=await bkPlan(SUBJ+'-t');const n=Math.min(3,plan.pages.length);
+  const hs=document.createElement('style');hs.textContent=BKCSS+'.bkdoc .bp{margin:0!important;box-shadow:none!important}';document.head.appendChild(hs);
+  const h=document.createElement('div');h.className='bkdoc';h.style.cssText='position:fixed;left:-20000px;top:0;width:210mm;background:#fff';document.body.appendChild(h);h.innerHTML=bkPageHtml(plan,n-1);
+  const t0=performance.now();const cv=await window.html2canvas(h.firstElementChild,{scale:1.2,backgroundColor:'#fff',logging:false});const ms=Math.round(performance.now()-t0);h.remove();hs.remove();
+  add(cv.width>10&&ms<4000,'쪽 그림 만들기',cv.width+'×'+cv.height+' · '+ms+'ms',ms>=4000?'너무 느려요(4.5초 넘으면 기본 효과로 바뀌어요)':'')}
+ catch(e){add(false,'쪽 그림 만들기',String(e.message||e))}
+ const err=(typeof EBK!=='undefined'&&EBK.curlErr)||'';if(err)add(false,'마지막 넘김 실패 이유',err)}
