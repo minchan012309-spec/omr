@@ -83,10 +83,90 @@ begin
   return (select coalesce(json_agg(x order by x.created_at desc), '[]'::json) from (
     select u.id, u.email, u.created_at, u.last_sign_in_at,
            (select count(*) from students s where s.user_id = u.id) as students,
-           exists (select 1 from developers d where d.user_id = u.id) as dev
+           exists (select 1 from developers d where d.user_id = u.id) as dev,
+           (u.banned_until is not null and u.banned_until > now()) as banned
     from auth.users u limit 500) x);
 end $$;
 grant execute on function dev_users() to authenticated;
+
+-- 15-5b) 문항 관리: 문제·해설·정답·난이도를 고치거나 숨기는 덮어쓰기(원본 파일은 그대로, 앱이 불러올 때 적용)
+create table if not exists q_overrides (
+  code       text primary key,
+  patch      jsonb not null default '{}'::jsonb,
+  hidden     boolean not null default false,
+  note       text not null default '',
+  by_email   text,
+  updated_at timestamptz not null default now()
+);
+alter table q_overrides enable row level security;
+drop policy if exists "qo select" on q_overrides;
+drop policy if exists "qo insert" on q_overrides;
+drop policy if exists "qo update" on q_overrides;
+drop policy if exists "qo delete" on q_overrides;
+create policy "qo select" on q_overrides for select using (true);
+create policy "qo insert" on q_overrides for insert with check (is_dev());
+create policy "qo update" on q_overrides for update using (is_dev());
+create policy "qo delete" on q_overrides for delete using (is_dev());
+grant select on q_overrides to anon, authenticated;
+grant insert, update, delete on q_overrides to authenticated;
+
+-- 15-5c) 개발자 활동 기록
+create table if not exists dev_log (
+  id    bigint generated always as identity primary key,
+  who   text,
+  act   text not null,
+  info  text not null default '',
+  t     bigint not null default (extract(epoch from now()) * 1000)::bigint
+);
+alter table dev_log enable row level security;
+drop policy if exists "dl select" on dev_log;
+drop policy if exists "dl insert" on dev_log;
+create policy "dl select" on dev_log for select using (is_dev());
+create policy "dl insert" on dev_log for insert with check (is_dev());
+grant select, insert on dev_log to authenticated;
+
+-- 15-5d) 문항 통계: 모든 채점 기록에서 문항별 푼 횟수·정답률 (개발자만)
+create or replace function dev_qstats(p_min int default 5) returns json
+language plpgsql security definer set search_path = public as $$
+begin
+  if not is_dev() then raise exception 'not allowed'; end if;
+  return (select coalesce(json_agg(x), '[]'::json) from (
+    select c as code, count(*) as n, sum(r)::int as right
+    from (select (e->>'c') as c, coalesce((e->>'r')::int, 0) as r
+          from attempts a, jsonb_array_elements(case when jsonb_typeof(a.items) = 'array' then a.items else '[]'::jsonb end) e) z
+    where c is not null group by c having count(*) >= p_min
+    order by (sum(r)::float / count(*)) asc, count(*) desc limit 300) x);
+end $$;
+grant execute on function dev_qstats(int) to authenticated;
+
+-- 15-5e) 개발자 지정·해제, 계정 정지·해제 (개발자만)
+create or replace function dev_add(p_email text) returns boolean
+language plpgsql security definer set search_path = public, auth as $$
+declare u uuid;
+begin
+  if not is_dev() then raise exception 'not allowed'; end if;
+  select id into u from auth.users where lower(email) = lower(p_email);
+  if u is null then return false; end if;
+  insert into developers(user_id, email) values (u, p_email) on conflict (user_id) do nothing;
+  return true;
+end $$;
+create or replace function dev_remove(p_uid uuid) returns boolean
+language plpgsql security definer set search_path = public, auth as $$
+begin
+  if not is_dev() then raise exception 'not allowed'; end if;
+  if p_uid = auth.uid() then return false; end if;
+  delete from developers where user_id = p_uid;
+  return true;
+end $$;
+create or replace function dev_ban(p_uid uuid, p_ban boolean) returns boolean
+language plpgsql security definer set search_path = public, auth as $$
+begin
+  if not is_dev() then raise exception 'not allowed'; end if;
+  if p_uid = auth.uid() then return false; end if;
+  update auth.users set banned_until = case when p_ban then now() + interval '100 years' else null end where id = p_uid;
+  return true;
+end $$;
+grant execute on function dev_add(text), dev_remove(uuid), dev_ban(uuid, boolean) to authenticated;
 
 -- 15-6) 개발자 등록 ▶ 아래 이메일을 바꾸고 실행
 insert into developers (user_id, email)
