@@ -686,7 +686,7 @@ async function bkReader(id){
  else if(plan.kind==='x'){plan.toc.forEach(r=>r.items.forEach(([n,p])=>jumps.push([r.sub.k+' '+n,p])));if(plan.toc.es)jumps.push(['서술형',plan.toc.es.p])}
  else{jumps.push(['문제지',2],['정답 및 해설',plan.aStart])}
  jumps.push(['정답 · 해설',plan.aStart]);const seen=new Set();const J=jumps.filter(j=>j[1]&&!seen.has(j[0]+j[1]) && seen.add(j[0]+j[1]));
- m.innerHTML=`<div class="bkrd"><button class="s" onclick="bkClose()">‹ 교재함</button><b style="font-size:14px">${esc(plan.title)}</b><select id="bkj" onchange="bkJump(this.value)"><option value="">이동…</option><option value="1">표지</option>${J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}</select>${plan.kind==='m'?`<button class="p" onclick="bkGradeAll('${id}')">시험 전체 채점</button>`:''}<span class="bkzm"><button class="s" onclick="bkZoom(-1)" aria-label="작게">－</button><b id="bkzl">${Math.round((BKV.z||1)*100)}%</b><button class="s" onclick="bkZoom(1)" aria-label="크게">＋</button></span><button class="s" onclick="bkPdf('${id}',1)">PDF 받기</button><button class="s" onclick="bkPrint('${id}',0)">문제만 인쇄</button><button class="p" onclick="bkPrint('${id}',1)">전체 인쇄 · PDF</button></div><div id="bkpages"></div>`;
+ m.innerHTML=`<div class="bkrd"><button class="s" onclick="bkClose()">‹ 교재함</button><b style="font-size:14px">${esc(plan.title)}</b><select id="bkj" onchange="bkJump(this.value)"><option value="">이동…</option><option value="1">표지</option>${J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}</select>${plan.kind==='m'?`<button class="p" onclick="bkGradeAll('${id}')">시험 전체 채점</button>`:''}<span class="bkzm"><button class="s" onclick="bkZoom(-1)" aria-label="작게">－</button><b id="bkzl">${Math.round((BKV.z||1)*100)}%</b><button class="s" onclick="bkZoom(1)" aria-label="크게">＋</button></span><button class="p" onclick="bkEbook('${id}')">eBook</button><button class="s" onclick="bkPdf('${id}',1)">PDF 받기</button><button class="s" onclick="bkPrint('${id}',0)">문제만 인쇄</button><button class="p" onclick="bkPrint('${id}',1)">전체 인쇄 · PDF</button></div><div id="bkpages"></div>`;
  const hdr=document.querySelector('header');const rd=document.querySelector('.bkrd');if(rd&&hdr)rd.style.top=(hdr.getBoundingClientRect().height+6)+'px';const box=$('#bkpages');bkScale();
  box.innerHTML=plan.pages.map((p,i)=>`<div class="bkw" id="bkpg${p.n}" data-i="${i}" style="width:var(--bkw);height:var(--bkh)"></div>`+(p.codes&&p.codes.length?`<div class="bkbar" style="width:var(--bkw)"><span><b>p.${p.n}</b> · ${p.codes.length}문항</span>${STUD&&!permOn('pageSolve')?'':`<button class="s" onclick="bkSolve('${id}',${plan.kind==='m'?0:p.n})">${plan.kind==='m'?'시험 화면에서 풀기':'이 쪽 풀기'}</button>`}<button class="p" onclick="${plan.kind==='m'?`bkGradeAll('${id}')`:`bkGradePage('${id}',${p.n})`}">${plan.kind==='m'?'시험 전체 채점하기':'이 쪽 채점하기'}</button></div>`:'<div style="height:10px"></div>')).join('');
  const fill=el=>{if(el.dataset.f)return;el.dataset.f=1;bkShadow(el,'<div class="bkdoc scr">'+bkPageHtml(plan,+el.dataset.i)+'</div>')};
@@ -694,6 +694,56 @@ async function bkReader(id){
  else box.querySelectorAll('.bkw').forEach(fill);
  if(!window._bkrs){window._bkrs=1;addEventListener('resize',()=>{if(tab==='books'&&BKV.v==='read')bkScale()})}}
 function bkJump(n){const e=document.getElementById('bkpg'+n);if(e){const y=e.getBoundingClientRect().top+scrollY-64;scrollTo({top:y,behavior:'smooth'})}const s=$('#bkj');if(s)s.value=''}
+
+
+/* ---------- eBook 뷰어: 한 쪽씩/펼침면, 스와이프·방향키, 북마크, 읽던 쪽 기억 ---------- */
+const EBK={};
+function ebkSt(){try{return JSON.parse(localStorage.getItem('omr_ebk')||'{}')}catch(e){return {}}}
+function ebkSave(id,o){try{const a=ebkSt();a[id]=Object.assign(a[id]||{},o);localStorage.setItem('omr_ebk',JSON.stringify(a))}catch(e){}}
+async function bkEbook(id){
+ id=bkPid(id);const plan=await bkPlan(id);if(!plan)return;
+ const st=ebkSt()[id]||{};const N=plan.pages.length;
+ Object.assign(EBK,{id,plan,N,marks:st.marks||[],p:Math.min(N,Math.max(1,st.last||1)),fit:0});
+ let el=document.getElementById('ebk');if(el)el.remove();
+ el=document.createElement('div');el.id='ebk';
+ const J=[['표지',1]];if(plan.kind==='c')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.c]));else if(plan.kind==='t')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.p]));else if(plan.kind==='x')plan.toc.forEach(r=>r.items.forEach(([n,p])=>J.push([r.sub.k+' '+n,p])));if(plan.aStart)J.push(['정답 · 해설',plan.aStart]);
+ const seen=new Set();EBK.J=J.filter(j=>j[1]&&!seen.has(j[1])&&seen.add(j[1]));
+ el.innerHTML=`<style>#ebk{position:fixed;inset:0;z-index:9990;background:#1b1f27;color:#e8ecf2;display:flex;flex-direction:column;font:14px Pretendard,PretendardLocal,sans-serif;user-select:none;-webkit-user-select:none}
+#ebk .eb{display:flex;gap:8px;align-items:center;padding:8px 10px;background:#12151b;flex-wrap:wrap}#ebk .eb b{flex:1;min-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ebk button,#ebk select{font:inherit;background:#2a303b;color:#e8ecf2;border:1px solid #3a4250;border-radius:8px;padding:6px 11px;cursor:pointer;max-width:46vw}#ebk button.on{background:#f7b928;color:#222;border-color:#f7b928}
+#ebk .stg{flex:1;position:relative;overflow:hidden;touch-action:pan-y}#ebk .sp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:2px}
+#ebk .pgw{background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.5);position:relative;flex:none}#ebk .pgw.e{background:none;box-shadow:none}
+#ebk .nv{position:absolute;top:0;bottom:0;width:16%;z-index:3;background:none;border:0;color:#fff;font-size:30px;opacity:0;transition:.2s;display:flex;align-items:center;padding:0 10px;cursor:pointer}#ebk .nv:hover{opacity:.5}#ebk .nv.l{left:0;justify-content:flex-start}#ebk .nv.r{right:0;justify-content:flex-end}
+#ebk .bt{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#12151b}#ebk input[type=range]{flex:1;accent-color:#f7b928}#ebk .ct{min-width:70px;text-align:center;font-variant-numeric:tabular-nums}</style>
+<div class="eb"><button onclick="bkEbookClose()">✕ 닫기</button><b>${esc(plan.title)}</b><select id="ebj" onchange="ebkGo(+this.value);this.value=''"><option value="">목차…</option>${EBK.J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}</select><select id="ebm" onchange="ebkGo(+this.value);this.value=''"><option value="">북마크…</option></select><button id="ebs" onclick="ebkMark()">☆ 북마크</button><button onclick="ebkView()" id="ebv">보기</button></div>
+<div class="stg" id="ebst"><button class="nv l" onclick="ebkStep(-1)" aria-label="이전">‹</button><button class="nv r" onclick="ebkStep(1)" aria-label="다음">›</button><div class="sp" id="ebsp"></div></div>
+<div class="bt"><button onclick="ebkStep(-1)">‹</button><input type="range" id="ebr" min="1" max="${N}" value="${EBK.p}" oninput="ebkGo(+this.value,1)"><span class="ct" id="ebc"></span><button onclick="ebkStep(1)">›</button></div>`;
+ document.body.appendChild(el);document.body.style.overflow='hidden';
+ EBK.view=st.view||'auto';
+ EBK.kd=e=>{if(!document.getElementById('ebk'))return;if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ')ebkStep(1);else if(e.key==='ArrowLeft'||e.key==='PageUp')ebkStep(-1);else if(e.key==='Escape')bkEbookClose();else return;e.preventDefault()};
+ addEventListener('keydown',EBK.kd);
+ EBK.rs=()=>ebkDraw();addEventListener('resize',EBK.rs);
+ const s=document.getElementById('ebst');let x0=null,y0=null;
+ s.addEventListener('touchstart',e=>{if(e.touches.length===1){x0=e.touches[0].clientX;y0=e.touches[0].clientY}else x0=null},{passive:true});
+ s.addEventListener('touchend',e=>{if(x0==null)return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.4)ebkStep(dx<0?1:-1)},{passive:true});
+ ebkDraw()}
+function bkEbookClose(){const el=document.getElementById('ebk');if(el)el.remove();document.body.style.overflow='';removeEventListener('keydown',EBK.kd);removeEventListener('resize',EBK.rs)}
+function ebkSpread(){const st=document.getElementById('ebst');const w=st.clientWidth,h=st.clientHeight;const two=EBK.view==='two'||(EBK.view==='auto'&&w>=h*1.25&&w>=900);return two}
+function ebkView(){EBK.view=EBK.view==='auto'?'one':EBK.view==='one'?'two':'auto';ebkSave(EBK.id,{view:EBK.view});ebkDraw()}
+function ebkStep(d){const two=ebkSpread();let p=EBK.p;if(two){const lo=p%2===0?p:p-1;p=d>0?lo+2:lo-2;if(p<1)p=1}else p+=d;ebkGo(p)}
+function ebkGo(p,keep){if(!p)return;EBK.p=Math.max(1,Math.min(EBK.N,p));ebkDraw()}
+function ebkMark(){const i=EBK.marks.indexOf(EBK.p);if(i>=0)EBK.marks.splice(i,1);else EBK.marks.push(EBK.p);EBK.marks.sort((a,b)=>a-b);ebkSave(EBK.id,{marks:EBK.marks});ebkDraw()}
+function ebkDraw(){const sp=document.getElementById('ebsp');if(!sp)return;const st=document.getElementById('ebst'),two=ebkSpread();const {plan,N}=EBK;let p=EBK.p;
+ let ps;if(two){const lo=p%2===0?p:p-1;ps=[lo,lo+1];if(lo<1)ps=[0,1]}else ps=[p];
+ const cnt=two?2:1,W=st.clientWidth-8,H=st.clientHeight-16;const pw=210*BK_MM,ph=297*BK_MM;const s=Math.min(W/cnt/pw,H/ph);
+ sp.innerHTML=ps.map(n=>n<1||n>N?`<div class="pgw e" style="width:${pw*s}px;height:${ph*s}px"></div>`:`<div class="pgw" data-n="${n}" style="width:${pw*s}px;height:${ph*s}px"></div>`).join('');
+ sp.querySelectorAll('.pgw[data-n]').forEach(e=>{const n=+e.dataset.n;bkShadow(e,'<div class="bkdoc scr" style="--bks:'+s.toFixed(4)+'">'+bkPageHtml(plan,n-1)+'</div>')});
+ sp.style.setProperty('--bks',s.toFixed(4));
+ const shown=ps.filter(n=>n>=1&&n<=N);EBK.p=Math.min(...shown);const cur=EBK.p;ebkSave(EBK.id,{last:cur});
+ const r=document.getElementById('ebr');r.value=cur;document.getElementById('ebc').textContent=shown.join('-')+' / '+N;
+ const mk=shown.some(n=>EBK.marks.includes(n));const b=document.getElementById('ebs');b.textContent=(mk?'★ ':'☆ ')+'북마크';b.classList.toggle('on',mk);
+ document.getElementById('ebm').innerHTML='<option value="">북마크…</option>'+EBK.marks.map(n=>`<option value="${n}">p.${n}</option>`).join('');
+ document.getElementById('ebv').textContent=EBK.view==='auto'?'보기: 자동':EBK.view==='one'?'보기: 한 쪽':'보기: 펼침면'}
 
 /* ---------- 인쇄 ---------- */
 function bkFontCssRule(){const f=BKO.font&&typeof FONTS!=='undefined'&&FONTS[BKO.font];return f&&BKO.font!=='paper'?'.bkdoc,.bkdoc *{font-family:'+f[1]+'!important}':''}
