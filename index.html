@@ -452,6 +452,7 @@ header h1:hover .logo{transform:none}.rt{animation:none}.tc,.res,.wi,.mki,.rl,.c
 @keyframes sjInR{from{opacity:0;transform:translateX(36px)}to{opacity:1;transform:none}}@keyframes sjInL{from{opacity:0;transform:translateX(-36px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.subj>*{animation:none!important}.sjtabs::after{transition:none}}
 .sb{padding:8px 14px;text-align:center;font-size:13px;font-weight:600;background:#e8f1fd;color:#174a8a}.sb.warn{background:#fff1d6;color:#8a5200}html[data-theme=dark] .sb{background:#1c2f47;color:#cfe3ff}html[data-theme=dark] .sb.warn{background:#473314;color:#ffe2a8}.ntag.s{background:#6d4cc4;color:#fff}
+.rtbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.rtbar button{padding:9px 16px;border-radius:999px;font-weight:700}
 </style><style>@media(max-width:720px){
 header{flex-wrap:nowrap;overflow:hidden}header h1{flex:0 1 auto;min-width:0}header h1 .sjp{min-width:0}header h1 small{display:inline-block!important;max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #qrBtn,#setBtn{flex:none}#setBtn{order:6}#stuSel{flex:0 1 auto;min-width:0;max-width:38vw}#sync{flex:0 1 auto;min-width:0}
@@ -812,11 +813,16 @@ function mount(el,html,css){const r=el.shadowRoot||el.attachShadow({mode:'open'}
 /* 과목별 자료: me=물질과 에너지(bank/), cm=세포와 물질대사(cm/), ph=역학과 에너지(ph/) */
 const SNAME={me:'물질과 에너지',cm:'세포와 물질대사',ph:'역학과 에너지'},CMSET=new Set(),PHSET=new Set(),DIRS={me:'bank/',cm:'cm/',ph:'ph/'},POOL={me:DATA.slice(),cm:[],ph:[]},BIDXS={me:{},cm:{},ph:{}},TAGSUBJ={};
 let SUBJ='me',BIDXALL={};
+const SITE={notices:[],cfg:{},ok:false};
+const DEV={ok:null,who:'',sec:'notice',stats:null,users:null,bugs:null,err:''};
+const QOV={};
+const ft=k=>!(((SITE.cfg.features||{}).off)||[]).includes(k);
+const ovHidden=c=>!!(QOV[c]&&QOV[c].hidden);
 try{const v=localStorage.getItem('omr_subj_v1');if(v&&SNAME[v])SUBJ=v}catch(e){}
 function applySubject(){document.body.dataset.subj=SUBJ;document.title=SNAME[SUBJ]+' · Solvi';if(typeof CK!=='undefined'&&!ckind()[CK.k])CK.k=ckDef();DATA.length=0;POOL[SUBJ].forEach(q=>DATA.push(q));BIDX=BIDXS[SUBJ]||{};calcSubs();const e=$('#subj');if(e)e.textContent=SNAME[SUBJ]}
 async function loadBankIndex(){
  for(const k of Object.keys(DIRS)){try{const r=await fetch(DIRS[k]+'index.json');if(r.ok){BIDXS[k]=await r.json();for(const t in BIDXS[k])TAGSUBJ[t]=k;Object.assign(BIDXALL,BIDXS[k])}}catch(e){}}
- for(const [k,S] of [['cm',CMSET],['ph',PHSET]]){try{const r=await fetch(DIRS[k]+'data.json');if(r.ok){const a=await r.json();a.forEach(q=>{if(!byCode[q.code]){byCode[q.code]=q;POOL[k].push(q)}S.add(q.code)})}}catch(e){}}
+ for(const [k,S] of [['cm',CMSET],['ph',PHSET]]){try{const r=await fetch(DIRS[k]+'data.json');if(r.ok){const a=await r.json();a.forEach(q=>{if(ovHidden(q.code))return;ovApply(q);if(!byCode[q.code]){byCode[q.code]=q;POOL[k].push(q)}S.add(q.code)})}}catch(e){}}
  loadMyQ();applySubject()}
 async function setSubject(k){if(!SNAME[k]||k===SUBJ){closeCfg();return}
  SUBJ=k;try{localStorage.setItem('omr_subj_v1',k)}catch(e){}
@@ -830,7 +836,7 @@ function calibAll(){CSTAT={};hist.forEach(h=>h.items.forEach(x=>{const o=CSTAT[x
 const subjOf=c=>MYSUBJ[c]||(CMSET.has(c)?'cm':PHSET.has(c)?'ph':TAGSUBJ[tagOf(c)]||'me');
 const tagOf=c=>{const m=String(c).match(/^G-([a-z0-9]+)-/);return m&&m[1]};
 async function ensureTags(tags){let _i=0;for(const t of tags){_i++;if(tags.length>1)busyPct((_i-.5)/tags.length*100);if(!t||BLOADED[t]||!BIDXALL[t])continue;const sj=TAGSUBJ[t];
- try{const r=await fetch(DIRS[sj]+t+'.json');if(!r.ok)continue;const a=await r.json();a.forEach(q=>{if(!byCode[q.code]){byCode[q.code]=q;POOL[sj].push(q);if(sj===SUBJ)DATA.push(q);if(CSTAT[q.code])calibQ(q)}});BLOADED[t]=1}catch(e){}}}
+ try{const r=await fetch(DIRS[sj]+t+'.json');if(!r.ok)continue;const a=await r.json();a.forEach(q=>{if(ovHidden(q.code))return;ovApply(q);if(!byCode[q.code]){byCode[q.code]=q;POOL[sj].push(q);if(sj===SUBJ)DATA.push(q);if(CSTAT[q.code])calibQ(q)}});BLOADED[t]=1}catch(e){}}}
 const ensureCodes=codes=>ensureTags([...new Set(codes.map(tagOf).filter(Boolean))]);
 function qMeta(c){const q=byCode[c];if(q)return q;const t=tagOf(c);if(t&&BIDXALL[t])return{code:c,set:'bank',sub:BIDXALL[t].sub,subname:BIDXALL[t].subname,type:BIDXALL[t].label};return null}
 /* ---------- 저장소 · 클라우드 ---------- */
@@ -983,8 +989,8 @@ function decorate(){document.body.classList.toggle('hasfab',!!document.querySele
 function goFull(){bkLoad().then(()=>{tab='books';bkGoFull();render();scrollTo(0,0)}).catch(()=>alert('교재를 불러오지 못했습니다.'))}
 function nav(){const hb=document.getElementById('helpBtn');if(hb)hb.hidden=!STUD||!permOn('tour');
 const PK={smap:'make',stat:'stat',rec:'stat',concept:'concept',books:'books',wrong:'wrong',diag:'diag',tasks:'tasks',enter:'enter',shist:'shist'};
-const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['stat','유형 분석'],['rec','학습 현황'],['concept','개념학습'],['books','교재'],['smap','학습지 만들기'],['shist','기록']].filter(([k])=>!PK[k]||permOn(PK[k])):teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'+(SG.list.length?' ('+SG.list.length+')':'')],['stat','누적 분석'],['rec','학습 현황'],['search','문항 검색'],['tset','설정'+(BUG.list.length?' ('+BUG.list.length+')':'')],...(DEV.ok?[['dev','개발자']]:[])]:[['enter','번호 채점']];
- if(!T.find(x=>x[0]===tab)&&!(tab==='grade'&&cur)&&!(tab==='prac'&&PR)&&!((tab==='build'||tab==='bdesign'||tab==='bmake'||tab==='wsedit'||tab==='review')&&teacher())&&!(tab==='prac'&&STUD)&&!(tab==='mock'&&teacher()))tab=T[0][0];$('#nav').innerHTML=T.map(([k,v])=>`<button class="${tab===k||(k==='ws'&&['build','bdesign','review'].includes(tab))||(k==='books'&&tab==='mock')||(k==='enter'&&tab==='grade'&&STUD)?'on':''}" onclick="navGo('${k}')">${v}</button>`).join('')}
+const T=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['diag','오답 진단'],['stat','유형 분석'],...(ft('rec')?[['rec','학습 현황']]:[]),['concept','개념학습'],['books','교재'],['smap','학습지 만들기'],['shist','기록']].filter(([k])=>!PK[k]||permOn(PK[k])):teacher()?[['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['diag','오답 진단'],['stu','학생'+(SG.list.length?' ('+SG.list.length+')':'')],['stat','누적 분석'],...(ft('rec')?[['rec','학습 현황']]:[]),['search','문항 검색'],['tset','설정'+(BUG.list.length?' ('+BUG.list.length+')':'')],...(DEV.ok?[['dev','개발자']]:[])]:[['enter','번호 채점']];
+ if(!T.find(x=>x[0]===tab)&&!(tab==='grade'&&cur)&&!(tab==='prac'&&PR)&&!(tab==='sim'||tab==='chal')&&!((tab==='build'||tab==='bdesign'||tab==='bmake'||tab==='wsedit'||tab==='review')&&teacher())&&!(tab==='prac'&&STUD)&&!(tab==='mock'&&teacher()))tab=T[0][0];$('#nav').innerHTML=T.map(([k,v])=>`<button class="${tab===k||(k==='ws'&&['build','bdesign','review'].includes(tab))||(k===(STUD?'stat':'weak')&&(tab==='sim'||tab==='chal'))||(k==='books'&&tab==='mock')||(k==='enter'&&tab==='grade'&&STUD)?'on':''}" onclick="navGo('${k}')">${v}</button>`).join('')}
 let _navKey=null;
 function goHome(){const k=STUD?'home':(teacher()?'thome':'enter');if(cur&&tab==='grade'&&!cur.done&&!confirm('채점을 그만둘까요? 입력한 내용은 저장되지 않습니다.'))return;if(cur&&tab==='grade'){clearInterval(_tm);if(!cur.done)gdraftClear();cur=null}PR=null;$('#exp').classList.remove('open');tab=k;render();scrollTo(0,0)}
 function navGo(k){if((k==='grade'||k==='enter')&&cur&&tab==='grade'){if(!cur.done&&!confirm('채점을 그만둘까요? 입력한 내용은 저장되지 않습니다.'))return;clearInterval(_tm);cur=null}if((k==='weak'||k==='build')&&tab===k)resetW();tab=k;render()}
@@ -993,7 +999,7 @@ function pushNav(){const k=navKey();if(_navKey===null){history.replaceState({k},
 window.addEventListener('popstate',e=>{const k=(e.state&&e.state.k)||'';const p=k.split('|');if(!p[0])return;tab=p[0];if(p[1]!=='1')cur=null;if(p[2]!=='1')PR=null;if(p[3]!=='1')$('#wsView').classList.remove('open');_navKey=k;render(true)});
 function resetW(){FL='';FLS=0;W=JSON.parse(JSON.stringify(WDEF));W.sel=new Map();BQ='';BU=[];BD.codes=null;saveW()}
 const FRESHFROM=['build','bdesign','bmake','review','weak','prac','wsedit'];
-function render(skip){tipHide();if((tab==='build'||tab==='weak')&&window._lt!==tab&&!FRESHFROM.includes(window._lt||'')){try{resetW()}catch(e){}}{const m=document.getElementById('main');if(m){if(window._lt!==tab){m.classList.remove('pgin');void m.offsetWidth;m.classList.add('pgin');clearTimeout(window._pgt);window._pgt=setTimeout(()=>m.classList.remove('pgin'),600)}window._lt=tab}}if(teacher()&&tab==='enter'&&!STUD)tab=(window._st0?'thome':(window._st0=1,PREF.start||'thome'));{const m=$('#qsheet');if(m&&(!cur||cur.done||cur.mark))m.classList.remove('open')}nav();({grade:gradeView,bdesign:bdesignView,mock:mockView,wrong:wrongView,diag:diagView,thome:teacherHome,enter:enterView,weak:weakView,concept:conceptView,books:booksView,ws:wsListView,stu:stuView,stat:statView,rec:recView,dev:devView,search:searchView,tset:tsetView,prac:pracView,build:buildView,bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();try{if(NT.who!==nWho()){NT.who=nWho();nStart();if(STUD)setTimeout(updAuto,2500)}nBadge()}catch(e){}decorate()}
+function render(skip){tipHide();if((tab==='build'||tab==='weak')&&window._lt!==tab&&!FRESHFROM.includes(window._lt||'')){try{resetW()}catch(e){}}{const m=document.getElementById('main');if(m){if(window._lt!==tab){m.classList.remove('pgin');void m.offsetWidth;m.classList.add('pgin');clearTimeout(window._pgt);window._pgt=setTimeout(()=>m.classList.remove('pgin'),600)}window._lt=tab}}if(teacher()&&tab==='enter'&&!STUD)tab=(window._st0?'thome':(window._st0=1,PREF.start||'thome'));{const m=$('#qsheet');if(m&&(!cur||cur.done||cur.mark))m.classList.remove('open')}nav();({grade:gradeView,bdesign:bdesignView,mock:mockView,wrong:wrongView,diag:diagView,thome:teacherHome,enter:enterView,weak:weakView,concept:conceptView,books:booksView,ws:wsListView,stu:stuView,stat:statView,rec:recView,sim:simView,chal:chalView,dev:devView,search:searchView,tset:tsetView,prac:pracView,build:buildView,bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();try{if(NT.who!==nWho()){NT.who=nWho();nStart();if(STUD)setTimeout(updAuto,2500)}nBadge()}catch(e){}decorate()}
 const lastRes=()=>{const m={};H().forEach(h=>h.items.forEach(x=>{(m[x.c]=m[x.c]||[]).push(x.r)}));return m};
 function statsFrom(hs,keyf,filter){const m={};
  hs.forEach(h=>h.items.forEach(x=>{const q=qMeta(x.c);if(!q||!q.type||(filter&&!filter(q)))return;const k=keyf(q);const o=m[k]=m[k]||{k,n:0,r:0,rec:[],q};o.n++;o.r+=x.r;o.rec.push(x.r)}));
@@ -1224,49 +1230,123 @@ async function tsetPreset(k){const old={...TSET.perms};const off={exam:['make','
 async function tsetPerm(k,on){TSET.perms[k]=on;try{await tsetSave();tsetSaved()}catch(e){TSET.perms[k]=!on;toast(e.message);tsetView()}}
 /* ---------- 사이트 공지 · 사이트 설정 · 개발자 페이지 ----------
    서버(supabase/sql_15_developer.sql)가 준비돼 있으면 동작합니다. 개발자 명단(developers)에 있는 계정으로 로그인하면 「개발자」 탭이 보입니다. */
-const SITE={notices:[],cfg:{},ok:false};
-const DEV={ok:null,who:'',sec:'notice',stats:null,users:null,bugs:null,err:''};
 const snOff=()=>((SITE.cfg.subjects||{}).off||[]);
 async function siteFetch(){if(!cloud())return;
  try{const [a,b]=await Promise.all([sb('/rest/v1/site_notices?select=id,title,body,tag,pinned,active,t&order=t.desc&limit=40'),sb('/rest/v1/site_config?select=key,value')]);
   if(a.ok){SITE.notices=await a.json();SITE.ok=true}if(b.ok){const o={};(await b.json()).forEach(r=>o[r.key]=r.value);SITE.cfg=o}}catch(e){}
- siteBanner();
+ siteBanner();ovFetch();
  if(sess&&sess.user&&DEV.who!==sess.user.id){DEV.who=sess.user.id;try{const r=await rpc('is_dev',{});DEV.ok=r.ok?(await r.json())===true:false}catch(e){DEV.ok=false}nav()}
  else if(!sess&&DEV.ok){DEV.ok=null;DEV.who=''}}
 function siteBanner(){let el=document.getElementById('sitebanner');const b=SITE.cfg.banner;
  if(!b||!b.on||!b.text){if(el)el.remove();return}
  if(!el){el=document.createElement('div');el.id='sitebanner';document.body.insertBefore(el,document.body.firstChild)}
  el.className='sb '+(b.level||'info');el.innerHTML='<span>'+esc(b.text)+'</span>'}
+/* ---- 문항 덮어쓰기(q_overrides): 불러온 문항에 적용하고, 숨긴 문항은 출제 풀에서 뺍니다 ---- */
+function ovApply(q){const o=QOV[q.code];if(o&&o.patch)Object.assign(q,o.patch);return q}
+function ovAll(){Object.keys(QOV).forEach(c=>{const q=byCode[c];if(!q)return;ovApply(q);if(QOV[c].hidden){[DATA,...Object.values(POOL)].forEach(a=>{const i=a.indexOf(q);if(i>=0)a.splice(i,1)})}})}
+async function ovFetch(){try{const r=await sb('/rest/v1/q_overrides?select=code,patch,hidden,note&limit=5000');if(!r.ok)return;const L=await r.json();Object.keys(QOV).forEach(k=>delete QOV[k]);L.forEach(x=>QOV[x.code]=x);ovAll()}catch(e){}}
+async function devLog(act,info){try{await sb('/rest/v1/dev_log',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({who:(sess&&sess.user&&sess.user.email)||'',act,info:String(info||'').slice(0,300)})})}catch(e){}}
+const stripH=h=>String(h||'').replace(/<svg[\s\S]*?<\/svg>/g,' [그림] ').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+/* --- 문항 관리 --- */
+const DB={subj:'ph',tag:'',q:'',lv:'',page:0,codeQ:''};
+async function devDb(){
+ const idx=BIDXS[DB.subj]||{};const tags=Object.entries(idx).sort((a,b)=>String(a[1].sub).localeCompare(String(b[1].sub))||a[0].localeCompare(b[0]));
+ if(!DB.tag||!idx[DB.tag])DB.tag=tags[0]?tags[0][0]:'';
+ document.getElementById('devb').innerHTML=`<div class="card"><h3 style="margin-top:0">문항 관리</h3><div class="m">문제·해설·정답·난이도를 고치거나 숨길 수 있어요. 원본 파일은 그대로 두고, 고친 내용은 서버에 저장돼 모든 사용자에게 적용돼요.</div>
+ <div class="rform"><label>과목<select onchange="DB.subj=this.value;DB.tag='';DB.page=0;devDb()">${Object.keys(SNAME).map(k=>`<option value="${k}" ${DB.subj===k?'selected':''}>${esc(SNAME[k])}</option>`).join('')}</select></label>
+ <label>유형<select onchange="DB.tag=this.value;DB.page=0;devDb()">${tags.map(([t,b])=>`<option value="${t}" ${DB.tag===t?'selected':''}>${esc(b.sub)} ${esc(b.label)} (${b.n})</option>`).join('')}</select></label>
+ <label>난이도<select onchange="DB.lv=this.value;DB.page=0;devDb()"><option value="">전체</option>${['하','중','상','최'].map(l=>`<option ${DB.lv===l?'selected':''}>${l}</option>`).join('')}</select></label>
+ <label>검색(코드·본문)<input value="${esc(DB.q)}" onchange="DB.q=this.value.trim();DB.page=0;devDb()" placeholder="예) G-ph065-0001 또는 단어"></label></div>
+ <div class="row" style="gap:8px;margin-top:8px"><input id="db_code" placeholder="코드로 바로 열기" value="${esc(DB.codeQ)}" style="max-width:240px"><button class="s" onclick="devDbOpen()">열기</button><span class="m">수정한 문항 ${Object.keys(QOV).length}개</span></div></div><div id="dbl"><div class="card">${ldg('문항을 불러오는 중…')}</div></div>`;
+ if(!DB.tag)return;await ensureTags([DB.tag]);
+ let L=DATA.concat(POOL[DB.subj]).filter((q,i,a)=>a.indexOf(q)===i&&q.code&&tagOf(q.code)===DB.tag);
+ // 숨긴 문항은 풀에서 빠져 있으므로 개발자 목록에는 파일에서 다시 읽어 포함
+ try{const r=await fetch(DIRS[DB.subj]+DB.tag+'.json');if(r.ok){const a=await r.json();L=a.map(x=>byCode[x.code]||ovApply(x))}}catch(e){}
+ if(DB.lv)L=L.filter(q=>(q.lv||'중')===DB.lv);if(DB.q){const k=DB.q.toLowerCase();L=L.filter(q=>q.code.toLowerCase().includes(k)||stripH(q.q).toLowerCase().includes(k))}
+ const P=25,pages=Math.max(1,Math.ceil(L.length/P));DB.page=Math.min(DB.page,pages-1);const cur=L.slice(DB.page*P,DB.page*P+P);
+ document.getElementById('dbl').innerHTML=`<div class="card"><div class="row"><b>${L.length}문항</b><span class="m">${DB.page+1} / ${pages}쪽</span><span style="margin-left:auto;display:flex;gap:6px"><button class="s sm" ${DB.page?'':'disabled'} onclick="DB.page--;devDb()">‹</button><button class="s sm" ${DB.page<pages-1?'':'disabled'} onclick="DB.page++;devDb()">›</button></span></div>
+ <div class="tw"><table><tr><th>코드</th><th>난이도</th><th>정답</th><th>본문</th><th></th></tr>${cur.map(q=>`<tr><td>${esc(q.code)}${QOV[q.code]?` <span class="tag ${QOV[q.code].hidden?'r':'y'}">${QOV[q.code].hidden?'숨김':'수정됨'}</span>`:''}</td><td>${esc(q.lv||'')}</td><td>${esc(q.ans)}</td><td class="l" style="max-width:420px">${esc(stripH(q.q).slice(0,90))}</td><td><button class="s sm" onclick="devQEdit('${q.code}')">수정</button></td></tr>`).join('')}</table></div></div>`}
+async function devDbOpen(){const c=($('#db_code')||{}).value.trim();DB.codeQ=c;if(!c)return;await ensureCodes([c]);if(!byCode[c]){toast('그 코드의 문항을 찾지 못했어요');return}devQEdit(c)}
+async function devQEdit(code){await ensureCodes([code]);let q=byCode[code];if(!q){try{const r=await fetch(DIRS[TAGSUBJ[tagOf(code)]||DB.subj]+tagOf(code)+'.json');(await r.json()).forEach(x=>{if(x.code===code)q=x})}catch(e){}}
+ if(!q){toast('문항을 찾지 못했어요');return}const o=QOV[code]||{};
+ $('#cfgBox').innerHTML=`<h2 style="margin-top:0">${esc(code)} <small class="m">${esc(q.sub||'')} ${esc(q.type||'')}</small></h2>
+ <div class="dq" id="dq_prev"></div><div class="form"><label>정답<input id="dq_ans" value="${esc(q.ans)}"></label><label>난이도<select id="dq_lv">${['하','중','상','최'].map(l=>`<option ${(q.lv||'중')===l?'selected':''}>${l}</option>`).join('')}</select></label>
+ <label>문제 HTML<textarea id="dq_q" rows="6" style="font-family:monospace;font-size:12px">${esc(q.q)}</textarea></label><label>해설 HTML<textarea id="dq_e" rows="5" style="font-family:monospace;font-size:12px">${esc(q.exp||'')}</textarea></label>
+ <label>메모<input id="dq_n" value="${esc(o.note||'')}" maxlength="200"></label><label class="chk"><input type="checkbox" id="dq_h" ${o.hidden?'checked':''}> 이 문항 숨기기(출제·검색에서 제외)</label></div>
+ <div class="row" style="gap:8px;margin-top:12px;justify-content:flex-end"><button class="s" onclick="devQPrev()">미리보기</button>${QOV[code]?`<button class="s" onclick="devQReset('${code}')">원래대로</button>`:''}<button class="s" onclick="closeCfg()">닫기</button><button class="p" onclick="devQSave('${code}')">저장</button></div>`;
+ $('#cfg').classList.add('open');window._dqOrig={ans:q.ans,lv:q.lv||'중',q:q.q,exp:q.exp||''};devQPrev()}
+function devQPrev(){const el=document.getElementById('dq_prev');if(!el)return;mount(el,'<div>'+$('#dq_q').value+'</div><div style="margin-top:10px">'+$('#dq_e').value+'</div>')}
+async function devQSave(code){const f=window._dqOrig,patch={};const ans=$('#dq_ans').value.trim(),lv=$('#dq_lv').value,q=$('#dq_q').value,e=$('#dq_e').value;
+ if(ans!==f.ans)patch.ans=ans;if(lv!==f.lv)patch.lv=lv;if(q!==f.q)patch.q=q;if(e!==f.exp)patch.exp=e;
+ const old=(QOV[code]||{}).patch||{};const merged={...old,...patch};const hidden=$('#dq_h').checked,note=$('#dq_n').value.trim();
+ if(!Object.keys(merged).length&&!hidden&&!note){toast('바뀐 내용이 없어요');return}
+ const r=await sb('/rest/v1/q_overrides?on_conflict=code',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({code,patch:merged,hidden,note,by_email:(sess&&sess.user&&sess.user.email)||'',updated_at:new Date().toISOString()})});
+ if(!r.ok){toast(devErr(r));return}QOV[code]={code,patch:merged,hidden,note};if(byCode[code])ovApply(byCode[code]);ovAll();devLog('문항 수정',code+(hidden?' (숨김)':''));closeCfg();toast('저장했어요');devView()}
+async function devQReset(code){if(!confirm('이 문항의 수정·숨김을 모두 되돌릴까요? (화면에는 새로고침 후 원래대로 보여요)'))return;const r=await sb('/rest/v1/q_overrides?code=eq.'+encodeURIComponent(code),{method:'DELETE'});if(!r.ok){toast(devErr(r));return}delete QOV[code];devLog('문항 복원',code);closeCfg();toast('되돌렸어요 · 새로고침하면 원래 내용이 보여요');devView()}
+/* --- DB 점검 --- */
+const SCAN={subj:'ph',run:false,res:null};
+function devScanView(){const R=SCAN.res;document.getElementById('devb').innerHTML=`<div class="card"><h3 style="margin-top:0">DB 점검</h3><div class="m">과목의 모든 문항을 불러와 빈 본문·빈 해설·이상한 정답·같은 본문 중복·난이도 누락을 찾아요. 문항이 많으면 몇 분 걸려요.</div>
+ <div class="row" style="gap:8px;margin-top:8px"><select onchange="SCAN.subj=this.value;SCAN.res=null;devScanView()">${Object.keys(SNAME).map(k=>`<option value="${k}" ${SCAN.subj===k?'selected':''}>${esc(SNAME[k])}</option>`).join('')}</select><button class="p" ${SCAN.run?'disabled':''} onclick="devScanRun()">점검 시작</button><span class="m" id="scn_p"></span></div></div>
+ ${R?`<div class="card"><div class="rkp">${[['검사한 문항',R.n],['문제 없음',R.n-R.bad.length],['의심 문항',R.bad.length]].map(([k,v])=>`<div><small>${k}</small><b>${v.toLocaleString()}</b></div>`).join('')}</div>${R.bad.length?`<div class="tw"><table><tr><th>코드</th><th>문제점</th><th></th></tr>${R.bad.slice(0,300).map(x=>`<tr><td>${esc(x.code)}</td><td class="l">${esc(x.why.join(' · '))}</td><td><button class="s sm" onclick="devQEdit('${x.code}')">수정</button></td></tr>`).join('')}</table></div>${R.bad.length>300?`<div class="m">처음 300건만 보여요.</div>`:''}`:'<div class="m">의심 문항이 없어요 🎉</div>'}<div class="row" style="margin-top:8px"><button class="s" onclick="devScanCsv()">CSV로 저장</button></div></div>`:''}`}
+async function devScanRun(){SCAN.run=true;devScanView();const idx=BIDXS[SCAN.subj]||{},tags=Object.keys(idx);const bad=[],seen=new Map();let n=0;const P=document.getElementById('scn_p');
+ for(let i=0;i<tags.length;i++){if(P)P.textContent=`불러오는 중 ${i+1} / ${tags.length}`;let a=[];try{const r=await fetch(DIRS[SCAN.subj]+tags[i]+'.json');if(r.ok)a=await r.json()}catch(e){}
+  for(const q0 of a){const q=ovApply({...q0});n++;const why=[];const t=stripH(q.q);
+   if(!t||t.length<8)why.push('본문이 비어 있음');if(!stripH(q.exp)||stripH(q.exp).length<4)why.push('해설이 비어 있음');
+   if(q.set==='bank'||q.set==='mc'){if(!/^[1-5](,[1-5])*$/.test(String(q.ans)))why.push('정답 형식 이상('+q.ans+')')}
+   if(!q.lv)why.push('난이도 없음');if(/undefined|NaN|\{\{|%s|\bnull\b/.test(q.q+q.exp))why.push('깨진 문자(undefined/NaN 등)');
+   const k=t.slice(0,160)+'|'+(q.ans);if(seen.has(k))why.push('본문 중복('+seen.get(k)+')');else seen.set(k,q.code);
+   if(why.length)bad.push({code:q.code,why})}
+  await new Promise(r=>setTimeout(r,0))}
+ SCAN.res={n,bad};SCAN.run=false;devLog('DB 점검',SNAME[SCAN.subj]+' '+n+'문항 · 의심 '+bad.length);devScanView()}
+function devScanCsv(){const R=SCAN.res;if(!R)return;devDownload('db-scan-'+SCAN.subj+'.csv','코드,문제점\n'+R.bad.map(x=>x.code+',"'+x.why.join(' / ')+'"').join('\n'),'text/csv')}
+function devDownload(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+text],{type:(type||'application/json')+';charset=utf-8'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},3000)}
+/* --- 문항 통계 --- */
+async function devQstat(){const r=await rpc('dev_qstats',{p_min:5});if(!r.ok)throw new Error(devErr(r));const L=await r.json();await ensureCodes(L.slice(0,60).map(x=>x.code));
+ document.getElementById('devb').innerHTML=`<div class="card"><h3 style="margin-top:0">정답률이 낮은 문항 <small class="m">5회 이상 푼 문항 · 모든 사용자 합산</small></h3>${L.length?`<div class="tw"><table><tr><th>코드</th><th>유형</th><th>푼 횟수</th><th>정답률</th><th></th></tr>${L.slice(0,100).map(x=>{const q=byCode[x.code]||{};return `<tr><td>${esc(x.code)}</td><td class="l">${esc(q.sub||'')} ${esc(q.type||'')}</td><td>${x.n}</td><td>${Math.round(x.right/x.n*100)}%</td><td><button class="s sm" onclick="devQEdit('${x.code}')">확인·수정</button></td></tr>`}).join('')}</table></div><div class="m" style="margin-top:6px">정답률이 지나치게 낮으면 정답이나 해설이 틀렸을 수 있어요.</div>`:'<div class="m">아직 통계가 쌓이지 않았어요.</div>'}</div>`}
+/* --- 기능 켜기/끄기 · 내보내기 · 활동 기록 --- */
+const FEATS=[['rec','학습 현황 탭'],['sim','오답 유사 학습지'],['chal','단원 챌린지'],['ebook','교재 eBook 뷰어']];
+async function devLogView(){const r=await sb('/rest/v1/dev_log?select=who,act,info,t&order=t.desc&limit=100');if(!r.ok)throw new Error(devErr(r));const L=await r.json();
+ document.getElementById('devb').innerHTML=`<div class="card"><h3 style="margin-top:0">개발자 활동 기록</h3>${L.length?`<div class="tw"><table><tr><th>시각</th><th>계정</th><th>작업</th><th>내용</th></tr>${L.map(x=>`<tr><td>${new Date(+x.t).toLocaleString('ko-KR')}</td><td class="l">${esc(x.who||'')}</td><td>${esc(x.act)}</td><td class="l">${esc(x.info)}</td></tr>`).join('')}</table></div>`:'<div class="m">기록이 없어요.</div>'}</div>`}
+async function devExport(){document.getElementById('devb').innerHTML=`<div class="card"><h3 style="margin-top:0">데이터 내보내기</h3><div class="m">서버에 저장된 관리 데이터를 파일로 받아 보관하세요.</div><div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">${[['site_notices','사이트 공지'],['site_config','사이트 설정'],['q_overrides','문항 수정·숨김'],['bug_reports','버그 신고'],['dev_log','활동 기록']].map(([t,n])=>`<button class="s" onclick="devExportGet('${t}')">${n} JSON</button>`).join('')}</div></div>`}
+async function devExportGet(t){const r=await sb('/rest/v1/'+t+'?select=*&limit=10000');if(!r.ok){toast(devErr(r));return}devDownload(t+'-'+fmtD(Date.now())+'.json',JSON.stringify(await r.json(),null,1));devLog('내보내기',t)}
+
 async function devGo(sec){DEV.sec=sec;DEV.err='';devView()}
 async function devView(){
  if(!DEV.ok){$('#main').innerHTML='<div class="card empty">개발자 계정으로 로그인해야 볼 수 있어요.</div>';return}
- const S=[['notice','사이트 공지'],['site','사이트 설정'],['users','사용 현황'],['bugs','버그 신고']];
+ const S=[['notice','사이트 공지'],['db','문항 관리'],['scan','DB 점검'],['qstat','문항 통계'],['site','사이트 설정'],['users','사용자·개발자'],['bugs','버그 신고'],['log','활동 기록'],['export','내보내기']];
  let body='<div class="card">'+ldg('불러오는 중…')+'</div>';
  $('#main').innerHTML=`<div class="card"><div class="row"><h2 style="margin:0">개발자 페이지</h2><span class="sjpill">${esc((sess&&sess.user&&sess.user.email)||'')}</span></div><div class="rtabs">${S.map(([k,v])=>`<button class="${DEV.sec===k?'on':''}" onclick="devGo('${k}')">${v}</button>`).join('')}</div></div><div id="devb">${body}</div>`;
- try{if(DEV.sec==='notice')await devNotice();else if(DEV.sec==='site')devSite();else if(DEV.sec==='users')await devUsers();else await devBugs()}
+ try{({notice:devNotice,db:devDb,scan:devScanView,qstat:devQstat,site:devSite,users:devUsers,bugs:devBugs,log:devLogView,export:devExport})[DEV.sec]&&await ({notice:devNotice,db:devDb,scan:devScanView,qstat:devQstat,site:devSite,users:devUsers,bugs:devBugs,log:devLogView,export:devExport})[DEV.sec]()}
  catch(e){const el=document.getElementById('devb');if(el)el.innerHTML='<div class="card"><div class="hint">'+esc(e.message||'불러오지 못했어요')+'</div></div>'}}
 const devErr=r=>r.status===404?'서버에 15번 SQL이 아직 없어요. supabase/sql_15_developer.sql 을 SQL Editor에서 실행하세요.':r.status===401||r.status===403?'권한이 없어요(개발자 등록을 확인하세요).':'요청에 실패했어요 ('+r.status+')';
 async function devNotice(){const r=await sb('/rest/v1/site_notices?select=*&order=t.desc&limit=100');if(!r.ok)throw new Error(devErr(r));const L=await r.json();SITE.notices=L.filter(x=>x.active);
  document.getElementById('devb').innerHTML=`<div class="card"><h3 style="margin-top:0">새 공지</h3><div class="form"><label>제목<input id="dn_t" maxlength="60"></label><label>내용<textarea id="dn_b" rows="3" maxlength="600"></textarea></label><label>종류<select id="dn_g"><option>공지</option><option>업데이트</option><option>점검</option><option>이벤트</option></select></label></div><div class="row" style="margin-top:10px;gap:8px"><button class="p" onclick="devNoticeAdd()">등록</button><span class="m">모든 학생·선생님의 알림 목록에 나타나요.</span></div></div>
  <div class="card"><h3 style="margin-top:0">등록된 공지 ${L.length}개</h3>${L.length?`<div class="tw"><table><tr><th>날짜</th><th>종류</th><th>제목</th><th>상태</th><th></th></tr>${L.map(x=>`<tr><td>${new Date(+x.t).toLocaleDateString('ko-KR')}</td><td>${esc(x.tag)}</td><td class="l"><b>${esc(x.title)}</b><div class="m">${esc(x.body)}</div></td><td>${x.active?'공개':'숨김'}</td><td style="white-space:nowrap"><button class="s sm" onclick="devNoticeTog(${x.id},${!x.active})">${x.active?'숨기기':'공개'}</button> <button class="s sm" onclick="devNoticeDel(${x.id})">삭제</button></td></tr>`).join('')}</table></div>`:'<div class="m">아직 없어요.</div>'}</div>`}
 async function devNoticeAdd(){const title=$('#dn_t').value.trim(),body=$('#dn_b').value.trim(),tag=$('#dn_g').value;if(!title){toast('제목을 입력하세요');return}
- const r=await sb('/rest/v1/site_notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({title,body,tag})});if(!r.ok){toast(devErr(r));return}toast('공지를 올렸어요');devView();siteFetch()}
+ const r=await sb('/rest/v1/site_notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({title,body,tag})});if(!r.ok){toast(devErr(r));return}devLog('공지 등록',title);toast('공지를 올렸어요');devView();siteFetch()}
 async function devNoticeTog(id,on){const r=await sb('/rest/v1/site_notices?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({active:on})});if(!r.ok){toast(devErr(r));return}devView();siteFetch()}
-async function devNoticeDel(id){if(!confirm('이 공지를 삭제할까요?'))return;const r=await sb('/rest/v1/site_notices?id=eq.'+id,{method:'DELETE'});if(!r.ok){toast(devErr(r));return}devView();siteFetch()}
+async function devNoticeDel(id){if(!confirm('이 공지를 삭제할까요?'))return;devLog('공지 삭제','#'+id);const r=await sb('/rest/v1/site_notices?id=eq.'+id,{method:'DELETE'});if(!r.ok){toast(devErr(r));return}devView();siteFetch()}
 function devSite(){const b=SITE.cfg.banner||{on:false,text:'',level:'info'},off=snOff();
  document.getElementById('devb').innerHTML=`<div class="card"><h3 style="margin-top:0">상단 안내 배너</h3><div class="m">켜면 모든 화면 맨 위에 한 줄 안내가 보여요. 점검·긴급 안내에 쓰세요.</div>
  <div class="form" style="margin-top:8px"><label>문구<input id="ds_t" maxlength="120" value="${esc(b.text||'')}"></label><label>색<select id="ds_l"><option value="info" ${b.level!=='warn'?'selected':''}>일반(파랑)</option><option value="warn" ${b.level==='warn'?'selected':''}>경고(주황)</option></select></label><label class="chk"><input type="checkbox" id="ds_on" ${b.on?'checked':''}> 배너 켜기</label></div></div>
  <div class="card"><h3 style="margin-top:0">과목 공개</h3><div class="m">체크하면 과목 선택에서 「점검 중」으로 잠겨요(데이터는 그대로).</div><div style="display:flex;gap:6px 18px;flex-wrap:wrap;margin-top:8px">${SUBJECTS.filter(s=>s.id).map(s=>`<label class="chk"><input type="checkbox" class="ds_off" value="${s.id}" ${off.includes(s.id)?'checked':''}> ${esc(s.n)} 잠그기</label>`).join('')}</div></div>
+ <div class="card"><h3 style="margin-top:0">기능 켜기/끄기</h3><div class="m">끄면 모든 사용자 화면에서 해당 기능이 사라져요(문제가 생겼을 때 임시로 끄세요).</div><div style="display:flex;gap:6px 18px;flex-wrap:wrap;margin-top:8px">${FEATS.map(([k,n])=>`<label class="chk"><input type="checkbox" class="ds_ft" value="${k}" ${ft(k)?'checked':''}> ${n}</label>`).join('')}</div></div>
  <div class="row" style="gap:8px"><button class="p" onclick="devSiteSave()">저장</button></div>`}
 async function devSiteSave(){const banner={on:$('#ds_on').checked,text:$('#ds_t').value.trim(),level:$('#ds_l').value},off=[...document.querySelectorAll('.ds_off:checked')].map(e=>e.value);
- for(const [key,value] of [['banner',banner],['subjects',{off}]]){const r=await sb('/rest/v1/site_config?on_conflict=key',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key,value,updated_at:new Date().toISOString()})});if(!r.ok){toast(devErr(r));return}}
- toast('저장했어요');await siteFetch();devView()}
-async function devUsers(){const [a,b]=await Promise.all([rpc('dev_stats',{}),rpc('dev_users',{})]);if(!a.ok)throw new Error(devErr(a));const s=await a.json(),u=b.ok?await b.json():[];
+ const foff=[...document.querySelectorAll('.ds_ft')].filter(e=>!e.checked).map(e=>e.value);
+ for(const [key,value] of [['banner',banner],['subjects',{off}],['features',{off:foff}]]){const r=await sb('/rest/v1/site_config?on_conflict=key',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key,value,updated_at:new Date().toISOString()})});if(!r.ok){toast(devErr(r));return}}
+ devLog('사이트 설정 저장','배너 '+(banner.on?'켬':'끔')+' · 잠긴 과목 '+off.length+' · 끈 기능 '+foff.length);toast('저장했어요');await siteFetch();nav();devView()}
+async function devUsers(){const [a,b]=await Promise.all([rpc('dev_stats',{}),rpc('dev_users',{})]);if(!a.ok)throw new Error(devErr(a));const st=await a.json(),u=b.ok?await b.json():[];
  const K=[['teachers','선생님 계정'],['students','학생'],['attempts','채점 기록'],['worksheets','학습지'],['bugs','버그 신고'],['pending','가입 대기']];
- document.getElementById('devb').innerHTML=`<div class="card"><div class="rkp">${K.map(([k,v])=>`<div><small>${v}</small><b>${(+s[k]||0).toLocaleString()}</b></div>`).join('')}</div></div>
- <div class="card"><h3 style="margin-top:0">선생님 계정</h3><div class="tw"><table><tr><th>이메일</th><th>가입일</th><th>마지막 로그인</th><th>학생 수</th><th></th></tr>${u.map(x=>`<tr><td class="l">${esc(x.email||'')}</td><td>${x.created_at?new Date(x.created_at).toLocaleDateString('ko-KR'):'-'}</td><td>${x.last_sign_in_at?new Date(x.last_sign_in_at).toLocaleDateString('ko-KR'):'-'}</td><td>${x.students}</td><td>${x.dev?'<span class="tag">개발자</span>':''}</td></tr>`).join('')}</table></div></div>`}
+ const me=sess&&sess.user&&sess.user.id;
+ document.getElementById('devb').innerHTML=`<div class="card"><div class="rkp">${K.map(([k,v])=>`<div><small>${v}</small><b>${(+st[k]||0).toLocaleString()}</b></div>`).join('')}</div></div>
+ <div class="card"><h3 style="margin-top:0">개발자 추가</h3><div class="row" style="gap:8px"><input id="dv_e" type="email" placeholder="가입된 선생님 계정 이메일" style="max-width:300px"><button class="p" onclick="devAdd()">개발자로 지정</button></div></div>
+ <div class="card"><h3 style="margin-top:0">선생님 계정</h3><div class="tw"><table><tr><th>이메일</th><th>가입일</th><th>마지막 로그인</th><th>학생 수</th><th>상태</th><th></th></tr>${u.map(x=>`<tr><td class="l">${esc(x.email||'')}</td><td>${x.created_at?new Date(x.created_at).toLocaleDateString('ko-KR'):'-'}</td><td>${x.last_sign_in_at?new Date(x.last_sign_in_at).toLocaleDateString('ko-KR'):'-'}</td><td>${x.students}</td><td>${x.dev?'<span class="tag">개발자</span> ':''}${x.banned?'<span class="tag r">정지</span>':''}</td><td style="white-space:nowrap">${x.id===me?'':`${x.dev?`<button class="s sm" onclick="devRemove('${x.id}')">개발자 해제</button> `:''}<button class="s sm" onclick="devBan('${x.id}',${!x.banned})">${x.banned?'정지 해제':'계정 정지'}</button>`}</td></tr>`).join('')}</table></div></div>`}
+async function devAdd(){const email=$('#dv_e').value.trim();if(!email)return;const r=await rpc('dev_add',{p_email:email});if(!r.ok){toast(devErr(r));return}toast(await r.json()?'개발자로 지정했어요':'그 이메일의 계정이 없어요');devLog('개발자 지정',email);devView()}
+async function devRemove(id){if(!confirm('개발자 권한을 해제할까요?'))return;const r=await rpc('dev_remove',{p_uid:id});if(!r.ok){toast(devErr(r));return}devLog('개발자 해제',id);devView()}
+async function devBan(id,ban){if(!confirm(ban?'이 계정을 정지할까요? 로그인할 수 없게 돼요.':'정지를 해제할까요?'))return;const r=await rpc('dev_ban',{p_uid:id,p_ban:ban});if(!r.ok){toast(devErr(r));return}devLog(ban?'계정 정지':'정지 해제',id);devView()}
 async function devBugs(){const r=await sb('/rest/v1/bug_reports?select=id,who,msg,info,t&order=t.desc&limit=100');if(!r.ok)throw new Error(devErr(r));const L=await r.json();
- document.getElementById('devb').innerHTML=`<div class="card"><h3 style="margin-top:0">버그 신고 ${L.length}건</h3>${L.length?L.map(x=>`<div class="wn"><div class="wnh"><b>${esc(x.who||'선생님')}</b><span class="m">${new Date(+x.t).toLocaleString('ko-KR')}</span><button class="s sm" style="margin-left:auto" onclick="devBugDel(${x.id})">삭제</button></div><div style="margin:6px 0;white-space:pre-wrap">${esc(x.msg)}</div><div class="m" style="font-size:11px;word-break:break-all">${esc(JSON.stringify(x.info||{}).slice(0,300))}</div></div>`).join(''):'<div class="m">신고가 없어요.</div>'}</div>`}
+ document.getElementById('devb').innerHTML=`<div class="card"><h3 style="margin-top:0">버그 신고 ${L.length}건</h3>${L.length?L.map(x=>`<div class="wn"><div class="wnh"><b>${esc(x.who||'선생님')}</b><span class="m">${new Date(+x.t).toLocaleString('ko-KR')}</span><button class="s sm" style="margin-left:auto" onclick="devBugDel(${x.id})">삭제</button></div><div style="margin:6px 0;white-space:pre-wrap">${esc(x.msg)}</div>${[...new Set(String(x.msg).match(/\b[A-Z]-?[a-z]*\d*-?\d{2,4}(?:-\d{3,4})?\b/g)||[])].filter(c=>tagOf(c)).slice(0,4).map(c=>`<button class="s sm" onclick="devQEdit('${c}')">${c} 열기</button>`).join(' ')}<div class="m" style="font-size:11px;word-break:break-all">${esc(JSON.stringify(x.info||{}).slice(0,300))}</div></div>`).join(''):'<div class="m">신고가 없어요.</div>'}</div>`}
 async function devBugDel(id){if(!confirm('이 신고를 삭제할까요?'))return;const r=await sb('/rest/v1/bug_reports?id=eq.'+id,{method:'DELETE'});if(!r.ok){toast(devErr(r));return}devView()}
 
 /* ---------- 알림 · 업데이트 소식 ----------
@@ -1471,7 +1551,7 @@ async function finish(force){
  scrollTo(0,0);render()}
 /* ---------- 교재 탭 (books.js 를 처음 열 때 불러옴) ---------- */
 let _bkp=null;
-function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=15';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
+function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=16';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
 function booksView(){$('#main').innerHTML='<div class="card">'+ldg('교재를 불러오는 중…')+'</div>';bkLoad().then(()=>{if(tab==='books')return bkShow()}).catch(()=>{$('#main').innerHTML='<div class="card"><h2>교재</h2><p>교재를 불러오지 못했습니다. 인터넷 연결을 확인하고 다시 눌러 주세요.</p><button class="p" onclick="render()">다시 시도</button></div>'})}
 function bkPageSolve(){const id=$('#bpb').value,n=parseInt($('#bp').value);if(!n){alert('쪽 번호를 입력하세요.');return}bkLoad().then(()=>bkSolve(id,n)).catch(()=>alert('교재를 불러오지 못했습니다.'))}
 function bkPageGo(){const g=+($('#bpgap')||{value:0}).value;const id=$('#bpb').value+(g?'~g'+g:''),n=parseInt($('#bp').value);if(!n){alert('쪽 번호를 입력하세요.');return}bkLoad().then(()=>bkGradePage(id,n)).catch(()=>alert('교재를 불러오지 못했습니다.'))}
@@ -2137,15 +2217,18 @@ async function chalGo(sub){const hs=H(),L=lastRes();busyRun('도전 문제를 �
  practice(out,'챌린지 · '+sub)})}
 
 
-/* 오답 유사 학습지 · 단원 챌린지: 「취약 유형」 「학습지 만들기」 화면 위에 접이식 카드로 붙입니다 */
-const RTOOL={sim:false,chal:false};
-function recRefresh(){if(tab==='rec')recView();else{const y=scrollY;recToolsMount();scrollTo(0,y)}}
-function recToolsHtml(hs){return `<div class="card rtools" id="rtools"><details ${RTOOL.sim?'open':''} ontoggle="RTOOL.sim=this.open"><summary><b>오답 유사 학습지</b><small>틀린 문제와 같은 유형의 새 문제로 복습</small></summary>${recSim(hs)}</details><details ${RTOOL.chal?'open':''} ontoggle="RTOOL.chal=this.open"><summary><b>단원 챌린지</b><small>소단원 목표 문항·정답률 달성하기</small></summary>${recChal(hs)}</details></div>`}
-function recToolsMount(){const m=document.getElementById('main');if(!m)return;const old=document.getElementById('rtools');if(old)old.remove();
- if(!(teacher()&&CUR_S)&&!STUD)return;m.insertAdjacentHTML('afterbegin',recToolsHtml(H()))}
-function recToolOpen(k){RTOOL[k]=true;if(STUD){tab='smap'}else tab='weak';render();setTimeout(()=>{const e=document.getElementById('rtools');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})},60)}
+/* 오답 유사 학습지 · 단원 챌린지: 「취약 유형」(학생은 「유형 분석」「학습지 만들기」) 위 버튼으로 각각 별도 페이지로 이동 */
+function recBackTab(){return STUD?'stat':'weak'}
+function recBar(){return `<div class="rtbar">${ft('sim')?`<button class="s" onclick="tab='sim';render()">오답 유사 학습지 ›</button>`:''}${ft('chal')?`<button class="s" onclick="tab='chal';render()">단원 챌린지 ›</button>`:''}</div>`}
+function recToolsMount(){const m=document.getElementById('main');if(!m)return;const old=document.getElementById('rtbar');if(old)old.remove();
+ if(!(teacher()&&CUR_S)&&!STUD)return;if(!ft('sim')&&!ft('chal'))return;m.insertAdjacentHTML('afterbegin',recBar().replace('class="rtbar"','class="rtbar" id="rtbar"'))}
+function recToolPage(title,body){return `<div class="card"><div class="row"><button class="s sm" onclick="tab='${recBackTab()}';render()">‹ ${STUD?'유형 분석':'취약 유형'}</button><h2 style="margin:0">${title}</h2><span class="sjpill">${esc(SNAME[SUBJ])}</span></div></div>${body}`}
+function simView(){if(!CUR_S&&teacher()){$('#main').innerHTML=needStu();return}$('#main').innerHTML=recToolPage('오답 유사 학습지',recSim(H()))}
+function chalView(){if(!CUR_S&&teacher()){$('#main').innerHTML=needStu();return}$('#main').innerHTML=recToolPage('단원 챌린지',recChal(H()))}
+function recToolOpen(k){tab=k;render()}
+function recRefresh(){const y=scrollY;({sim:simView,chal:chalView,rec:recView})[tab]&&({sim:simView,chal:chalView,rec:recView})[tab]();scrollTo(0,y)}
 {const wrap=(n,f)=>{window[n]=function(){const r=f.apply(this,arguments);try{recToolsMount()}catch(e){}return r}};
- wrap('weakView',weakView);wrap('buildView',buildView);wrap('sMapView',sMapView);wrap('statView',statView)}
+ wrap('weakView',weakView);wrap('sMapView',sMapView);wrap('statView',statView)}
 
 /* ---------- 학생 주간 목표 · 뱃지 ---------- */
 const GL='omr_goal_v1';
@@ -3521,7 +3604,7 @@ document.addEventListener('keydown',e=>{const tg=e.target.tagName,typing=tg==='I
 let PALI=[];
 function openPalette(){$('#cfgBox').innerHTML=`<input id="pal" class="palin" type="search" placeholder="이동할 곳·학습지 이름/번호·학생 이름 검색  (Esc 닫기)" oninput="palFill(this.value)" onkeydown="palKey(event)"><div id="pall" class="pall"></div>`;$('#cfg').classList.add('open');setTimeout(()=>{const e=$('#pal');e&&e.focus()},30);palFill('')}
 function palFill(v){v=v.trim().toLowerCase();const items=[];
- const tabs=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['smap','학습지 만들기'],['shist','기록']]:[['grade','채점'],['weak','취약 유형'],['build','학습지 만들기'],['ws','내 학습지'],['books','교재'],['wrong','오답노트'],['stu','학생'],['stat','누적 분석'],['rec','학습 현황'],['search','문항 검색']];
+ const tabs=STUD?[['home','홈'],['tasks','과제'],['enter','채점'],['wrong','오답노트'],['smap','학습지 만들기'],['shist','기록']]:[['grade','채점'],['weak','취약 유형'],['build','학습지 만들기'],['ws','내 학습지'],['books','교재'],['wrong','오답노트'],['stu','학생'],['stat','누적 분석'],...(ft('rec')?[['rec','학습 현황']]:[]),['search','문항 검색']];
  tabs.forEach(([k,n])=>items.push({l:'이동 · '+n,run:()=>{tab=k;render()}}));
  if(!STUD){items.push({l:'설정 · 단축키 · 데이터 관리',run:openSettings},{l:'내 문제 추가',run:()=>{tab='search';render();myQForm()}},{l:'내 구성 불러오기·저장',run:openPresets});
   WSH.filter(w=>wsSubj(w)===SUBJ||true).slice().sort((a,b)=>b.t-a.t).slice(0,60).forEach(w=>items.push({l:'학습지 · '+w.title+' · '+fmtNo(w.id),run:()=>openByNumber(w.id),x:w.id}));
