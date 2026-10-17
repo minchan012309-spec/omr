@@ -1,5 +1,5 @@
 /* Solvi 서비스 워커: 앱 껍데기와 한 번 불러온 데이터를 저장해 두어 오프라인에서도 열리게 합니다. */
-const VER = 'solvi-v6';
+const VER = 'solvi-v7';
 const SHELL = ['./', 'index.html', 'books.js', 'bank/data.js?v=1', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VER).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -12,8 +12,9 @@ self.addEventListener('fetch', e => {
   if (r.method !== 'GET') return;
   const u = new URL(r.url);
   if (u.origin !== location.origin) return; // Supabase·외부 CDN은 건드리지 않음
+  if (/^\/(google[0-9a-z]+\.html|robots\.txt|sitemap\.xml)$/.test(u.pathname)) return; // 검색엔진 확인·안내 파일은 서비스 워커가 가로채지 않음
   if (r.mode === 'navigate') { // 페이지는 네트워크 우선(새 버전을 바로 받음), 실패하면 저장본
-    e.respondWith(fetch(r).then(res => { if (res && res.ok) caches.open(VER).then(c => c.put('index.html', res.clone())); return res; })
+    e.respondWith(fetch(r).then(res => { if (res && res.ok && (u.pathname === '/' || /\/index\.html$/.test(u.pathname))) caches.open(VER).then(c => c.put('index.html', res.clone())); return res; })
       .catch(() => caches.match('index.html').then(h => h || caches.match('./'))));
     return;
   }
