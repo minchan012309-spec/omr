@@ -940,7 +940,9 @@ async function sb(path,o={},retry=true){let r=await fetch(base_()+path,{...o,hea
 const rpc=(fn,args)=>sb('/rest/v1/rpc/'+fn,{method:'POST',body:JSON.stringify(args)});
 async function refresh(){try{const r=await fetch(base_()+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:CF.key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:sess.refresh_token})});
  if(!r.ok){sess=null;localStorage.removeItem(LSS);return false}setSess(await r.json());return true}catch(e){return false}}
-function setSess(j){sess={access_token:j.access_token,refresh_token:j.refresh_token,user:j.user&&{id:j.user.id,email:j.user.email}||(sess&&sess.user)};setTimeout(()=>{try{acctSave()}catch(e){}},0);if(autoOn()){jset(LSS,sess);try{sessionStorage.removeItem(LSS)}catch(e){}}else{try{sessionStorage.setItem(LSS,JSON.stringify(sess));localStorage.removeItem(LSS)}catch(e){}}}
+let _acT=0;
+async function acPull(force){if(STUD||!sess||!cloud())return;if(!force&&Date.now()-_acT<20000)return;_acT=Date.now();try{const r=await sb('/rest/v1/teacher_settings?select=data');if(!r.ok)return;const a=await r.json();const p=(a[0]&&a[0].data&&a[0].data.perms)||{};TSET.perms=Object.assign({},TSET.perms||{},p);acCache(TSET.perms);acRender()}catch(e){}}
+function setSess(j){setTimeout(()=>{try{acPull()}catch(e){}},300);sess={access_token:j.access_token,refresh_token:j.refresh_token,user:j.user&&{id:j.user.id,email:j.user.email}||(sess&&sess.user)};setTimeout(()=>{try{acctSave()}catch(e){}},0);if(autoOn()){jset(LSS,sess);try{sessionStorage.removeItem(LSS)}catch(e){}}else{try{sessionStorage.setItem(LSS,JSON.stringify(sess));localStorage.removeItem(LSS)}catch(e){}}}
 async function auth(kind,email,pw){const p=kind==='up'?'/auth/v1/signup':'/auth/v1/token?grant_type=password';
  const r=await fetch(base_()+p,{method:'POST',headers:{apikey:CF.key,'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
  const j=await r.json();if(!r.ok)throw new Error(j.msg||j.error_description||j.message||'실패');
@@ -1623,7 +1625,7 @@ async function finish(force){
  scrollTo(0,0);render()}
 /* ---------- 교재 탭 (books.js 를 처음 열 때 불러옴) ---------- */
 let _bkp=null;
-function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=40';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
+function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=41';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
 function booksView(){$('#main').innerHTML='<div class="card">'+ldg('교재를 불러오는 중…')+'</div>';bkLoad().then(()=>{if(tab==='books')return bkShow()}).then(()=>{if(tab==='books'&&typeof BKV!=='undefined'&&BKV.v==='shelf'&&!$('#bkstbar'))$('#main').insertAdjacentHTML('afterbegin','<div class="hint" id="bkstbar" style="margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span>교재를 얼마나 채점했는지, 어느 쪽이 남았는지 한눈에 볼 수 있어요.</span><button class="p sm" style="margin-left:auto" onclick="REC.m=\'book\';tab=\'rec\';render()">교재 현황 보기</button></div>')}).catch(()=>{$('#main').innerHTML='<div class="card"><h2>교재</h2><p>교재를 불러오지 못했습니다. 인터넷 연결을 확인하고 다시 눌러 주세요.</p><button class="p" onclick="render()">다시 시도</button></div>'})}
 function bkPageSolve(){const id=$('#bpb').value,n=parseInt($('#bp').value);if(!n){alert('쪽 번호를 입력하세요.');return}bkLoad().then(()=>bkSolve(id,n)).catch(()=>alert('교재를 불러오지 못했습니다.'))}
 function bkPageGo(){const g=+($('#bpgap')||{value:0}).value;const id=$('#bpb').value+(g?'~g'+g:''),n=parseInt($('#bp').value);if(!n){alert('쪽 번호를 입력하세요.');return}bkLoad().then(()=>bkGradePage(id,n)).catch(()=>alert('교재를 불러오지 못했습니다.'))}
@@ -2790,7 +2792,7 @@ async function openWs(rec,pv,opt){
  if(!pv&&win)$('#wsView').classList.add('wsm');
  if(rec.cover&&rec.cover.on&&!pv){const cv=document.createElement('div');cv.className='pg mcover';cv.innerHTML=coverHtml(rec,qs,rec._pts&&rec._pts.some(x=>x)?rec._pts.reduce((a,b)=>a+(+b||0),0):qs.length,nm,url);pages.appendChild(cv)}
  if(rec.pkg&&rec.pkg.pre&&rec.pkg.pre.length){const pe=rec.pkg.pre.map(h=>{const d=document.createElement('div');d.className='sb pk';d.dataset.nomin='1';d.innerHTML=h.replace(/^<div class="sb pk">|<\/div>$/g,'');return d});stage.append(...pe);flow(pe,true,false);flow(qEls,false,false)}else flow(qEls,true,false);
- const dup=dupGet()&&!pv;let dupSt=false;const dupBlank=()=>{if(!dupSt){dupSt=true;const st=document.createElement('style');st.textContent='.pg.wblank{position:relative;overflow:hidden}.pg.wblank .bklg{position:absolute;right:12mm;bottom:10mm;display:flex;align-items:center;gap:1.4mm;font:800 8.5pt/1 Pretendard,PretendardLocal,sans-serif;letter-spacing:-.02em;color:#8a96a6}.pg.wblank .bklg svg{height:6.5mm;width:auto;display:block}';root.appendChild(st)}const b=document.createElement('div');b.className='pg wblank';b.innerHTML='<div class="bklg">'+SLOGO+'</div>';pages.appendChild(b)};
+ const dup=dupGet()&&!pv;let dupSt=false;const dupBlank=()=>{if(!dupSt){dupSt=true;const st=document.createElement('style');st.textContent='.pg.wblank{position:relative;overflow:hidden}.pg.wblank .bklg{position:absolute;right:12mm;bottom:10mm;display:flex;align-items:center;gap:1.4mm;font:800 8.5pt/1 Pretendard,PretendardLocal,sans-serif;letter-spacing:-.02em;color:#8a96a6}.pg.wblank .bklg svg{height:6.5mm;width:auto;display:block}.pg.wblank .bklg img{height:6.5mm;width:auto;max-width:34mm;object-fit:contain;display:block}.pg.wblank .bklg .bld{width:.3mm;height:5mm;background:#9aa5b1;display:block}.pg.wblank .bklg .blt{font-weight:800;font-size:8.5pt;color:#8a96a6;white-space:nowrap}';root.appendChild(st)}const b=document.createElement('div');b.className='pg wblank';b.innerHTML='<div class="bklg">'+blankLogoHtml()+'</div>';pages.appendChild(b)};
  const physOdd=()=>pages.querySelectorAll('.pg').length%2===1;
  if(dup&&rec.ans&&physOdd())dupBlank();
  if(rec.ans&&!pv){const key=document.createElement('div');key.innerHTML=`<div class="sb"><div class="h" style="font-size:13pt">정답</div></div><div class="key">${qs.map((q,i)=>`<span>${i+1}. <b>${q.set==='essay'?'(서술형)':fmt(String(q.ans).slice(0,18))}</b></span>`).join('')}</div>`;flow([key,...sols],false,true)}
@@ -3436,19 +3438,29 @@ function acHtml(){const c=acCfg(),dk=themeEff()==='dark',u=acLogoFor(c,dk);if(c.
 function acRender(){const e=document.getElementById('acl');if(e){const c=acCfg(),u=acLogoFor(c,themeEff()==='dark');e.textContent='';e.hidden=true;
   if(c.mode==='logo'&&u){const im=new Image();im.alt='학원 로고';im.dataset.fit='dark';im.src=u;e.appendChild(im);e.hidden=false}
   else if(c.mode==='text'&&c.name){const t=document.createElement('span');t.className='acn';t.textContent=c.name;e.appendChild(t);e.hidden=false}}
- const sb=document.querySelector('.stbrand .aclg');if(sb||document.querySelector('.stbrand')){const h=acHtml();if(sb)sb.outerHTML=h;else document.querySelector('.stbrand').insertAdjacentHTML('beforeend',h)}acFitAll()}
+ const sb=document.querySelector('.stbrand .aclg');if(sb||document.querySelector('.stbrand')){const h=acHtml();if(sb)sb.outerHTML=h;else document.querySelector('.stbrand').insertAdjacentHTML('beforeend',h)}acFitAll();try{acPrepPrint()}catch(e){}}
 /* 학원 로고 자동 보정: 투명 여백을 잘라 내고, 배경과 비슷한 밝기면(밝은 로고 on 밝은 바탕 등) 반전해서 보이게 함 */
 const ACFIT=new Map();
 document.addEventListener('load',e=>{const t=e.target;if(t&&t.tagName==='IMG'&&t.dataset&&t.dataset.fit)acFit(t)},true);
 function acFitAll(){document.querySelectorAll('img[data-fit]').forEach(acFit)}
-function acFit(im){if(im.dataset.fd===im.src.length+im.dataset.fit)return;const run=()=>{try{const k=im.src.length+':'+im.src.slice(-30);let r=ACFIT.get(k);
-  if(!r){const W=Math.min(im.naturalWidth,400),H=Math.max(1,Math.round(im.naturalHeight*W/im.naturalWidth));const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.drawImage(im,0,0,W,H);const d=x.getImageData(0,0,W,H).data;
-   let a=0,l=0,x0=W,y0=H,x1=0,y1=0;for(let i=0;i<H;i++)for(let j=0;j<W;j++){const o=(i*W+j)*4,al=d[o+3];if(al<40)continue;const Y=(.2126*d[o]+.7152*d[o+1]+.0722*d[o+2])/255;a+=al;l+=Y*al;if(j<x0)x0=j;if(j>x1)x1=j;if(i<y0)y0=i;if(i>y1)y1=i}
-   r={Y:a?l/a:.5,src:null};if(a&&(x1-x0+1)<W*.85||(y1-y0+1)<H*.85){const pad=2,cx=Math.max(0,x0-pad),cy=Math.max(0,y0-pad),cw=Math.min(W-cx,x1-x0+1+pad*2),ch=Math.min(H-cy,y1-y0+1+pad*2);const c2=document.createElement('canvas');c2.width=cw;c2.height=ch;c2.getContext('2d').drawImage(c,cx,cy,cw,ch,0,0,cw,ch);r.src=c2.toDataURL('image/png')}ACFIT.set(k,r)}
+function acAnalyze(im){const k=im.src.length+':'+im.src.slice(-30);let r=ACFIT.get(k);if(r)return r;
+ const W=Math.min(im.naturalWidth,400),H=Math.max(1,Math.round(im.naturalHeight*W/im.naturalWidth));const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.drawImage(im,0,0,W,H);const d=x.getImageData(0,0,W,H).data;
+ let a=0,l=0,x0=W,y0=H,x1=0,y1=0;for(let i=0;i<H;i++)for(let j=0;j<W;j++){const o=(i*W+j)*4,al=d[o+3];if(al<40)continue;const Y=(.2126*d[o]+.7152*d[o+1]+.0722*d[o+2])/255;a+=al;l+=Y*al;if(j<x0)x0=j;if(j>x1)x1=j;if(i<y0)y0=i;if(i>y1)y1=i}
+ r={Y:a?l/a:.5,src:null};if(a&&((x1-x0+1)<W*.85||(y1-y0+1)<H*.85)){const pad=2,cx=Math.max(0,x0-pad),cy=Math.max(0,y0-pad),cw=Math.min(W-cx,x1-x0+1+pad*2),ch=Math.min(H-cy,y1-y0+1+pad*2);const c2=document.createElement('canvas');c2.width=cw;c2.height=ch;c2.getContext('2d').drawImage(c,cx,cy,cw,ch,0,0,cw,ch);r.src=c2.toDataURL('image/png')}
+ ACFIT.set(k,r);return r}
+function acFit(im){if(im.dataset.fd===im.src.length+im.dataset.fit)return;const run=()=>{try{const r=acAnalyze(im);
   if(r.src&&im.src!==r.src){im.addEventListener('load',run,{once:true});im.src=r.src;return}
   const tone=im.dataset.fit;im.style.filter=((tone==='light'&&r.Y>.62)||(tone==='dark'&&r.Y<.38))?'invert(1) hue-rotate(180deg)':'';im.dataset.fd=im.src.length+tone}catch(e){}};
  if(im.complete&&im.naturalWidth)run();else im.addEventListener('load',run,{once:true})}
-addEventListener('load',()=>{try{acRender()}catch(e){console.warn('acRender',e)}});
+/* 인쇄용(흰 종이): 양면 인쇄 빈 쪽 등에 Solvi 로고와 함께 넣을 학원 로고를 미리 준비 */
+let ACPRINT=null;
+async function acPrepPrint(){const c=acCfg(),u=c.mode==='logo'?(c.logo||c.logoDark):'';const o={mode:c.mode,name:c.name,src:'',filter:''};
+ if(u){try{const im=new Image();im.src=u;await im.decode();const r=acAnalyze(im);o.src=r.src||u;o.filter=r.Y>.62?'invert(1) hue-rotate(180deg)':''}catch(e){o.src=u}}ACPRINT=o}
+function blankLogoHtml(){const wm='<svg viewBox="'+WMVB+'" role="img" aria-label="Solvi"><path d="'+WMD+'" fill="#8a96a6"/><path d="'+WMU+'" fill="none" stroke="#ffc21a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+ const cc=acCfg(),o=ACPRINT||{mode:cc.mode,name:cc.name,src:cc.mode==='logo'?(cc.logo||cc.logoDark):'',filter:''};let ac='';
+ if(o.mode==='logo'&&o.src&&LOGO_RE.test(o.src))ac='<img src="'+o.src+'" alt="" style="'+(o.filter?'filter:'+o.filter:'')+'">';else if(o.mode==='text'&&o.name)ac='<span class="blt">'+esc(o.name)+'</span>';
+ return wm+(ac?'<i class="bld"></i>'+ac:'')}
+addEventListener('load',()=>{try{acRender()}catch(e){console.warn('acRender',e)}setTimeout(()=>{try{acPull()}catch(e){}},1200)});document.addEventListener('visibilitychange',()=>{if(!document.hidden)try{acPull()}catch(e){}});
 function acCache(o){try{if(o&&(o.logo||o.logoDark||o.acname||o.acmode))localStorage.setItem('omr_ac',JSON.stringify({logo:o.logo||'',logoDark:o.logoDark||'',acname:o.acname||'',acmode:o.acmode||'',logov:o.logov||''}));else localStorage.removeItem('omr_ac')}catch(e){}}
 async function acSave(patch){const P=TSET.perms=TSET.perms||{},old={logo:P.logo,logoDark:P.logoDark,logov:P.logov,acname:P.acname,acmode:P.acmode};
  if('logo' in patch||'logoDark' in patch)patch.logov=Date.now().toString(36);
