@@ -1,0 +1,25 @@
+# 공인 IP 직접 방식: docker compose -f docker-compose.yml -f docker-compose.public.yml up -d
+# (Docker Compose 2.24 이상 필요. get.docker.com 으로 설치했다면 충족합니다)
+services:
+  gateway:
+    ports: !override
+      - "80:80"
+      - "443:443"
+    volumes: !override
+      - ./Caddyfile.public:/etc/caddy/Caddyfile:ro
+      - ./solvi.caddy:/etc/caddy/solvi.caddy:ro
+      - ${DATA_DIR:-./data}/caddy:/data
+    environment:
+      SITE_URL: ${SITE_URL}
+      API_HOST: ${API_HOST}
+      ACME_EMAIL: ${ACME_EMAIL}
+
+  # 공인 IP 가 바뀌어도 도메인이 따라오게 5분마다 갱신 (DuckDNS 무료 주소용)
+  duckdns:
+    image: lscr.io/linuxserver/duckdns:latest
+    restart: unless-stopped
+    environment:
+      SUBDOMAINS: ${DUCKDNS_SUBDOMAIN}
+      TOKEN: ${DUCKDNS_TOKEN}
+      LOG_FILE: "false"
+    mem_limit: 50m

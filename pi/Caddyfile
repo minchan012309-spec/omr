@@ -1,60 +1,12 @@
-# 사이트(SITE_URL)에서 오는 요청만 허용하고, Supabase 와 같은 주소 모양을 맞춰 줍니다.
-#   /rest/v1/*       -> PostgREST
-#   /auth/v1/*       -> GoTrue (로그인)
-#   /functions/v1/passkey -> 패스키 함수
-# 바깥(HTTPS)은 Tailscale Funnel 또는 Cloudflare Tunnel 이 맡고, 여기는 127.0.0.1:8080 으로만 열립니다.
+# 터널 방식(Tailscale Funnel / Cloudflare Tunnel)용: 바깥 HTTPS 는 터널이 맡고, 여기는 127.0.0.1:8080 으로만 열립니다.
+# 공인 IP 로 직접 여는 방식은 Caddyfile.public 을 씁니다 (README 3단계 A).
 {
 	auto_https off
 	admin off
 }
 
+import /etc/caddy/solvi.caddy
+
 :80 {
-	@preflight method OPTIONS
-	handle @preflight {
-		header Access-Control-Allow-Origin "{$SITE_URL}"
-		header Access-Control-Allow-Headers "authorization, apikey, content-type, x-client-info, prefer, accept-profile, content-profile, range"
-		header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-		header Access-Control-Max-Age "86400"
-		header Vary Origin
-		respond 204
-	}
-
-	header {
-		Access-Control-Allow-Origin "{$SITE_URL}"
-		Access-Control-Expose-Headers "content-range, content-type"
-		Vary Origin
-	}
-
-	handle_path /rest/v1/* {
-		reverse_proxy rest:3000 {
-			header_down -Access-Control-Allow-Origin
-			header_down -Access-Control-Allow-Credentials
-			header_down -Access-Control-Expose-Headers
-			header_down -Vary
-		}
-	}
-	handle /auth/v1/* {
-		uri strip_prefix /auth/v1
-		reverse_proxy auth:9999 {
-			header_down -Access-Control-Allow-Origin
-			header_down -Access-Control-Allow-Credentials
-			header_down -Access-Control-Expose-Headers
-			header_down -Vary
-		}
-	}
-	handle /functions/v1/passkey {
-		rewrite * /
-		reverse_proxy passkey:8000 {
-			header_down -Access-Control-Allow-Origin
-			header_down -Access-Control-Allow-Headers
-			header_down -Access-Control-Allow-Methods
-			header_down -Vary
-		}
-	}
-	handle /health {
-		respond "ok" 200
-	}
-	handle {
-		respond "not found" 404
-	}
+	import solvi
 }
