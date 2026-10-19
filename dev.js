@@ -2,8 +2,8 @@
    왼쪽에서 항목을 고르면 오른쪽에 내용이 나옵니다. 서버 기능은 supabase/sql_15_developer.sql 이 준비돼 있어야 해요. */
 const DEVNAV=[
  ['개요',[['home','대시보드'],['daily','사용량 분석']]],
- ['콘텐츠',[['notice','사이트 공지'],['db','문항 관리'],['ovr','수정·숨김 목록'],['types','과목·유형 현황'],['scan','DB 점검'],['qstat','문항 통계']]],
- ['사용자',[['users','계정·개발자'],['students','학생 목록'],['signups','가입 신청'],['attempts','최근 채점'],['bugs','버그 신고']]],
+ ['콘텐츠',[['notice','사이트 공지'],['qrep','문항 신고함'],['db','문항 관리'],['ovr','수정·숨김 목록'],['types','과목·유형 현황'],['scan','DB 점검'],['qstat','문항 통계']]],
+ ['사용자',[['users','계정·개발자'],['students','학생 목록'],['signups','가입 신청'],['attempts','최근 채점'],['bugs','버그 신고'],['qrep','문항 신고함']]],
  ['사이트',[['site','배너·과목·기능'],['maint','점검 모드'],['deploy','업데이트 배포']]],
  ['시스템',[['pk','패스키 진단'],['curl','eBook 효과 진단'],['srv','서버 설정 점검'],['health','연결·성능'],['store','브라우저 저장소'],['tools','정리·도구'],['about','버전 정보']]],
  ['기록',[['log','활동 기록'],['export','내보내기']]]
@@ -11,7 +11,7 @@ const DEVNAV=[
 const DEVSEC=()=>DEVNAV.flatMap(g=>g[1]);
 const DVP=()=>document.getElementById('devb');
 const DVS={home:()=>devHome(),daily:()=>devDaily(),notice:()=>devNotice(),db:()=>devDb(),ovr:()=>devOvr(),types:()=>devTypes(),scan:()=>devScanView(),qstat:()=>devQstat(),
- users:()=>devUsers(),students:()=>devStudents(),signups:()=>devSignups(),attempts:()=>devAttempts(),bugs:()=>devBugs(),site:()=>devSite(),maint:()=>devMaint(),deploy:()=>devDeploy(),
+ users:()=>devUsers(),students:()=>devStudents(),signups:()=>devSignups(),attempts:()=>devAttempts(),bugs:()=>devBugs(),qrep:()=>devQrep(),site:()=>devSite(),maint:()=>devMaint(),deploy:()=>devDeploy(),
  pk:()=>devPk(),curl:()=>devCurl(),srv:()=>devSrv(),health:()=>devHealth(),store:()=>devStore(),tools:()=>devTools(),about:()=>devAbout(),log:()=>devLogView(),export:()=>devExport()};
 function devMain(){
  if(!DEV.ok){$('#main').innerHTML='<div class="card empty">개발자 계정으로 로그인해야 볼 수 있어요.</div>';return}
@@ -239,3 +239,11 @@ async function devCurl(){const el=document.getElementById('devb');el.innerHTML='
   add(cv.width>10&&ms<4000,'쪽 그림 만들기',cv.width+'×'+cv.height+' · '+ms+'ms',ms>=4000?'너무 느려요(4.5초 넘으면 기본 효과로 바뀌어요)':'')}
  catch(e){add(false,'쪽 그림 만들기',String(e.message||e))}
  const err=(typeof EBK!=='undefined'&&EBK.curlErr)||'';if(err)add(false,'마지막 넘김 실패 이유',err)}
+
+/* --- 문항 신고함: 학생·선생님이 신고한 문항을 문항별로 모아 고치고 「처리됨」으로 바꾸면 신고한 학생에게 알림이 가요 (sql_17_features.sql) --- */
+let QREP={show:'open'};
+async function devQrep(){const L=await dvRpc('dev_qreports').catch(e=>{throw new Error(/404|not find|dev_qreports/i.test(e.message)?'서버에 문항 신고 기능이 없어요. Supabase SQL Editor에서 supabase/sql_17_features.sql 을 실행하세요.':e.message)});
+ const list=L.filter(g=>QREP.show==='all'||g.open>0);
+ document.getElementById('devb').innerHTML=`<div class="card"><div class="row"><h3 style="margin:0">문항 신고함</h3><span class="m">처리 대기 ${L.filter(g=>g.open>0).length}문항 · 전체 ${L.length}문항</span><span class="seg" style="margin-left:auto"><label><input type="radio" name="qrs" ${QREP.show==='open'?'checked':''} onchange="QREP.show='open';devQrep()"><span>대기</span></label><label><input type="radio" name="qrs" ${QREP.show==='all'?'checked':''} onchange="QREP.show='all';devQrep()"><span>전체</span></label></span></div><div class="m" style="margin:6px 0 10px">신고가 많은 문항부터 보여요. 「열어서 수정」으로 정답·해설을 고친 뒤 「수정함」을 누르면 신고한 학생에게 알림이 가요.</div>
+ ${list.length?list.map(g=>{const rs={};g.items.forEach(x=>rs[x.reason]=(rs[x.reason]||0)+1);const memos=g.items.filter(x=>x.memo).slice(0,3);return `<div class="wn"><div class="wnh"><b>${esc(g.code)}</b><span class="tag ${g.open?'r':''}">${g.open?'대기 '+g.open:'처리됨'}</span><span class="m">신고 ${g.total}건 · ${Object.entries(rs).map(([k,v])=>esc(k)+' '+v).join(' · ')}</span><span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="s sm" onclick="devQEdit('${esc(g.code)}')">열어서 수정</button>${g.open?`<button class="p sm" onclick="devQrepDo('${esc(g.code)}','fixed')">수정함</button><button class="s sm" onclick="devQrepDo('${esc(g.code)}','rejected')">문제없음</button>`:''}</span></div>${memos.map(x=>`<div class="m" style="margin:4px 0">${esc(x.who||'')}: ${esc(x.memo)}</div>`).join('')}</div>`}).join(''):'<div class="m">처리할 신고가 없어요.</div>'}</div>`}
+async function devQrepDo(code,st){const note=prompt(st==='fixed'?'학생에게 보낼 한마디 (예: 정답을 ③으로 고쳤어요)':'학생에게 보낼 한마디 (예: 확인해 보니 정답이 맞아요)','');if(note===null)return;const r=await rpc('dev_qreport_resolve',{p_code:code,p_status:st,p_note:note});if(!r.ok){toast(devErr(r));return}const n=await r.json();devLog('문항 신고 처리',code+' '+st+' '+n+'건');toast(n+'건을 처리했어요');devQrep()}
