@@ -93,6 +93,7 @@ services:
       - "127.0.0.1:8080:80"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./solvi.caddy:/etc/caddy/solvi.caddy:ro
     environment:
       SITE_URL: ${SITE_URL}
     mem_limit: 60m
