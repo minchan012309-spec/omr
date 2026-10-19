@@ -970,6 +970,8 @@ begin
   s := _st_auth(p_login, p_pw);
   if s.id is null then raise exception 'login failed'; end if;
   if length(coalesce(p_memo, '')) > 1500 or length(coalesce(p_photo, '')) > 200000 then raise exception 'too large'; end if;
+  -- 사진은 이미지 data URL 형식만 허용 (화면에 그대로 넣기 때문에 다른 문자열은 막습니다)
+  if coalesce(p_photo, '') <> '' and p_photo !~ '^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$' then raise exception 'bad photo'; end if;
   if not exists (select 1 from wrong_notes where student_id = s.id and code = p_code)
      and (select count(*) from wrong_notes where student_id = s.id) >= 300 then raise exception 'too many'; end if;
   insert into wrong_notes (student_id, code, memo, photo, t) values (s.id, p_code, coalesce(p_memo, ''), nullif(p_photo, ''), (extract(epoch from now()) * 1000)::bigint)
@@ -1001,6 +1003,8 @@ create table if not exists q_reports (
   t           bigint not null default (extract(epoch from now()) * 1000)::bigint,
   resolved_at bigint
 );
+alter table q_reports drop constraint if exists q_reports_fmt;
+alter table q_reports add constraint q_reports_fmt check (code ~ '^[A-Za-z0-9_.:-]{3,40}$' and length(reason) <= 60 and length(memo) <= 800 and length(who) <= 120) not valid;
 create index if not exists q_reports_code on q_reports (code);
 alter table q_reports enable row level security;
 drop policy if exists "qr select" on q_reports;
@@ -1015,7 +1019,7 @@ declare s students%rowtype;
 begin
   s := _st_auth(p_login, p_pw);
   if s.id is null then raise exception 'login failed'; end if;
-  if length(coalesce(p_code, '')) < 3 or length(p_code) > 40 then raise exception 'bad code'; end if;
+  if coalesce(p_code, '') !~ '^[A-Za-z0-9_.:-]{3,40}$' then raise exception 'bad code'; end if;
   if exists (select 1 from q_reports where student_id = s.id and code = p_code and status = 'open') then return; end if;
   insert into q_reports (user_id, student_id, who, code, reason, memo) values (s.user_id, s.id, s.name, p_code, left(coalesce(p_reason, ''), 60), left(coalesce(p_memo, ''), 800));
 end $$;
