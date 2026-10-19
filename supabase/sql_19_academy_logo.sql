@@ -7,7 +7,11 @@ declare s students%rowtype;
 begin
   s := _st_auth(p_login, p_pw);
   if s.id is null then return null; end if;
-  return coalesce((select (data->'perms') - 'logo' - 'logoDark' from teacher_settings where user_id = s.user_id), '{}'::jsonb)::json;
+  return coalesce((select ((data->'perms') - 'logo' - 'logoDark')
+      || case when coalesce(data->'perms'->>'logo', '') <> '' or coalesce(data->'perms'->>'logoDark', '') <> ''
+              then jsonb_build_object('logov', coalesce(nullif(data->'perms'->>'logov', ''), left(md5(coalesce(data->'perms'->>'logo', '') || coalesce(data->'perms'->>'logoDark', '')), 8)))
+              else '{}'::jsonb end
+      from teacher_settings where user_id = s.user_id), '{}'::jsonb)::json;
 end $$;
 grant execute on function st_perms(text, text) to anon, authenticated;
 
@@ -18,6 +22,6 @@ begin
   s := _st_auth(p_login, p_pw);
   if s.id is null then return null; end if;
   select data->'perms' into p from teacher_settings where user_id = s.user_id;
-  return json_build_object('logo', coalesce(p->>'logo', ''), 'logoDark', coalesce(p->>'logoDark', ''), 'v', coalesce(p->>'logov', ''));
+  return json_build_object('logo', coalesce(p->>'logo', ''), 'logoDark', coalesce(p->>'logoDark', ''), 'v', coalesce(nullif(p->>'logov', ''), left(md5(coalesce(p->>'logo', '') || coalesce(p->>'logoDark', '')), 8)));
 end $$;
 grant execute on function st_academy(text, text) to anon, authenticated;
