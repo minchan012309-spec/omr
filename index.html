@@ -1546,7 +1546,7 @@ async function wrongView(){
  const qs=all.map(c=>byCode[c]).filter(q=>q&&subjOf(q.code)===SUBJ);
  const g={};qs.forEach(q=>(g[q.sub+' '+q.subname+' · '+q.type]=g[q.sub+' '+q.subname+' · '+q.type]||[]).push(q));
  const codes=qs.map(q=>q.code);
- let h=`<div class="card"><div class="row"><h2 style="margin:0">오답노트</h2><span class="sjpill">${esc(SNAME[SUBJ])}</span><span class="m">가장 최근에 틀린 문제 ${qs.length}개</span><span style="margin-left:auto;display:flex;gap:6px">${qs.length?`<button class="s sm" onclick="recToolOpen('sim')">유사 학습지</button><button class="s sm" onclick="dailyFive()">오늘의 5문제</button><button class="p sm" onclick="redoCodes('${codes.join(',')}')">전부 다시 풀기</button>${teacher()?`<button class="s sm" onclick="makeWs(['${codes.join("','")}'])">오답 학습지</button>`:''}`:''}</span></div></div>`;
+ let h=`<div class="card"><div class="row"><h2 style="margin:0">오답노트</h2><span class="sjpill">${esc(SNAME[SUBJ])}</span><span class="m">가장 최근에 틀린 문제 ${qs.length}개</span><span style="margin-left:auto;display:flex;gap:6px">${qs.length?`<button class="s sm" onclick="recToolOpen('sim')">유사 학습지</button><button class="s sm" onclick="dailyFive()">오늘의 문제</button><button class="p sm" onclick="redoCodes('${codes.join(',')}')">전부 다시 풀기</button>${teacher()?`<button class="s sm" onclick="makeWs(['${codes.join("','")}'])">오답 학습지</button>`:''}`:''}</span></div></div>`;
  if(!qs.length)h+='<div class="card empty">틀린 문제가 없어요. 채점을 하면 여기에 모입니다.</div>';
  Object.entries(g).forEach(([k,l])=>{h+=`<div class="card"><h3 style="margin-top:0">${esc(k)} <em class="m" style="font-style:normal">${l.length}개</em></h3>${l.map(q=>`<div class="wn" id="wn_${esc(q.code)}"><div class="wnh" onclick="wnTog('${q.code}')"><b>${q.code}</b><span class="tag">${q.lv||''}</span><span class="m">${(L[q.code]||[]).length}회 풀이</span><span class="wnx">보기 ▾</span></div></div>`).join('')}</div>`});
  $('#main').innerHTML=h}
@@ -1995,7 +1995,7 @@ async function diagView(){try{localStorage.setItem('omr_seen_diag','1')}catch(e)
   return `<div class="dty"><div class="row"><b>${esc(t.type)}</b><span class="m">${esc(t.sub)} · 오답 ${t.w}/${t.n}</span><span class="dtc">${mc}</span></div>${warn?`<div class="dgwn"><b>자주 하는 혼동</b>${esc(warn)}</div>`:''}<div class="row" style="margin-top:6px">${sec?`<button class="s sm" onclick="diagToSec('${sec.id}')">📖 개념</button>`:''}<button class="s sm" onclick="diagPractice('${esc(t.k).replace(/'/g,"\\'")}')">같은 유형 5문제 풀기</button></div></div>`}).join('');
  const rec=D.wrong.slice(-6).reverse();
  const timed=Object.values(D.byType).filter(t=>t.tn>=3);
- const timeH=timed.length?`<div class="card"><h3 style="margin-top:0">풀이 시간 진단</h3><div class="m" style="margin-bottom:8px">기준 시간(난이도 하 50초 · 중 80초 · 상 120초 · 최 160초) 대비 내 풀이 시간이에요. 시간은 화면에서 풀 때(오늘의 5문제, 문제 보며 풀기, 모의고사)만 기록돼요.</div><div class="tmt">${timed.sort((a,b)=>(b.slow+b.fastw)-(a.slow+a.fastw)||b.tsum/b.tn-a.tsum/a.tn).slice(0,8).map(t=>{const avg=Math.round(t.tsum/t.tn),med=[...t.ts].sort((a,b)=>a-b)[Math.floor(t.ts.length/2)];return `<div class="tmr2"><span class="tn2">${esc(t.type)}</span><span class="m">${t.tn}문항 · 평균 ${avg}초</span><div class="tbar"><i style="width:${Math.min(100,med*50)}%;background:${med>1.3?'#e8590c':med<.6?'#2b9a5b':'var(--b)'}"></i><u style="left:50%"></u></div><span class="m">기준 대비 ${Math.round(med*100)}%</span><span class="tbg">${t.slow?`<span class="dgc sm" style="background:#e8590c">느린 정답 ${t.slow}</span>`:''}${t.fastw?`<span class="dgc sm" style="background:#d6336c">빠른 오답 ${t.fastw}</span>`:''}</span></div>`}).join('')}</div></div>`:`<div class="card"><h3 style="margin-top:0">풀이 시간 진단</h3><div class="m">아직 시간 기록이 부족해요. 「오늘의 5문제」나 채점 화면의 「📖 문제 보며 풀기」로 풀면 문항별 풀이 시간이 기록돼요. 3문항 이상 쌓이면 여기에 진단이 나와요.</div></div>`;
+ const timeH=timed.length?`<div class="card"><h3 style="margin-top:0">풀이 시간 진단</h3><div class="m" style="margin-bottom:8px">기준 시간(난이도 하 50초 · 중 80초 · 상 120초 · 최 160초) 대비 내 풀이 시간이에요. 시간은 화면에서 풀 때(오늘의 문제, 문제 보며 풀기, 모의고사)만 기록돼요.</div><div class="tmt">${timed.sort((a,b)=>(b.slow+b.fastw)-(a.slow+a.fastw)||b.tsum/b.tn-a.tsum/a.tn).slice(0,8).map(t=>{const avg=Math.round(t.tsum/t.tn),med=[...t.ts].sort((a,b)=>a-b)[Math.floor(t.ts.length/2)];return `<div class="tmr2"><span class="tn2">${esc(t.type)}</span><span class="m">${t.tn}문항 · 평균 ${avg}초</span><div class="tbar"><i style="width:${Math.min(100,med*50)}%;background:${med>1.3?'#e8590c':med<.6?'#2b9a5b':'var(--b)'}"></i><u style="left:50%"></u></div><span class="m">기준 대비 ${Math.round(med*100)}%</span><span class="tbg">${t.slow?`<span class="dgc sm" style="background:#e8590c">느린 정답 ${t.slow}</span>`:''}${t.fastw?`<span class="dgc sm" style="background:#d6336c">빠른 오답 ${t.fastw}</span>`:''}</span></div>`}).join('')}</div></div>`:`<div class="card"><h3 style="margin-top:0">풀이 시간 진단</h3><div class="m">아직 시간 기록이 부족해요. 「오늘의 5문제」나 채점 화면의 「📖 문제 보며 풀기」로 풀면 문항별 풀이 시간이 기록돼요. 3문항 이상 쌓이면 여기에 진단이 나와요.</div></div>`;
  $('#main').innerHTML=head+`<div class="card"><h3 style="margin-top:0">오답은 왜 생겼을까?</h3><div class="dbar">${bar}</div><div class="dleg">${names.filter(k=>D.causes[k]).map(k=>`<div><i style="background:${DGK[k][1]}"></i><b>${DGK[k][0]}</b> ${D.causes[k]}개 (${Math.round(D.causes[k]/tot*100)}%)<span>${DGK[k][2]}</span></div>`).join('')}</div>${top?`<div class="hint" style="margin-top:10px">가장 큰 원인은 <b>${DGK[top][0]}</b>이에요. ${DGK[top][2]}</div>`:''}</div>
  ${habits.length?`<div class="card"><h3 style="margin-top:0">내 풀이 습관</h3><div class="hab">${habits.map(([t,m])=>`<div><b>${t}</b><p>${m}</p></div>`).join('')}</div></div>`:''}
  <div class="card"><h3 style="margin-top:0">유형별 처방</h3>${typeRowsH||'<div class="m">유형별로 분석할 오답이 부족해요.</div>'}</div>${timeH}
@@ -2068,17 +2068,39 @@ async function examView(){const ex=WSH.filter(w=>w.exam&&w.exam.school);await en
   <div class="exl">${g.ws.map(w=>`<div class="exi"><b>${esc(w.exam.year)} ${esc(w.exam.term)}</b><span>${esc(w.title)}</span><em>${w.codes.length}문항</em><span class="exb"><button class="s sm" onclick="examSimilar('${w.id}')">비슷하게 출제</button><button class="s sm" onclick="wsTwin('${w.id}')">쌍둥이 학습지</button><button class="s sm" onclick="wsReprint('${w.id}')">출력</button><button class="s sm" onclick="wsExam('${w.id}')">수정</button></span></div>`).join('')}</div></div>`});
  $('#main').innerHTML=h}
 
-/* ---------- 오늘의 5문제 · 시험 D-day · 학습지 결과 분석 ---------- */
-async function dailyFive(){
- const last={};H().slice().sort((a,b)=>a.t-b.t).forEach(h=>h.items.forEach(x=>{last[x.c]={r:x.r,t:h.t}}));const now=Date.now();const out=[];
- const due=Object.entries(last).filter(([c,v])=>!v.r&&now-v.t>=20*36e5&&subjOf(c)===SUBJ).sort((a,b)=>a[1].t-b[1].t).map(x=>x[0]);
- await ensureCodes(due.slice(0,12));due.filter(c=>byCode[c]&&!['essay','blank','noxq'].includes(byCode[c].set)).slice(0,3).forEach(c=>out.push(c));
+/* ---------- 오늘의 문제 · 시험 D-day · 학습지 결과 분석 ---------- */
+/* 오늘의 문제: 틀린 문제를 1·3·7·14·30일 간격으로 다시 내는 간격 복습 + 새 문제, 범위(단원) 선택 */
+const TDL='omr_today_v1',TD_INT=[1,3,7,14,30];let TDS=null;
+const tdGet=()=>Object.assign({n:5,rv:1,sc:{}},jget(TDL,{}));
+function tdSchedule(){const per={};H().slice().sort((a,b)=>a.t-b.t).forEach(h=>h.items.forEach(x=>{(per[x.c]=per[x.c]||[]).push([h.t,x.r])}));
+ const out=[];Object.entries(per).forEach(([c,a])=>{if(subjOf(c)!==SUBJ)return;let box=-1,last=0;a.forEach(([t,r])=>{if(box<0){if(!r){box=0;last=t}}else{box=r?box+1:0;last=t}});if(box<0||box>=TD_INT.length)return;out.push({c,box,last,due:last+TD_INT[box]*864e5})});return out}
+async function tdDue(sel){const now=Date.now(),d=tdSchedule().filter(x=>x.due<=now).sort((a,b)=>a.due-b.due);await ensureCodes(d.slice(0,80).map(x=>x.c));
+ return d.filter(x=>{const q=byCode[x.c];return q&&!['essay','blank','noxq'].includes(q.set)&&(!sel||sel.has(q.sub))})}
+function tdOpen(){const t=tdGet(),sc=t.sc[SUBJ];TDS={n:t.n,rv:t.rv,sel:new Set(sc||subs.map(x=>x[0]))};tdDraw();tdInfo()}
+function tdDraw(){const S=TDS;$('#cfgBox').innerHTML=`<h2 style="margin-top:0">오늘의 문제</h2><div class="m">틀린 문제는 <b>1·3·7·14·30일</b> 뒤에 다시 나와서 기억에 남게 도와줘요. 아직 배우지 않은 단원은 범위에서 빼 두세요.</div>
+ <h3 class="sh2" style="margin:14px 0 6px">문제 수</h3><div class="chps">${[5,10,15,20].map(n=>`<button class="chp ${S.n===n?'on':''}" onclick="TDS.n=${n};tdDraw();tdInfo()">${n}문제</button>`).join('')}</div>
+ <label class="chk" style="margin:10px 0 0"><input type="checkbox" ${S.rv?'checked':''} onchange="TDS.rv=this.checked?1:0;tdInfo()"> 복습할 문제를 먼저 넣기</label>
+ <h3 class="sh2" style="margin:14px 0 6px">범위 <small>${esc(SNAME[SUBJ])}</small></h3><div class="row" style="margin-bottom:8px"><button class="s sm" onclick="TDS.sel=new Set(subs.map(x=>x[0]));tdDraw();tdInfo()">전체 선택</button><button class="s sm" onclick="TDS.sel=new Set();tdDraw();tdInfo()">모두 해제</button><span class="m">${S.sel.size} / ${subs.length}개 단원</span></div>
+ <div class="chps tdsc">${subs.map(([k,n])=>`<button class="chp ${S.sel.has(k)?'on':''}" onclick="tdTog(this,'${k}')">${esc(k)} ${esc(n)}</button>`).join('')}</div>
+ <div class="hint" id="tdInfo" style="margin-top:12px">확인하는 중…</div>
+ <div class="row" style="margin-top:14px;justify-content:flex-end"><button class="s" onclick="closeCfg()">취소</button><button class="p" onclick="tdGo()">시작</button></div>`;$('#cfg').classList.add('open')}
+function tdTog(b,k){const s=TDS.sel;s.has(k)?s.delete(k):s.add(k);b.classList.toggle('on',s.has(k));const m=$('#cfgBox .row .m');if(m)m.textContent=s.size+' / '+subs.length+'개 단원';tdInfo()}
+let _tdq=0;
+async function tdInfo(){const my=++_tdq;const e=$('#tdInfo');if(!e)return;if(!TDS.sel.size){e.textContent='범위를 한 개 이상 선택하세요.';return}
+ const d=await tdDue(TDS.sel);if(my!==_tdq||!$('#tdInfo'))return;const last={};H().forEach(h=>h.items.forEach(x=>{last[x.c]=1}));
+ const nw=DATA.filter(q=>TDS.sel.has(q.sub)&&last[q.code]===undefined&&['mc','top','ox'].includes(q.set)&&!isMulti(q)).length;
+ e.innerHTML=`오늘 복습할 문제 <b>${d.length}개</b>${d.length?' (범위 안)':''} · 아직 안 풀어 본 문제 <b>${nw}개</b>`}
+async function tdGo(){const S=TDS;if(!S.sel.size){alert('범위를 한 개 이상 선택하세요.');return}const t=tdGet();t.n=S.n;t.rv=S.rv;t.sc[SUBJ]=subs.length===S.sel.size?null:[...S.sel];if(!t.sc[SUBJ])delete t.sc[SUBJ];jset(TDL,t);closeCfg();
+ const out=[],n=S.n,sel=S.sel,seen=new Set();const add=q=>{if(!q||out.length>=n)return;const k=srcKey(q);if(seen.has(k))return;seen.add(k);out.push(q.code)};
+ const last={};H().slice().sort((a,b)=>a.t-b.t).forEach(h=>h.items.forEach(x=>{last[x.c]={r:x.r,t:h.t}}));
+ if(S.rv){const d=await tdDue(sel);d.slice(0,Math.max(1,Math.round(n*.7))).forEach(x=>add(byCode[x.c]))}
  const rows=typeRows().filter(o=>o.n&&['skull','red','yellow'].includes(o.lv)).sort((a,b)=>a.p-b.p).map(o=>o.k);const wk=new Set(rows);
- const pool=DATA.filter(q=>!out.includes(q.code)&&last[q.code]===undefined&&['mc','top','ox'].includes(q.set)&&!isMulti(q));
- const ord=a=>shuffle(a);let fill=[...ord(pool.filter(q=>wk.has(q.sub+'|'+q.type))),...ord(pool.filter(q=>!wk.has(q.sub+'|'+q.type)))];
- const seen=new Set(out.map(c=>srcKey(byCode[c])));for(const q of fill){if(out.length>=5)break;const k=srcKey(q);if(seen.has(k))continue;seen.add(k);out.push(q.code)}
- if(!out.length){alert('오늘 풀 문제가 없어요. 채점 기록이 쌓이면 복습할 문제를 골라 드려요.');return}
- practice(out,'오늘의 5문제')}
+ const pool=DATA.filter(q=>sel.has(q.sub)&&!out.includes(q.code)&&last[q.code]===undefined&&['mc','top','ox'].includes(q.set)&&!isMulti(q));
+ const fill=[...shuffle(pool.filter(q=>wk.has(q.sub+'|'+q.type))),...shuffle(pool.filter(q=>!wk.has(q.sub+'|'+q.type)))];fill.forEach(add);
+ if(out.length<n){const more=DATA.filter(q=>sel.has(q.sub)&&!out.includes(q.code)&&['mc','top','ox'].includes(q.set)&&!isMulti(q)).sort((a,b)=>((last[a.code]||{}).t||0)-((last[b.code]||{}).t||0));more.slice(0,n*3).forEach(add)}
+ if(!out.length){alert('고른 범위에서 풀 문제가 없어요. 범위를 넓혀 보세요.');return}
+ const d=new Date();practice(out,'오늘의 문제 · '+(d.getMonth()+1)+'월 '+d.getDate()+'일')}
+const dailyFive=tdOpen;
 
 /* ---------- 학습 현황: 날짜별 이력 · 기간 보고서 · 오답 유사 학습지 · 단원 챌린지 ---------- */
 const REC={m:'day',ym:null,day:null,per:'30',from:'',to:''};
@@ -3147,7 +3169,7 @@ function studHome(){
  const stars=rows.filter(o=>o.lv==='star').length;const days=new Set(hist.map(h=>dayStart(h.t)));let streak=0;for(let d=today;days.has(d)||(d===today&&!days.has(d));d-=864e5){if(days.has(d))streak++;else if(d!==today)break;if(streak>400)break}
  const pend=ASSIGN.filter(a=>!hist.some(h=>h.set==='ws'&&h.sub===a.wid));
  const hr=new Date().getHours();const gr=hr<11?'좋은 아침이에요':hr<18?'안녕하세요':'오늘도 수고했어요';
- $('#main').innerHTML=`${domBanner()}${gdraftBanner()}${outboxN()?`<div class="hint" style="margin-bottom:12px">서버에 아직 올리지 못한 채점이 <b>${outboxN()}건</b> 있어요. 인터넷에 연결되면 자동으로 제출돼요. <button class="s sm" onclick="outboxFlush()">지금 다시 시도</button></div>`:''}<div class="st-hero"><div class="hh"><div class="hi">${gr}, <b>${esc(nm)}</b>님</div><div class="sub">${pend.length?`제출하지 않은 과제가 <b>${pend.length}개</b> 있어요.`:'밀린 과제가 없어요. 잘하고 있어요!'}</div>${ddayChip()}</div><span class="row hb"><button class="p" onclick="dailyFive()">오늘의 5문제</button><button class="p" onclick="tab='tasks';render()">내 과제 보기</button></span></div>
+ $('#main').innerHTML=`${domBanner()}${gdraftBanner()}${outboxN()?`<div class="hint" style="margin-bottom:12px">서버에 아직 올리지 못한 채점이 <b>${outboxN()}건</b> 있어요. 인터넷에 연결되면 자동으로 제출돼요. <button class="s sm" onclick="outboxFlush()">지금 다시 시도</button></div>`:''}<div class="st-hero"><div class="hh"><div class="hi">${gr}, <b>${esc(nm)}</b>님</div><div class="sub">${pend.length?`제출하지 않은 과제가 <b>${pend.length}개</b> 있어요.`:'밀린 과제가 없어요. 잘하고 있어요!'}</div>${ddayChip()}</div><span class="row hb"><button class="p" onclick="dailyFive()">오늘의 문제</button><button class="p" onclick="tab='tasks';render()">내 과제 보기</button></span></div>
  ${goalCard(hist)}
  <div class="st-strip"><div><b>${n?Math.round(r/n*100)+'%':'-'}</b><span>정답률</span></div><div><b>${tn}</b><span>오늘</span></div><div><b>${wk}</b><span>7일</span></div><div><b>${streak}<small>일</small></b><span>연속</span></div><div><b>${stars}</b><span>정복</span></div></div>
  <div class="card"><h2>지금 보강하면 좋은 유형</h2>${weak.length?`<div class="wk">${weak.map(o=>`<div class="wkc"><i class="ic">${ICON[o.lv]}</i><div><b>${esc(o.type)}</b><div class="m">정답률 ${Math.round(o.p*100)}% · ${o.n}문항 풀이</div></div></div>`).join('')}</div><div class="row" style="margin-top:12px"><button class="p" onclick="tab='smap';render()">유형 지도에서 연습하기</button></div>`:'<div class="empty">아직 채점 기록이 부족해요. 학습지나 교재 쪽을 채점해 보세요.</div>'}</div>
