@@ -539,6 +539,9 @@ h1,h2,h3,h4{text-wrap:balance;letter-spacing:-.01em}p,.hint,li{text-wrap:pretty}
 .card{transition:box-shadow .2s,border-color .2s}
 @media(hover:hover){.qa:hover,.bkcard:hover{border-color:color-mix(in srgb,var(--b) 40%,var(--l));box-shadow:0 6px 18px #0000001a}.qa,.bkcard{transition:border-color .2s,box-shadow .2s,transform .15s}.qa:hover{transform:translateY(-1px)}}
 @media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+/* 학원 로고가 헤더를 넘치지 않게: 줄어들 수 있고 폭에 상한 */
+header #acl{flex:0 1 auto;min-width:0;max-width:clamp(72px,24vw,190px);overflow:hidden}header #acl img{max-width:100%;height:auto;max-height:36px}header #acl .acn{max-width:100%}
+@media(max-width:720px){header #acl{max-width:clamp(64px,28vw,130px)}header #acl:before{display:none}header #acl img{max-height:30px}}
 /* ---- 접근성 보정: 터치 영역 44px · 대비 4.5:1 (감사 반영) ---- */
 @media(pointer:coarse),(max-width:720px){header #qrBtn,header #bellBtn,header #helpBtn,header #setBtn,header #refBtn{width:44px!important;height:44px!important}header .sjp{min-height:44px;display:inline-flex;align-items:center}header h1 .lgo{min-width:44px;min-height:44px;display:inline-flex;align-items:center}header nav button{min-width:44px}#totop{width:44px;height:44px}#cfgBox .cfgx{width:44px!important;height:44px!important}.setr a,.tsn2 a,.m a{display:inline-block;padding:14px 4px;margin:-14px 0}.bkst{min-height:44px;display:inline-flex;align-items:center}.bfmv button{min-width:44px}button.sm,.s.sm,.p.sm,.ssg .s.sm{min-height:44px}.cnt button{width:44px!important;height:44px!important}input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{min-height:44px}}
 header #bellN{background:#c0352f;color:#fff}html[data-theme=dark] header #bellN{background:#ef6a66;color:#1a0b0a}
@@ -3525,6 +3528,7 @@ function acFit(im){if(im.dataset.fd===im.src.length+im.dataset.fit)return;const 
   if(r.src&&im.src!==r.src){im.addEventListener('load',run,{once:true});im.src=r.src;return}
   const tone=im.dataset.fit;im.style.filter=((tone==='light'&&r.Y>.62)||(tone==='dark'&&r.Y<.38))?'invert(1) hue-rotate(180deg)':'';im.dataset.fd=im.src.length+tone}catch(e){}};
  if(im.complete&&im.naturalWidth)run();else im.addEventListener('load',run,{once:true})}
+addEventListener('load',()=>{try{acRender()}catch(e){console.warn('acRender',e)}});
 function acCache(o){try{if(o&&(o.logo||o.logoDark||o.acname||o.acmode))localStorage.setItem('omr_ac',JSON.stringify({logo:o.logo||'',logoDark:o.logoDark||'',acname:o.acname||'',acmode:o.acmode||'',logov:o.logov||''}));else localStorage.removeItem('omr_ac')}catch(e){}}
 async function acSave(patch){const P=TSET.perms=TSET.perms||{},old={logo:P.logo,logoDark:P.logoDark,logov:P.logov,acname:P.acname,acmode:P.acmode};
  if('logo' in patch||'logoDark' in patch)patch.logov=Date.now().toString(36);
