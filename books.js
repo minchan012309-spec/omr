@@ -1092,7 +1092,7 @@ function bkSheets(plan,all){const n=all?plan.pages.length:Math.max(1,(plan.aStar
  if(!dupGet())return a;
  if(all&&plan.aStart>1&&plan.aStart-1<n&&plan.aStart%2===0)a.splice(plan.aStart-1,0,-1);
  if(a.length%2)a.push(-1);return a}
-const BKLOGO='<svg viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="#3b82f6"/><path d="M22.5 9.6A9 9 0 1 0 25 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M11.4 16.4l3.6 3.6 7-8.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const BKLOGO='<svg viewBox="0 0 32 32"><defs><linearGradient id="bkg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b9bff"/><stop offset="1" stop-color="#4a35d0"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#bkg)"/><path d="M21.4 10.9C20.4 9.2 18.6 8.3 16.3 8.3c-2.7 0-4.5 1.4-4.5 3.4 0 4.9 9.2 2.5 9.2 7.7 0 2.3-2.1 3.9-4.9 3.9-2.4 0-4.4-1-5.4-2.7" fill="none" stroke="#fff" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24.2" cy="23.6" r="2.4" fill="#ffca2c"/></svg>';
 const bkBlankHtml=()=>'<div class="bp bk bkblank"><div class="bklg">'+BKLOGO+'<span>Solvi</span></div></div>';
 const bkSheetHtml=(plan,i)=>i<0?bkBlankHtml():bkPageHtml(plan,i);
 function bkDocHtml(plan,all){
