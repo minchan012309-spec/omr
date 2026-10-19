@@ -369,6 +369,10 @@ html[data-theme=dark] .hbf{color:#6f7782}html[data-theme=dark] .hbs.on .hbf{colo
 .bkm td{text-align:center;vertical-align:middle}.bkm td.l{text-align:left;white-space:nowrap}.bkm td small{display:block;color:var(--m);font-size:11px}.bkm .lk{background:none;border:0;color:var(--bd);font-weight:700;cursor:pointer;padding:0}.bkm td.z{opacity:.6}.bkm .bavg td{background:var(--sf1);border-top:2px solid var(--l)}
 .exl2{margin:6px 0 12px}.exr2{display:grid;grid-template-columns:minmax(0,1.3fr) auto auto auto auto;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--l);font-size:13.5px}.exr2:first-child{border-top:0}.exr2 em{font-style:normal;color:var(--m);font-size:12px}.exr2 i{font-style:normal;font-weight:800;color:var(--bd);min-width:46px;text-align:right}.exr2 i.soon{color:#d9534f}.exr2 i.past{color:var(--m);font-weight:600}
 .ddls{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:13px;color:var(--m)}.ddls b{color:var(--bd);margin-right:3px}.ddls small{opacity:.8}
+.rx .rxp{height:8px;border-radius:5px;background:var(--sf2);overflow:hidden;margin:10px 0}.rx .rxp i{display:block;height:100%;background:linear-gradient(90deg,#2b9a5b,#5bc489);border-radius:5px;transition:width .4s}
+.rxg{border:1px solid var(--l);border-radius:12px;padding:10px 14px;margin:8px 0;background:var(--sf1)}.rxh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:4px}.rxh b{font-size:15px}
+.rxs{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--l);font-size:14px}.rxs:first-of-type{border-top:0}.rxs i{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;border:2px solid var(--l2);font-style:normal;color:#fff;font-size:13px;font-weight:800;flex:none}.rxs.on i{background:#2b9a5b;border-color:#2b9a5b}.rxs.on span{color:var(--m);text-decoration:line-through}.rxs small{color:var(--m)}.rxs button{margin-left:auto}
+.rxbk{padding:4px 0;font-size:13.5px}
 .tmr{font-weight:700;color:var(--bd);background:var(--bl);border-radius:12px;padding:2px 12px;font-size:15px}.tmr.warn{color:#b03a37;background:#fdeceb}
 
 /* ===== v5: 단계 표시 · 채점 화면 · 애니메이션 ===== */
@@ -3391,6 +3395,52 @@ async function paDo(id,login,pw,label){const st=STU.find(x=>x.id===id);if(!st)re
  try{const r=await rpc('parent_issue',{p_student:id,p_login:login,p_pw:pw,p_label:label});if(!r.ok){const t=await r.text();alert(r.status===404?'서버에 학부모 기능이 아직 없어요. supabase/sql_16_parent.sql 을 실행하세요.':/login taken/.test(t)?'이미 사용 중인 아이디예요.':/too many/.test(t)?'한 학생에게 학부모 계정은 5개까지 만들 수 있어요.':'발급하지 못했어요.');return}
   closeCfg();await paLoad(true);showCard(st,pw,{parent:1,login});stuView()}catch(e){alert('발급하지 못했어요. 인터넷 연결을 확인하세요.')}}
 async function paDel(aid,sid){if(!confirm('이 학부모 계정을 해제할까요? 해당 학부모는 더 이상 로그인할 수 없어요.'))return;try{await rpc('parent_revoke',{p_id:aid})}catch(e){}await paLoad(true);paOpen(sid)}
+/* =================== 오늘의 처방 · 시험 D-day 학습 계획 =================== */
+let RX={off:0};
+const RXK='omr_rxc_v1';
+const rxDone=()=>{const d=jget(RXK,{});return d.d===dayStart(Date.now())?new Set(d.ids||[]):new Set()};
+function rxMark(id){const s=rxDone();s.add(id);try{localStorage.setItem(RXK,JSON.stringify({d:dayStart(Date.now()),ids:[...s]}))}catch(e){}}
+function rxWeak(){return typeRows(H()).filter(o=>o.n&&['skull','red','yellow'].includes(o.lv)).sort((a,b)=>a.p-b.p)}
+/* 시험까지 남은 날에 따라 문제 수를 정함 */
+function rxAmount(days){return days===null?{per:2,easy:5,exam:5}:days>14?{per:2,easy:5,exam:5}:days>7?{per:2,easy:5,exam:8}:days>3?{per:3,easy:4,exam:10}:{per:3,easy:3,exam:12}}
+function rxPick(o,n,lvs,seen,used){const q=DATA.filter(x=>x.sub===o.sub&&x.type===o.type&&['mc','top','ox'].includes(x.set)&&!isMulti(x)&&!used.has(x.code));
+ const score=x=>(seen[x.code]===undefined?0:seen[x.code]===1?2:1);const by=l=>shuffle(q.filter(x=>l.includes(x.lv||'중'))).sort((a,b)=>score(a)-score(b));
+ const out=[];for(const l of lvs){for(const x of by(l)){if(out.length>=n)break;if(!out.includes(x))out.push(x)}if(out.length>=n)break}
+ out.forEach(x=>used.add(x.code));return out.map(x=>x.code)}
+function rxBuild(offset){const W=rxWeak(),ex=ddayNext(),days=ex?ex.days:null,A=rxAmount(days);if(!W.length)return {W,ex,days,groups:[]};
+ const seen={};H().forEach(h=>h.items.forEach(x=>{if(seen[x.c]===undefined||!x.r)seen[x.c]=x.r?2:1}));const used=new Set();
+ const groups=[];for(let i=0;i<Math.min(A.per,W.length);i++){const o=W[(offset*A.per+i)%W.length];if(groups.find(g=>g.o===o))continue;
+  const e=rxPick(o,A.easy,[['하'],['중']],seen,used),x=days!==null&&days<=1?[]:rxPick(o,A.exam,[['중'],['상']],seen,used);
+  groups.push({o,easy:e,exam:x})}
+ return {W,ex,days,groups,A}}
+function rxToday(off){const key=dayStart(Date.now())+'|'+SUBJ+'|'+off+'|'+(STUD?STUD.login:CUR_S||''),st=jget('omr_rxplan_v1',null);
+ if(st&&st.key===key){const rows=typeRows(H()),groups=st.groups.map(g=>({o:rows.find(r=>r.k===g.k),easy:g.easy.filter(c=>byCode[c]),exam:g.exam.filter(c=>byCode[c])})).filter(g=>g.o);if(groups.length){const R=rxBuild(off);R.groups=groups;return R}}
+ const R=rxBuild(off);try{localStorage.setItem('omr_rxplan_v1',JSON.stringify({key,groups:R.groups.map(g=>({k:g.o.k,easy:g.easy,exam:g.exam}))}))}catch(e){}return R}
+function rxCard(){const R=rxToday(RX.off),done=rxDone(),tod=new Set();const t0=dayStart(Date.now());H().filter(h=>h.t>=t0).forEach(h=>h.items.forEach(x=>tod.add(x.c)));
+ const ok=c=>c.length&&c.filter(x=>tod.has(x)).length>=Math.ceil(c.length*.8);
+ const lab=d=>d===null?'':d>0?'D-'+d:d===0?'D-DAY':'D+'+(-d);
+ if(!R.W.length&&!R.groups.length)return `<div class="card rx"><div class="row"><h2 style="margin:0">오늘의 처방</h2>${R.ex?`<span class="ddc on" style="margin:0"><b>${lab(R.days)}</b><span>${esc(R.ex.name)}</span></span>`:''}</div><div class="m" style="margin:8px 0">${H().length?'아직 뚜렷한 약점이 없어요. 새 문제로 실력을 넓혀 보세요.':'채점 기록이 쌓이면 약한 유형을 찾아 하루 처방을 만들어 드려요.'}</div><button class="p" onclick="dailyFive()">오늘의 문제 풀기</button></div>`;
+ const steps=[];R.groups.forEach(g=>{const k=g.o.k;steps.push({id:k+':c',lab:'개념 복습',min:4,d:done.has(k+':c'),concept:1,g});
+  if(g.easy.length)steps.push({id:k+':e',lab:'쉬운 문제 '+g.easy.length+'개',min:Math.ceil(g.easy.length*1.2),d:ok(g.easy),codes:g.easy,g});
+  if(g.exam.length)steps.push({id:k+':x',lab:'시험 대비 문제 '+g.exam.length+'개',min:Math.ceil(g.exam.length*1.8),d:ok(g.exam),codes:g.exam,g})});
+ const dn=steps.filter(x=>x.d).length,tm=steps.filter(x=>!x.d).reduce((a,x)=>a+x.min,0),nx=steps.find(x=>!x.d);RX.steps=steps;
+ const run=x=>`rxGo(${steps.indexOf(x)})`;
+ return `<div class="card rx"><div class="row"><h2 style="margin:0">오늘의 처방</h2>${R.ex?`<span class="ddc on" style="margin:0"><b>${lab(R.days)}</b><span>${esc(R.ex.name)}</span></span>`:''}<span class="m">${nx?'남은 약 '+tm+'분':'오늘 처방을 모두 끝냈어요!'}</span><span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="s sm" onclick="rxPlanDlg()">앞으로의 계획</button>${nx?`<button class="p sm" onclick="${run(nx)}">다음 단계 시작</button>`:`<button class="s sm" onclick="RX.off++;render()">다른 약점도 하기</button>`}</span></div>
+ <div class="rxp"><i style="width:${steps.length?Math.round(dn/steps.length*100):0}%"></i></div>
+ ${R.groups.map(g=>`<div class="rxg"><div class="rxh"><b>${esc(g.o.type)}</b><span class="m">${esc(g.o.subname||g.o.sub)} · 정답률 ${Math.round(g.o.p*100)}%</span></div>${steps.filter(x=>x.g===g).map(x=>`<div class="rxs ${x.d?'on':''}"><i>${x.d?'✓':''}</i><span>${x.lab}</span><small>약 ${x.min}분</small>${x.d?'':`<button class="s sm" onclick="${run(x)}">시작</button>`}</div>`).join('')}</div>`).join('')}
+ ${R.days!==null&&R.days<=1&&R.days>=0?`<div class="hint" style="margin-top:10px">시험이 코앞이에요. 새 문제보다 <b>오답 복습</b>과 <b>D-1 패키지</b>를 추천해요. <button class="s sm" style="margin-left:6px" onclick="d1Package()">D-1 패키지</button></div>`:''}</div>`}
+function rxGo(i){const x=(RX.steps||[])[i];if(!x)return;if(x.concept)return rxConcept(x.g.o.sub,x.g.o.k);practice(x.codes,'처방 · '+x.g.o.type+' · '+x.lab)}
+function rxConcept(sub,key){rxMark(key+':c');cbLoad().then(C=>{const sec=C&&(C.secs||[]).find(x=>x.sub===sub);if(sec)CB.cur=sec.id;tab='concept';render()}).catch(()=>{tab='concept';render()})}
+async function rxPlanDlg(){const R=rxBuild(0),W=R.W;if(!W.length){toast('약한 유형이 생기면 계획을 만들어 드려요');return}
+ const ex=R.ex,N=ex?Math.min(14,ex.days+1):7,A=rxAmount(ex?ex.days:null),rows=[];
+ for(let d=0;d<N;d++){const left=ex?ex.days-d:null,a=rxAmount(left);const ts=[];for(let i=0;i<Math.min(a.per,W.length);i++){const o=W[(d*a.per+i)%W.length];if(!ts.includes(o))ts.push(o)}
+  const dt=new Date(Date.now()+d*864e5);rows.push({d,left,dt,ts,a})}
+ $('#cfgBox').innerHTML=`<h2 style="margin-top:0">${ex?esc(ex.name)+' D-day 학습 계획':'앞으로 7일 학습 계획'}</h2><div class="m">약한 유형 ${W.length}개를 정답률이 낮은 순서로 돌아가며 보강해요. ${ex?`시험까지 <b>${ex.days}일</b> 남았어요. 시험이 가까울수록 시험 대비 문제를 늘려요.`:''}</div>
+ <div class="tw" style="margin:10px 0"><table><tr><th>날짜</th>${ex?'<th>D-day</th>':''}<th>보강 유형</th><th>하루 분량</th></tr>${rows.map(r=>`<tr><td>${r.dt.getMonth()+1}/${r.dt.getDate()}</td>${ex?`<td>${r.left>0?'D-'+r.left:r.left===0?'시험':''}</td>`:''}<td class="l">${r.left!==null&&r.left<=0?'요약 노트 · 오답 복습':r.ts.map(o=>esc(o.type)).join('<br>')}</td><td>${r.left!==null&&r.left<=1?'오답 복습 + D-1 패키지':`쉬운 ${r.a.easy} + 시험 대비 ${r.a.exam}`}</td></tr>`).join('')}</table></div>
+ <div id="rxbk" class="m">교재 진도 계산 중…</div><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="s" onclick="closeCfg()">닫기</button></div>`;$('#cfg').classList.add('open');
+ try{await bkLoad();await bkInit();const books=bkBookList(),recs=bkRecs(H());const days=ex?Math.max(1,ex.days):14;let h='';
+  for(const b of books){const pg=await bkPagesOf(b);const S=bkStatOf(b,pg,recs);if(S.tot){const left=S.tot-S.done;h+=`<div class="rxbk"><b>${esc(b.name)}</b> 채점 ${S.done}/${S.tot}쪽 → 남은 ${left}쪽${left?` · 하루 <b>${Math.ceil(left/days)}쪽</b>씩 ${ex?'시험 전까지':'2주 안에'}`:' (모두 채점했어요)'}</div>`}}
+  const e=$('#rxbk');if(e)e.innerHTML=h?'<h3 class="sh2" style="margin:6px 0">교재 진도 계획</h3>'+h:''}catch(e){const x=$('#rxbk');if(x)x.textContent=''}}
 /* ---- 학생 홈 ---- */
 function ringSvg(p,label,sub,col){const r=42,C=2*Math.PI*r;return `<div class="rsv"><svg viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" fill="none" stroke="#e6ebf1" stroke-width="10"/><circle cx="55" cy="55" r="${r}" fill="none" style="stroke:${col||'var(--b)'}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*p} ${C}" transform="rotate(-90 55 55)"/><text x="55" y="56" text-anchor="middle" dominant-baseline="central" font-size="24" font-weight="700" fill="#1f2933">${label}</text></svg><span>${sub}</span></div>`}
 function dayStart(t){const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
@@ -3404,6 +3454,7 @@ function studHome(){
  const pend=ASSIGN.filter(a=>!hist.some(h=>h.set==='ws'&&h.sub===a.wid));
  const hr=new Date().getHours();const gr=hr<11?'좋은 아침이에요':hr<18?'안녕하세요':'오늘도 수고했어요';
  $('#main').innerHTML=`${domBanner()}${gdraftBanner()}${outboxN()?`<div class="hint" style="margin-bottom:12px">서버에 아직 올리지 못한 채점이 <b>${outboxN()}건</b> 있어요. 인터넷에 연결되면 자동으로 제출돼요. <button class="s sm" onclick="outboxFlush()">지금 다시 시도</button></div>`:''}<div class="st-hero"><div class="hh"><div class="hi">${gr}, <b>${esc(nm)}</b>님</div><div class="sub">${pend.length?`제출하지 않은 과제가 <b>${pend.length}개</b> 있어요.`:'밀린 과제가 없어요. 잘하고 있어요!'}</div>${ddayChip()}</div><span class="row hb"><button class="p" onclick="dailyFive()">오늘의 문제</button><button class="p" onclick="tab='tasks';render()">내 과제 보기</button></span></div>
+ ${rxCard()}
  ${habitCard(hist)}
  <div class="st-strip"><div><b>${n?Math.round(r/n*100)+'%':'-'}</b><span>정답률</span></div><div><b>${tn}</b><span>오늘</span></div><div><b>${wk}</b><span>7일</span></div><div><b>${streak}<small>일</small></b><span>연속</span></div><div><b>${stars}</b><span>정복</span></div></div>
  <div class="card"><h2>지금 보강하면 좋은 유형</h2>${weak.length?`<div class="wk">${weak.map(o=>`<div class="wkc"><i class="ic">${ICON[o.lv]}</i><div><b>${esc(o.type)}</b><div class="m">정답률 ${Math.round(o.p*100)}% · ${o.n}문항 풀이</div></div></div>`).join('')}</div><div class="row" style="margin-top:12px"><button class="p" onclick="tab='smap';render()">유형 지도에서 연습하기</button></div>`:'<div class="empty">아직 채점 기록이 부족해요. 학습지나 교재 쪽을 채점해 보세요.</div>'}</div>
