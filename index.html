@@ -916,7 +916,7 @@ async function auth(kind,email,pw){const p=kind==='up'?'/auth/v1/signup':'/auth/
 const uuid=()=>(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)}));
 async function load(){loadCfg();hist=jget(LS,[]);STU=jget(LST,[]);WSH=jget(LW,[]);CUR_S=localStorage.getItem(LCS)||'';srv=false;
  await loadBankIndex();
- STUD=cloud()?sget(LSTUD):null;if(STUD){await loadStud();if(STUD){syncLabel();render();prefsPull().then(()=>{if(STUD&&!cur&&!PR&&['home','wrong'].includes(tab))render()});wnPull().then(()=>{if(STUD&&tab==='wrong'&&!cur&&!PR)render()});return}}
+ STUD=cloud()?sget(LSTUD):null;if(STUD){await loadStud();if(STUD){syncLabel();render();reportFlush();prefsPull().then(()=>{if(STUD&&!cur&&!PR&&['home','wrong'].includes(tab))render()});wnPull().then(()=>{if(STUD&&tab==='wrong'&&!cur&&!PR)render()});return}}
  if(cloud()&&sess){try{
    await stuSync();setTimeout(sgLoad,300);setTimeout(bugPoll,600);
    const r=await sb('/rest/v1/attempts?select=t,set,sub,items,student_id&order=t.asc&limit=20000');
@@ -925,7 +925,7 @@ async function load(){loadCfg();hist=jget(LS,[]);STU=jget(LST,[]);WSH=jget(LW,[]
     srv='cloud';
     for(const x of up)await sb('/rest/v1/attempts',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({t:x.t,set:x.set,sub:x.sub,items:x.items,student_id:x.sid||null})});
     hist=[...rem,...up].sort((a,b)=>a.t-b.t)}
-   await wsSync();await asSync();prefsPull().then(()=>{if(!cur&&!PR&&['stu','thome','wrong'].includes(tab))render()})}catch(e){}}
+   await wsSync();await asSync();reportFlush();prefsPull().then(()=>{if(!cur&&!PR&&['stu','thome','wrong'].includes(tab))render()})}catch(e){}}
  else if(!cloud()){try{const r=await fetch('/api/results');if(r.ok){const s=await r.json();const have=new Set(s.map(x=>x.t));hist=[...s,...hist.filter(x=>!have.has(x.t))].sort((a,b)=>a.t-b.t);srv='local'}}catch(e){}}
  jset(LS,hist);if(CUR_S&&!STU.find(s=>s.id===CUR_S))CUR_S='';
  syncLabel();render()}
@@ -1396,7 +1396,7 @@ function ovAll(){Object.keys(QOV).forEach(c=>{const q=byCode[c];if(!q)return;ovA
 async function ovFetch(){try{const r=await sb('/rest/v1/q_overrides?select=code,patch,hidden,note&limit=5000');if(!r.ok)return;const L=await r.json();Object.keys(QOV).forEach(k=>delete QOV[k]);L.forEach(x=>QOV[x.code]=x);ovAll()}catch(e){}}
 /* 개발자 페이지는 처음 열 때 dev.js 를 불러옵니다 */
 let _devp=null;
-function devLoad(){if(window.devMain)return Promise.resolve();return _devp||(_devp=new Promise((res,rej)=>{const t=document.createElement('script');t.src='dev.js?v=4';t.onload=res;t.onerror=()=>{_devp=null;rej(new Error('dev'))};document.head.appendChild(t)}))}
+function devLoad(){if(window.devMain)return Promise.resolve();return _devp||(_devp=new Promise((res,rej)=>{const t=document.createElement('script');t.src='dev.js?v=5';t.onload=res;t.onerror=()=>{_devp=null;rej(new Error('dev'))};document.head.appendChild(t)}))}
 function devView(){if(!DEV.ok){$('#main').innerHTML='<div class="card empty">개발자 계정으로 로그인해야 볼 수 있어요.</div>';return}$('#main').innerHTML='<div class="card">'+ldg('개발자 페이지를 여는 중…')+'</div>';devLoad().then(()=>devMain()).catch(()=>{$('#main').innerHTML='<div class="card empty">개발자 페이지를 불러오지 못했어요. 새로고침해 보세요.</div>'})}
 async function devLog(act,info){try{await sb('/rest/v1/dev_log',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({who:(sess&&sess.user&&sess.user.email)||'',act,info:String(info||'').slice(0,300)})})}catch(e){}}
 
@@ -3949,7 +3949,15 @@ function reportOpen(code){const q=byCode[code];if(!q)return;
  $('#cfgBox').innerHTML=`<h2 style="margin-top:0">🚩 문항 신고</h2><div class="m">${esc(code)} · ${esc(q.type||'')}</div><label>신고 사유</label><select id="rpr" style="width:100%">${REASONS.map(r=>`<option>${r}</option>`).join('')}</select><label>자세한 내용 (선택)</label><textarea id="rpm" rows="4" style="width:100%;font:inherit;padding:8px;border:1px solid #cfd7e1;border-radius:8px" placeholder="예) 정답은 ③인데 ④로 되어 있습니다"></textarea><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="s" onclick="closeCfg()">취소</button><button class="p" onclick="reportSave('${code}')">신고하기</button></div>`;$('#cfg').classList.add('open')}
 function toast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t)}const d=document.createElement('div');d.className='tt';d.textContent=msg;t.appendChild(d);const ms=Math.min(7000,2200+String(msg).length*45);setTimeout(()=>d.classList.add('out'),ms);setTimeout(()=>d.remove(),ms+500)}
 window.alert=function(m){try{toast(String(m))}catch(e){}};
-function reportSave(code){const l=jget('omr_rep_v1',[]);l.push({code,reason:$('#rpr').value,memo:$('#rpm').value.trim(),t:Date.now(),by:(STINFO&&STINFO.name)||(STU.find(x=>x.id===CUR_S)||{}).name||'선생님'});jset('omr_rep_v1',l);closeCfg();toast('신고가 저장되었어요 (설정 > 신고 내역)')}
+async function reportSend(rec){if(!cloud())return false;try{
+  if(STUD&&!STUD.preview&&!STUD.parent){const r=await rpc('st_qreport',{p_login:STUD.login,p_pw:STUD.pw,p_code:rec.code,p_reason:rec.reason,p_memo:rec.memo||''});return r.ok}
+  if(sess&&!STUD){const r=await sb('/rest/v1/q_reports',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({code:rec.code,reason:rec.reason,memo:rec.memo||'',who:(sess.user&&sess.user.email)||'선생님'})});return r.ok}}catch(e){}return false}
+async function reportSave(code){const rec={code,reason:$('#rpr').value,memo:$('#rpm').value.trim(),t:Date.now(),by:(STINFO&&STINFO.name)||(STU.find(x=>x.id===CUR_S)||{}).name||'선생님',srv:0};closeCfg();
+ rec.srv=(await reportSend(rec))?1:0;const l=jget('omr_rep_v1',[]);l.push(rec);jset('omr_rep_v1',l);
+ toast(rec.srv?'신고를 보냈어요. 고쳐지면 알려 드릴게요':'신고를 저장했어요. 연결되면 자동으로 보내요 (설정 > 신고 내역)')}
+async function reportFlush(){if(!cloud())return;const l=jget('omr_rep_v1',[]);let ch=false;for(const r of l){if(!r.srv&&(await reportSend(r))){r.srv=1;ch=true}}if(ch)jset('omr_rep_v1',l)}
+async function reportStatus(){let L=[];try{if(STUD&&!STUD.preview&&!STUD.parent){const r=await rpc('st_qreports',{p_login:STUD.login,p_pw:STUD.pw});L=r.ok?await r.json():[]}else if(sess&&!STUD){const r=await sb('/rest/v1/q_reports?select=code,reason,status,resolution,t,who&order=t.desc&limit=100');L=r.ok?await r.json():[]}}catch(e){}
+ const lab={open:'확인 중',fixed:'수정됨',rejected:'확인함'};$('#cfgBox').innerHTML=`<h2 style="margin-top:0">문항 신고 처리 현황</h2>${L.length?`<div class="tw"><table><tr><th>문항</th><th>사유</th><th>상태</th><th>처리 내용</th><th>신고일</th></tr>${L.map(x=>`<tr><td>${esc(x.code)}</td><td class="l">${esc(x.reason)}</td><td><span class="tag ${x.status==='fixed'?'':x.status==='open'?'y':'r'}">${lab[x.status]||x.status}</span></td><td class="l">${esc(x.resolution||'')}</td><td>${new Date(+x.t).toLocaleDateString('ko-KR')}</td></tr>`).join('')}</table></div>`:'<div class="m" style="margin:10px 0">서버에 보낸 신고가 없어요.</div>'}<div class="row" style="justify-content:flex-end;margin-top:10px"><button class="s" onclick="closeCfg()">닫기</button></div>`;$('#cfg').classList.add('open')}
 function reportExport(){const l=jget('omr_rep_v1',[]);dl('omr-reports.json',JSON.stringify(l,null,1))}
 function dl(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
 function backupAll(){try{localStorage.setItem('omr_lastbk',String(Date.now()))}catch(e){}const o={};Object.keys(localStorage).filter(k=>k.startsWith('omr_')&&k!==LSS).forEach(k=>o[k]=localStorage.getItem(k));dl('omr-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(o))}
@@ -3978,7 +3986,7 @@ function openSettings(){const rp=jget('omr_rep_v1',[]),mk=jget('omr_mock_v1',[])
  <div class="setr"><b>자동 저장</b><span class="m">${SAVEDT?'이 기기에 '+new Date(SAVEDT).toLocaleTimeString('ko-KR')+' 저장됨':'변경 사항은 바로 이 기기에 저장됩니다.'}${cloud()&&sess?' · 온라인 동기화 사용 중':''}</span></div>
  ${STUD?'':`<div class="setr"><b>난이도 자동 보정</b><label class="m"><input type="checkbox" ${CALIB_ON?'checked':''} onchange="setCalib(this.checked)"> 풀이 5회 이상인 문항은 실제 정답률로 난이도(하·중·상·최)를 조정</label></div>`}
  ${STUD?'':`<div class="setr"><b>즐겨찾기</b><span class="m">${FAV.length}문항 · <a href="#" onclick="closeCfg();SP.src='fav';SP.sub='';tab='search';render();return false">검색에서 보기</a></span></div>
- <div class="setr"><b>신고 내역</b><span class="m">${rp.length}건 · <a href="#" onclick="reportExport();return false">내려받기</a>${rp.length?' · <a href="#" onclick="if(confirm(\'신고 내역을 지울까요?\')){jset(\'omr_rep_v1\',[]);openSettings()}return false">비우기</a>':''}</span></div>`}
+ <div class="setr"><b>신고 내역</b><span class="m">${rp.length}건${rp.some(x=>!x.srv)?' (미전송 '+rp.filter(x=>!x.srv).length+')':''} · <a href="#" onclick="closeCfg();reportStatus();return false">처리 현황</a> · <a href="#" onclick="reportExport();return false">내려받기</a>${rp.length?' · <a href="#" onclick="if(confirm(\'신고 내역을 지울까요?\')){jset(\'omr_rep_v1\',[]);openSettings()}return false">비우기</a>':''}</span></div>`}
  ${(STUD&&!STUD.preview)||(sess&&!STUD)?pkSection():''}
  ${STUD?`<h3>튜토리얼</h3><div class="m" style="margin-bottom:6px">직접 눌러 보며 기능을 익혀요. 오른쪽 위 「?」에서도 열 수 있어요.</div><div class="row">${Object.entries(TOURS).map(([k,v])=>`<button class="s" onclick="tourStart('${k}')">${esc(v.name)}${tourDone(k)?' ✓':''}</button>`).join('')}</div>`:''}
  <h3>단축키</h3><div class="keys">${KEYS.map(k=>`<div><kbd>${k[0]}</kbd><span>${k[1]}</span></div>`).join('')}</div>
