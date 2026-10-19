@@ -3632,13 +3632,74 @@ function omrInfoGeom(mock){const g=[];const d=3.8,pitch=4.4,y0=46;const digits=[
  if(mock){for(let i=0;i<8;i++)g.push({k:'수험번호',i,x:112+i*6.4,y0,pitch,d,lab:digits,grp:'수험번호'});for(let i=0;i<2;i++)g.push({k:'과목번호',i,x:166+i*6.4,y0,pitch,d,lab:digits,grp:'과목번호'});g.push({k:'홀짝',i:0,x:184,y0,pitch,d,lab:['홀','짝'],grp:'형'})}
  else{g.push({k:'학년',i:0,x:112,y0,pitch,d,lab:digits,grp:'학년'});for(let i=0;i<2;i++)g.push({k:'반',i,x:130+i*6.4,y0,pitch,d,lab:digits,grp:'반'});for(let i=0;i<2;i++)g.push({k:'번호',i,x:154+i*6.4,y0,pitch,d,lab:digits,grp:'번호'})}
  return g}
-function omrGeom(qs,mock){const n=qs.length,per=n>50?30:25,cols=Math.min(3,Math.ceil(n/per)||1);const colW=cols===1?120:cols===2?88:60,xs0=cols===1?45:cols===2?17:15;
+/* ---- 가로형 OMR (A4 가로): 모서리 네 곳 검은 네모 중 오른쪽 아래가 더 커서, 사진이 어느 방향으로 찍혀도 방향을 알아내요 ---- */
+const OMRMKL=[[12,12],[285,12],[12,198],[285,198]],OMRMS2=10,OMRPAGE={L:[297,210],P:[210,297]};
+function omrInfoGeomL(mock){const g=[],d=3.8,pitch=4.4,y0=86,dg=[...Array(10).keys()].map(String);
+ if(mock){for(let i=0;i<8;i++)g.push({k:'수험번호',i,x:26+i*6,y0,pitch,d,lab:dg,grp:'수험번호'});for(let i=0;i<2;i++)g.push({k:'과목번호',i,x:77+i*6,y0,pitch,d,lab:dg,grp:'과목번호'});g.push({k:'홀짝',i:0,x:91,y0,pitch,d,lab:['홀','짝'],grp:'형'})}
+ else{g.push({k:'학년',i:0,x:36,y0,pitch,d,lab:dg,grp:'학년'});for(let i=0;i<2;i++)g.push({k:'반',i,x:55+i*6.4,y0,pitch,d,lab:dg,grp:'반'});for(let i=0;i<2;i++)g.push({k:'번호',i,x:76+i*6.4,y0,pitch,d,lab:dg,grp:'번호'})}
+ return g}
+function omrGeomL(qs,mock){const n=qs.length;let cols=n<=15?1:n<=40?2:n<=75?3:n<=100?4:5;let rows=Math.max(10,Math.ceil(Math.ceil(n/cols)/5)*5);if(rows>25)rows=25;
+ const RX=100,RW=177,gap=4,W=Math.min(56,(RW-gap*(cols-1))/cols),total=cols*W+gap*(cols-1),xs0=RX+(RW-total)/2;
+ const mo=Math.max(5,...qs.map(q=>(q.set==='ox'?2:nOpts(q)))),optP=Math.min(9.2,(W-11)/(mo+.15)),yTop=50,rowH=Math.min(8,(187-yTop)/rows),d=Math.min(5.4,rowH-1.6),b=[];
+ qs.forEach((q,i)=>{if(i>=cols*rows)return;const c=Math.floor(i/rows),r=i%rows;const k=q.set==='blank'||q.set==='noxq'||q.set==='essay'?0:(q.set==='ox'?2:nOpts(q));
+  for(let o=0;o<k;o++)b.push({q:i,o,x:xs0+c*(W+gap)+10.5+o*optP+optP/2,y:yTop+r*rowH+rowH/2})});
+ const info=omrInfoGeomL(!!mock).map(g=>({...g,pts:g.lab.map((l,r)=>({r,x:g.x,y:g.y0+r*g.pitch}))}));
+ return {b,cols,rows,W,gap,xs0,optP,rowH,yTop,d,mo,cap:cols*rows,info,mock:!!mock,land:1}}
+function omrGeom(qs,mock,land){if(land)return omrGeomL(qs,mock);const n=qs.length,per=n>50?30:25,cols=Math.min(3,Math.ceil(n/per)||1);const colW=cols===1?120:cols===2?88:60,xs0=cols===1?45:cols===2?17:15;
  const mo=Math.max(5,...qs.map(q=>(q.set==='ox'?2:nOpts(q))));const optP=Math.min(10.5,(colW-14)/(mo+.2));const y0=96,rowH=Math.min(7.3,(274-y0)/per),d=Math.min(5.6,rowH-1.4);const b=[];
  qs.forEach((q,i)=>{if(i>=per*3)return;const c=Math.floor(i/per),r=i%per;const k=q.set==='blank'||q.set==='noxq'||q.set==='essay'?0:(q.set==='ox'?2:nOpts(q));
   for(let o=0;o<k;o++)b.push({q:i,o,x:xs0+c*colW+12+o*optP+optP/2,y:y0+r*rowH+rowH/2});});
  const info=omrInfoGeom(!!mock).map(g=>({...g,pts:g.lab.map((l,r)=>({r,x:g.x,y:g.y0+r*g.pitch}))}));
  return {b,per,cols,colW,xs0,optP,rowH,y0,d,mo,cap:per*3,info,mock:!!mock}}
-function omrCard(id){const w=WSH.find(x=>x.id===id);if(!w)return;const qs=w.codes.map(c=>byCode[c]).filter(Boolean);const n=qs.length;const mock=!!w.mock;const G=omrGeom(qs,mock);
+function omrCard(id,ori){ori=ori||localStorage.getItem('omr_ori')||'L';if(ori==='L')return omrCardL(id);return omrCardP(id)}
+function omrCardL(id){const w=WSH.find(x=>x.id===id);if(!w)return;const qs=w.codes.map(c=>byCode[c]).filter(Boolean),n=qs.length,mock=!!w.mock,G=omrGeomL(qs,mock);
+ const base=(CF.pub||location.href).split('#')[0].split('?')[0],url=base+'#ws='+w.id,cv=w.cover||{},sj=subjOf(qs[0]&&qs[0].code)||SUBJ,subjN=cv.subject||SNAME[sj]||'',sc=OMRSUBJ[sj]||'';
+ const RD='#d4381f',RT='#fdf0ec',RM='#f3b9ab';
+ const mk=OMRMKL.map(([x,y],i)=>`<s style="left:${x}mm;top:${y}mm${i===3?`;width:${OMRMS2}mm;height:${OMRMS2}mm`:''}"></s>`).join('');
+ const fs=Math.max(5,Math.min(7,G.d*1.3)).toFixed(1),bw=(G.d*.78).toFixed(2);
+ const blk=[],zeb=[],nums=[];
+ for(let c=0;c<G.cols;c++){const x=G.xs0+c*(G.W+G.gap),cnt=Math.min(G.rows,n-c*G.rows);if(cnt<=0)break;
+  blk.push(`<div class="bk" style="left:${x}mm;top:${G.yTop-6.4}mm;width:${G.W}mm;height:${6.4+cnt*G.rowH+1.2}mm"></div><div class="bh" style="left:${x}mm;top:${G.yTop-6.4}mm;width:${G.W}mm"><span style="width:10.5mm">번호</span><span style="flex:1">답 란</span></div>`);
+  for(let g5=0;g5*5<cnt;g5++)if(g5%2===1)zeb.push(`<div class="zb" style="left:${x+.3}mm;top:${G.yTop+g5*5*G.rowH}mm;width:${G.W-.6}mm;height:${Math.min(5,cnt-g5*5)*G.rowH}mm"></div>`);
+  for(let r=0;r<cnt;r++){const i=c*G.rows+r,q=qs[i],y=G.yTop+r*G.rowH+G.rowH/2;nums.push(`<b style="left:${x+8.6}mm;top:${y}mm">${i+1}</b>${q.set==='blank'||q.set==='essay'?`<span class="bl" style="left:${x+11}mm;top:${y}mm">직접 풀이·입력</span>`:''}`)}}
+ const bub=G.b.map(p=>`<i style="left:${p.x}mm;top:${p.y}mm;width:${bw}mm;height:${G.d}mm">${(optsOf(qs[p.q])[p.o])||p.o+1}</i>`).join('');
+ const ib=G.info.map(g=>g.pts.map(p=>`<i class="n" style="left:${p.x}mm;top:${p.y}mm">${g.lab[p.r]}</i>`).join('')).join('');
+ const gp={};G.info.forEach(g=>{(gp[g.grp]=gp[g.grp]||[]).push(g.x)});const y0=G.info[0].y0;
+ const grpLab=Object.entries(gp).map(([k,xs])=>`<u class="gl" style="left:${(Math.min(...xs)+Math.max(...xs))/2}mm;top:${y0-9}mm">${k}</u>${xs.map(x=>`<span class="gx" style="left:${x}mm;top:${y0-4.4}mm"></span>`).join('')}`).join('');
+ const ipw=mock?78:66,ipx=mock?20.5:24;
+ const css=`.pg{width:297mm;height:210mm;background:#fff;margin:0 auto 6mm;box-shadow:0 2px 12px #0002;font-family:Pretendard,PretendardLocal,sans-serif;color:#1b2430;position:relative;overflow:hidden;break-after:page;-webkit-print-color-adjust:exact;print-color-adjust:exact}.pg *{box-sizing:border-box}
+.pg s{position:absolute;width:${OMRMS}mm;height:${OMRMS}mm;background:#000;transform:translate(-50%,-50%);text-decoration:none}
+.pg .fr{position:absolute;left:20mm;top:20mm;width:257mm;height:170mm;border:.5mm solid ${RD};border-radius:1.6mm}
+.pg .hb{position:absolute;left:20mm;top:20mm;width:257mm;height:13mm;background:${RD};border-radius:1.6mm 1.6mm 0 0;color:#fff}
+.pg .hb .t0{position:absolute;left:6mm;top:0;height:13mm;display:flex;align-items:center;gap:3mm}.pg .hb .t0 small{font-size:6.5pt;letter-spacing:.32em;font-weight:600;opacity:.85;writing-mode:horizontal-tb}.pg .hb .t0 b{position:static;transform:none;color:#fff;font-size:17pt;font-weight:800;letter-spacing:.1em}
+.pg .hb .t1{position:absolute;left:64mm;right:92mm;top:0;height:13mm;display:flex;align-items:center;font-size:11.5pt;font-weight:700;line-height:1.2;padding-left:5mm;border-left:.3mm solid #ffffff66}.pg .hb .t1 span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pg .hb .t2{position:absolute;right:6mm;top:0;height:13mm;display:flex;align-items:center;font-size:8.5pt;opacity:.95;text-align:right;line-height:1.35}
+.pg .sh{position:absolute;font-size:7pt;font-weight:800;letter-spacing:.14em;color:${RD};display:flex;align-items:center;gap:2mm;white-space:nowrap}.pg .sh::after{content:'';flex:1;border-top:.25mm solid ${RM}}
+.pg .box{position:absolute;border:.3mm solid ${RD};background:#fff;border-radius:.8mm}.pg .bt{position:absolute;font-size:8pt;color:${RD};font-weight:700;transform:translate(0,-50%);white-space:nowrap}.pg .fx{position:absolute;font-size:9.5pt;line-height:1}
+.pg .ip{position:absolute;left:${ipx}mm;top:${y0-11.6}mm;width:${ipw}mm;height:${(10-1)*4.4+3.8+11.6+2.6}mm;background:${RT};border-radius:1.6mm}
+.pg .gl{position:absolute;transform:translate(-50%,-50%);text-decoration:none;font-size:8pt;font-weight:800;color:${RD}}.pg .gx{position:absolute;transform:translate(-50%,-50%);width:4.6mm;height:4.6mm;border:.3mm solid ${RD};background:#fff;border-radius:.6mm}
+.pg i{position:absolute;border:.28mm solid ${RD};border-radius:50%;transform:translate(-50%,-50%);background:#fff;color:${RD};font-style:normal;font-size:${fs}pt;line-height:1;display:flex;align-items:center;justify-content:center;font-weight:500}.pg i.n{width:3.1mm;height:3.8mm;font-size:5.2pt}
+.pg .bk{position:absolute;border:.3mm solid ${RD};border-radius:1mm}.pg .bh{position:absolute;height:5mm;background:${RD};color:#fff;font-size:7.5pt;font-weight:700;display:flex;align-items:center;text-align:center;border-radius:1mm 1mm 0 0}.pg .bh span{display:block}.pg .zb{position:absolute;background:${RT}}
+.pg b{position:absolute;transform:translate(-100%,-50%);font-size:9pt;font-weight:700;color:${RD};font-variant-numeric:tabular-nums}.pg .bl{position:absolute;transform:translate(0,-50%);font-size:7.2pt;color:#8794a3}
+.pg .qrb{position:absolute;left:24mm;top:155mm;width:26mm;text-align:center}.pg .qrb svg{width:26mm;height:26mm;display:block}.pg .qrb b{position:static;transform:none;display:block;font-family:ui-monospace,Menlo,monospace;font-size:7pt;letter-spacing:.1em;font-weight:500;margin-top:.8mm;color:#1b2430}
+.pg .nb2{position:absolute;left:54mm;top:154mm;width:40mm;font-size:6.6pt;line-height:1.55;color:#586476}.pg .nb2 em{font-style:normal;color:${RD};font-weight:800;display:block;margin-bottom:.8mm;font-size:7pt}.pg .nb2 .ex{display:flex;gap:1.6mm;align-items:center;margin:1mm 0}.pg .nb2 .ex i{position:static;transform:none;width:2.6mm;height:3.4mm;display:inline-block}.pg .nb2 .ex i.f{background:#222;border-color:#222}.pg .nb2 .ex u{text-decoration:none;color:#8794a3;font-size:7pt}
+.pg .ft{position:absolute;left:100mm;width:177mm;top:193mm;font-size:7pt;color:#8794a3;text-align:center}@media print{.pg{box-shadow:none;margin:0}}`;
+ const html=`<style>${css}</style><div class="pg" data-n="${n}" data-ori="L">${mk}<div class="fr"></div><div class="hb"><div class="t0"><small>OMR</small><b>답안지</b></div><div class="t1"><span>${esc(w.title)}</span></div><div class="t2">${esc(subjN)}${mock&&cv.area?' · '+esc(cv.area):''}<br>${n}문항 · ${new Date(w.t).toLocaleDateString('ko-KR')}</div></div>
+ <div class="sh" style="left:24mm;top:38mm;width:70mm">인적사항</div>
+ <span class="bt" style="left:24mm;top:46.5mm">성 명</span><div class="box" style="left:44mm;top:43mm;width:50mm;height:7mm"></div>
+ <span class="bt" style="left:24mm;top:56.5mm">${mock?'선택과목':'학교·학원'}</span><div class="box" style="left:44mm;top:53mm;width:50mm;height:7mm">${mock?`<span class="fx" style="left:2mm;top:2.2mm;position:absolute">${esc(subjN)} (${sc})</span>`:`<span class="fx" style="left:2mm;top:2.4mm;position:absolute;font-size:8.5pt">${esc(w.academy||'')}</span>`}</div>
+ <span class="bt" style="left:24mm;top:66.5mm">응시일</span><div class="box" style="left:44mm;top:63mm;width:50mm;height:7mm"></div>
+ <div class="sh" style="left:24mm;top:70.8mm;width:70mm">${mock?'수험번호 · 과목번호':'학년 · 반 · 번호'} 표기</div><div class="ip"></div>${grpLab}${ib}
+ <div class="sh" style="left:24mm;top:135mm;width:70mm">확인란</div>
+ <span class="bt" style="left:24mm;top:145.5mm">감독 확인</span><div class="box" style="left:44mm;top:139mm;width:22mm;height:13mm"></div><span class="bt" style="left:69mm;top:145.5mm;font-size:7.5pt">점수</span><div class="box" style="left:78mm;top:139mm;width:16mm;height:13mm"></div>
+ <div class="qrb">${qrSvg(url)}<b>${fmtNo(w.id)}</b></div>
+ <div class="nb2"><em>답안 표기 방법</em><div class="ex"><i class="f"></i>올바른 표기</div><div class="ex"><u>✓ ✗ ○ ◔</u>잘못된 표기</div>칸 안을 <b style="position:static;transform:none;font-size:inherit;color:#1b2430">진하게 모두</b> 칠해요. 복수 정답은 모두 칠하고, 네 모서리의 검은 네모는 가리지 마세요.</div>
+ ${zeb.join('')}${blk.join('')}${nums.join('')}${bub}
+ <div class="ft">${esc(w.title)} · 번호 ${fmtNo(w.id)} · 채점 화면의 「OMR 사진으로 입력」으로 읽어요${n>G.cap?` · ${G.cap}번까지만 인쇄돼요`:''}</div></div>`;
+ mount($('#wsPaper'),html);omrBar(id,'L');
+ let ps=document.getElementById('wsPrintStyle');if(!ps){ps=document.createElement('style');ps.id='wsPrintStyle';document.head.appendChild(ps)}ps.textContent='@page{size:A4 landscape;margin:0}';$('#wsView').classList.add('open');pushNav()}
+function omrBar(id,ori){$('#wsBar').innerHTML=`<button class="p" onclick="window.print()">인쇄</button><span class="seg" style="margin:0 8px"><label><input type="radio" name="oo" ${ori==='L'?'checked':''} onchange="localStorage.setItem('omr_ori','L');omrCard('${id}','L')"><span>가로형</span></label><label><input type="radio" name="oo" ${ori==='P'?'checked':''} onchange="localStorage.setItem('omr_ori','P');omrCard('${id}','P')"><span>세로형(예전)</span></label></span><button class="wsx" onclick="closeWs()" title="닫기" aria-label="닫기">✕</button><span class="m">OMR 답안지 · A4 ${ori==='L'?'가로':'세로'} · 100% 크기로 인쇄하세요</span>`}
+function omrCardP(id){const w=WSH.find(x=>x.id===id);if(!w)return;const qs=w.codes.map(c=>byCode[c]).filter(Boolean);const n=qs.length;const mock=!!w.mock;const G=omrGeom(qs,mock);
  const base=(CF.pub||location.href).split('#')[0].split('?')[0],url=base+'#ws='+w.id;const cv=w.cover||{};const subjN=cv.subject||SNAME[(qs[0]&&subjOf(qs[0].code))||SUBJ]||'';const sc=OMRSUBJ[(qs[0]&&subjOf(qs[0].code))||SUBJ]||'';
  const RD='#e0452b',RL='#fdeeea';
  const nums=qs.slice(0,G.cap).map((q,i)=>{const c=Math.floor(i/G.per),r=i%G.per,x=G.xs0+c*G.colW,y=G.y0+r*G.rowH+G.rowH/2;return `<b style="left:${x+10}mm;top:${y}mm">${i+1}</b>${q.set==='blank'||q.set==='essay'?`<span class="bl" style="left:${x+12}mm;top:${y}mm">직접 풀이·입력</span>`:''}`}).join('');
@@ -3671,7 +3732,7 @@ function omrCard(id){const w=WSH.find(x=>x.id===id);if(!w)return;const qs=w.code
  ${grpLab}${ib}${blk.join('')}${nums}${bub}
  <div class="note"><b>답안 표기 방법</b> 올바른 표기 <span class="ok">●</span> · 잘못된 표기 ✓ ✗ ○ — 정답 칸을 <b>진하게 칠하세요</b>(✓ 표시는 인식이 어려워요). 복수 정답은 모두 칠합니다. ${mock?'수험번호·과목번호·형도 해당 숫자를 칠하세요. ':'학년·반·번호도 해당 숫자를 칠하세요. '}네 모서리의 검은 네모는 가리지 마세요.</div>
  <div class="ft">${esc(w.title)} · 번호 ${fmtNo(w.id)} · 채점 화면의 「OMR 사진으로 입력」으로 읽어요${n>G.cap?` · ${G.cap}번까지만 인쇄돼요`:''}</div></div>`;
- mount($('#wsPaper'),html);$('#wsBar').innerHTML='<button class="p" onclick="window.print()">인쇄</button><button class="wsx" onclick="closeWs()" title="닫기" aria-label="닫기">✕</button><span class="m">OMR 답안지 · A4 · 100% 크기로 인쇄하세요</span>';
+ mount($('#wsPaper'),html);omrBar(id,'P');
  let ps=document.getElementById('wsPrintStyle');if(!ps){ps=document.createElement('style');ps.id='wsPrintStyle';document.head.appendChild(ps)}ps.textContent='@page{size:A4;margin:0}';$('#wsView').classList.add('open');pushNav()}
 /* ---- 사진 읽기 ---- */
 function omrSolve(A,b){const n=b.length;for(let i=0;i<n;i++){let m=i;for(let r=i+1;r<n;r++)if(Math.abs(A[r][i])>Math.abs(A[m][i]))m=r;[A[i],A[m]]=[A[m],A[i]];[b[i],b[m]]=[b[m],b[i]];for(let r=i+1;r<n;r++){const f=A[r][i]/A[i][i];for(let c=i;c<n;c++)A[r][c]-=f*A[i][c];b[r]-=f*b[i]}}
@@ -3695,7 +3756,11 @@ function omrMarkers(bin,w,h){const lab=new Int32Array(w*h),comps=[];let id=0;con
  return pick.every(Boolean)?pick:null}
 async function omrRead(file,qs){const im=await omrLoadImg(file);const bin=omrBinary(im.cx,im.w,im.h);const mk=omrMarkers(bin,im.w,im.h);
  if(!mk)throw new Error('markers');
- const H=omrHomography(OMRMK,mk.map(c=>[c.cx,c.cy]));const G=omrGeom(qs,!!(cur&&cur.ws&&cur.ws.mock));const s=Math.hypot(mk[1].cx-mk[0].cx,mk[1].cy-mk[0].cy)/(OMRMK[1][0]-OMRMK[0][0]);
+ /* 모서리 네모 중 하나가 눈에 띄게 크면(가로형: 오른쪽 아래) 그것으로 종이 방향을 알아냅니다. 같은 크기면 예전 세로형 */
+ let src=OMRMK,pts=mk,land=false;
+ {const A=mk.map(c=>c.a);for(let k=0;k<4;k++){const o=A.filter((_,i)=>i!==k),mo=(o[0]+o[1]+o[2])/3;
+   if(A[k]>mo*1.42&&Math.max(...o)<A[k]&&Math.max(...o)/Math.min(...o)<1.3){land=true;const cw=[mk[0],mk[1],mk[3],mk[2]],ci=[0,1,3,2][k],sh=(ci-2+4)%4,rot=[0,1,2,3].map(i=>cw[(i+sh)%4]);pts=[rot[0],rot[1],rot[3],rot[2]];src=OMRMKL;break}}}
+ const H=omrHomography(src,pts.map(c=>[c.cx,c.cy]));const G=omrGeom(qs,!!(cur&&cur.ws&&cur.ws.mock),land);const [ux0,uy0]=omrMap(H,src[0][0],src[0][1]),[vx0,vy0]=omrMap(H,src[0][0]+100,src[0][1]);const s=Math.hypot(vx0-ux0,vy0-uy0)/100;
  const rr=Math.max(2,G.d*.36*s),fills=qs.map(()=>[]);
  G.b.forEach(p=>{const [u,v]=omrMap(H,p.x,p.y);let t=0,dk=0;const R=Math.ceil(rr);for(let y=-R;y<=R;y++)for(let x=-R;x<=R;x++){if(x*x+y*y>rr*rr)continue;const px=Math.round(u+x),py=Math.round(v+y);if(px<0||py<0||px>=im.w||py>=im.h)continue;t++;dk+=bin[py*im.w+px]}
   fills[p.q][p.o]=t?dk/t:0;p.u=u;p.v=v});
