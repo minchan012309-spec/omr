@@ -367,6 +367,8 @@ html[data-theme=dark] .hbf{color:#6f7782}html[data-theme=dark] .hbs.on .hbf{colo
 .bpt{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}.bpt .bt{min-width:34px;height:28px;padding:0 6px;border-radius:7px;border:1px solid var(--l2);background:var(--sf1);color:var(--m);font-size:11.5px;cursor:pointer}.bpt .bt:disabled{cursor:default}.bt.g{background:#2b9a5b;border-color:#2b9a5b;color:#fff}.bt.y{background:#f1b82d;border-color:#f1b82d;color:#4a3500}.bt.r{background:#d9534f;border-color:#d9534f;color:#fff}
 .bl{display:inline-block;width:10px;height:10px;border-radius:3px;border:1px solid var(--l2);background:var(--sf1);vertical-align:-1px;margin:0 3px 0 8px}.bl.g{background:#2b9a5b;border-color:#2b9a5b}.bl.y{background:#f1b82d;border-color:#f1b82d}.bl.r{background:#d9534f;border-color:#d9534f}
 .bkm td{text-align:center;vertical-align:middle}.bkm td.l{text-align:left;white-space:nowrap}.bkm td small{display:block;color:var(--m);font-size:11px}.bkm .lk{background:none;border:0;color:var(--bd);font-weight:700;cursor:pointer;padding:0}.bkm td.z{opacity:.6}.bkm .bavg td{background:var(--sf1);border-top:2px solid var(--l)}
+.exl2{margin:6px 0 12px}.exr2{display:grid;grid-template-columns:minmax(0,1.3fr) auto auto auto auto;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--l);font-size:13.5px}.exr2:first-child{border-top:0}.exr2 em{font-style:normal;color:var(--m);font-size:12px}.exr2 i{font-style:normal;font-weight:800;color:var(--bd);min-width:46px;text-align:right}.exr2 i.soon{color:#d9534f}.exr2 i.past{color:var(--m);font-weight:600}
+.ddls{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:13px;color:var(--m)}.ddls b{color:var(--bd);margin-right:3px}.ddls small{opacity:.8}
 .tmr{font-weight:700;color:var(--bd);background:var(--bl);border-radius:12px;padding:2px 12px;font-size:15px}.tmr.warn{color:#b03a37;background:#fdeceb}
 
 /* ===== v5: 단계 표시 · 채점 화면 · 애니메이션 ===== */
@@ -842,7 +844,8 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 function fmt(h){return String(h).replace(/_\{([^}]*)\}/g,'<sub>$1</sub>').replace(/\^\{([^}]*)\}/g,'<sup>$1</sup>')}
 const jget=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||d}catch(e){return d}};
 let SAVEDT=0;
-const jset=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));SAVEDT=Date.now();savedMark()}catch(e){}};
+var PSMAP={'omr_dday_v1':'dday','omr_goal_v1':'goal','omr_today_v1':'today'};
+const jset=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));SAVEDT=Date.now();savedMark()}catch(e){}if(PSMAP[k])try{prefsPush(PSMAP[k],v)}catch(e){}};
 function savedMark(){clearTimeout(window._sm);window._sm=setTimeout(()=>{const e=document.getElementById('saved');if(e){const d=new Date(SAVEDT);e.textContent='💾 '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0')+' 저장됨';e.classList.add('flash');setTimeout(()=>e.classList.remove('flash'),900)}},150)}
 /* ---------- 문제/해설 렌더(shadow DOM) ---------- */
 function hlHtml(h,terms){if(!terms||!terms.length)return h;const re=new RegExp('('+terms.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','gi');
@@ -905,7 +908,7 @@ async function auth(kind,email,pw){const p=kind==='up'?'/auth/v1/signup':'/auth/
 const uuid=()=>(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)}));
 async function load(){loadCfg();hist=jget(LS,[]);STU=jget(LST,[]);WSH=jget(LW,[]);CUR_S=localStorage.getItem(LCS)||'';srv=false;
  await loadBankIndex();
- STUD=cloud()?sget(LSTUD):null;if(STUD){await loadStud();if(STUD){syncLabel();render();return}}
+ STUD=cloud()?sget(LSTUD):null;if(STUD){await loadStud();if(STUD){syncLabel();render();prefsPull().then(()=>{if(STUD&&!cur&&!PR&&['home','wrong'].includes(tab))render()});return}}
  if(cloud()&&sess){try{
    await stuSync();setTimeout(sgLoad,300);setTimeout(bugPoll,600);
    const r=await sb('/rest/v1/attempts?select=t,set,sub,items,student_id&order=t.asc&limit=20000');
@@ -914,7 +917,7 @@ async function load(){loadCfg();hist=jget(LS,[]);STU=jget(LST,[]);WSH=jget(LW,[]
     srv='cloud';
     for(const x of up)await sb('/rest/v1/attempts',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({t:x.t,set:x.set,sub:x.sub,items:x.items,student_id:x.sid||null})});
     hist=[...rem,...up].sort((a,b)=>a.t-b.t)}
-   await wsSync();await asSync()}catch(e){}}
+   await wsSync();await asSync();prefsPull().then(()=>{if(!cur&&!PR&&['stu','thome','wrong'].includes(tab))render()})}catch(e){}}
  else if(!cloud()){try{const r=await fetch('/api/results');if(r.ok){const s=await r.json();const have=new Set(s.map(x=>x.t));hist=[...s,...hist.filter(x=>!have.has(x.t))].sort((a,b)=>a.t-b.t);srv='local'}}catch(e){}}
  jset(LS,hist);if(CUR_S&&!STU.find(s=>s.id===CUR_S))CUR_S='';
  syncLabel();render()}
@@ -973,6 +976,36 @@ async function stuDel(id){if(!confirm('이 학생을 삭제할까요? 채점 기
 async function stuDelSel(){const ids=[...STSEL];if(!ids.length)return;if(!confirm('선택한 학생 '+ids.length+'명을 삭제할까요?\n채점 기록은 남지만 학생과의 연결이 끊어져요.'))return;
  let fail=0;stuTombAdd(ids);if(srv==='cloud'){await stuTombSrv(ids);for(const id of ids){if(!(await stuSrvDel(id)))fail++}}
  STU=STU.filter(x=>!ids.includes(x.id));jset(LST,STU);if(ids.includes(CUR_S))CUR_S='';STSEL.clear();syncLabel();render();toast(fail?'일부 학생은 온라인에서 지우지 못했어요 ('+fail+'명)':ids.length+'명을 삭제했어요')}
+/* ---------- 서버에 저장되는 개인 설정(D-day·목표·오늘의 문제 범위) · 선생님 시험 일정 ---------- */
+let PSBUSY=0,_psT=null,_psQ={},EXAMS=jget('omr_exams_v1',[]),STGRADE='';
+const prefsCan=()=>!!(cloud()&&((STUD&&!STUD.preview&&!STUD.parent)||(sess&&!STUD)));
+function prefsPush(k,v){if(PSBUSY||!prefsCan())return;_psQ[k]=v===undefined?null:v;clearTimeout(_psT);_psT=setTimeout(prefsFlush,900)}
+async function prefsFlush(){const q=_psQ;_psQ={};if(!Object.keys(q).length||!prefsCan())return;
+ try{if(STUD){const r=await rpc('st_prefs_set',{p_login:STUD.login,p_pw:STUD.pw,p_prefs:q});if(!r.ok)throw new Error('ps')}
+  else{const d=(await tsRaw());if(d===null)throw new Error('ps');d.prefs=Object.assign(d.prefs||{},q);const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:d,updated_at:new Date().toISOString()})});if(!r.ok)throw new Error('ps')}}
+ catch(e){Object.assign(_psQ,q)}}
+async function prefsPull(){try{if(!cloud())return;let j=null;
+  if(STUD&&STUD.parent){const r=await rpc('pa_prefs_get',{p_login:STUD.login,p_pw:STUD.pw});j=r.ok?await r.json():null}
+  else if(STUD&&!STUD.preview){const r=await rpc('st_prefs_get',{p_login:STUD.login,p_pw:STUD.pw});j=r.ok?await r.json():null}
+  else if(sess&&!STUD){const d=await tsRaw();j=d?{prefs:d.prefs||{},exams:d.exams||[],grade:''}:null}
+  if(!j)return;EXAMS=Array.isArray(j.exams)?j.exams:[];STGRADE=j.grade||'';try{localStorage.setItem('omr_exams_v1',JSON.stringify(EXAMS))}catch(e){}
+  const P=j.prefs||{};PSBUSY=1;try{Object.entries(PSMAP).forEach(([lk,sk])=>{if(sk in P){if(P[sk]===null)localStorage.removeItem(lk);else localStorage.setItem(lk,JSON.stringify(P[sk]))}else{const lv=jget(lk,null);if(lv&&prefsCan())_psQ[sk]=lv}})}finally{PSBUSY=0}
+  if(Object.keys(_psQ).length)prefsFlush()}catch(e){}}
+async function examsSave(){try{localStorage.setItem('omr_exams_v1',JSON.stringify(EXAMS))}catch(e){}
+ if(cloud()&&sess&&!STUD){try{const d=(await tsRaw());if(d===null)throw 0;d.exams=EXAMS;const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:d,updated_at:new Date().toISOString()})});if(!r.ok)throw 0;toast('시험 일정을 저장했어요 (학생·학부모 화면에 자동으로 보여요)')}catch(e){toast('서버에 저장하지 못했어요. 이 기기에는 저장됐어요.')}}else toast('시험 일정을 저장했어요')}
+const dayDiff=d=>Math.ceil((new Date(d+'T00:00:00')-new Date(new Date().toDateString()))/864e5);
+/* 지금 화면의 학생이 볼 시험 일정: 선생님이 정한 일정(전체 또는 그 학생의 반) + 학생이 직접 정한 D-day */
+function ddayList(){const g=teacher()?((STU.find(x=>x.id===CUR_S)||{}).grade||''):(STGRADE||(STINFO&&STINFO.grade)||'');
+ const L=EXAMS.filter(e=>e&&e.date&&(!e.cls||String(e.cls).trim()===String(g||'').trim())).map(e=>({id:e.id,name:e.name||'시험',date:e.date,subs:e.subs||[],own:0,days:dayDiff(e.date)}));
+ const o=jget(DD,null);if(o&&o.date)L.push({id:'own',name:o.name||'시험',date:o.date,subs:[],own:1,days:dayDiff(o.date)});
+ return L.filter(x=>x.days>=-3).sort((a,b)=>a.days-b.days)}
+const ddayNext=()=>ddayList().find(x=>x.days>=0)||null;
+function examCard(){const L=EXAMS.slice().sort((a,b)=>String(a.date).localeCompare(b.date)),cl=clsList();
+ return `<div class="card"><h2>시험 일정</h2><div class="m" style="margin-bottom:8px">여기에 적은 시험 날짜는 <b>학생·학부모 화면에 D-day로 자동 표시</b>돼요. 학생이 직접 정할 필요가 없어요.</div>
+ ${L.length?`<div class="exl2">${L.map(e=>{const d=dayDiff(e.date);return `<div class="exr2"><b>${esc(e.name)}</b><span>${esc(e.date)}</span><em>${e.cls?esc(e.cls):'전체'}</em><i class="${d<0?'past':d<=7?'soon':''}">${d>0?'D-'+d:d===0?'D-DAY':'D+'+(-d)}</i><button class="s sm" onclick="examDel('${e.id}')">삭제</button></div>`}).join('')}</div>`:'<div class="m" style="margin:8px 0">등록한 시험이 없어요.</div>'}
+ <div class="form"><label>시험 이름<input id="exn" type="text" placeholder="예) 2학기 기말고사"></label><label>시험 날짜<input id="exd" type="date"></label><label>대상<select id="exc"><option value="">전체 학생</option>${cl.map(([c])=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></label></div><button class="p" onclick="examAdd()">시험 일정 추가</button></div>`}
+function examAdd(){const name=($('#exn').value||'').trim(),date=$('#exd').value,cls=$('#exc').value;if(!name||!date){alert('시험 이름과 날짜를 입력하세요.');return}EXAMS.push({id:'e'+Date.now().toString(36),name,date,cls});examsSave();stuView()}
+function examDel(id){if(!confirm('이 시험 일정을 지울까요?'))return;EXAMS=EXAMS.filter(e=>e.id!==id);examsSave();stuView()}
 let SQ='',SGR='';
 const stuFlt=s=>(!SQ||(s.name+' '+(s.grade||'')+' '+(s.memo||'')+' '+(s.login||'')).toLowerCase().includes(SQ.toLowerCase()))&&(!SGR||(SGR==='__none'?!(s.grade||''):(s.grade||'')===SGR));
 function stuSum(){const wk=Date.now()-7*864e5;const all=hist.filter(h=>h.sid).flatMap(h=>h.items),r=all.filter(x=>x.r).length;const act=new Set(hist.filter(h=>h.t>=wk&&h.sid).map(h=>h.sid));const idle=STU.filter(s=>!act.has(s.id));
@@ -989,7 +1022,7 @@ function stuView(){
   <div class="sr2"><span><em>약한 유형</em>${worst?esc(worst):'<i class="m">아직 없음</i>'}</span><span><em>학생 계정</em>${s.login?`<b>${esc(s.login)}</b>`:'<i class="m">없음</i>'}</span><span><em>학부모 계정</em>${paSum(s.id)}</span></div>
   <div class="sr3 act"><button class="s sm" onclick="setStu('${s.id}');tab='weak';render()">취약 유형</button><button class="s sm" onclick="issueLogin('${s.id}')">${s.login?'계정 재발급':'계정 발급'}</button>${s.login?`<button class="s sm" onclick="revokeLogin('${s.id}')">계정 해제</button>`:''}<button class="s sm" onclick="paOpen('${s.id}')">학부모 계정</button><button class="s sm" onclick="previewStudent('${s.id}')" title="이 학생이 보는 화면을 그대로 봅니다">학생 화면</button><button class="s sm" onclick="previewStudent('${s.id}',1)" title="학부모가 보는 화면을 그대로 봅니다">학부모 화면</button><button class="s sm" onclick="stuEdit('${s.id}')">수정</button><button class="s sm" onclick="stuDel('${s.id}')">삭제</button></div></div>`}).join('');
  $('#main').innerHTML=`<div class="g2s"><div class="sidecol">${stuSum()}<div class="card"><h2>학생 등록</h2>${CF.stuErr?'<div class="hint">온라인 학생 표가 아직 없습니다. setup.sql을 다시 실행하세요. 지금은 이 기기에만 저장됩니다.</div>':''}
- <div class="form"><label>이름<input id="sn" type="text"></label><label>학년·반<input id="sg" type="text" list="cll" placeholder="예) 고2 3반"><datalist id="cll">${clsList().map(([c])=>`<option value="${esc(c)}">`).join('')}</datalist></label><label>메모<input id="sm" type="text"></label></div><button class="p" onclick="stuAdd()">등록</button></div>${clsBulkCard()}</div><div class="card"><div class="row"><h2 style="margin:0">학생 목록</h2><input type="search" placeholder="이름·학년·아이디 검색" value="${esc(SQ)}" oninput="SQ=this.value;clearTimeout(window._sq);window._sq=setTimeout(stuView,250)" style="width:210px"><button class="s sm" style="margin-left:auto" onclick="exportCsv()" title="모든 채점 기록을 엑셀에서 열 수 있는 CSV 파일로 저장">채점 기록 CSV 저장</button></div>${STU.length?`${clsBar()}${SGR?clsPanel():''}<div class="tw"><div class="row"><span class="m">선택한 학생 ${STSEL.size}명에게 맞춤 학습지를</span><input id="bk" type="number" value="4" min="2" max="10" style="width:60px"><span class="m">개 취약 유형,</span><input id="bn" type="number" value="20" min="6" max="100" style="width:70px"><span class="m">문항씩</span><button class="p" ${STSEL.size?'':'disabled'} onclick="batchStudents()">일괄 생성</button><button class="s" ${STSEL.size?'':'disabled'} onclick="stuDelSel()">선택 학생 삭제</button>${clsMoveUi()}<span class="m">(디자인은 「학습지 만들기」에서 정한 설정을 씁니다)</span></div><div class="srl">${rows}</div></div>`:'<div class="empty">등록한 학생이 없습니다.</div>'}</div></div>`}
+ <div class="form"><label>이름<input id="sn" type="text"></label><label>학년·반<input id="sg" type="text" list="cll" placeholder="예) 고2 3반"><datalist id="cll">${clsList().map(([c])=>`<option value="${esc(c)}">`).join('')}</datalist></label><label>메모<input id="sm" type="text"></label></div><button class="p" onclick="stuAdd()">등록</button></div>${clsBulkCard()}${examCard()}</div><div class="card"><div class="row"><h2 style="margin:0">학생 목록</h2><input type="search" placeholder="이름·학년·아이디 검색" value="${esc(SQ)}" oninput="SQ=this.value;clearTimeout(window._sq);window._sq=setTimeout(stuView,250)" style="width:210px"><button class="s sm" style="margin-left:auto" onclick="exportCsv()" title="모든 채점 기록을 엑셀에서 열 수 있는 CSV 파일로 저장">채점 기록 CSV 저장</button></div>${STU.length?`${clsBar()}${SGR?clsPanel():''}<div class="tw"><div class="row"><span class="m">선택한 학생 ${STSEL.size}명에게 맞춤 학습지를</span><input id="bk" type="number" value="4" min="2" max="10" style="width:60px"><span class="m">개 취약 유형,</span><input id="bn" type="number" value="20" min="6" max="100" style="width:70px"><span class="m">문항씩</span><button class="p" ${STSEL.size?'':'disabled'} onclick="batchStudents()">일괄 생성</button><button class="s" ${STSEL.size?'':'disabled'} onclick="stuDelSel()">선택 학생 삭제</button>${clsMoveUi()}<span class="m">(디자인은 「학습지 만들기」에서 정한 설정을 씁니다)</span></div><div class="srl">${rows}</div></div>`:'<div class="empty">등록한 학생이 없습니다.</div>'}</div></div>`}
 /* ---------- 반(학급): 학생의 「학년·반」 값을 반 이름으로 씁니다 ---------- */
 const clsName=s=>String(s.grade||'').trim();
 const clsList=()=>{const m={};STU.forEach(s=>{const c=clsName(s);if(c)m[c]=(m[c]||0)+1});return Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0],'ko',{numeric:true}))};
@@ -1390,6 +1423,7 @@ function nUnread(){const s=nSeenGet();let n=0;SITE.notices.forEach(x=>{if(!s.has
 function nBadge(){const b=document.getElementById('bellN');if(!b)return;const n=nUnread();b.textContent=n>9?'9+':String(n);b.hidden=!n}
 async function nFetch(first){
  try{if(!cloud())return;await siteFetch();
+  if(STUD&&STUD.parent&&!STUD.preview){const r=await rpc('pa_notices',{p_login:STUD.login,p_pw:STUD.pw});NT.err='';let jn=[];try{jn=r.ok?await r.json():[]}catch(e){}NT.list=Array.isArray(jn)?jn:[];NT.dbg='';return}
   if(STUD&&STUD.parent){NT.list=[];NT.err='';NT.dbg='';return}
   if(STUD&&!STUD.preview){permFetch();const r=await rpc('st_notices',{p_login:STUD.login,p_pw:STUD.pw});NT.err=r.ok?'':(r.status===404?'공지 기능이 서버에 설정되지 않았어요. 선생님께 알려 주세요.':'공지를 불러오지 못했어요 ('+r.status+')');let jn=[];try{jn=r.ok?await r.json():[]}catch(e){}NT.list=Array.isArray(jn)?jn:[];NT.dbg='서버 응답 '+r.status+' · 받은 공지 '+NT.list.length+'건'}
   else if(sess){sgLoad();bugPoll();const r=await sb('/rest/v1/notices?select=id,title,body,t,student_id&order=t.desc&limit=60');NT.err=r.ok?'':(r.status===404?'notices 테이블이 없어요. setup.sql 11번을 실행하세요.':'공지를 불러오지 못했어요 ('+r.status+')');NT.sent=r.ok?await r.json():[];NT.list=[];NT.dbg='서버 응답 '+r.status+' · 보낸 공지 '+NT.sent.length+'건'}
@@ -1409,12 +1443,14 @@ function nClose(){NT.open=false;const p=document.getElementById('notifp');if(p)p
 function nRender(){let p=document.getElementById('notifp');if(!p){p=document.createElement('div');p.id='notifp';p.setAttribute('role','dialog');p.setAttribute('aria-label','알림');document.body.appendChild(p);
   const b=document.getElementById('bellBtn');if(b){const r=b.getBoundingClientRect();p.style.top=(r.bottom+8)+'px'}}
  const s=nSeenGet();const items=[...SITE.notices.map(x=>({k:'s',id:x.id,t:+x.t,title:x.title,body:x.body,tag:x.tag||'공지'})),...NT.list.map(x=>({k:'n',id:x.id,t:+x.t,title:x.title,body:x.body,tag:'공지'})),...UPDATES.filter(updFor).map(u=>({k:'u',id:u.id,t:new Date(u.date).getTime(),title:u.title,body:u.body,tag:'업데이트',tour:u.tour}))].sort((a,b)=>b.t-a.t);
- const composer=(!STUD&&sess)?`<details class="ncomp"><summary>공지 보내기</summary><div class="ncf"><input id="nt_t" maxlength="60" placeholder="제목"><textarea id="nt_b" rows="3" maxlength="500" placeholder="내용 (학생 화면 알림에 보여요)"></textarea><select id="nt_s"><option value="">모든 학생</option>${STU.map(x=>`<option value="${x.id}">${esc(x.name)}${x.grade?' · '+esc(x.grade):''}</option>`).join('')}</select><button class="p" onclick="nSend()">보내기</button></div>
+ const composer=(!STUD&&sess)?`<details class="ncomp"><summary>공지 보내기</summary><div class="ncf"><input id="nt_t" maxlength="60" placeholder="제목"><textarea id="nt_b" rows="3" maxlength="500" placeholder="내용 (학생 화면 알림에 보여요)"></textarea><select id="nt_a" aria-label="받는 사람"><option value="student">학생에게</option><option value="parent">학부모에게</option><option value="all">학생과 학부모 모두</option></select><select id="nt_s" aria-label="대상"><option value="">모든 학생</option>${clsList().map(([c])=>`<option value="c:${esc(c)}">반 전체 · ${esc(c)}</option>`).join('')}${STU.map(x=>`<option value="${x.id}">${esc(x.name)}${x.grade?' · '+esc(x.grade):''}</option>`).join('')}</select><button class="p" onclick="nSend()">보내기</button></div>
  ${NT.sent.length?`<div class="nsent"><b>보낸 공지</b>${NT.sent.slice(0,8).map(x=>`<div><span>${esc(x.title)}<small>${new Date(+x.t).toLocaleDateString('ko-KR')}${x.student_id?' · '+esc((STU.find(y=>y.id===x.student_id)||{}).name||'한 명'):' · 전체'}</small></span><button class="s sm" onclick="nDel(${x.id})">삭제</button></div>`).join('')}</div>`:''}</details>`:'';
  p.innerHTML=`<div class="nh"><b>알림</b><button class="s sm" onclick="nClose()" aria-label="닫기">닫기</button></div>${NT.err?`<div class="hint" style="margin:8px 12px">${esc(NT.err)}</div>`:''}${composer}<div class="nl">${NT.dbg?`<div class="m" style="font-size:11px;padding:2px 14px 6px">${esc(NT.dbg)}</div>`:''}${items.length?items.map(i=>`<div class="ni ${s.has(i.k+':'+i.id)?'':'new'} ${i.tour&&TOURS[i.tour]?'go':''}" ${i.tour&&TOURS[i.tour]?`role="button" tabindex="0" onclick="nClose();tourStart('${i.tour}')" onkeydown="if(event.key==='Enter')this.click()"`:''}><div class="nt"><span class="ntag ${i.k}">${i.tag}</span><b>${esc(i.title)}</b><small>${new Date(i.t).toLocaleDateString('ko-KR')}</small></div><p>${esc(i.body||'')}</p>${i.tour&&TOURS[i.tour]?'<span class="ngo">눌러서 튜토리얼 보기 ›</span>':''}</div>`).join(''):'<div class="m" style="padding:14px">알림이 없어요.</div>'}</div>`}
-async function nSend(){const title=($('#nt_t')||{}).value.trim(),body=($('#nt_b')||{}).value.trim(),sid=($('#nt_s')||{}).value;if(!title){toast('제목을 입력하세요');return}
- try{const r=await sb('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({title,body,student_id:sid||null})});if(!r.ok){let m='';try{m=(await r.text()).slice(0,120)}catch(e){}throw new Error(r.status===404?'notices 테이블이 없어요. setup.sql 11번을 실행하세요.':'보내지 못했어요 ('+r.status+') '+m)}
-  await nFetch(false);toast('공지를 보냈어요 · '+(NT.dbg||''))}catch(e){toast(e.message)}}
+async function nSend(){const title=($('#nt_t')||{}).value.trim(),body=($('#nt_b')||{}).value.trim(),sid=($('#nt_s')||{}).value,aud=($('#nt_a')||{}).value||'student';if(!title){toast('제목을 입력하세요');return}
+ const targets=sid.startsWith('c:')?STU.filter(x=>clsName(x)===sid.slice(2)).map(x=>x.id):[sid||null];if(!targets.length){toast('그 반에 학생이 없어요');return}
+ const post=async withAud=>sb('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(targets.map(t=>({title,body,student_id:t,...(withAud?{audience:aud}:{})})))});
+ try{let r=await post(true);if(!r.ok&&r.status===400&&aud==='student')r=await post(false);if(!r.ok){let m='';try{m=(await r.text()).slice(0,120)}catch(e){}throw new Error(r.status===404?'notices 테이블이 없어요. setup.sql 11번을 실행하세요.':r.status===400?'학부모 공지는 supabase/sql_17_features.sql 을 먼저 실행해야 해요.':'보내지 못했어요 ('+r.status+') '+m)}
+  await nFetch(false);toast('공지를 보냈어요'+(aud==='parent'?' (학부모)':aud==='all'?' (학생·학부모)':'')+(targets.length>1?' · '+targets.length+'명':''))}catch(e){toast(e.message)}}
 async function nDel(id){if(!confirm('이 공지를 삭제할까요? 학생 화면에서도 사라져요.'))return;try{await sb('/rest/v1/notices?id=eq.'+id,{method:'DELETE'});await nFetch(false)}catch(e){toast('삭제하지 못했어요')}}
 document.addEventListener('click',e=>{if(NT.open&&!e.target.closest('#notifp,#bellBtn,#tour'))nClose()});
 /* ---------- 화면 필기 (애플펜슬 · 마우스 · 선택 시 손가락) ---------- */
@@ -2398,15 +2434,13 @@ function habitNotify(){try{const S=habitStats(H()),earned=HB.filter(b=>b[4](S)).
  const pl=jget('omr_hblv_v1',0);if(pl&&S.lv>pl)setTimeout(()=>toast('레벨 업! Lv.'+S.lv+' '+S.title),1800);jset('omr_hblv_v1',S.lv);
  if(S.tn>=S.g.daily&&jget('omr_hbday_v1',0)!==S.today){jset('omr_hbday_v1',S.today);setTimeout(()=>toast('오늘 목표를 달성했어요!'),900)}}catch(e){}}
 const DD='omr_dday_v1';
-function ddayCard(){const d=jget(DD,null);const days=d&&d.date?Math.ceil((new Date(d.date+'T00:00:00')-new Date(new Date().toDateString()))/864e5):null;
- const rows=typeRows(hist).filter(o=>o.n&&['skull','red','yellow'].includes(o.lv));
- if(days===null)return `<div class="card dd"><div class="row"><h2 style="margin:0">시험 D-day</h2><button class="s sm" style="margin-left:auto" onclick="ddayEdit()">시험 날짜 정하기</button></div><div class="m">날짜를 정하면 남은 날 수와 하루 권장 학습량을 알려 줘요.</div></div>`;
- const left=Math.max(days,0);const per=left?Math.max(3,Math.ceil(rows.length*4/left)):0;
- return `<div class="card dd"><div class="row"><h2 style="margin:0">${esc(d.name||'시험')} <b class="ddn">${days>0?'D-'+days:days===0?'D-DAY':'D+'+(-days)}</b></h2><span class="row" style="margin-left:auto"><button class="p sm" onclick="d1Package()">📄 D-1 패키지</button><button class="s sm" onclick="ddayEdit()">수정</button></span></div><div class="m">${days>0?`보강할 유형 ${rows.length}개 · 하루 <b>${per}문항</b> 정도면 충분해요.`:days===0?'오늘 시험이에요. 요약 노트를 훑어보세요!':'지난 시험이에요. 새 날짜를 정해 보세요.'}</div></div>`}
-function ddayChip(){const d=jget(DD,null);const days=d&&d.date?Math.ceil((new Date(d.date+'T00:00:00')-new Date(new Date().toDateString()))/864e5):null;
- if(days===null)return `<button class="ddc" onclick="ddayEdit()">＋ 시험 D-day 정하기</button>`;
- const rows=typeRows(hist).filter(o=>o.n&&['skull','red','yellow'].includes(o.lv));const left=Math.max(days,0);const per=left?Math.max(3,Math.ceil(rows.length*4/left)):0;
- return `<div class="ddc on"><button onclick="ddayEdit()" aria-label="D-day 수정"><b>${days>0?'D-'+days:days===0?'D-DAY':'D+'+(-days)}</b><span>${esc(d.name||'시험')}</span></button><small>${days>0?'보강할 유형 '+rows.length+'개 · 하루 '+per+'문항':days===0?'오늘 시험이에요!':'지난 시험이에요'}</small></div>`}
+function ddayCard(){const L=ddayList(),n=L.find(x=>x.days>=0)||null;const rows=typeRows(hist).filter(o=>o.n&&['skull','red','yellow'].includes(o.lv));
+ if(!L.length)return `<div class="card dd"><div class="row"><h2 style="margin:0">시험 D-day</h2><button class="s sm" style="margin-left:auto" onclick="ddayEdit()">시험 날짜 정하기</button></div><div class="m">날짜를 정하면 남은 날 수와 하루 권장 학습량을 알려 줘요. 한 번 정하면 서버에 저장돼서 다른 기기에서도 그대로예요.</div></div>`;
+ const days=n?n.days:L[0].days,left=Math.max(days,0),per=left?Math.max(3,Math.ceil(rows.length*4/left)):0,lab=d=>d>0?'D-'+d:d===0?'D-DAY':'D+'+(-d);
+ return `<div class="card dd"><div class="row"><h2 style="margin:0">${esc((n||L[0]).name)} <b class="ddn">${lab(days)}</b></h2><span class="row" style="margin-left:auto"><button class="p sm" onclick="d1Package()">📄 D-1 패키지</button><button class="s sm" onclick="ddayEdit()">내 시험일</button></span></div><div class="m">${days>0?`보강할 유형 ${rows.length}개 · 하루 <b>${per}문항</b> 정도면 충분해요.`:days===0?'오늘 시험이에요. 요약 노트를 훑어보세요!':'지난 시험이에요. 새 날짜를 정해 보세요.'}</div>${L.length>1?`<div class="ddls">${L.filter(x=>x!==(n||L[0])).slice(0,4).map(x=>`<span><b>${lab(x.days)}</b> ${esc(x.name)}${x.own?'':' <small>선생님 일정</small>'}</span>`).join('')}</div>`:''}</div>`}
+function ddayChip(){const n=ddayNext();if(!n)return `<button class="ddc" onclick="ddayEdit()">＋ 시험 D-day 정하기</button>`;
+ const rows=typeRows(hist).filter(o=>o.n&&['skull','red','yellow'].includes(o.lv)),days=n.days,left=Math.max(days,0),per=left?Math.max(3,Math.ceil(rows.length*4/left)):0;
+ return `<div class="ddc on"><button onclick="${n.own?'ddayEdit()':''}" aria-label="D-day"><b>${days>0?'D-'+days:days===0?'D-DAY':'D+'+(-days)}</b><span>${esc(n.name)}</span></button><small>${days>0?'보강할 유형 '+rows.length+'개 · 하루 '+per+'문항':days===0?'오늘 시험이에요!':'지난 시험이에요'}</small></div>`}
 function ddayEdit(){const d=jget(DD,{name:'',date:''});$('#cfgBox').innerHTML=`<h2 style="margin-top:0">시험 D-day</h2><div class="form"><label>시험 이름<input id="ddn" value="${esc(d.name||'')}" placeholder="예) 2학기 기말고사"></label><label>시험 날짜<input id="ddd" type="date" value="${esc(d.date||'')}"></label></div><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="s" onclick="jset(DD,null);closeCfg();render()">지우기</button><button class="p" onclick="jset(DD,{name:$('#ddn').value,date:$('#ddd').value});closeCfg();render()">저장</button></div>`;$('#cfg').classList.add('open')}
 let WREP=null;
 async function wsReport(id){const w=WSH.find(x=>x.id===id);if(!w)return;await ensureCodes(w.codes);const at=hist.filter(h=>h.set==='ws'&&h.sub===id);
