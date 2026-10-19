@@ -20,6 +20,7 @@ const BKCSS=`
 .bkdoc{font-family:Pretendard,PretendardLocal,'Noto Sans CJK KR','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111;font-weight:400;-webkit-print-color-adjust:exact;print-color-adjust:exact;word-break:keep-all;overflow-wrap:break-word}
 .bkdoc *{box-sizing:border-box}
 .bkdoc i{font-family:'Times New Roman','Noto Serif CJK KR',serif;font-style:italic}.bkdoc sub,.bkdoc sup{font-size:70%;line-height:0}
+.bkdoc .bkblank .bklg{position:absolute;right:12mm;bottom:10mm;display:flex;align-items:center;gap:1.4mm;font:800 8.5pt/1 Pretendard,sans-serif;letter-spacing:-.02em;color:#8a96a6}.bkdoc .bkblank .bklg svg{width:4.6mm;height:4.6mm;display:block}
 .bkdoc .bp{position:relative;width:210mm;height:297mm;background:#fff;overflow:hidden;font-size:12px;line-height:1.5}
 .bkdoc .hd{position:absolute;left:12mm;right:12mm;top:9mm;height:12mm;border-bottom:2.2px solid #111}
 .bkdoc .hd:after{content:"";position:absolute;left:0;right:0;bottom:-4.6px;border-bottom:.8px solid #111}
@@ -794,13 +795,16 @@ async function bkReader(id){
  else if(plan.kind==='x'){plan.toc.forEach(r=>r.items.forEach(([n,p])=>jumps.push([r.sub.k+' '+n,p])));if(plan.toc.es)jumps.push(['서술형',plan.toc.es.p])}
  else{jumps.push(['문제지',2],['정답 및 해설',plan.aStart])}
  jumps.push(['정답 · 해설',plan.aStart]);const seen=new Set();const J=jumps.filter(j=>j[1]&&!seen.has(j[0]+j[1]) && seen.add(j[0]+j[1]));
- m.innerHTML=`<div class="bkrd"><button class="s" onclick="bkClose()">‹ 교재함</button><b style="font-size:14px">${esc(plan.title)}</b><select id="bkj" onchange="bkJump(this.value)"><option value="">이동…</option><option value="1">표지</option>${J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}</select>${plan.kind==='m'?`<button class="p" onclick="bkGradeAll('${id}')">시험 전체 채점</button>`:''}<span class="bkzm"><button class="s" onclick="bkZoom(-1)" aria-label="작게">－</button><b id="bkzl">${Math.round((BKV.z||1)*100)}%</b><button class="s" onclick="bkZoom(1)" aria-label="크게">＋</button></span>${typeof ft==='function'&&!ft('ebook')?'':`<button class="p" onclick="bkEbook('${id}')">eBook</button>`}<button class="s" onclick="bkPdf('${id}',1)">PDF 받기</button><button class="s" onclick="bkPrint('${id}',0)">문제만 인쇄</button><button class="p" onclick="bkPrint('${id}',1)">전체 인쇄 · PDF</button></div><div id="bkpages"></div>`;
+ m.innerHTML=`<div class="bkrd"><button class="s" onclick="bkClose()">‹ 교재함</button><b style="font-size:14px">${esc(plan.title)}</b><select id="bkj" onchange="bkJump(this.value)"><option value="">이동…</option><option value="1">표지</option>${J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}</select>${plan.kind==='m'?`<button class="p" onclick="bkGradeAll('${id}')">시험 전체 채점</button>`:''}<button class="s" onclick="thumbTog('#main>.thr')">썸네일</button><span class="bkzm"><button class="s" onclick="bkZoom(-1)" aria-label="작게">－</button><b id="bkzl">${Math.round((BKV.z||1)*100)}%</b><button class="s" onclick="bkZoom(1)" aria-label="크게">＋</button></span>${typeof ft==='function'&&!ft('ebook')?'':`<button class="p" onclick="bkEbook('${id}')">eBook</button>`}<label class="chk" title="인쇄·PDF에서 답안이 뒷면에서 시작하지 않게 빈 쪽을 채워요"><input type="checkbox" ${dupGet()?'checked':''} onchange="dupSet(this.checked)"> 양면</label><button class="s" onclick="bkPdf('${id}',1)">PDF 받기</button><button class="s" onclick="bkPrint('${id}',0)">문제만 인쇄</button><button class="p" onclick="bkPrint('${id}',1)">전체 인쇄 · PDF</button></div><div id="bkpages"></div>`;
  const hdr=document.querySelector('header');const rd=document.querySelector('.bkrd');if(rd&&hdr)rd.style.top=(hdr.getBoundingClientRect().height+6)+'px';const box=$('#bkpages');bkScale();
  box.innerHTML=plan.pages.map((p,i)=>`<div class="bkw" id="bkpg${p.n}" data-i="${i}" style="width:var(--bkw);height:var(--bkh)"></div>`+(p.codes&&p.codes.length?`<div class="bkbar" style="width:var(--bkw)"><span><b>p.${p.n}</b> · ${p.codes.length}문항</span>${STUD&&!permOn('pageSolve')?'':`<button class="s" onclick="bkSolve('${id}',${plan.kind==='m'?0:p.n})">${plan.kind==='m'?'시험 화면에서 풀기':'이 쪽 풀기'}</button>`}<button class="p" onclick="${plan.kind==='m'?`bkGradeAll('${id}')`:`bkGradePage('${id}',${p.n})`}">${plan.kind==='m'?'시험 전체 채점하기':'이 쪽 채점하기'}</button></div>`:'<div style="height:10px"></div>')).join('');
  const fill=el=>{if(el.dataset.f)return;el.dataset.f=1;bkShadow(el,'<div class="bkdoc scr">'+bkPageHtml(plan,+el.dataset.i)+'</div>')};
  if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){fill(e.target);io.unobserve(e.target)}}),{rootMargin:'900px 0px'});box.querySelectorAll('.bkw').forEach(e=>io.observe(e))}
  else box.querySelectorAll('.bkw').forEach(fill);
- if(!window._bkrs){window._bkrs=1;addEventListener('resize',()=>{if(tab==='books'&&BKV.v==='read')bkScale()})}}
+ {const r=thumbRail({parent:m,n:plan.pages.length,label:i=>String(plan.pages[i].n),render:(el,i)=>{el.style.setProperty('--bks','1');bkShadow(el,'<div class="bkdoc scr">'+bkPageHtml(plan,i)+'</div>')},go:i=>bkJump(plan.pages[i].n)});
+  const rd2=document.querySelector('.bkrd');r.setTop(Math.max(8,(rd2?rd2.getBoundingClientRect().bottom:60)+8));window._bkrail=r;thumbAct(r,0)}
+ if(!window._bkrs){window._bkrs=1;addEventListener('resize',()=>{if(tab==='books'&&BKV.v==='read')bkScale()});
+  let tk=0;addEventListener('scroll',()=>{if(tk||tab!=='books'||BKV.v!=='read'||!window._bkrail||!document.contains(window._bkrail))return;tk=requestAnimationFrame(()=>{tk=0;let k=0;document.querySelectorAll('#bkpages .bkw').forEach(e=>{if(e.getBoundingClientRect().top<=140)k=+e.dataset.i});thumbAct(window._bkrail,k)})},{passive:true})}}
 function bkJump(n){const e=document.getElementById('bkpg'+n);if(e){const y=e.getBoundingClientRect().top+scrollY-64;scrollTo({top:y,behavior:'smooth'})}const s=$('#bkj');if(s)s.value=''}
 
 
@@ -825,6 +829,7 @@ async function bkEbook(id){
 #ebk .ebw{background:#12151b;flex:none}#ebk .eb,#ebk .et{display:flex;gap:6px;align-items:center;padding:6px 10px;flex-wrap:wrap}#ebk .et{padding-top:0}#ebk .eb b{flex:1;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#ebk .sp1{flex:1}
 #ebk button,#ebk select{font:inherit;background:#2a303b;color:#e8ecf2;border:1px solid #3a4250;border-radius:8px;padding:6px 10px;cursor:pointer;max-width:44vw;display:inline-flex;align-items:center;gap:4px}#ebk button.on{background:#f7b928;color:#222;border-color:#f7b928}#ebk .eb button,#ebk .et button{flex:none;white-space:nowrap}#ebk button.ebi{padding:6px 11px;justify-content:center}#ebk button.ebi svg{width:18px!important;height:18px!important;flex:none;display:block}#ebk button.pr{background:#2f9d66;border-color:#2f9d66;color:#fff;font-weight:700}
 #ebk .cd{width:24px;height:24px;min-width:24px;max-width:24px;min-height:24px;padding:0;border-radius:50%;border:2px solid #fff3;flex:none;box-sizing:border-box}#ebk .cd.on{border-color:#fff;box-shadow:0 0 0 2px #f7b928}
+#ebk.thon .stg{margin-left:140px}#ebk .thr{z-index:7;background:#1b1f27;border-color:#3a4250}#ebk .thr .thi{color:#aab4c2}#ebk .thr .thi.on{border-color:#f7b928;color:#f7b928}
 #ebk .stg{flex:1;position:relative;overflow:auto;touch-action:pan-x pan-y;overscroll-behavior:contain}#ebk .sp{display:flex;align-items:center;justify-content:center;gap:2px;width:max-content;min-width:100%;min-height:100%;margin:0 auto;padding:6px}
 #ebk .pgw{background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.5);position:relative;flex:none}#ebk .pgw.e{background:none;box-shadow:none}#ebk .pgh{position:absolute;inset:0}#ebk canvas.pgc{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
 #ebk.dr canvas.pgc{pointer-events:auto;touch-action:none}#ebk.dr.lz canvas.pgc{cursor:none}#ebk.dr.er canvas.pgc{cursor:cell}#ebk.dr canvas.pgc{cursor:crosshair}
@@ -851,7 +856,7 @@ async function bkEbook(id){
 <div class="ebw"><div class="eb"><button onclick="bkEbookClose()">닫기</button><b>${esc(plan.title)}</b>
 <select id="ebj" onchange="ebkGo(+this.value);this.value=''"><option value="">목차…</option>${EBK.J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}</select>
 <select id="ebm" onchange="ebkGo(+this.value);this.value=''"><option value="">북마크…</option></select><button id="ebs" onclick="ebkMark()">북마크</button><button onclick="ebkView()" id="ebv">보기</button>
-<button onclick="ebkList()" title="목록형 화면에서 풀기·채점">목록·채점</button><span class="sp1"></span>
+<button onclick="ebkRail()" title="쪽 썸네일 보이기/숨기기">썸네일</button><button onclick="ebkList()" title="목록형 화면에서 풀기·채점">목록·채점</button><span class="sp1"></span>
 <button class="ebi" onclick="ebkZoom(-1)" title="축소 (−)">−</button><button id="ebz" onclick="ebkFit()" title="화면에 맞추기 (0)">100%</button><button class="ebi" onclick="ebkZoom(1)" title="확대 (+)">+</button>
 <button id="ebp" onclick="ebkProj()" title="수업용 전체 화면 (P)">수업 모드</button>
 <span class="eg"><button class="ebi" onclick="bkPdf(EBK.id,1)" title="PDF 다운로드">${EBI.pdf}<span>PDF</span></button><button class="ebi pr" onclick="bkPrint(EBK.id,1)" title="인쇄">${EBI.print}<span>인쇄</span></button></span></div>
@@ -865,6 +870,8 @@ async function bkEbook(id){
 <div class="bt"><button onclick="ebkStep(-1)">‹</button><input type="range" id="ebr" min="1" max="${N}" value="${EBK.p}" oninput="ebkGo(+this.value,1)"><span class="ct" id="ebc"></span><button onclick="ebkStep(1)">›</button></div>
 <aside class="eba" id="ebans"><div class="ah"><b>정답 · 해설</b><button onclick="ebkRevClear()">모두 지우기</button><button onclick="ebkPanel(0)">닫기</button></div><div class="al" id="ebal"></div></aside><div class="laser" id="ebls"></div>`;
  document.body.appendChild(el);document.body.style.overflow='hidden';
+ {const rl=thumbRail({parent:el,n:N,label:i=>String(i+1),render:(t,i)=>{t.style.setProperty('--bks','1');bkShadow(t,'<div class="bkdoc scr">'+bkPageHtml(plan,i)+'</div>')},go:i=>ebkGo(i+1)});EBK.rail=rl;
+  const fit=()=>{const w=el.querySelector('.ebw');rl.setTop((w?w.getBoundingClientRect().bottom:90)+8);el.classList.toggle('thon',!rl.classList.contains('off')&&innerWidth>=900)};fit();EBK.railFit=fit;thumbAct(rl,EBK.p-1);setTimeout(()=>{try{ebkScale();ebkDraw(1)}catch(e){}},0)}
  EBK.kd=e=>{if(!document.getElementById('ebk')||/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||''))return;const k=e.key;
   if(k==='ArrowRight'||k==='PageDown'||k===' ')ebkStep(1);else if(k==='ArrowLeft'||k==='PageUp')ebkStep(-1);else if(k==='Escape'){if(EBK.proj)ebkProj(0);else bkEbookClose()}
   else if(k==='+'||k==='=')ebkZoom(1);else if(k==='-')ebkZoom(-1);else if(k==='0')ebkFit();else if(k==='p'||k==='P')ebkProj();else if(k==='d'||k==='D')ebkTool('pen');else if(k==='h'||k==='H')ebkTool('hl');else if(k==='e'||k==='E')ebkTool('er');else if(k==='l'||k==='L')ebkTool('lz');else if(k==='v'||k==='V')ebkTool('none');
@@ -940,7 +947,8 @@ function ebkMarkNums(){document.querySelectorAll('#ebsp .pgh').forEach(h=>{const
 function ebkRevDraw(){const el=document.getElementById('ebal');if(!el)return;if(!EBK.rev.length){el.innerHTML='<div style="color:#667;font-size:13px;line-height:1.6">문제 <b>번호</b>를 누르면 정답과 해설이 여기에 나와요.<br>다시 누르면 닫혀요.</div>';return}
  el.innerHTML=EBK.rev.map((c,i)=>`<div class="ai" id="ebai${i}"><h5>${esc(c)}${(byCode[c]||{}).type?' · '+esc(byCode[c].type):''}</h5><div class="ans">정답 ${esc(['mc','top','bank'].includes((byCode[c]||{}).set)||/^[1-5](,[1-5])*$/.test(String((byCode[c]||{}).ans))?bkCir((byCode[c]||{}).ans):String((byCode[c]||{}).ans||'-'))}</div><div class="ex"></div></div>`).join('');
  EBK.rev.forEach((c,i)=>{const q=byCode[c];const h=document.querySelector('#ebai'+i+' .ex');if(h&&q&&q.exp)mount(h,q.exp)})}
-function ebkDraw(keep,fade,dir){const sp=document.getElementById('ebsp');if(!sp)return;const two=ebkSpread();const {N}=EBK;let p=EBK.p;
+function ebkRail(){if(!EBK.rail)return;thumbTog('#ebk>.thr');EBK.railFit();try{ebkScale();ebkDraw(1)}catch(e){}}
+function ebkDraw(keep,fade,dir){const sp=document.getElementById('ebsp');if(!sp)return;if(EBK.rail)thumbAct(EBK.rail,EBK.p-1);const two=ebkSpread();const {N}=EBK;let p=EBK.p;
  let ps;if(two){const lo=p%2===0?p:p-1;ps=[lo,lo+1];if(lo<1)ps=[0,1]}else ps=[p];
  sp.className='sp';sp.innerHTML='<div class="spp'+(fade?' fd':'')+(dir>0?' fwd':dir<0?' back':'')+(two?' two':' one')+'"></div>';const spp=sp.firstChild;ps.forEach(n=>spp.appendChild(ebkMakePage(n)));
  ebkScale();ebkMarkNums();
@@ -1079,10 +1087,17 @@ function ebkScrubBind(s){let st=null;
 
 /* ---------- 인쇄 ---------- */
 function bkFontCssRule(){const f=BKO.font&&typeof FONTS!=='undefined'&&FONTS[BKO.font];return f&&BKO.font!=='paper'?'.bkdoc,.bkdoc *{font-family:'+f[1]+'!important}':''}
+/* 양면 인쇄: 답안이 뒷면에서 시작하지 않게 빈 쪽을 끼우고, 총 쪽수가 홀수면 마지막에 빈 쪽을 붙임(-1 = 빈 쪽) */
+function bkSheets(plan,all){const n=all?plan.pages.length:Math.max(1,(plan.aStart||plan.pages.length+1)-1);const a=[];for(let i=0;i<n;i++)a.push(i);
+ if(!dupGet())return a;
+ if(all&&plan.aStart>1&&plan.aStart-1<n&&plan.aStart%2===0)a.splice(plan.aStart-1,0,-1);
+ if(a.length%2)a.push(-1);return a}
+const BKLOGO='<svg viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="#3b82f6"/><path d="M22.5 9.6A9 9 0 1 0 25 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M11.4 16.4l3.6 3.6 7-8.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const bkBlankHtml=()=>'<div class="bp bk bkblank"><div class="bklg">'+BKLOGO+'<span>Solvi</span></div></div>';
+const bkSheetHtml=(plan,i)=>i<0?bkBlankHtml():bkPageHtml(plan,i);
 function bkDocHtml(plan,all){
  const abs=location.origin+location.pathname.replace(/[^/]*$/,'');
- const n=all?plan.pages.length:Math.max(1,(plan.aStart||plan.pages.length+1)-1);
- let pg='';for(let i=0;i<n;i++)pg+=bkPageHtml(plan,i);
+ let pg='';bkSheets(plan,all).forEach(i=>pg+=bkSheetHtml(plan,i));
  return '<!doctype html><html><head><meta charset="utf-8"><title>'+esc(plan.title)+'</title><link rel="stylesheet" href="'+BKCDN+'"><style>'+bkFontCss(abs)+'@page{size:A4;margin:0}html,body{margin:0;padding:0;background:#d9dde3}'+BKCSS+'.bkdoc .bp{margin:8mm auto;box-shadow:0 1px 8px rgba(0,0,0,.25);page-break-after:always;break-after:page}.bkdoc .bp:last-child{page-break-after:auto;break-after:auto}@media print{html,body{background:#fff}.bkdoc .bp{margin:0;box-shadow:none}}'+bkFontCssRule()+'</style></head><body class="bkdoc">'+pg+'</body></html>'}
 let BKPOP=null;
 function bkBarHtml(plan){
@@ -1092,11 +1107,11 @@ function bkBarHtml(plan){
  const fnt=Object.entries(FONTS).map(([k,v])=>`<option value="${k}" ${(BKO.font||'paper')===k?'selected':''}>${v[0]}</option>`).join('');
  const des=plan.kind==='m'?`<label>디자인<select id="pdes">${o([['exam','시험지 (흑백)'],['color','컬러 포인트']],BKO.design||'exam')}</select></label>`:'';
  const gk=plan.subj==='me'?'':`<label>제본 여백<select id="pgut">${o(BKGUTS,bkGutOf(plan))}</select></label>`;
- return `<label>문제 간격<select id="pgap">${gap}</select></label>${des}${gk}<label>색상${swHtml(BKO.color||'',bkPal().p,true)}</label><label>글꼴<select id="pfnt">${fnt}</select></label>`}
+ return `<label>문제 간격<select id="pgap">${gap}</select></label><label>양면 인쇄<select id="pdup">${o([[0,'끄기'],[1,'켜기 (빈 쪽 채움)']],dupGet()?1:0)}</select></label>${des}${gk}<label>색상${swHtml(BKO.color||'',bkPal().p,true)}</label><label>글꼴<select id="pfnt">${fnt}</select></label>`}
 async function bkRepop(o){if(!BKPOP||!BKPOP.win||BKPOP.win.closed)return;bkOset(o);if(BKPOP.subj!==SUBJ)await setSubject(BKPOP.subj);
  const plan=await bkPlan(bkPid(BKPOP.id));if(!plan)return;await bkShowIn(BKPOP.win,plan,BKPOP.all)}
 async function bkShowIn(w,plan,all){window._popExtra=bkBarHtml(plan);try{await cbPrintHtml(bkDocHtml(plan,all),w)}finally{window._popExtra=''}
- popWire(w,d=>{d.getElementById('pgap').onchange=e=>bkRepop({gap:+e.target.value});const des=d.getElementById('pdes');if(des)des.onchange=e=>bkRepop({design:e.target.value});swWire(d,v=>bkRepop({color:v}));const gu=d.getElementById('pgut');if(gu)gu.onchange=e=>{bkGutSet(bkGutKey(plan),e.target.value);bkRepop({})};d.getElementById('pfnt').onchange=e=>bkRepop({font:e.target.value})})}
+ popWire(w,d=>{d.getElementById('pgap').onchange=e=>bkRepop({gap:+e.target.value});d.getElementById('pdup').onchange=e=>{dupSet(+e.target.value);bkRepop({})};const des=d.getElementById('pdes');if(des)des.onchange=e=>bkRepop({design:e.target.value});swWire(d,v=>bkRepop({color:v}));const gu=d.getElementById('pgut');if(gu)gu.onchange=e=>{bkGutSet(bkGutKey(plan),e.target.value);bkRepop({})};d.getElementById('pfnt').onchange=e=>bkRepop({font:e.target.value})})}
 async function bkPrint(id,all){
  id=bkPid(id);
  if(typeof isMob==='function'&&isMob()){toast('휴대폰·태블릿은 인쇄 창이 열리지 않는 경우가 많아 PDF로 만들어 드려요. 저장한 PDF를 열어 인쇄하세요');return bkPdf(id,all)}
@@ -1113,13 +1128,13 @@ async function bkPdf(id,all){
   try{
    await conceptLoad();await Promise.all([bkLoadJs('lib/html2canvas.min.js',()=>window.html2canvas),bkLoadJs('lib/jspdf.umd.min.js',()=>window.jspdf)]);
    const plan=await bkPlan(id);if(!plan)return;
-   const n=all?plan.pages.length:Math.max(1,(plan.aStart||plan.pages.length+1)-1);
+   const SH=bkSheets(plan,all),n=SH.length;
    st=document.createElement('style');st.textContent=BKCSS+'.bkdoc .bp{margin:0!important;box-shadow:none!important}'+bkFontCssRule();document.head.appendChild(st);
    host=document.createElement('div');host.className='bkdoc';host.style.cssText='position:absolute;left:0;top:0;width:210mm;z-index:-1;background:#fff';document.body.appendChild(host);
    const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4',compress:true});const t=document.getElementById('busyt');
    for(let i=0;i<n;i++){
     if(t)t.textContent='PDF를 만드는 중… '+(i+1)+' / '+n+'쪽';
-    host.innerHTML=bkPageHtml(plan,i);
+    host.innerHTML=bkSheetHtml(plan,SH[i]);
     await Promise.all([...host.querySelectorAll('img')].map(im=>im.complete&&im.naturalWidth?1:new Promise(r=>{im.onload=im.onerror=()=>r();setTimeout(r,8000)})));
     try{await document.fonts.ready}catch(e){}
     const cv=await window.html2canvas(host.firstElementChild,{scale:1.7,backgroundColor:'#ffffff',useCORS:true,logging:false});
