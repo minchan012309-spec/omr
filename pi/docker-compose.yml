@@ -1,0 +1,99 @@
+# Solvi 라즈베리파이 서버 (Supabase에서 이 앱이 쓰는 부분만: DB + REST + 로그인 + 패스키)
+# 사용법은 pi/README.md 를 보세요. 메모리를 아끼려고 Realtime/Storage/Studio/Kong 은 빼 두었습니다.
+name: solvi
+services:
+  db:
+    image: supabase/postgres:15.8.1.060
+    restart: unless-stopped
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf -c log_min_messages=warning -c shared_buffers=128MB -c effective_cache_size=512MB -c work_mem=4MB -c maintenance_work_mem=32MB -c max_connections=40
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: /var/run/postgresql
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: postgres
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXP: 3600
+    volumes:
+      - ${DATA_DIR:-./data}/db:/var/lib/postgresql/data
+      - ./db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    mem_limit: 600m
+
+  auth:
+    image: supabase/gotrue:v2.158.1
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${API_URL}
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: ${SITE_URL}
+      GOTRUE_URI_ALLOW_LIST: ${SITE_URL}
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: ${MAILER_AUTOCONFIRM:-true}
+      GOTRUE_SMTP_HOST: ${SMTP_HOST:-}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT:-587}
+      GOTRUE_SMTP_USER: ${SMTP_USER:-}
+      GOTRUE_SMTP_PASS: ${SMTP_PASS:-}
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_ADMIN_EMAIL:-admin@localhost}
+    mem_limit: 150m
+
+  rest:
+    image: postgrest/postgrest:v12.2.3
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_DB_POOL: 10
+    mem_limit: 150m
+
+  passkey:
+    image: denoland/deno:2.0.6
+    restart: unless-stopped
+    depends_on:
+      - auth
+      - rest
+    command: ["run", "--allow-net", "--allow-env", "--allow-read=/deno-dir", "--allow-write=/deno-dir", "/app/passkey.ts"]
+    environment:
+      DENO_DIR: /deno-dir
+      SUPABASE_URL: http://gateway:80
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      SITE_URL: ${SITE_URL}
+    volumes:
+      - ./passkey/passkey.ts:/app/passkey.ts:ro
+      - ${DATA_DIR:-./data}/deno:/deno-dir
+    mem_limit: 200m
+
+  gateway:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - auth
+      - rest
+      - passkey
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./solvi.caddy:/etc/caddy/solvi.caddy:ro
+    environment:
+      SITE_URL: ${SITE_URL}
+    mem_limit: 60m

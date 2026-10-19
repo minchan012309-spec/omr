@@ -1,0 +1,12 @@
+# 터널 방식(Tailscale Funnel / Cloudflare Tunnel)용: 바깥 HTTPS 는 터널이 맡고, 여기는 127.0.0.1:8080 으로만 열립니다.
+# 공인 IP 로 직접 여는 방식은 Caddyfile.public 을 씁니다 (README 3단계 A).
+{
+	auto_https off
+	admin off
+}
+
+import /etc/caddy/solvi.caddy
+
+:80 {
+	import solvi
+}

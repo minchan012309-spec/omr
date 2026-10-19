@@ -1,0 +1,17 @@
+# 공인 IP 직접 방식용: Caddy 가 HTTPS 인증서(Let's Encrypt)를 자동으로 받고 갱신합니다.
+# 공유기에서 TCP 80, 443 을 Pi 로 포트포워딩해야 합니다. (docker-compose.public.yml 과 같이 씁니다)
+{
+	email {$ACME_EMAIL}
+	admin off
+}
+
+import /etc/caddy/solvi.caddy
+
+{$API_HOST} {
+	import solvi
+}
+
+# 컨테이너 안(패스키 함수 -> 게이트웨이) 전용. http:// 로 적어 자동 HTTPS 를 끕니다. 바깥에는 열리지 않습니다.
+http://gateway:80 {
+	import solvi
+}

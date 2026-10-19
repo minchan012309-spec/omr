@@ -1,0 +1,55 @@
+# Solvi 게이트웨이 공통 규칙 (Caddyfile 과 Caddyfile.public 이 가져다 씁니다)
+#   /rest/v1/*            -> PostgREST
+#   /auth/v1/*            -> GoTrue (로그인)
+#   /functions/v1/passkey -> 패스키 함수
+# 사이트(SITE_URL)에서 오는 요청만 허용하도록 CORS 를 여기서 한 곳에서만 붙입니다.
+(solvi) {
+	@preflight method OPTIONS
+	handle @preflight {
+		header Access-Control-Allow-Origin "{$SITE_URL}"
+		header Access-Control-Allow-Headers "authorization, apikey, content-type, x-client-info, prefer, accept-profile, content-profile, range"
+		header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+		header Access-Control-Max-Age "86400"
+		header Vary Origin
+		respond 204
+	}
+
+	header {
+		Access-Control-Allow-Origin "{$SITE_URL}"
+		Access-Control-Expose-Headers "content-range, content-type"
+		Vary Origin
+	}
+
+	handle_path /rest/v1/* {
+		reverse_proxy rest:3000 {
+			header_down -Access-Control-Allow-Origin
+			header_down -Access-Control-Allow-Credentials
+			header_down -Access-Control-Expose-Headers
+			header_down -Vary
+		}
+	}
+	handle /auth/v1/* {
+		uri strip_prefix /auth/v1
+		reverse_proxy auth:9999 {
+			header_down -Access-Control-Allow-Origin
+			header_down -Access-Control-Allow-Credentials
+			header_down -Access-Control-Expose-Headers
+			header_down -Vary
+		}
+	}
+	handle /functions/v1/passkey {
+		rewrite * /
+		reverse_proxy passkey:8000 {
+			header_down -Access-Control-Allow-Origin
+			header_down -Access-Control-Allow-Headers
+			header_down -Access-Control-Allow-Methods
+			header_down -Vary
+		}
+	}
+	handle /health {
+		respond "ok" 200
+	}
+	handle {
+		respond "not found" 404
+	}
+}
