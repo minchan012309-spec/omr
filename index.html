@@ -377,6 +377,7 @@ html[data-theme=dark] .hbf{color:#6f7782}html[data-theme=dark] .hbs.on .hbf{colo
 .wnlb{position:fixed;inset:0;z-index:200;background:#000c;display:flex;align-items:center;justify-content:center;cursor:zoom-out;padding:16px}.wnlb img{max-width:100%;max-height:100%;border-radius:8px;background:#fff}
 html[data-theme=dark] .wnm{background:hsl(45 30% 16%);border-color:hsl(45 30% 28%)}.wnmk{background:#fff0b3;color:#7a5a00}
 .pal2 .pa2{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--l)}.pal2 .pa2:first-of-type{border-top:0}.pal2 .pa2 i{width:10px;height:10px;border-radius:50%;background:#7b8794;flex:none}.pal2 .pa2.bad i{background:#d9534f}.pal2 .pa2.warn i{background:#f1b82d}.pal2 .pa2.good i{background:#2b9a5b}.pal2 .pa2.info i{background:var(--b)}.pal2 .pa2>div{min-width:0;flex:1}.pal2 .pa2 b{display:block;font-size:14px}.pal2 .pa2 span{font-size:13px;color:var(--m)}.pal2 .pa2 button{flex:none}
+.offr{display:flex;align-items:center;gap:10px;padding:4px 0;font-size:13.5px}.offr b{min-width:96px}.offr button{margin-left:auto}
 .tmr{font-weight:700;color:var(--bd);background:var(--bl);border-radius:12px;padding:2px 12px;font-size:15px}.tmr.warn{color:#b03a37;background:#fdeceb}
 
 /* ===== v5: 단계 표시 · 채점 화면 · 애니메이션 ===== */
@@ -2917,7 +2918,7 @@ async function outboxFlush(){if(_obBusy||!STUD||STUD.preview||!navigator.onLine)
  for(const x of mine){const same=y=>y.login===x.login&&y.rec.t===x.rec.t;try{await stSubmit(x.rec);done++;q=q.filter(y=>!same(y))}catch(e){if(e.locked)q=q.filter(y=>!same(y));else if(e.status&&e.status<500){x.fail=(x.fail||0)+1;if(x.fail>=5)q=q.filter(y=>!same(y))}else break}}
  jset(OB,q);_obBusy=false;outboxMark();if(done){toast(done+'건의 임시 저장 채점을 서버에 제출했어요');try{await loadStud();render(true)}catch(e){}}}
 function outboxMark(){let e=document.getElementById('offb');if(!e){e=document.createElement('div');e.id='offb';document.body.appendChild(e)}const n=outboxN(),off=!navigator.onLine;e.className=(off||n)?'on':'';e.textContent=off?'오프라인 · 채점은 임시 저장돼요'+(n?' ('+n+'건 대기)':''):(n?n+'건 제출 대기 중…':'')}
-addEventListener('online',()=>{outboxMark();outboxFlush()});addEventListener('offline',outboxMark);setInterval(()=>{outboxFlush()},30000);setTimeout(outboxMark,1500);
+addEventListener('online',()=>{outboxMark();outboxFlush();try{prefsFlush();reportFlush();wnPull()}catch(e){}});addEventListener('offline',outboxMark);setInterval(()=>{outboxFlush()},30000);setTimeout(outboxMark,1500);
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had)updBanner()});addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
 function updBanner(){if(document.getElementById('updb'))return;const d=document.createElement('div');d.id='updb';d.innerHTML='<span>새 버전으로 업데이트됐어요.</span><button class="p sm" onclick="location.reload()">새로고침</button><button class="s sm" onclick="this.parentNode.remove()" aria-label="닫기">✕</button>';document.body.appendChild(d)}
 let _ip=null;const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
@@ -3314,11 +3315,18 @@ async function stSetSession(login,pw){STUD={login,pw};
  if(autoOn()){try{const r=await rpc('st_issue_token',{p_login:login,p_pw:pw});const tok=r.ok?await r.json():null;if(tok)STUD={login,pw:'tok:'+tok,tok:1}}catch(e){}}
  stStore();try{acctSave()}catch(e){}}
 function stStore(){try{if(autoOn()){localStorage.setItem(LSTUD,JSON.stringify(STUD));sessionStorage.removeItem(LSTUD)}else{sessionStorage.setItem(LSTUD,JSON.stringify(STUD));localStorage.removeItem(LSTUD)}}catch(e){}}
-async function loadStud(){
- try{const par=!!(STUD&&STUD.parent);const r=await rpc(par?'pa_data':'st_data',{p_login:STUD.login,p_pw:STUD.pw});const j=r.ok?await r.json():null;
+const STCK='omr_stcache_v1';let OFFD=0;
+function stApply(j,par){if(!par)permFetch();STINFO=par?{...j.student,parent:j.label||'학부모'}:j.student;if(!par)try{acctSave()}catch(e){}hist=(j.attempts||[]).map(x=>({t:x.t,set:x.set,sub:x.sub,items:x.items,rng:x.rng||undefined,sid:''})).sort((a,b)=>a.t-b.t);ASSIGN=j.assignments||[];WSH=[];STU=[];CUR_S=''}
+const stKey=()=>STUD.login+(STUD.parent?':p':':s');
+function stCacheSave(j){try{localStorage.setItem(STCK,JSON.stringify({k:stKey(),t:Date.now(),j}))}catch(e){try{const l=Object.assign({},j,{attempts:(j.attempts||[]).slice(-150)});localStorage.setItem(STCK,JSON.stringify({k:stKey(),t:Date.now(),j:l}))}catch(e2){}}}
+function stCacheApply(par){try{const c=JSON.parse(localStorage.getItem(STCK)||'null');if(!c||c.k!==stKey())return false;stApply(c.j,par);OFFD=c.t;if(!window._offToast){window._offToast=1;setTimeout(()=>toast('서버에 연결하지 못해 '+new Date(c.t).toLocaleString('ko-KR')+'에 저장한 기록을 보여드려요'),800)}return true}catch(e){return false}}
+async function loadStud(){const par=!!(STUD&&STUD.parent);
+ try{const r=await rpc(par?'pa_data':'st_data',{p_login:STUD.login,p_pw:STUD.pw});
+  if(!r.ok){if(!stCacheApply(par)){}return}
+  const j=await r.json();
   if(!j){STUD=null;localStorage.removeItem(LSTUD);try{sessionStorage.removeItem(LSTUD)}catch(e){}return}
-  if(!par)permFetch();STINFO=par?{...j.student,parent:j.label||'학부모'}:j.student;if(!par)try{acctSave()}catch(e){}hist=(j.attempts||[]).map(x=>({t:x.t,set:x.set,sub:x.sub,items:x.items,rng:x.rng||undefined,sid:''})).sort((a,b)=>a.t-b.t);ASSIGN=j.assignments||[];WSH=[];STU=[];CUR_S='';if(!par)setTimeout(outboxFlush,300)}
- catch(e){}}
+  OFFD=0;stApply(j,par);stCacheSave(j);if(!par)setTimeout(outboxFlush,300)}
+ catch(e){stCacheApply(par)}}
 async function stSubmit(rec){const body={p_login:STUD.login,p_pw:STUD.pw,p_t:rec.t,p_set:rec.set,p_sub:rec.sub,p_items:rec.items};if(rec.rng)body.p_rng=rec.rng;
  let r=await rpc('st_submit',body);if(r.status===404&&body.p_rng){delete body.p_rng;r=await rpc('st_submit',body)}
  if(!r.ok){let m='';try{m=await r.text()}catch(e){}const er=new Error(m.includes('already submitted')?'locked':'submit');er.locked=m.includes('already submitted');er.status=r.status;throw er}}
@@ -3917,6 +3925,23 @@ function pvBar(){let b=$('#pvbar');if(!PVSAVE){if(b)b.remove();document.body.cla
  if(!b){b=document.createElement('div');b.id='pvbar';document.body.prepend(b)}document.body.classList.add('pv');
  b.innerHTML=`👁 <b>${esc(STINFO.name)}</b> ${STUD&&STUD.parent?'학부모':'학생'} 화면 미리보기 — 여기서 푼 기록은 저장되지 않습니다.<button class="s sm" onclick="exitPreview()">미리보기 끝내기</button>`}
 
+/* ---------- 오프라인 준비: 과목의 문제·그림·개념 파일을 이 기기에 저장 (서비스 워커 캐시) ---------- */
+const OFFK='omr_offprep_v1';let OFFB=null;
+const offGet=()=>jget2(OFFK,{});const jget2=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||d}catch(e){return d}};
+async function offUrls(subj){const d=DIRS[subj],u=new Set([d+'index.json',d+'concept.json','books/heights.json']);if(subj!=='me')u.add(d+'data.json');Object.keys(BIDXS[subj]||{}).forEach(t=>u.add(d+t+'.json'));
+ try{const t=await (await fetch('index.html')).text();(t.match(/fonts\/[A-Za-z0-9_.-]+\.woff2/g)||[]).forEach(f=>u.add(f))}catch(e){}return [...u]}
+async function offlinePrep(subj){subj=subj||SUBJ;if(OFFB)return;if(!navigator.onLine){toast('인터넷에 연결한 뒤에 준비할 수 있어요');return}
+ OFFB={subj,done:0,total:0,bytes:0};offRow();try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+ try{await loadBankIndex();const urls=await offUrls(subj);OFFB.total=urls.length;const imgs=new Set(),q=[...urls];let fail=0;
+  const get=async u=>{try{const r=await fetch(u);if(!r.ok){fail++;return}const buf=await r.arrayBuffer();OFFB.bytes+=buf.byteLength;if(/\.(json|js)(\?|$)/.test(u)&&buf.byteLength<9e6){const t=new TextDecoder().decode(buf);(t.match(/src=\\?"[^"\\]+\.(?:jpg|jpeg|png|webp|svg|gif)/g)||[]).forEach(m=>{const f=m.replace(/^src=\\?"/,'');if(!/^(https?:|data:)/.test(f)&&!imgs.has(f)){imgs.add(f);q.push(f);OFFB.total++}})}}catch(e){fail++}OFFB.done++;offRow()};
+  const worker=async()=>{while(q.length){const u=q.shift();await get(u)}};await Promise.all([worker(),worker(),worker(),worker()]);
+  const o=offGet();o[subj]={t:Date.now(),bytes:OFFB.bytes,files:OFFB.done,fail};try{localStorage.setItem(OFFK,JSON.stringify(o))}catch(e){}
+  toast(SNAME[subj]+' 오프라인 준비를 마쳤어요 ('+Math.round(OFFB.bytes/1048576)+'MB)'+(fail?' · 일부 파일 '+fail+'개는 받지 못했어요':''))}
+ catch(e){toast('오프라인 준비 중 문제가 생겼어요')}finally{OFFB=null;offRow()}}
+async function offlineClear(){if(!confirm('이 기기에 저장한 앱 파일·문제 데이터를 지울까요? (학생 기록은 지워지지 않아요. 다시 쓰려면 인터넷이 필요해요)'))return;try{const ks=await caches.keys();for(const k of ks)await caches.delete(k)}catch(e){}try{localStorage.removeItem(OFFK)}catch(e){}toast('저장한 데이터를 지웠어요');offRow()}
+function offRow(){const e=document.getElementById('offrow');if(e)e.innerHTML=offHtml()}
+function offHtml(){const o=offGet();const row=k=>{const x=o[k],bz=OFFB&&OFFB.subj===k;return `<div class="offr"><b>${esc(SNAME[k])}</b><span class="m">${bz?`저장하는 중… ${OFFB.done}/${OFFB.total} (${Math.round(OFFB.bytes/1048576)}MB)`:x?'준비됨 · '+Math.round(x.bytes/1048576)+'MB · '+new Date(x.t).toLocaleDateString('ko-KR'):'준비 안 됨'}</span><button class="s sm" ${OFFB?'disabled':''} onclick="offlinePrep('${k}')">${x?'다시 받기':'오프라인 준비'}</button></div>`};
+ return Object.keys(SNAME).map(row).join('')+`<div class="m" style="margin-top:6px">수업 중 인터넷이 끊겨도 문제를 풀 수 있게 이 기기에 저장해요(과목당 약 20~50MB, 와이파이에서 받으세요). 풀이 결과는 연결되면 자동으로 올라가요. <a href="#" onclick="offlineClear();return false">저장한 데이터 지우기</a></div>`}
 /* ---------- 문항 신고 · 설정 · 단축키 · 데이터 관리 ---------- */
 const REASONS=['정답이 틀림','해설이 틀림','문제·보기 오류','그림·표 오류','난이도가 맞지 않음','기타'];
 const MYSUBJ={};let MYIMG='';
@@ -3986,6 +4011,7 @@ function openSettings(){const rp=jget('omr_rep_v1',[]),mk=jget('omr_mock_v1',[])
  <div class="setr"><b>자동 저장</b><span class="m">${SAVEDT?'이 기기에 '+new Date(SAVEDT).toLocaleTimeString('ko-KR')+' 저장됨':'변경 사항은 바로 이 기기에 저장됩니다.'}${cloud()&&sess?' · 온라인 동기화 사용 중':''}</span></div>
  ${STUD?'':`<div class="setr"><b>난이도 자동 보정</b><label class="m"><input type="checkbox" ${CALIB_ON?'checked':''} onchange="setCalib(this.checked)"> 풀이 5회 이상인 문항은 실제 정답률로 난이도(하·중·상·최)를 조정</label></div>`}
  ${STUD?'':`<div class="setr"><b>즐겨찾기</b><span class="m">${FAV.length}문항 · <a href="#" onclick="closeCfg();SP.src='fav';SP.sub='';tab='search';render();return false">검색에서 보기</a></span></div>
+ <div class="setr" style="display:block"><b>오프라인 사용</b><div id="offrow" style="margin-top:6px">${offHtml()}</div></div>
  <div class="setr"><b>신고 내역</b><span class="m">${rp.length}건${rp.some(x=>!x.srv)?' (미전송 '+rp.filter(x=>!x.srv).length+')':''} · <a href="#" onclick="closeCfg();reportStatus();return false">처리 현황</a> · <a href="#" onclick="reportExport();return false">내려받기</a>${rp.length?' · <a href="#" onclick="if(confirm(\'신고 내역을 지울까요?\')){jset(\'omr_rep_v1\',[]);openSettings()}return false">비우기</a>':''}</span></div>`}
  ${(STUD&&!STUD.preview)||(sess&&!STUD)?pkSection():''}
  ${STUD?`<h3>튜토리얼</h3><div class="m" style="margin-bottom:6px">직접 눌러 보며 기능을 익혀요. 오른쪽 위 「?」에서도 열 수 있어요.</div><div class="row">${Object.entries(TOURS).map(([k,v])=>`<button class="s" onclick="tourStart('${k}')">${esc(v.name)}${tourDone(k)?' ✓':''}</button>`).join('')}</div>`:''}
