@@ -332,6 +332,19 @@ mark.hl{background:#ffe27a;color:inherit;border-radius:2px;padding:0 1px}
 
 .mkf{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:10px 0}.mkf label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--m)}
 .mkh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.mkh b{font-size:16px}.mki{border:1px solid var(--l);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--surface)}.mkb{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.exbar{display:grid;grid-template-columns:auto 1fr auto;gap:12px 22px;align-items:center;margin:12px 0;padding:12px 18px;border:1px solid var(--l);border-radius:14px;background:var(--bl);position:sticky;top:8px;z-index:5}
+.exl em{display:block;font-style:normal;font-size:12px;color:var(--bd);font-weight:600}.exl b{display:block;font-size:46px;line-height:1.05;font-variant-numeric:tabular-nums;color:var(--bd)}
+.exp{height:10px;border-radius:6px;background:#0001;overflow:hidden}.exp i{display:block;height:100%;width:100%;background:var(--b);border-radius:6px;transition:width .3s linear}.exm span{display:block;font-size:12.5px;color:var(--m);margin-top:6px;min-height:1.2em}
+.exr{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.exsw{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px}.exsw input{display:none}.exk{width:38px;height:22px;border-radius:12px;background:#9aa7b6;position:relative;transition:.2s;flex:none}.exk::after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s}.exsw input:checked+.exk{background:var(--b)}.exsw input:checked+.exk::after{left:19px}.exsw em{font-style:normal}
+.exbar.w1{background:#fff6e5;border-color:#f0c36d}.exbar.w1 .exl b,.exbar.w1 .exl em{color:#a8620a}.exbar.w1 .exp i{background:#e89b1c}
+.exbar.w2,.exbar.ov{background:#fdeceb;border-color:#e8a5a2}.exbar.w2 .exl b,.exbar.w2 .exl em,.exbar.ov .exl b,.exbar.ov .exl em{color:#b03a37}.exbar.w2 .exp i,.exbar.ov .exp i{background:#d9453f}.exbar.ov .exl b{animation:exbl 1s steps(2) infinite}@keyframes exbl{50%{opacity:.45}}
+#exFull{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:#0f1724;color:#fff;cursor:pointer}
+.exfb{text-align:center;width:min(92vw,1400px)}.exfb em{display:block;font-style:normal;font-size:clamp(16px,2.4vw,30px);opacity:.7}.exfb b{display:block;font-size:clamp(80px,26vw,420px);line-height:1;font-variant-numeric:tabular-nums;font-weight:800}.exfp{height:clamp(8px,1.4vw,18px);border-radius:10px;background:#ffffff26;overflow:hidden;margin:3vw auto 1.6vw}.exfp i{display:block;height:100%;width:100%;background:#4aa3ff;transition:width .3s linear}.exfb span{display:block;font-size:clamp(14px,2vw,26px);opacity:.85;min-height:1.2em}.exfb small{display:block;margin-top:2vw;font-size:clamp(11px,1.3vw,16px);opacity:.5}
+#exFull.w1 b{color:#ffc766}#exFull.w1 .exfp i{background:#e89b1c}#exFull.w2 b,#exFull.ov b{color:#ff7b75}#exFull.w2 .exfp i,#exFull.ov .exfp i{background:#e5544d}#exFull.ov b{animation:exbl 1s steps(2) infinite}
+.exin{display:flex;align-items:center;gap:8px;font-size:14px}.exin input{width:86px}
+@media(max-width:720px){.exbar{grid-template-columns:1fr;gap:8px;top:4px}.exl b{font-size:38px}.exr{justify-content:flex-start}}
+html[data-theme=dark] .exbar{background:hsl(210 30% 16%);border-color:hsl(210 20% 28%)}html[data-theme=dark] .exbar.w1{background:hsl(38 40% 16%)}html[data-theme=dark] .exbar.w2,html[data-theme=dark] .exbar.ov{background:hsl(3 36% 16%)}
 .tmr{font-weight:700;color:var(--bd);background:var(--bl);border-radius:12px;padding:2px 12px;font-size:15px}.tmr.warn{color:#b03a37;background:#fdeceb}
 
 /* ===== v5: 단계 표시 · 채점 화면 · 애니메이션 ===== */
@@ -1069,7 +1082,7 @@ function resultHtml(){const n=cur.qs.length;const oks=cur.qs.map((q,i)=>ok(q,cur
  const tiles=cur.qs.map((q,i)=>`<div class="rt ${oks[i]?'ok':'no'}" style="--d:${Math.min(i,40)*22}ms" onclick="numClick(${i})"><b>${noOf(q,i)}</b><i>${oks[i]?'○':'✕'}</i><span>${oks[i]?esc(String(cur.ans[i]||'').slice(0,12)):`${esc(String(cur.ans[i]||'—').slice(0,8))} → <u>${esc(String(q.ans).slice(0,8))}</u>`}</span></div>`).join('');
  const dgm=(()=>{if(teacher()&&cur.mark)return '';const ws=cur.qs.map((q,i)=>({q,a:cur.ans[i]||'',i})).filter(x=>!ok(x.q,x.a));if(!ws.length)return '';const c={};ws.forEach(x=>{const d=diagnose(x.q,x.a);const g=causeGroup(d,{s:cur.tm&&cur.tm[x.i],q:x.q});c[g]=(c[g]||0)+1});return `<div class="hint" style="margin-bottom:10px">틀린 ${ws.length}문항의 원인: ${Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`<span class="dgc sm" style="background:${DGK[k][1]}">${DGK[k][0]} ${n}</span>`).join('')} <span class="m">번호를 누르면 내 답이 왜 틀렸는지 보여줘요</span> <button class="s sm" onclick="leaveGradeNow();tab='diag';render()">오답 진단 보기</button></div>`})();
  return bookNext()+dgm+(cur.locked?`<div class="lockb"><b>채점 완료</b><span>${new Date(cur.locked).toLocaleString('ko-KR')}에 채점한 결과예요. ${teacher()?'':'다시 풀려면 선생님께 초기화를 요청하세요.'}</span>${teacher()&&cur.lockRec?`<button class="s sm" onclick="recDel(${cur.lockRec.t},'${cur.lockRec.sid||''}')">초기화하고 다시 채점</button>`:''}</div>`:'')+`<div class="rhero"><div class="ring" id="ring" style="--p:0" data-p="${p}"><b id="ringn">0</b><small>점</small></div>
- <div class="rst"><div><em>맞음</em><b class="g">${r}</b></div><div><em>틀림</em><b class="r">${w}</b></div><div><em>정답률</em><b>${p}%</b></div>${mins&&cur.ws&&cur.ws.minutes?`<div><em>소요</em><b>${mins}분</b></div>`:''}</div>
+ <div class="rst"><div><em>맞음</em><b class="g">${r}</b></div><div><em>틀림</em><b class="r">${w}</b></div><div><em>정답률</em><b>${p}%</b></div>${mins&&(cur.ex||cur.ws&&cur.ws.minutes)?`<div><em>소요</em><b>${mins}분</b></div>`:''}</div>
  <div class="ract">${wrong.length?`<button class="p" onclick="redoCodes('${wrong.map(q=>q.code).join(',')}')">틀린 ${wrong.length}문항 다시 풀기</button>${teacher()?`<button class="s" onclick="makeWs(['${wrong.map(q=>q.code).join("','")}'])">틀린 문항 학습지</button>`:''}`:'<span class="perfect">🎉 모두 맞혔어요!</span>'}</div></div>
  <h3 class="sh2">문항별 결과 <small>눌러서 문제와 해설 보기</small></h3><div class="rtiles">${tiles}</div>
  <h3 class="sh2">유형별 정답률</h3><div class="tbars">${t.map(x=>`<div class="tb2"><span title="${esc(x.k.replace('|',' · '))}">${esc(x.k.split('|')[1])}</span><div class="gbar"><i class="${x.p<.5?'bad':x.p<.75?'mid':''}" style="width:${Math.round(x.p*100)}%"></i></div><em>${x.r}/${x.n}</em></div>`).join('')}</div>`}
@@ -1398,7 +1411,7 @@ function gradeView(){
  const g=cur.done;
  const title=cur.ws?esc(cur.ws.title):cur.book?esc(cur.book.label||'교재 p.'+cur.book.page):cur.unit?esc(cur.unit.sub+' '+(SETS[cur.unit.set]||'')):'채점';
  const stn=cur.ws&&cur.ws.student?cur.ws.student:(STU.find(s=>s.id===CUR_S)||{}).name||'';
- const head=`<div class="row gh"><b class="gt">${title}</b>${stn?`<span class="tag">${esc(stn)}</span>`:''}${cur.ws?`<span class="wsno">${fmtNo(cur.ws.id)}</span>`:''}<span class="m">${cur.qs.length}문항</span>${cur.ws&&cur.ws.minutes&&!g&&!cur.mark?'<span class="tmr" id="tmr"></span>':''}<button class="s sm" style="margin-left:auto" onclick="leaveGrade()">${g?'닫기':'취소'}</button></div>`;
+ const head=`<div class="row gh"><b class="gt">${title}</b>${stn?`<span class="tag">${esc(stn)}</span>`:''}${cur.ws?`<span class="wsno">${fmtNo(cur.ws.id)}</span>`:''}<span class="m">${cur.qs.length}문항</span><button class="s sm" style="margin-left:auto" onclick="leaveGrade()">${g?'닫기':'취소'}</button></div>`;
  if(g){$('#main').innerHTML=`<div class="card gres">${head}${resultHtml()}</div>`;ringAnim();return}
  if(cur.mark){markView();return}
  studView()}
@@ -1415,9 +1428,30 @@ function sheetNx(k,v){const q=cur.qs[SH],n=nxKey(q).length;const st=(cur.ans[SH]
 function sheetGo(d){SH=Math.max(0,Math.min(cur.qs.length-1,SH+d));cur.sel=SH;idx=SH;sheetDraw();const b=$('#qsheet .shbox');if(b)b.scrollTop=0}
 document.addEventListener('keydown',e=>{if(SH===null||!cur||e.target.tagName==='INPUT')return;const q=cur.qs[SH];if(e.key==='Escape')return closeSheet();if(e.key==='ArrowRight')return sheetGo(1);if(e.key==='ArrowLeft')return sheetGo(-1);
  if(q.set==='ox'){const k=e.key.toLowerCase();if(k==='o'||k==='1')sheetPick('O');else if(k==='x'||k==='2')sheetPick('X')}else if(q.set!=='blank'&&'12345'.includes(e.key)&&e.key.length===1)sheetPick(e.key);else if(e.key==='0')sheetPick('?')});
-let _tm=null;
-function tmrStart(){clearInterval(_tm);if(!(cur&&cur.ws&&cur.ws.minutes&&!cur.done&&!cur.mark))return;const end=cur.t+cur.ws.minutes*60000;
- const f=()=>{const e=$('#tmr');if(!cur||cur.done||!e){clearInterval(_tm);return}const r=Math.max(0,end-Date.now());e.textContent='⏱ '+Math.floor(r/60000)+':'+String(Math.floor(r%60000/1000)).padStart(2,'0');e.classList.toggle('warn',r<5*60000);if(r<=0){clearInterval(_tm);alert('시험 시간이 끝났습니다. 지금까지 입력한 답안을 제출합니다.');finish(true)}};f();_tm=setInterval(f,1000)}
+let _tm=null,_exWarn=0;
+/* ---------- 시험 모드 (제한시간 · 큰 타이머 · 자동 제출 선택) ---------- */
+const exPad=n=>String(n).padStart(2,'0');
+const exFmt=ms=>{const s=Math.ceil(Math.max(0,ms)/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return (h?h+':'+exPad(m):exPad(m))+':'+exPad(s%60)};
+function exInit(){if(!cur||cur.done||cur.mark)return null;if(!cur.ex&&cur.ws&&cur.ws.minutes)cur.ex={min:cur.ws.minutes,auto:!(cur.ws.auto===0||cur.ws.auto===false),t0:cur.t};return cur.ex||null}
+function exBarHtml(){const e=exInit();if(!e)return '';return `<div class="exbar" id="exbar"><div class="exl"><em>남은 시간</em><b id="exT">${exFmt(e.min*60000)}</b></div><div class="exm"><div class="exp"><i id="exP"></i></div><span id="exS"></span></div><div class="exr"><label class="exsw"><input type="checkbox" ${e.auto?'checked':''} onchange="exAuto(this.checked)"><span class="exk"></span><em>시간이 끝나면 자동 제출</em></label><button class="s sm" onclick="exFull()">⤢ 크게 보기</button>${e.own?'<button class="s sm" onclick="exOff()">시험 모드 끄기</button>':''}</div></div>`}
+function exDlg(){if(!cur||cur.done)return;const e=cur.ex||{min:Math.min(120,Math.max(10,Math.round(cur.qs.length*1.5/5)*5)),auto:true};const pre=[10,15,20,30,40,50,60,90];
+ $('#cfgBox').innerHTML=`<h2 style="margin-top:0">⏱ 시험 모드</h2><div class="m">제한시간을 정하면 큰 타이머가 보이고, 시간이 끝나면 자동으로 제출할 수 있어요.</div><div class="chps" style="margin:12px 0">${pre.map(m=>`<button class="chp ${m===e.min?'on':''}" onclick="exPick(${m})">${m}분</button>`).join('')}</div><label class="exin">직접 입력 <input id="exMin" type="number" min="1" max="300" value="${e.min}"> 분</label><label class="exsw" style="margin:12px 0 6px"><input id="exAu" type="checkbox" ${e.auto?'checked':''}><span class="exk"></span><em>시간이 끝나면 자동 제출</em></label><div class="m">자동 제출을 끄면 시간이 지나도 제출하지 않고, 초과한 시간이 표시돼요.</div><div class="row" style="margin-top:14px;justify-content:flex-end"><button class="s" onclick="closeCfg()">취소</button><button class="p" onclick="exGo()">시작</button></div>`;$('#cfg').classList.add('open')}
+function exPick(m){$('#exMin').value=m;document.querySelectorAll('#cfgBox .chp').forEach(b=>b.classList.toggle('on',b.textContent===m+'분'))}
+function exGo(){const m=Math.max(1,Math.min(300,Math.round(+$('#exMin').value||0)));if(!m){alert('시간을 입력하세요.');return}cur.ex={min:m,auto:$('#exAu').checked,t0:Date.now(),own:true};closeCfg();render()}
+function exOff(){if(!confirm('시험 모드를 끌까요? 타이머가 사라집니다.'))return;clearInterval(_tm);exFullOff();cur.ex=null;if(cur.ws)cur.ws.minutes=0;render()}
+function exAuto(v){if(cur&&cur.ex){cur.ex.auto=!!v;exTick()}}
+function exFull(){let o=$('#exFull');if(!o){o=document.createElement('div');o.id='exFull';document.body.appendChild(o)}o.innerHTML='<div class="exfb"><em>남은 시간</em><b id="exFT"></b><div class="exfp"><i id="exFP"></i></div><span id="exFS"></span><small>화면을 누르거나 Esc 키로 닫기</small></div>';o.onclick=exFullOff;o.classList.add('open');try{o.requestFullscreen&&o.requestFullscreen().catch(()=>{})}catch(e){}exTick()}
+function exFullOff(){const o=$('#exFull');if(o)o.remove();try{if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}catch(e){}}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#exFull'))exFullOff()});
+function exTick(){const e=cur&&cur.ex;if(!e||cur.done){clearInterval(_tm);exFullOff();return}
+ const total=e.min*60000,r=e.t0+total-Date.now(),st=r<=0?'ov':r<=60000?'w2':r<=300000&&total>600000?'w1':'';
+ const t=r>0?exFmt(r):'+'+exFmt(-r),tx=r>0?(e.auto?'자동 제출 켜짐':'자동 제출 꺼짐'):(e.auto?'':'시간 종료 · 제출은 직접 눌러 주세요');
+ const T=$('#exT');if(T){T.textContent=t;const b=$('#exbar');b.className='exbar '+st;const pb=$('#exP');if(pb)pb.style.width=Math.max(0,Math.min(100,r/total*100))+'%';const sx=$('#exS');if(sx)sx.textContent=tx}
+ const F=$('#exFT');if(F){F.textContent=t;const o=$('#exFull');o.className='open '+st;const pb=$('#exFP');if(pb)pb.style.width=Math.max(0,Math.min(100,r/total*100))+'%';const sx=$('#exFS');if(sx)sx.textContent=tx}
+ if(total>600000&&r<=300000&&r>0&&!(_exWarn&1)){_exWarn|=1;toast('남은 시간 5분이에요')}
+ if(r<=60000&&r>0&&!(_exWarn&2)){_exWarn|=2;toast('남은 시간 1분이에요')}
+ if(r<=0){if(e.auto){clearInterval(_tm);exFullOff();toast('시간이 끝나서 지금까지 입력한 답안을 자동으로 제출했어요');finish(true)}else if(!(_exWarn&4)){_exWarn|=4;toast('시간이 끝났어요. 계속 풀 수 있지만 초과 시간이 기록돼요')}}}
+function tmrStart(){clearInterval(_tm);const e=exInit();if(!e)return;_exWarn=0;exTick();_tm=setInterval(exTick,250)}
 function leaveGradeNow(){clearInterval(_tm);cur=null}
 function leaveGrade(){clearInterval(_tm);if(!cur.done&&!confirm('채점을 그만둘까요? 입력한 내용은 저장되지 않습니다.'))return;if(!cur.done)gdraftClear();cur=null;render()}
 function fab(done,wrong){const n=cur.qs.length,r=n-wrong,p=n?Math.round(r/n*100):0;
@@ -1425,7 +1459,7 @@ function fab(done,wrong){const n=cur.qs.length,r=n-wrong,p=n?Math.round(r/n*100)
 function gradeHead(){const g=cur.done;
  const title=cur.ws?esc(cur.ws.title):cur.book?esc(cur.book.label||'교재 p.'+cur.book.page):cur.unit?esc(cur.unit.sub+' '+(SETS[cur.unit.set]||'')):'채점';
  const stn=cur.ws&&cur.ws.student?cur.ws.student:(STU.find(s=>s.id===CUR_S)||{}).name||'';
- return `<div class="gst"><div class="gtl"><b class="gt">${title}</b>${stn?`<span class="tag">${esc(stn)}</span>`:''}${cur.ws?`<span class="wsno">${fmtNo(cur.ws.id)}</span>`:''}<span class="m">${cur.qs.length}문항</span>${cur.ws&&cur.ws.minutes&&!g&&!cur.mark?'<span class="tmr" id="tmr"></span>':''}</div><button class="gx" onclick="leaveGrade()" title="그만두기" aria-label="그만두기">✕</button></div>`}
+ return `<div class="gst"><div class="gtl"><b class="gt">${title}</b>${stn?`<span class="tag">${esc(stn)}</span>`:''}${cur.ws?`<span class="wsno">${fmtNo(cur.ws.id)}</span>`:''}<span class="m">${cur.qs.length}문항</span></div><button class="gx" onclick="leaveGrade()" title="그만두기" aria-label="그만두기">✕</button></div>`}
 const noOf=(q,i)=>cur.ws?i+1:((cur.book&&cur.book.nums&&cur.book.nums[q.code])||q.bno||q.no);
 function markView(){
  const n=cur.qs.length,wrong=cur.qs.filter((q,i)=>!cur.ans[i]).length,r=n-wrong,p=n?Math.round(r/n*100):0;
@@ -1438,8 +1472,8 @@ function studView(){const n=cur.qs.length,done=cur.qs.filter((q,i)=>cur.ans[i]).
  const rows=cur.qs.map((q,i)=>row(q,i)).join('');
  const kind=cur.qs[0].set==='ox'?'O/X 또는 1/2 키':cur.qs[0].set==='blank'?'정답을 직접 입력 (Enter로 다음 문항)':'숫자 키 1~5 · 0은 모름 · 방향키로 이동';
  const focus=()=>{const q=cur.qs[idx];return `<div class="fc"><div class="fcn"><b>${noOf(q,idx)}</b><span class="m">/ ${n}</span>${q.type?`<span class="tag">${esc(q.type)}</span>`:''}</div><div class="fcr">${row(q,idx)}</div><div class="fcb"><button class="s" ${idx?'':'disabled'} onclick="focusGo(-1)">← 이전</button><button class="s" ${idx<n-1?'':'disabled'} onclick="focusGo(1)">다음 →</button></div><div class="fcm">${cur.qs.map((x,j)=>`<i class="${cur.ans[j]?'on':''} ${j===idx?'cu':''}" onclick="focusTo(${j})">${noOf(x,j)}</i>`).join('')}</div></div>`};
- $('#main').innerHTML=`<div class="card gcard gs">${gradeHead()}
- <div class="gcs"><div class="gbar2"><div class="gbar"><i style="width:${pct}%"></i></div><span><b>${done}</b> / ${n}</span></div><button class="p gsub" onclick="finish()">제출하기${n-done?`<small>${n-done}개 비어 있음</small>`:''}</button></div><div class="gct"><div class="vsw2"><button class="${one?'':'on'}" onclick="cur.focus=false;render()">시트</button><button class="${one?'on':''}" onclick="cur.focus=true;render()">한 문제씩</button></div><button class="s sm" onclick="openSheet(Math.max(0,cur.qs.findIndex((q,i)=>!cur.ans[i])))">📖 문제 보며 풀기</button>${cur.ws?'<button class="s sm" onclick="omrOpen()">📷 OMR</button>':''}</div>
+ $('#main').innerHTML=`<div class="card gcard gs">${gradeHead()}${exBarHtml()}
+ <div class="gcs"><div class="gbar2"><div class="gbar"><i style="width:${pct}%"></i></div><span><b>${done}</b> / ${n}</span></div><button class="p gsub" onclick="finish()">제출하기${n-done?`<small>${n-done}개 비어 있음</small>`:''}</button></div><div class="gct"><div class="vsw2"><button class="${one?'':'on'}" onclick="cur.focus=false;render()">시트</button><button class="${one?'on':''}" onclick="cur.focus=true;render()">한 문제씩</button></div><button class="s sm" onclick="openSheet(Math.max(0,cur.qs.findIndex((q,i)=>!cur.ans[i])))">📖 문제 보며 풀기</button>${cur.ws?'<button class="s sm" onclick="omrOpen()">📷 OMR</button>':''}${cur.ex?'':'<button class="s sm" onclick="exDlg()">⏱ 시험 모드</button>'}</div>
  ${one?focus():`<div class="omr2">${rows}</div><div class="ghint2">${kind}</div>`}
  <div class="gsub2"><button class="p" onclick="finish()">제출하기${n-done?`<small>${n-done}개 비어 있음</small>`:''}</button></div></div>`;
  tmrStart();if(cur.qs[idx]&&cur.qs[idx].set==='blank'){const e=document.getElementById('t'+idx);e&&e.focus()}}
@@ -1554,8 +1588,8 @@ async function openByNumber(raw){const code=String(raw||'').toUpperCase().replac
  if(needLogin()){askLogin(code);return}
  if(guardStu_ws())return;
  const w=WSH.find(x=>x.id.toUpperCase().replace(/[^A-Z0-9]/g,'')===code);let info=null;
- if(w)info={title:w.title,codes:w.codes,student:(STU.find(s=>s.id===w.sid)||{}).name,sid:w.sid,resetAt:w.resetAt};
- else if(cloud()){try{const r=await rpc('ws_get',{p_wid:code});if(r.ok){const j=await r.json();if(j&&j.meta)info={title:j.title,codes:j.meta.codes,student:j.student,sid:null,resetAt:j.meta.resetAt,submitted:!!j.submitted}}}catch(e){}}
+ if(w)info={title:w.title,codes:w.codes,student:(STU.find(s=>s.id===w.sid)||{}).name,sid:w.sid,resetAt:w.resetAt,minutes:w.minutes,auto:w.auto};
+ else if(cloud()){try{const r=await rpc('ws_get',{p_wid:code});if(r.ok){const j=await r.json();if(j&&j.meta)info={title:j.title,codes:j.meta.codes,student:j.student,sid:null,resetAt:j.meta.resetAt,minutes:j.meta.minutes,auto:j.meta.auto,submitted:!!j.submitted}}}catch(e){}}
  if(!info){alert('이 번호의 학습지를 찾을 수 없습니다.');return}
  if(teacher()&&!info.sid&&!CUR_S){alert('학생을 먼저 선택하세요. (오른쪽 위 학생 선택)');return}
  await ensureCodes(info.codes);const wid=w?w.id:code;const lk=wsLocked(wid,info.resetAt,info.submitted,info.sid);
@@ -1571,7 +1605,7 @@ async function recDel(t,sid){if(!confirm('이 채점 기록을 지우고 다시 
  await busyRun('초기화하는 중…',async()=>{hist=hist.filter(h=>!(h.t===t&&(h.sid||'')===(sid||'')));jset(LS,hist);if(cloud()&&sess){try{await sb('/rest/v1/attempts?t=eq.'+t+(sid?'&student_id=eq.'+sid:''),{method:'DELETE'})}catch(e){}}calibAll()});
  toast('초기화했어요');cur=null;tab='grade';render()}
 function startWs(id,info){const cs=info.codes.filter(c=>byCode[c]);if(!cs.length){alert('문항을 찾을 수 없습니다.');return}
- newCur(cs.map(c=>byCode[c]),{ws:{id,title:info.title,student:info.student,sid:info.sid,resetAt:info.resetAt,minutes:(WSH.find(x=>x.id===id)||{}).minutes||0}})}
+ newCur(cs.map(c=>byCode[c]),{ws:{id,title:info.title,student:info.student,sid:info.sid,resetAt:info.resetAt,minutes:info.minutes||(WSH.find(x=>x.id===id)||{}).minutes||0,auto:info.auto!==undefined?info.auto:(WSH.find(x=>x.id===id)||{}).auto}})}
 
 /* ---------- 취약 유형 지도 ---------- */
 const LVS=['하','중','상','최'];
@@ -1852,7 +1886,7 @@ async function wsSync(){if(srv!=='cloud'&&!(cloud()&&sess))return;
   const rem=(await r.json()).map(x=>({id:x.wid,t:x.t,title:x.title,sid:x.student_id||'',...x.meta}));const have=new Set(rem.map(x=>x.id));
   for(const x of WSH.filter(x=>!have.has(x.id)))await wsPost(x);
   WSH=[...rem,...WSH.filter(x=>!have.has(x.id))].sort((a,b)=>a.t-b.t);wsStore()}catch(e){}}
-const wsMeta=x=>({pkg:x.pkg,exam:x.exam,resetAt:x.resetAt,mono:x.mono,cover:x.cover,sect:x.sect,expPos:x.expPos,notes:x.notes,brk:x.brk,pts:x.pts,minutes:x.minutes,mock:x.mock,space:x.space,fav:x.fav,plan:x.plan,p100:x.p100,codes:x.codes,subt:x.subt,name:x.name,gap:x.gap,ans:x.ans,qr:x.qr,theme:x.theme,style:x.style,color:x.color,font:x.font,tags:x.tags,cols:x.cols,per:x.per,academy:x.academy});
+const wsMeta=x=>({pkg:x.pkg,exam:x.exam,resetAt:x.resetAt,mono:x.mono,cover:x.cover,sect:x.sect,expPos:x.expPos,notes:x.notes,brk:x.brk,pts:x.pts,minutes:x.minutes,auto:x.auto,mock:x.mock,space:x.space,fav:x.fav,plan:x.plan,p100:x.p100,codes:x.codes,subt:x.subt,name:x.name,gap:x.gap,ans:x.ans,qr:x.qr,theme:x.theme,style:x.style,color:x.color,font:x.font,tags:x.tags,cols:x.cols,per:x.per,academy:x.academy});
 const wsPost=x=>sb('/rest/v1/worksheets',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({wid:x.id,t:x.t,title:x.title,meta:wsMeta(x),student_id:x.sid||null})});
 function mkWs(codes,meta){const qs=codes.filter(c=>byCode[c]);if(!qs.length)return null;
  const st=STU.find(s=>s.id===CUR_S);
@@ -1874,12 +1908,16 @@ function wsSelAll(on){const list=WSH.filter(w=>!CUR_S||w.sid===CUR_S);WSSEL.clea
 async function wsDelSel(){if(!WSSEL.size)return;if(!confirm(WSSEL.size+'개의 학습지 기록을 지울까요? (채점 기록은 남습니다)'))return;
  const ids=[...WSSEL];WSH=WSH.filter(w=>!WSSEL.has(w.id));wsStore();WSSEL.clear();
  if(srv==='cloud'){for(const id of ids)await sb('/rest/v1/worksheets?wid=eq.'+encodeURIComponent(id),{method:'DELETE'})}wsListView()}
+function wsTimeSet(id){const w=WSH.find(x=>x.id===id);if(!w)return;WOPEN=null;const pre=[0,10,15,20,30,40,50,60,90],m=w.minutes||0;
+ $('#cfgBox').innerHTML=`<h2 style="margin-top:0">⏱ 시험 설정</h2><div class="m"><b>${esc(w.title)}</b> · 이 학습지를 번호로 채점하는 학생에게 제한시간 타이머가 큰 화면으로 보여요.</div><div class="chps" style="margin:12px 0">${pre.map(x=>`<button class="chp ${x===m?'on':''}" onclick="document.getElementById('exMin').value=${x}">${x?x+'분':'제한 없음'}</button>`).join('')}</div><label class="exin">직접 입력 <input id="exMin" type="number" min="0" max="300" value="${m}"> 분 <span class="m">(0 = 제한 없음)</span></label><label class="exsw" style="margin:12px 0 6px"><input id="exAu" type="checkbox" ${w.auto===0?'':'checked'}><span class="exk"></span><em>시간이 끝나면 자동 제출</em></label><div class="m">자동 제출을 끄면 시간이 지나도 학생이 직접 제출할 때까지 기다리고, 초과 시간이 표시돼요.</div><div class="row" style="margin-top:14px;justify-content:flex-end"><button class="s" onclick="closeCfg()">취소</button><button class="p" onclick="wsTimeSave('${id}')">저장</button></div>`;$('#cfg').classList.add('open')}
+async function wsTimeSave(id){const w=WSH.find(x=>x.id===id);if(!w)return;const m=Math.max(0,Math.min(300,Math.round(+$('#exMin').value||0)));w.minutes=m||0;w.auto=$('#exAu').checked?1:0;closeCfg();wsStore();
+ if(srv==='cloud')await sb('/rest/v1/worksheets?wid=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({meta:wsMeta(w)})});toast(m?'시험 시간을 '+m+'분으로 저장했어요':'제한시간을 없앴어요');wsListView()}
 let WQ='',WFAV=0,WOPEN=null,WSUB='',WSORT='new';
 const wsCmp=(a,b)=>(b.fav||0)-(a.fav||0)||({new:b.t-a.t,old:a.t-b.t,name:String(a.title).localeCompare(String(b.title),'ko'),n:b.codes.length-a.codes.length}[WSORT]||0);
 const wsSubj=w=>subjOf((w.codes||[])[0]);
 function wsRowTog(id,ev){if(ev&&ev.target.closest('button,input,a,.wmenu'))return;if(WSSEL.has(id))WSSEL.delete(id);else WSSEL.add(id);WOPEN=null;keepScroll(wsListView)}
 function wsOpts2(w,short){const b=(f,t,cls)=>`<button class="s sm ${cls||''}" onclick="event.stopPropagation();${f}">${t}</button>`;
- return b(`openByNumber('${w.id}')`,'채점','pp')+b(`wsReprint('${w.id}')`,'다시 출력')+b(`wsEdit('${w.id}')`,'문항 편집')+b(`openAssign('${w.id}')`,'학생 배정')+b(`omrCard('${w.id}')`,'OMR 답안지')+b(`wsRegen('${w.id}')`,'재출제')+b(`wsTwin('${w.id}')`,'쌍둥이 학습지')+b(`wsReport('${w.id}')`,'결과 분석')+b(`wsExam('${w.id}')`,w.exam?'기출 표시 수정':'학교 기출로 보관')+b(`wsReset('${w.id}')`,'제출 초기화')+b(`wsDup('${w.id}')`,'복제')+b(`wsRename('${w.id}')`,'이름 변경')+b(`wsDel('${w.id}')`,'삭제')}
+ return b(`openByNumber('${w.id}')`,'채점','pp')+b(`wsReprint('${w.id}')`,'다시 출력')+b(`wsEdit('${w.id}')`,'문항 편집')+b(`openAssign('${w.id}')`,'학생 배정')+b(`omrCard('${w.id}')`,'OMR 답안지')+b(`wsTimeSet('${w.id}')`,w.minutes?'시험 설정 · '+w.minutes+'분':'시험 설정')+b(`wsRegen('${w.id}')`,'재출제')+b(`wsTwin('${w.id}')`,'쌍둥이 학습지')+b(`wsReport('${w.id}')`,'결과 분석')+b(`wsExam('${w.id}')`,w.exam?'기출 표시 수정':'학교 기출로 보관')+b(`wsReset('${w.id}')`,'제출 초기화')+b(`wsDup('${w.id}')`,'복제')+b(`wsRename('${w.id}')`,'이름 변경')+b(`wsDel('${w.id}')`,'삭제')}
 
 /* =================== 오답 원인 진단 =================== */
 const CNUM='①②③④⑤⑥⑦',DGC={};
