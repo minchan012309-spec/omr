@@ -361,9 +361,21 @@ declare s students%rowtype;
 begin
   s := _st_auth(p_login, p_pw);
   if s.id is null then return null; end if;
-  return coalesce((select data->'perms' from teacher_settings where user_id = s.user_id), '{}'::jsonb)::json;
+  return coalesce((select (data->'perms') - 'logo' - 'logoDark' from teacher_settings where user_id = s.user_id), '{}'::jsonb)::json;
 end $$;
 grant execute on function st_perms(text, text) to anon, authenticated;
+
+-- 학원 로고(이미지)는 권한 응답과 분리: 버전(logov)이 바뀔 때만 학생이 받아 감
+create or replace function st_academy(p_login text, p_pw text) returns json
+language plpgsql security definer set search_path = public, extensions as $$
+declare s students%rowtype; p jsonb;
+begin
+  s := _st_auth(p_login, p_pw);
+  if s.id is null then return null; end if;
+  select data->'perms' into p from teacher_settings where user_id = s.user_id;
+  return json_build_object('logo', coalesce(p->>'logo', ''), 'logoDark', coalesce(p->>'logoDark', ''), 'v', coalesce(p->>'logov', ''));
+end $$;
+grant execute on function st_academy(text, text) to anon, authenticated;
 
 -- =====================================================================
 -- 13. 버그 신고
