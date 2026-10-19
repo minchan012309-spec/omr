@@ -373,6 +373,9 @@ html[data-theme=dark] .hbf{color:#6f7782}html[data-theme=dark] .hbs.on .hbf{colo
 .rxg{border:1px solid var(--l);border-radius:12px;padding:10px 14px;margin:8px 0;background:var(--sf1)}.rxh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:4px}.rxh b{font-size:15px}
 .rxs{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--l);font-size:14px}.rxs:first-of-type{border-top:0}.rxs i{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;border:2px solid var(--l2);font-style:normal;color:#fff;font-size:13px;font-weight:800;flex:none}.rxs.on i{background:#2b9a5b;border-color:#2b9a5b}.rxs.on span{color:var(--m);text-decoration:line-through}.rxs small{color:var(--m)}.rxs button{margin-left:auto}
 .rxbk{padding:4px 0;font-size:13.5px}
+.wnn{margin-top:10px}.wnm{border:1px solid #f0d78a;background:#fff8dc;border-radius:10px;padding:10px 12px;margin-bottom:8px}.wnm b{font-size:12px;color:#8a6500;display:block;margin-bottom:4px}.wnt{white-space:pre-wrap;line-height:1.6;font-size:14px}.wnm img{display:block;max-width:100%;max-height:240px;border-radius:8px;margin-top:8px;cursor:zoom-in}
+.wnlb{position:fixed;inset:0;z-index:200;background:#000c;display:flex;align-items:center;justify-content:center;cursor:zoom-out;padding:16px}.wnlb img{max-width:100%;max-height:100%;border-radius:8px;background:#fff}
+html[data-theme=dark] .wnm{background:hsl(45 30% 16%);border-color:hsl(45 30% 28%)}.wnmk{background:#fff0b3;color:#7a5a00}
 .tmr{font-weight:700;color:var(--bd);background:var(--bl);border-radius:12px;padding:2px 12px;font-size:15px}.tmr.warn{color:#b03a37;background:#fdeceb}
 
 /* ===== v5: 단계 표시 · 채점 화면 · 애니메이션 ===== */
@@ -912,7 +915,7 @@ async function auth(kind,email,pw){const p=kind==='up'?'/auth/v1/signup':'/auth/
 const uuid=()=>(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)}));
 async function load(){loadCfg();hist=jget(LS,[]);STU=jget(LST,[]);WSH=jget(LW,[]);CUR_S=localStorage.getItem(LCS)||'';srv=false;
  await loadBankIndex();
- STUD=cloud()?sget(LSTUD):null;if(STUD){await loadStud();if(STUD){syncLabel();render();prefsPull().then(()=>{if(STUD&&!cur&&!PR&&['home','wrong'].includes(tab))render()});return}}
+ STUD=cloud()?sget(LSTUD):null;if(STUD){await loadStud();if(STUD){syncLabel();render();prefsPull().then(()=>{if(STUD&&!cur&&!PR&&['home','wrong'].includes(tab))render()});wnPull().then(()=>{if(STUD&&tab==='wrong'&&!cur&&!PR)render()});return}}
  if(cloud()&&sess){try{
    await stuSync();setTimeout(sgLoad,300);setTimeout(bugPoll,600);
    const r=await sb('/rest/v1/attempts?select=t,set,sub,items,student_id&order=t.asc&limit=20000');
@@ -1501,7 +1504,7 @@ function pracView(){if(!PR){tab='weak';render();return}
  else opts=`<div class="chs2">${(q.set==='ox'?['O','X']:['1','2','3','4','5']).map(o=>`<button class="${PR.shown?(q.ans===o?'ok':(a.a===o?'bad':'')):''}" ${PR.shown?'disabled':''} onclick="pracAns('${o}')">${o}</button>`).join('')}</div>`;
  $('#main').innerHTML=`<div class="card"><div class="row"><b>${esc(PR.title)}</b><span class="m">${PR.i+1} / ${PR.qs.length}</span><span class="tag">${esc(q.type||'')}</span><button class="s sm" onclick="if(confirm('그만할까요?')){PR=null;tab='weak';render()}">그만두기</button></div>
  ${inkBar()}<div class="inkw" id="prqw"><div class="pr_q" id="prq"></div></div>${opts}
- ${PR.shown?`<p><b>${a.r?'정답입니다':'오답입니다'}</b> · 정답 <b style="color:var(--b)">${fmt(q.ans)}</b></p>${permOn('showExp')||!STUD?'<div class="pr_q" id="pre"></div>':''}<button class="p" onclick="pracNext()">${PR.i+1<PR.qs.length?'다음 문제':'결과 보기'}</button>`:''}</div>`;
+ ${PR.shown?`<p><b>${a.r?'정답입니다':'오답입니다'}</b> · 정답 <b style="color:var(--b)">${fmt(q.ans)}</b></p>${permOn('showExp')||!STUD?'<div class="pr_q" id="pre"></div>':''}${wnBlockHtml(q.code)}<button class="p" onclick="pracNext()">${PR.i+1<PR.qs.length?'다음 문제':'결과 보기'}</button>`:''}</div>`;
  mount($('#prq'),wsq(q,PR.i));PR.ink=PR.ink||{};inkAttach($('#prqw'),PR.ink,PR.i);if(PR.shown&&$('#pre'))mount($('#pre'),q.exp||'');const pb=$('#pb');pb&&!PR.shown&&pb.focus()}
 function pracAns(v){if(PR.shown)return;const q=PR.qs[PR.i];PR.ans[PR.i]={a:v,r:ok(q,v)?1:0,s:Math.min(600,Math.round((Date.now()-(PR.t0||Date.now()))/1000))};PR.shown=true;render()}
 async function pracNext(){PR.i++;PR.shown=false;if(PR.i>=PR.qs.length){const rec={t:Date.now(),set:'practice',sub:'',items:PR.qs.map((q,i)=>({c:q.code,a:PR.ans[i].a,r:PR.ans[i].r,s:PR.ans[i].s>0?PR.ans[i].s:undefined})),sid:CUR_S};await saveRec(rec);if(String(PR.title||'').startsWith('오늘의 문제'))jset('omr_tdone_v1',{d:dayStart(Date.now())});if(!teacher())habitNotify()}render()}
@@ -1648,15 +1651,43 @@ function openUnit(){if(guardStu())return;const sub=$('#us').value,set=$('#ut').v
 function nextBookPage(pg){const ks=Object.keys(bookPages()).map(Number).sort((a,b)=>a-b);return ks.find(k=>k>pg)}
 async function wrongView(){
  $('#main').innerHTML='<div class="card">'+ldg('불러오는 중…')+'</div>';
- const L=lastRes();const all=Object.keys(L).filter(c=>L[c][L[c].length-1]===0);await ensureCodes(all);
+ await wnTeacherLoad();const L=lastRes();const all=Object.keys(L).filter(c=>L[c][L[c].length-1]===0);await ensureCodes(all);
  const qs=all.map(c=>byCode[c]).filter(q=>q&&subjOf(q.code)===SUBJ);
  const g={};qs.forEach(q=>(g[q.sub+' '+q.subname+' · '+q.type]=g[q.sub+' '+q.subname+' · '+q.type]||[]).push(q));
  const codes=qs.map(q=>q.code);
  let h=`<div class="card"><div class="row"><h2 style="margin:0">오답노트</h2><span class="sjpill">${esc(SNAME[SUBJ])}</span><span class="m">가장 최근에 틀린 문제 ${qs.length}개</span><span style="margin-left:auto;display:flex;gap:6px">${qs.length?`<button class="s sm" onclick="recToolOpen('sim')">유사 학습지</button><button class="s sm" onclick="dailyFive()">오늘의 문제</button><button class="p sm" onclick="redoCodes('${codes.join(',')}')">전부 다시 풀기</button>${teacher()?`<button class="s sm" onclick="makeWs(['${codes.join("','")}'])">오답 학습지</button>`:''}`:''}</span></div></div>`;
  if(!qs.length)h+='<div class="card empty">틀린 문제가 없어요. 채점을 하면 여기에 모입니다.</div>';
- Object.entries(g).forEach(([k,l])=>{h+=`<div class="card"><h3 style="margin-top:0">${esc(k)} <em class="m" style="font-style:normal">${l.length}개</em></h3>${l.map(q=>`<div class="wn" id="wn_${esc(q.code)}"><div class="wnh" onclick="wnTog('${q.code}')"><b>${q.code}</b><span class="tag">${q.lv||''}</span><span class="m">${(L[q.code]||[]).length}회 풀이</span><span class="wnx">보기 ▾</span></div></div>`).join('')}</div>`});
+ Object.entries(g).forEach(([k,l])=>{h+=`<div class="card"><h3 style="margin-top:0">${esc(k)} <em class="m" style="font-style:normal">${l.length}개</em></h3>${l.map(q=>`<div class="wn" id="wn_${esc(q.code)}"><div class="wnh" onclick="wnTog('${q.code}')"><b>${q.code}</b><span class="tag">${q.lv||''}</span><span class="m">${(L[q.code]||[]).length}회 풀이</span>${wnGet(q.code)?'<span class="tag wnmk">메모</span>':''}<span class="wnx">보기 ▾</span></div></div>`).join('')}</div>`});
  $('#main').innerHTML=h}
 
+/* =================== 오답 메모 (글 + 풀이 사진, 서버에 저장) =================== */
+const WNK='omr_wnote_v1',WNQ='omr_wnq_v1';let WNT={};
+const wnAll=()=>jget(WNK,{}),wnPut=o=>{try{localStorage.setItem(WNK,JSON.stringify(o))}catch(e){toast('저장 공간이 부족해요. 오래된 사진 메모를 지워 주세요.')}};
+const wnGet=c=>(teacher()&&CUR_S?WNT[c]:wnAll()[c])||null;
+const wnCan=()=>!!(cloud()&&STUD&&!STUD.preview&&!STUD.parent);
+function wnBlockHtml(code){const n=wnGet(code),has=n&&(n.m||n.p),ro=teacher()||(STUD&&STUD.parent);
+ return `<div class="wnn" id="wnn_${esc(code)}">${has?`<div class="wnm"><b>${ro?'학생 메모':'내 메모'}</b>${n.m?`<div class="wnt">${esc(n.m).replace(/\n/g,'<br>')}</div>`:''}${n.p?`<img src="${n.p}" alt="풀이 사진" onclick="wnImg('${code}')">`:''}</div>`:''}${ro?'':`<button class="s sm" onclick="wnEdit('${code}')">${has?'✎ 메모 고치기':'✎ 내 메모·풀이 사진 남기기'}</button>`}</div>`}
+function wnImg(code){const n=wnGet(code);if(!n||!n.p)return;const o=document.createElement('div');o.className='wnlb';o.innerHTML=`<img src="${n.p}" alt="">`;o.onclick=()=>o.remove();document.body.appendChild(o)}
+function wnEdit(code){const n=wnAll()[code]||{m:'',p:''};WNE={code,p:n.p||''};
+ $('#cfgBox').innerHTML=`<h2 style="margin-top:0">오답 메모 · ${esc(code)}</h2><div class="m">왜 틀렸는지, 다음엔 어떻게 풀지 적어 두면 복습할 때 같이 보여요.</div><textarea id="wnm" rows="5" maxlength="1500" placeholder="예) 발열 반응에서 ΔH 부호를 반대로 생각했다. 엔탈피는 생성물 − 반응물!" style="width:100%;margin-top:10px;border:1px solid var(--l2);border-radius:10px;padding:10px 12px;font:inherit;background:var(--surface);color:var(--t)">${esc(n.m||'')}</textarea>
+ <div class="row" style="margin-top:10px"><button class="s" onclick="$('#wnf').click()">📷 풀이 사진 ${n.p?'바꾸기':'추가'}</button><input id="wnf" type="file" accept="image/*" style="display:none" onchange="wnPhoto(this.files[0])"><button class="s" id="wnrm" ${n.p?'':'hidden'} onclick="WNE.p='';$('#wnpv').innerHTML='';this.hidden=true">사진 지우기</button><span class="m" id="wnst"></span></div><div id="wnpv" style="margin-top:8px">${n.p?`<img src="${n.p}" style="max-width:100%;max-height:220px;border-radius:8px" alt="">`:''}</div>
+ <div class="row" style="justify-content:flex-end;margin-top:12px">${wnAll()[code]?`<button class="s" onclick="wnDel('${code}')">메모 지우기</button>`:''}<button class="s" onclick="closeCfg()">취소</button><button class="p" onclick="wnSave()">저장</button></div>`;$('#cfg').classList.add('open')}
+let WNE=null;
+function wnShrink(file){return new Promise((res,rej)=>{const im=new Image(),u=URL.createObjectURL(file);im.onload=()=>{URL.revokeObjectURL(u);let sc=Math.min(1,900/Math.max(im.width,im.height)),q=.62,out='';
+  for(let k=0;k<6;k++){const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*sc));c.height=Math.max(1,Math.round(im.height*sc));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);out=c.toDataURL('image/jpeg',q);if(out.length<150000)break;q-=.08;sc*=.85}
+  out.length<190000?res(out):rej(new Error('big'))};im.onerror=()=>rej(new Error('img'));im.src=u})}
+async function wnPhoto(f){if(!f)return;$('#wnst').textContent='사진을 줄이는 중…';try{WNE.p=await wnShrink(f);$('#wnpv').innerHTML=`<img src="${WNE.p}" style="max-width:100%;max-height:220px;border-radius:8px" alt="">`;$('#wnst').textContent='';$('#wnrm').hidden=false}catch(e){$('#wnst').textContent='사진을 줄이지 못했어요. 다른 사진을 골라 주세요.'}}
+async function wnSave(){const code=WNE.code,m=($('#wnm').value||'').trim(),p=WNE.p||'';if(!m&&!p){wnDel(code);return}const a=wnAll();a[code]={m,p,t:Date.now()};wnPut(a);closeCfg();wnRefresh(code);toast('오답 메모를 저장했어요');
+ if(wnCan()){const ok=await wnUp(code,a[code]);if(!ok){const q=jget(WNQ,{});q[code]=1;try{localStorage.setItem(WNQ,JSON.stringify(q))}catch(e){}toast('서버에는 아직 못 올렸어요. 연결되면 자동으로 올려요.')}}}
+async function wnDel(code){if(!confirm('이 메모를 지울까요?'))return;const a=wnAll();delete a[code];wnPut(a);closeCfg();wnRefresh(code);if(wnCan()){const ok=await wnUp(code,null);if(!ok){const q=jget(WNQ,{});q[code]=2;try{localStorage.setItem(WNQ,JSON.stringify(q))}catch(e){}}}}
+function wnRefresh(code){const el=document.getElementById('wnn_'+code);if(el)el.outerHTML=wnBlockHtml(code);const h=document.querySelector('#wn_'+CSS.escape(code)+' .wnh');if(h){const has=!!wnGet(code);let t=h.querySelector('.wnmk');if(has&&!t){h.insertAdjacentHTML('beforeend','<span class="tag wnmk">메모</span>')}else if(!has&&t)t.remove()}}
+async function wnUp(code,n){try{const r=n?await rpc('st_note_set',{p_login:STUD.login,p_pw:STUD.pw,p_code:code,p_memo:n.m||'',p_photo:n.p||''}):await rpc('st_note_del',{p_login:STUD.login,p_pw:STUD.pw,p_code:code});return r.ok}catch(e){return false}}
+async function wnPull(){if(!wnCan())return;try{const q=jget(WNQ,{}),a=wnAll();for(const c of Object.keys(q)){const ok=await wnUp(c,q[c]===2?null:a[c]||null);if(ok)delete q[c]}try{localStorage.setItem(WNQ,JSON.stringify(q))}catch(e){}
+  const r=await rpc('st_notes',{p_login:STUD.login,p_pw:STUD.pw});if(!r.ok)return;const srv=await r.json(),sm={};(srv||[]).forEach(x=>sm[x.c]=x);const loc=wnAll();let ch=false;
+  Object.values(sm).forEach(x=>{if(q[x.c])return;if(!loc[x.c]||(+x.t||0)>(loc[x.c].t||0)){loc[x.c]={m:x.m||'',p:x.p||'',t:+x.t||0};ch=true}});
+  for(const c of Object.keys(loc)){if(!sm[c]&&!q[c]){const ok=await wnUp(c,loc[c]);if(!ok){q[c]=1;try{localStorage.setItem(WNQ,JSON.stringify(q))}catch(e){}}}}
+  if(ch)wnPut(loc)}catch(e){}}
+async function wnTeacherLoad(){WNT={};if(!(teacher()&&CUR_S&&cloud()&&sess))return;try{const r=await sb('/rest/v1/wrong_notes?select=code,memo,photo,t&student_id=eq.'+CUR_S);if(r.ok)(await r.json()).forEach(x=>WNT[x.code]={m:x.memo,p:x.photo,t:+x.t})}catch(e){}}
 /* 오답노트 + 오답 진단을 한 페이지에: 위쪽 탭으로 전환 */
 let WRM='note';
 async function wrongHub(){const canD=!STUD||permOn('diag');if(!canD)WRM='note';
@@ -1665,7 +1696,7 @@ async function wrongHub(){const canD=!STUD||permOn('diag');if(!canD)WRM='note';
  m.insertAdjacentHTML('afterbegin',`<div class="rtabs" id="wrhub" style="margin:0 0 12px"><button class="${WRM==='note'?'on':''}" onclick="WRM='note';render()">오답노트</button>${canD?`<button class="${WRM==='diag'?'on':''}" onclick="WRM='diag';render()">오답 진단</button>`:''}</div>`)}
 
 function wnTog(code){const el=document.getElementById('wn_'+code);if(!el)return;const o=el.querySelector('.wnb');if(o){o.remove();el.querySelector('.wnx').textContent='보기 ▾';return}
- const q=byCode[code];const d=document.createElement('div');d.className='wnb';d.innerHTML='<div class="wq"></div><div class="wa"><b>정답 '+esc(q.ans)+'</b></div><div class="wdg"></div><div class="we"></div>';el.appendChild(d);{let mine=null;H().forEach(h=>h.items.forEach(x=>{if(x.c===code)mine=x.a}));if(mine){const go=()=>{const e=d.querySelector('.wdg');if(e)e.innerHTML=diagHtml(q,mine)};CONC[SUBJ]?go():conceptLoad().then(go,go)}}
+ const q=byCode[code];const d=document.createElement('div');d.className='wnb';d.innerHTML='<div class="wq"></div><div class="wa"><b>정답 '+esc(q.ans)+'</b></div><div class="wdg"></div><div class="we"></div>'+wnBlockHtml(code);el.appendChild(d);{let mine=null;H().forEach(h=>h.items.forEach(x=>{if(x.c===code)mine=x.a}));if(mine){const go=()=>{const e=d.querySelector('.wdg');if(e)e.innerHTML=diagHtml(q,mine)};CONC[SUBJ]?go():conceptLoad().then(go,go)}}
  mount(d.querySelector('.wq'),q.q||'');if(q.exp)mount(d.querySelector('.we'),q.exp);el.querySelector('.wnx').textContent='접기 ▴'}
 function recentCard(){let it=[];
  if(STUD)it=ASSIGN.filter(a=>!hist.some(h=>h.set==='ws'&&h.sub===a.wid)).slice(0,5).map(a=>({id:a.wid,t:a.title||'학습지',m:a.due?'마감 '+a.due:'미제출'}));
