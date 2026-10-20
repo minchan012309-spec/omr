@@ -327,7 +327,7 @@ function bkPack(units,ncol,cap,firstCap){
  const np=()=>{pg={cols:Array.from({length:ncol},()=>[])};pages.push(pg);ci=0;used=0};
  for(let i=0;i<units.length;i++){const u=units[i];
   if(!pg||(u.brk&&pg.cols.some(c=>c.length)))np();
-  let need=u.h+(u.pad||0);if(u.keep&&units[i+1])need+=units[i+1].h+(units[i+1].pad||0);
+  let need=u.h+(u.pad||0);for(let j=i;units[j].keep&&units[j+1];){j++;need+=units[j].h+(units[j].pad||0)}
   if(used+need>capOf()&&used>0){ci++;used=0;if(ci>=ncol)np()}
   pg.cols[ci].push(u);used+=u.h+(u.pad||0)}
  return pages}
