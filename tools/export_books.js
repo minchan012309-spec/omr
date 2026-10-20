@@ -7,7 +7,7 @@ const NAMES={'me-c':'물질과에너지_개념서','me-t':'물질과에너지_�
  await pg.goto('http://localhost:8765/index.html');await pg.waitForTimeout(1500);
  await pg.evaluate("sess={access_token:'x',user:{}};STU=[{id:'s1',name:'t',grade:'x'}];CUR_S='s1'");
  fs.mkdirSync(OUT,{recursive:true});
- for(const id of Object.keys(NAMES)){const s=id.split('-')[0];await pg.evaluate(`setSubject('${s}')`);await pg.waitForTimeout(500);await pg.evaluate("bkLoad()");await pg.waitForTimeout(300);
+ for(const id of Object.keys(NAMES).filter(k=>!process.env.ONLY||process.env.ONLY.split(',').includes(k))){const s=id.split('-')[0];await pg.evaluate(`setSubject('${s}')`);await pg.waitForTimeout(500);await pg.evaluate("bkLoad()");await pg.waitForTimeout(300);
   let html=await pg.evaluate(`(async()=>{window.BKBASE='${SITE}';await conceptLoad();await bkInit();const p=await bkPlan('${id}');let h=bkStandalone(p);
    const urls=[...new Set([...h.matchAll(/<img[^>]+src="([^"#]+)"/g)].map(m=>m[1]))].filter(u=>!u.startsWith('data:'));
    const map={};for(const u of urls){try{const r=await fetch(u);const bl=await r.blob();map[u]=await new Promise(res=>{const f=new FileReader();f.onload=()=>res(f.result);f.readAsDataURL(bl)})}catch(e){}}
