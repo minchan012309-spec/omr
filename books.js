@@ -207,7 +207,7 @@ const BKSCR=`
 .bkbar{display:flex;gap:10px;align-items:center;flex-direction:row-reverse;justify-content:flex-end;margin:0 auto 14px;padding:6px 10px;font-size:12.5px;color:var(--m)}
 .bkbar b{color:var(--t)}.bkbar button{padding:6px 14px;border-radius:8px;font:inherit;font-size:13px}
 .bkrd{position:sticky;top:62px;z-index:4;background:#fff;border:1px solid var(--l);border-radius:12px;padding:8px 10px;margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.bkrd select{max-width:100%;flex:1 1 170px;min-width:0}
+.bkrd .bkt{font-size:14px;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 6px}.bkrd .sp1{flex:1}.bkrd{gap:2px;padding:5px 8px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.bkrd::-webkit-scrollbar{display:none}
 .bkshelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
 .bkcard{border:1px solid var(--l);border-radius:12px;background:#fff;padding:14px;display:flex;gap:14px}
 .bkcov{flex:none;width:92px;height:130px;border:1.5px solid #111;background:#fff;position:relative;padding:7px 7px 0;font-family:Pretendard,sans-serif;display:flex;flex-direction:column}
@@ -327,7 +327,7 @@ function bkPack(units,ncol,cap,firstCap){
  const np=()=>{pg={cols:Array.from({length:ncol},()=>[])};pages.push(pg);ci=0;used=0};
  for(let i=0;i<units.length;i++){const u=units[i];
   if(!pg||(u.brk&&pg.cols.some(c=>c.length)))np();
-  let need=u.h+(u.pad||0);if(u.keep&&units[i+1])need+=units[i+1].h+(units[i+1].pad||0);
+  let need=u.h+(u.pad||0);for(let j=i;units[j].keep&&units[j+1];){j++;need+=units[j].h+(units[j].pad||0)}
   if(used+need>capOf()&&used>0){ci++;used=0;if(ci>=ncol)np()}
   pg.cols[ci].push(u);used+=u.h+(u.pad||0)}
  return pages}
@@ -763,7 +763,8 @@ function bkNextHtml(){const b=cur&&cur.book;if(!b||!b.bk||b.all)return '';const 
 
 /* ---------- 교재함 · 리더 ---------- */
 let BKV={v:'shelf',id:null,z:1};
-function bkZoom(d){const Z=[1,1.6,2.4,3.2];let i=Z.indexOf(BKV.z||1);i=Math.max(0,Math.min(Z.length-1,i+d));BKV.z=Z[i];bkScale();const l=document.getElementById('bkzl');if(l)l.textContent=Math.round(Z[i]*100)+'%'}
+function bkDupTog(){dupSet(!dupGet());const b=document.getElementById('bkdup');if(b)b.classList.toggle('on',!!dupGet())}
+function bkZoom(d){const Z=[1,1.6,2.4,3.2];let i=d===0?0:Z.indexOf(BKV.z||1);i=Math.max(0,Math.min(Z.length-1,i+d));BKV.z=Z[i];bkScale();const l=document.getElementById('bkzl');if(l)l.textContent=Math.round(Z[i]*100)+'%'}
 function bkBookList(){const S=bkSel();const sk=bkScope(S).map(s=>s.k),inS=k=>sk.includes(k),sm=o=>sk.reduce((a,k)=>a+(o[k]||[]).length,0);const part=sk.length<S.subs.length,rg=part?' · 범위 '+bkScope(S)[0].name+(sk.length>1?' ~ '+bkScope(S)[sk.length-1].name:''):'';
  const nd=!!(CONC[SUBJ]||{}).noDefaultBooks;
  const L=nd?[]:[
@@ -813,7 +814,7 @@ async function bkReader(id){
  else if(plan.kind==='x'){plan.toc.forEach(r=>r.items.forEach(([n,p])=>jumps.push([r.sub.k+' '+n,p])));if(plan.toc.es)jumps.push(['서술형',plan.toc.es.p])}
  else{jumps.push(['문제지',2],['정답 및 해설',plan.aStart])}
  jumps.push(['정답 · 해설',plan.aStart]);const seen=new Set();const J=jumps.filter(j=>j[1]&&!seen.has(j[0]+j[1]) && seen.add(j[0]+j[1]));
- m.innerHTML=`<div class="bkrd"><button class="s" onclick="bkClose()">‹ 교재함</button><b style="font-size:14px">${esc(plan.title)}</b><select id="bkj" onchange="bkJump(this.value)"><option value="">이동…</option><option value="1">표지</option>${J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}</select>${plan.kind==='m'?`<button class="p" onclick="bkGradeAll('${id}')">시험 전체 채점</button>`:''}<button class="s" onclick="thumbTog('#main>.thr')">썸네일</button><span class="bkzm"><button class="s" onclick="bkZoom(-1)" aria-label="작게">－</button><b id="bkzl">${Math.round((BKV.z||1)*100)}%</b><button class="s" onclick="bkZoom(1)" aria-label="크게">＋</button></span>${typeof ft==='function'&&!ft('ebook')?'':`<button class="p" onclick="bkEbook('${id}')">eBook</button>`}<label class="chk" title="인쇄·PDF에서 답안이 뒷면에서 시작하지 않게 빈 쪽을 채워요"><input type="checkbox" ${dupGet()?'checked':''} onchange="dupSet(this.checked)"> 양면</label><button class="s" onclick="bkPdf('${id}',1)">PDF 받기</button><button class="s" onclick="bkPrint('${id}',0)">문제만 인쇄</button><button class="p" onclick="bkPrint('${id}',1)">전체 인쇄 · PDF</button></div><div id="bkpages"></div>`;
+ m.innerHTML=`<div class="bkrd">${tbT('','bkClose()','교재함으로','shelf','교재함')}<b class="bkt">${esc(plan.title)}</b><span class="sp1"></span>${tbS('bkj','bkJump(this.value)','목차로 이동','toc','목차','<option value="">이동…</option><option value="1">표지</option>'+J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join(''))}${plan.kind==='m'?tbT('','bkGradeAll(\''+id+'\')','시험 전체 채점','grade','전체 채점','pr'):''}${tbT('','thumbTog(\'#main>.thr\')','쪽 썸네일 보이기/숨기기','thumb','썸네일')}<i class="tbv"></i>${tbT('','bkZoom(-1)','작게','zout','축소')}<button class="tbx" onclick="bkZoom(0)" title="크기 초기화"><b class="pct" id="bkzl">${Math.round((BKV.z||1)*100)}%</b><span class="lb">배율</span></button>${tbT('','bkZoom(1)','크게','zin','확대')}<i class="tbv"></i>${typeof ft==='function'&&!ft('ebook')?'':tbT('','bkEbook(\''+id+'\')','eBook으로 보기 (필기·수업 모드)','ebook','eBook','pr')}${tbT('bkdup','bkDupTog()','인쇄·PDF에서 답안이 뒷면에서 시작하지 않게 빈 쪽을 채워요','duplex','양면',dupGet()?'on':'')}<i class="tbv"></i>${tbT('','bkPdf(\''+id+'\',1)','PDF로 받기','pdf','PDF')}${tbT('','bkPrint(\''+id+'\',0)','문제만 인쇄','print','문제만')}${tbT('','bkPrint(\''+id+'\',1)','전체 인쇄 · PDF (정답·해설 포함)','print','전체 인쇄','pr')}</div><div id="bkpages"></div>`;
  const hdr=document.querySelector('header');const rd=document.querySelector('.bkrd');if(rd&&hdr)rd.style.top=(hdr.getBoundingClientRect().height+6)+'px';const box=$('#bkpages');bkScale();
  box.innerHTML=plan.pages.map((p,i)=>`<div class="bkw" id="bkpg${p.n}" data-i="${i}" style="width:var(--bkw);height:var(--bkh)"></div>`+(p.codes&&p.codes.length?`<div class="bkbar" style="width:var(--bkw)"><span><b>p.${p.n}</b> · ${p.codes.length}문항</span>${STUD&&!permOn('pageSolve')?'':`<button class="s" onclick="bkSolve('${id}',${plan.kind==='m'?0:p.n})">${plan.kind==='m'?'시험 화면에서 풀기':'이 쪽 풀기'}</button>`}<button class="p" onclick="${plan.kind==='m'?`bkGradeAll('${id}')`:`bkGradePage('${id}',${p.n})`}">${plan.kind==='m'?'시험 전체 채점하기':'이 쪽 채점하기'}</button></div>`:'<div style="height:10px"></div>')).join('');
  const fill=el=>{if(el.dataset.f)return;el.dataset.f=1;bkShadow(el,'<div class="bkdoc scr">'+bkPageHtml(plan,+el.dataset.i)+'</div>')};
@@ -834,6 +835,9 @@ function ebkPenGet(id){try{return (JSON.parse(localStorage.getItem('omr_ebpen')|
 function ebkPenSave(){EBK.tex&&EBK.tex.clear();EBK.texOk&&EBK.texOk.clear();try{const a=JSON.parse(localStorage.getItem('omr_ebpen')||'{}');a[EBK.id]=EBK.pen;localStorage.setItem('omr_ebpen',JSON.stringify(a))}catch(e){toast('필기를 저장할 공간이 부족해요')}}
 const EBI={pdf:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v3h16v-3"/></svg>',
  print:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>'};
+EBI.mark='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg>';
+EBI.thumb='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="8" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>';
+const ebT=tbT,ebS=tbS;
 const EBC=['#e5484d','#2f7fd0','#1f9d55','#111111','#f7b928','#8e4ec6'];
 async function bkEbook(id){
  id=bkPid(id);try{await bkLoadJs('lib/html2canvas.min.js',()=>window.html2canvas)}catch(e){}await bkInit();const P0=bkParts(id);if(P0&&P0.subj!==SUBJ)await setSubject(P0.subj);const plan=await bkPlan(id);if(!plan)return;
@@ -844,9 +848,15 @@ async function bkEbook(id){
  const J=[['표지',1]];if(plan.kind==='c')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.c]));else if(plan.kind==='t')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.p]));else if(plan.kind==='x')plan.toc.forEach(r=>r.items.forEach(([n,p])=>J.push([r.sub.k+' '+n,p])));if(plan.aStart)J.push(['정답 · 해설',plan.aStart]);
  const seen=new Set();EBK.J=J.filter(j=>j[1]&&!seen.has(j[1])&&seen.add(j[1]));
  el.innerHTML=`<style>#ebk{position:fixed;inset:0;z-index:50;background:#1b1f27;color:#e8ecf2;display:flex;flex-direction:column;font:14px Pretendard,PretendardLocal,sans-serif;user-select:none;-webkit-user-select:none}#ebk.wh{background:#f1f3f6}
-#ebk .ebw{background:#12151b;flex:none}#ebk .eb,#ebk .et{display:flex;gap:6px;align-items:center;padding:6px 10px;flex-wrap:wrap}#ebk .et{padding-top:0}#ebk .eb b{flex:1;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#ebk .sp1{flex:1}
+#ebk .ebw{background:#12151b;flex:none}#ebk .eb,#ebk .et{display:flex;gap:6px;align-items:center;padding:6px 10px;flex-wrap:wrap}#ebk .et{padding-top:0}#ebk .eb>b{flex:1;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#ebk .sp1{flex:1}
 #ebk button,#ebk select{font:inherit;background:#2a303b;color:#e8ecf2;border:1px solid #3a4250;border-radius:8px;padding:6px 10px;cursor:pointer;max-width:44vw;display:inline-flex;align-items:center;gap:4px}#ebk button.on{background:#f7b928;color:#222;border-color:#f7b928}#ebk .eb button,#ebk .et button{flex:none;white-space:nowrap}#ebk button.ebi{padding:6px 11px;justify-content:center}#ebk button.ebi svg{width:18px!important;height:18px!important;flex:none;display:block}#ebk button.pr{background:#2f9d66;border-color:#2f9d66;color:#fff;font-weight:700}
-#ebk .cd{width:24px;height:24px;min-width:24px;max-width:24px;min-height:24px;padding:0;border-radius:50%;border:2px solid #fff3;flex:none;box-sizing:border-box}#ebk .cd.on{border-color:#fff;box-shadow:0 0 0 2px #f7b928}
+#ebk{--t:#d6dce6;--m:#97a3b4;--sf2:#262c37;--l:#2e3541;--b:#2f9d66;--y:#f7b928}
+${TBXCSS.replace(/§/g,'#ebk ')}
+#ebk .cds{display:inline-flex;align-items:center;gap:9px;margin:0 6px;flex:none}
+#ebk .eb,#ebk .et{gap:2px;padding:5px 10px}#ebk .et{padding-top:0}#ebk .eb>b{padding:0 6px;font-size:15px}
+#ebk .thr .thi{display:block!important;padding:3px 0 2px!important;max-width:none!important;min-height:0!important;background:none!important;border:2px solid transparent!important;border-radius:8px;text-align:center}#ebk .thr .thi.on{border-color:#f7b928!important}#ebk .thr .thi small{display:block;margin-top:4px;font-size:11px;text-align:center}
+#ebk .cd{width:26px!important;height:26px!important;min-width:26px!important;max-width:26px!important;min-height:26px!important;max-height:26px!important;aspect-ratio:1/1;padding:0!important;border-radius:50%!important;border:2px solid #fff3;flex:none;box-sizing:border-box;line-height:0;font-size:0;-webkit-appearance:none;appearance:none;display:block}#ebk .cd.on{border-color:#fff;box-shadow:0 0 0 2px #f7b928}
+#ebk .sp.sc{flex-direction:column;justify-content:flex-start;align-items:center;gap:14px;padding:10px 8px 48px}#ebk .sp.sc.strip{gap:0;padding:0 0 48px}#ebk .sp.sc.strip .pgw{box-shadow:none}#ebk .pgw.ph{background:#fff}
 #ebk.thon .stg{margin-left:140px}#ebk .thr{z-index:7;background:#1b1f27;border-color:#3a4250}#ebk .thr .thi{color:#aab4c2}#ebk .thr .thi.on{border-color:#f7b928;color:#f7b928}
 #ebk .stg{flex:1;position:relative;overflow:auto;touch-action:pan-x pan-y;overscroll-behavior:contain}#ebk .sp{display:flex;align-items:center;justify-content:center;gap:2px;width:max-content;min-width:100%;min-height:100%;margin:0 auto;padding:6px}
 #ebk .pgw{background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.5);position:relative;flex:none}#ebk .pgw.e{background:none;box-shadow:none}#ebk .pgh{position:absolute;inset:0}#ebk canvas.pgc{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
@@ -867,22 +877,22 @@ async function bkEbook(id){
 #ebk .ld{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#000a;color:#fff;border-radius:10px;padding:8px 14px;z-index:9;display:none;font-size:13px}@keyframes ebFade{from{opacity:.2}to{opacity:1}}#ebk .spp.fd{animation:ebFade .3s ease both}
 #ebk .laser{position:fixed;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:radial-gradient(circle,#ff2b2b 0 35%,#ff2b2b66 36% 70%,#0000 71%);pointer-events:none;z-index:9;display:none}
 #ebk .eg{display:inline-flex;gap:6px;flex:none}
-@media (max-width:1100px){#ebk .eb,#ebk .et{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;gap:6px;padding:6px 8px}#ebk .eb::-webkit-scrollbar,#ebk .et::-webkit-scrollbar{display:none}
- #ebk .eb b{flex:1 0 80px;min-width:80px;max-width:34vw}#ebk .sp1{display:none}#ebk select{max-width:36vw;flex:none}#ebk button,#ebk select{min-height:36px}
+@media (max-width:1100px){#ebk .tbx{min-width:48px;padding:7px 5px 5px}#ebk .eb,#ebk .et{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;gap:6px;padding:6px 8px}#ebk .eb::-webkit-scrollbar,#ebk .et::-webkit-scrollbar{display:none}
+ #ebk .eb>b{flex:1 0 80px;min-width:80px;max-width:34vw}#ebk .sp1{display:none}#ebk select{max-width:36vw;flex:none}#ebk button,#ebk select{min-height:36px}
  #ebk .eg{position:sticky;right:0;background:#12151b;padding-left:8px;box-shadow:-10px 0 10px -4px #12151b}#ebk .ebi span{display:none}#ebk .ebi{padding:6px 10px}#ebk .eb>button.pr,#ebk .eg .pr{padding:6px 12px}}
 @media (max-width:600px){#ebk .et{padding-top:2px}}</style>
-<div class="ebw"><div class="eb"><button onclick="bkEbookClose()">닫기</button><b>${esc(plan.title)}</b>
-<select id="ebj" onchange="ebkGo(+this.value);this.value=''"><option value="">목차…</option>${EBK.J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}</select>
-<select id="ebm" onchange="ebkGo(+this.value);this.value=''"><option value="">북마크…</option></select><button id="ebs" onclick="ebkMark()">북마크</button><button onclick="ebkView()" id="ebv">보기</button>
-<button onclick="ebkRail()" title="쪽 썸네일 보이기/숨기기">썸네일</button><button onclick="ebkList()" title="목록형 화면에서 풀기·채점">목록·채점</button><span class="sp1"></span>
-<button class="ebi" onclick="ebkZoom(-1)" title="축소 (−)">−</button><button id="ebz" onclick="ebkFit()" title="화면에 맞추기 (0)">100%</button><button class="ebi" onclick="ebkZoom(1)" title="확대 (+)">+</button>
-<button id="ebp" onclick="ebkProj()" title="수업용 전체 화면 (P)">수업 모드</button>
-<span class="eg"><button class="ebi" onclick="bkPdf(EBK.id,1)" title="PDF 다운로드">${EBI.pdf}<span>PDF</span></button><button class="ebi pr" onclick="bkPrint(EBK.id,1)" title="인쇄">${EBI.print}<span>인쇄</span></button></span></div>
-<div class="et"><button data-t="none" onclick="ebkTool('none')" title="이동·선택 (V)">이동</button><button data-t="pen" onclick="ebkTool('pen')" title="펜 (D)">펜</button><button data-t="hl" onclick="ebkTool('hl')" title="형광펜 (H)">형광펜</button><button data-t="er" onclick="ebkTool('er')" title="지우개 (E)">지우개</button><button data-t="lz" onclick="ebkTool('lz')" title="레이저 포인터 (L)">레이저</button>
-<span style="display:inline-flex;gap:6px;margin:0 6px;flex:none">${EBC.map(c=>`<button class="cd" data-c="${c}" style="background:${c}" onclick="ebkColor('${c}')" aria-label="색"></button>`).join('')}</span>
-<select id="ebw" onchange="EBK.w=+this.value"><option value="2">가늘게</option><option value="3" selected>보통</option><option value="6">굵게</option><option value="10">매우 굵게</option></select>
-<button onclick="ebkUndo()" title="되돌리기 (Ctrl+Z)">되돌리기</button><button onclick="ebkClear()" title="이 쪽 필기 모두 지우기">필기 지우기</button><button id="ebf" onclick="ebkFinger()" title="손가락으로도 필기">손가락 필기</button><button id="ebb" onclick="ebkBg()" title="배경 밝기">배경</button><button id="ebx" onclick="ebkFx()" title="쪽 넘김 효과 켜기/끄기">넘김 효과</button>
-<button id="eba" onclick="ebkPanel()" title="번호를 누르면 정답·해설이 나와요">정답·해설</button></div></div>
+<div class="ebw"><div class="eb">${ebT('','bkEbookClose()','교재 닫기','close','닫기')}<b>${esc(plan.title)}</b><span class="sp1"></span>
+${ebS('ebj','ebkGo(+this.value);this.value=\'\'','목차로 이동','toc','목차',`<option value="">목차…</option>${EBK.J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}`)}
+${ebT('ebs','ebkMark()','이 쪽 책갈피 (누르면 켜고 끔)','mark','책갈피','fillon')}${ebS('ebm','ebkGo(+this.value);this.value=\'\'','내 책갈피로 이동','marks','책갈피 목록','<option value="">책갈피…</option>')}<i class="tbv"></i>
+${ebS('ebv','ebkSetView(this.value)','보기 방식','view','<span id="ebvl">자동</span>','<option value="auto">자동</option><option value="one">한 쪽</option><option value="two">펼침면</option><option value="scroll">스크롤</option><option value="strip">밀착 스크롤</option>')}${ebT('','ebkRail()','쪽 썸네일 보이기/숨기기','thumb','썸네일')}${ebT('','ebkList()','목록형 화면에서 풀기·채점','grade','목록·채점')}<i class="tbv"></i>
+${ebT('','ebkZoom(-1)','축소 (−)','zout','축소')}<button class="tbx" id="ebz" onclick="ebkFit()" title="화면에 맞추기 (0)"><b class="pct" id="ebzp">100%</b><span class="lb">맞춤</span></button>${ebT('','ebkZoom(1)','확대 (+)','zin','확대')}<i class="tbv"></i>
+${ebT('ebp','ebkProj()','수업용 전체 화면 (P)','proj','수업 모드')}
+<span class="eg">${ebT('','bkPdf(EBK.id,1)','PDF 다운로드','pdf','PDF')}${ebT('','bkPrint(EBK.id,1)','인쇄','print','인쇄','pr')}</span></div>
+<div class="et">${ebT('','ebkTool(\'none\')','이동·선택 (V)','move','이동','','data-t="none"')}${ebT('','ebkTool(\'pen\')','펜 (D)','pen','펜','','data-t="pen"')}${ebT('','ebkTool(\'hl\')','형광펜 (H)','hl','형광펜','','data-t="hl"')}${ebT('','ebkTool(\'er\')','지우개 (E)','er','지우개','','data-t="er"')}${ebT('','ebkTool(\'lz\')','레이저 포인터 (L)','lz','레이저','','data-t="lz"')}<i class="tbv"></i>
+<span class="cds">${EBC.map(c=>`<button class="cd" data-c="${c}" style="background:${c}" onclick="ebkColor('${c}')" aria-label="색"></button>`).join('')}</span>
+${ebS('ebw','EBK.w=+this.value','선 굵기','wid','굵기','<option value="2">가늘게</option><option value="3" selected>보통</option><option value="6">굵게</option><option value="10">매우 굵게</option>')}<i class="tbv"></i>
+${ebT('','ebkUndo()','되돌리기 (Ctrl+Z)','undo','되돌리기')}${ebT('','ebkClear()','이 화면 필기 모두 지우기','trash','필기 지우기')}${ebT('ebf','ebkFinger()','손가락으로도 필기','finger','손가락 필기')}<i class="tbv"></i>
+${ebT('ebb','ebkBg()','배경 밝기','sun','배경')}${ebT('ebx','ebkFx()','쪽 넘김 효과 켜기/끄기','fx','넘김 효과')}${ebT('eba','ebkPanel()','번호를 누르면 정답·해설이 나와요','bulb','정답·해설')}</div></div>
 <div class="stg" id="ebst"><div class="sp" id="ebsp"></div><canvas id="ebcv"></canvas></div><div class="ld" id="ebld">책장을 준비하는 중…</div>
 <button class="nv l" onclick="ebkStep(-1)" aria-label="이전">‹</button><button class="nv r" onclick="ebkStep(1)" aria-label="다음">›</button>
 <div class="bt"><button onclick="ebkStep(-1)">‹</button><input type="range" id="ebr" min="1" max="${N}" value="${EBK.p}" oninput="ebkGo(+this.value,1)"><span class="ct" id="ebc"></span><button onclick="ebkStep(1)">›</button></div>
@@ -913,21 +923,23 @@ function ebkList(){EBK.hist=0;const id=EBK.id,p=EBK.p;bkEbookClose();BKV={v:'rea
 function ebkProj(on){const el=document.getElementById('ebk');if(!el)return;on=on===undefined?!EBK.proj:!!on;EBK.proj=on?1:0;el.classList.toggle('proj',!!on);document.getElementById('ebp').classList.toggle('on',!!on);
  if(on){try{el.requestFullscreen&&el.requestFullscreen()}catch(e){}toast('수업 모드 · 화면을 움직이면 메뉴가 나타나요 (Esc로 종료)')}else if(document.fullscreenElement){try{document.exitFullscreen()}catch(e){}}
  ebkPing();setTimeout(ebkScale,150)}
-function ebkSpread(){const st=document.getElementById('ebst');const w=st.clientWidth,h=st.clientHeight;return EBK.view==='two'||(EBK.view==='auto'&&w>=h*1.25&&w>=900)}
-function ebkView(){EBK.view=EBK.view==='auto'?'one':EBK.view==='one'?'two':'auto';ebkSave(EBK.id,{view:EBK.view});EBK.z=1;ebkDraw(0,1)}
+function ebkVL(){const l=document.getElementById('ebvl');if(l)l.textContent={auto:'자동',one:'한 쪽',two:'펼침면',scroll:'스크롤',strip:'밀착 스크롤'}[EBK.view]||'자동'}
+function ebkScroll(){return EBK.view==='scroll'||EBK.view==='strip'}
+function ebkSpread(){if(ebkScroll())return false;const st=document.getElementById('ebst');const w=st.clientWidth,h=st.clientHeight;return EBK.view==='two'||(EBK.view==='auto'&&w>=h*1.25&&w>=900)}
+function ebkSetView(v){if(!['auto','one','two','scroll','strip'].includes(v))v='auto';EBK.view=v;ebkSave(EBK.id,{view:v});EBK.z=1;const s=document.getElementById('ebst');if(s){s.scrollLeft=0;s.scrollTop=0}ebkDraw(0,1);if(ebkScroll())toast(v==='strip'?'밀착 스크롤: 쪽을 이어 붙여 위아래로 넘겨요':'스크롤: 위아래로 밀어서 넘겨요')}
 function ebkFx(){EBKFX=!EBKFX;try{localStorage.setItem('omr_ebfx',EBKFX?'1':'0')}catch(e){}const x=document.getElementById('ebx');if(x)x.classList.toggle('on',EBKFX);toast(EBKFX?'쪽 넘김 효과를 켰어요':'쪽 넘김 효과를 껐어요')}
-function ebkStep(d){if(EBK.busy)return;if(EBK.z>1.02||!EBKFX){const s=ebkSpec(d>0?1:-1);if(!s)return;EBK.p=s.np;EBK.rev=[];ebkDraw(0,0,EBKFX?(d>0?1:-1):0);return}ebkFlip(d>0?1:-1)}
+function ebkStep(d){if(ebkScroll()){ebkGo(EBK.p+(d>0?1:-1));return}if(EBK.busy)return;if(EBK.z>1.02||!EBKFX){const s=ebkSpec(d>0?1:-1);if(!s)return;EBK.p=s.np;EBK.rev=[];ebkDraw(0,0,EBKFX?(d>0?1:-1):0);return}ebkFlip(d>0?1:-1)}
 function ebkStepDirect(d){const s=ebkSpec(d>0?1:-1);if(!s)return;EBK.p=s.np;EBK.rev=[];ebkDraw(0,0,d>0?1:-1)}
-function ebkGo(p,noanim){if(!p||EBK.busy)return;p=Math.max(1,Math.min(EBK.N,p));const two=ebkSpread();const sp=q=>two?(q%2===0?q:q-1):q;const cur=sp(EBK.p),nw=sp(p);
+function ebkGo(p,noanim){if(!p||EBK.busy)return;p=Math.max(1,Math.min(EBK.N,p));if(ebkScroll()){EBK.p=p;ebkScrollTo(p,noanim);ebkUiSyncLite();return}const two=ebkSpread();const sp=q=>two?(q%2===0?q:q-1):q;const cur=sp(EBK.p),nw=sp(p);
  if(!noanim&&EBKFX&&EBK.z<=1.02&&Math.abs(nw-cur)===(two?2:1)&&nw!==cur){const dir=nw>cur?1:-1;const s=ebkSpec(dir);if(s&&s.np===(two?(nw<1?1:nw):nw)){ebkFlip(dir);return}}
  EBK.p=p;EBK.rev=[];ebkDraw(0,1)}
 function ebkMark(){const i=EBK.marks.indexOf(EBK.p);if(i>=0)EBK.marks.splice(i,1);else EBK.marks.push(EBK.p);EBK.marks.sort((a,b)=>a-b);ebkSave(EBK.id,{marks:EBK.marks});ebkDraw(1)}
 function ebkZoom(d,wheel){EBK.z=Math.max(.5,Math.min(4,+(EBK.z*(d>0?1.2:1/1.2)).toFixed(3)));ebkScale()}
-function ebkFit(){EBK.z=1;ebkScale();const s=document.getElementById('ebst');if(s){s.scrollLeft=0;s.scrollTop=0}}
-function ebkBase(){const st=document.getElementById('ebst'),cnt=ebkSpread()?2:1;const pw=210*BK_MM,ph=297*BK_MM;return {pw,ph,s:Math.min((st.clientWidth-16)/cnt/pw,(st.clientHeight-16)/ph)}}
-function ebkScale(){const sp=document.getElementById('ebsp');if(!sp)return;const {pw,ph,s}=ebkBase();const k=s*EBK.z;EBK.pgw=pw*k;
+function ebkFit(){EBK.z=1;ebkScale();const s=document.getElementById('ebst');if(s){s.scrollLeft=0;if(ebkScroll())ebkScrollTo(EBK.p,1);else s.scrollTop=0}}
+function ebkBase(){const st=document.getElementById('ebst'),cnt=ebkSpread()?2:1;const pw=210*BK_MM,ph=297*BK_MM;if(ebkScroll())return {pw,ph,s:(st.clientWidth-(EBK.view==='strip'?0:16))/pw};return {pw,ph,s:Math.min((st.clientWidth-16)/cnt/pw,(st.clientHeight-16)/ph)}}
+function ebkScale(){const sp=document.getElementById('ebsp');if(!sp)return;const {pw,ph,s}=ebkBase();const k=s*EBK.z;EBK.pgw=pw*k;const keepP=ebkScroll()&&EBK.sm?EBK.p:0;
  sp.querySelectorAll('.pgw').forEach(e=>{e.style.width=pw*k+'px';e.style.height=ph*k+'px';const h=e.querySelector('.pgh');const d=h&&h.shadowRoot&&h.shadowRoot.querySelector('.bkdoc');if(d)d.style.setProperty('--bks',k.toFixed(4));const c=e.querySelector('canvas.pgc');if(c)ebkCanvas(c)});
- const z=document.getElementById('ebz');if(z)z.textContent=Math.round(EBK.z*100)+'%'}
+ const z=document.getElementById('ebzp');if(z)z.textContent=Math.round(EBK.z*100)+'%';if(keepP)ebkScrollTo(keepP,1)}
 function ebkCanvas(c){const r=c.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);c.width=Math.max(1,Math.round(r.width*d));c.height=Math.max(1,Math.round(r.height*d));ebkRedraw(c)}
 function ebkRedraw(c,dot){const n=+c.parentNode.dataset.n,g=c.getContext('2d'),W=c.width,H=c.height;g.clearRect(0,0,W,H);g.lineCap='round';g.lineJoin='round';
  ((EBK.pen||{})[n]||[]).forEach(s=>ebkStroke(g,s,W,H));if(dot&&dot.p&&dot.p.length)ebkStroke(g,dot,W,H)}
@@ -938,7 +950,7 @@ function ebkColor(c,init){EBK.color=c;document.querySelectorAll('#ebk .cd').forE
 function ebkFinger(){EBK.finger=EBK.finger?0:1;document.getElementById('ebf').classList.toggle('on',!!EBK.finger);toast(EBK.finger?'손가락으로도 필기해요(스크롤은 두 손가락)':'펜슬·마우스로만 필기해요. 손가락은 화면 이동에 써요')}
 function ebkBg(){EBK.wh=EBK.wh?0:1;document.getElementById('ebk').classList.toggle('wh',!!EBK.wh)}
 function ebkUndo(){const u=EBK.undo.pop();if(!u)return;const a=(EBK.pen[u.n]||[]);if(u.k==='add')a.pop();else if(u.k==='del'){EBK.pen[u.n]=u.prev}ebkPenSave();document.querySelectorAll('#ebsp canvas.pgc').forEach(c=>ebkRedraw(c))}
-function ebkClear(){const ps=[...document.querySelectorAll('#ebsp .pgw[data-n]')].map(e=>+e.dataset.n).filter(n=>(EBK.pen[n]||[]).length);if(!ps.length){toast('지울 필기가 없어요');return}if(!confirm('이 화면의 필기를 모두 지울까요?'))return;ps.forEach(n=>{EBK.undo.push({k:'del',n,prev:EBK.pen[n]});EBK.pen[n]=[]});ebkPenSave();document.querySelectorAll('#ebsp canvas.pgc').forEach(c=>ebkRedraw(c))}
+function ebkClear(){const vr=document.getElementById('ebst').getBoundingClientRect();const ps=[...document.querySelectorAll('#ebsp .pgw[data-n]')].filter(e=>{if(!ebkScroll())return true;const r=e.getBoundingClientRect();return r.bottom>vr.top&&r.top<vr.bottom}).map(e=>+e.dataset.n).filter(n=>(EBK.pen[n]||[]).length);if(!ps.length){toast('지울 필기가 없어요');return}if(!confirm('이 화면의 필기를 모두 지울까요?'))return;ps.forEach(n=>{EBK.undo.push({k:'del',n,prev:EBK.pen[n]});EBK.pen[n]=[]});ebkPenSave();document.querySelectorAll('#ebsp canvas.pgc').forEach(c=>ebkRedraw(c))}
 function ebkBindDraw(c){let cur=null,last=null;const pt=e=>{const r=c.getBoundingClientRect();return [Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))]};
  const n=+c.parentNode.dataset.n;const ok=e=>e.pointerType!=='touch'||EBK.finger;
  c.addEventListener('pointerdown',e=>{if(!ok(e)||EBK.tool==='none')return;e.preventDefault();c.setPointerCapture(e.pointerId);EBK.drawing=1;const p=pt(e);
@@ -966,17 +978,18 @@ function ebkRevDraw(){const el=document.getElementById('ebal');if(!el)return;if(
  el.innerHTML=EBK.rev.map((c,i)=>`<div class="ai" id="ebai${i}"><h5>${esc(c)}${(byCode[c]||{}).type?' · '+esc(byCode[c].type):''}</h5><div class="ans">정답 ${esc(['mc','top','bank'].includes((byCode[c]||{}).set)||/^[1-5](,[1-5])*$/.test(String((byCode[c]||{}).ans))?bkCir((byCode[c]||{}).ans):String((byCode[c]||{}).ans||'-'))}</div><div class="ex"></div></div>`).join('');
  EBK.rev.forEach((c,i)=>{const q=byCode[c];const h=document.querySelector('#ebai'+i+' .ex');if(h&&q&&q.exp)mount(h,q.exp)})}
 function ebkRail(){if(!EBK.rail)return;thumbTog('#ebk>.thr');EBK.railFit();try{ebkScale();ebkDraw(1)}catch(e){}}
-function ebkDraw(keep,fade,dir){const sp=document.getElementById('ebsp');if(!sp)return;if(EBK.rail)thumbAct(EBK.rail,EBK.p-1);const two=ebkSpread();const {N}=EBK;let p=EBK.p;
+function ebkDraw(keep,fade,dir){const sp=document.getElementById('ebsp');if(!sp)return;if(EBK.rail)thumbAct(EBK.rail,EBK.p-1);
+ if(ebkScroll()){if(keep&&sp.querySelector('.pgw[data-n]')){ebkUiSyncLite();return}ebkDrawScroll();return}EBK.sm=0;if(EBK.io){EBK.io.disconnect();EBK.io=null}const two=ebkSpread();const {N}=EBK;let p=EBK.p;
  let ps;if(two){const lo=p%2===0?p:p-1;ps=[lo,lo+1];if(lo<1)ps=[0,1]}else ps=[p];
  sp.className='sp';sp.innerHTML='<div class="spp'+(fade?' fd':'')+(dir>0?' fwd':dir<0?' back':'')+(two?' two':' one')+'"></div>';const spp=sp.firstChild;ps.forEach(n=>spp.appendChild(ebkMakePage(n)));
  ebkScale();ebkMarkNums();
  ebkUiSync()}
-function ebkUiSync(){const N=EBK.N;const shown=[...document.querySelectorAll('#ebsp .pgw[data-n]')].map(e=>+e.dataset.n);if(!shown.length)shown.push(EBK.p||1);
+function ebkUiSync(){const N=EBK.N;const shown=ebkScroll()?[EBK.p||1]:[...document.querySelectorAll('#ebsp .pgw[data-n]')].map(e=>+e.dataset.n);if(!shown.length)shown.push(EBK.p||1);
  EBK.p=Math.min(...shown);const cur=EBK.p;ebkSave(EBK.id,{last:cur});if(typeof urlSync==='function')urlSync();
  const r=document.getElementById('ebr');if(r)r.value=cur;const ct=document.getElementById('ebc');if(ct)ct.textContent=shown.join('-')+' / '+N;
  const mk=shown.some(n=>EBK.marks.includes(n));const bs=document.getElementById('ebs');if(bs)bs.classList.toggle('on',mk);
  const bm=document.getElementById('ebm');if(bm)bm.innerHTML='<option value="">북마크…</option>'+EBK.marks.map(n=>`<option value="${n}">p.${n}</option>`).join('');
- const bv=document.getElementById('ebv');if(bv)bv.textContent=EBK.view==='auto'?'보기: 자동':EBK.view==='one'?'보기: 한 쪽':'보기: 펼침면';ebkRevDraw();ebkWarm()}
+ const bv=document.getElementById('ebv');if(bv)bv.value=EBK.view;ebkVL();ebkRevDraw();ebkWarm()}
 
 /* ---------- 말아 올리는(페이지 컬) 효과: 페이지를 그림으로 만들어 WebGL로 원통처럼 말아 넘김 ---------- */
 const EBVS='attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
@@ -1041,7 +1054,7 @@ function ebkTex(n){const {sc,key}=ebkTexKey(n);if(!EBK.tex)EBK.tex=new Map();if(
  const run=async()=>{const host=ebkTexHost();host.innerHTML=bkPageHtml(EBK.plan,n-1);await Promise.all([...host.querySelectorAll('img')].map(im=>im.complete&&im.naturalWidth?1:new Promise(r=>{im.onload=im.onerror=()=>r();setTimeout(r,6000)})));try{await document.fonts.ready}catch(e){}
   const cv=await window.html2canvas(host.firstElementChild,{scale:sc,backgroundColor:'#ffffff',useCORS:true,logging:false});const g=cv.getContext('2d');g.lineCap='round';g.lineJoin='round';(EBK.pen[n]||[]).forEach(s=>ebkStroke(g,s,cv.width,cv.height));host.innerHTML='';EBK.texOk.add(key);return cv};
  EBK.txq=(EBK.txq||Promise.resolve()).then(run,run);const p=EBK.txq;EBK.tex.set(key,p);if(EBK.tex.size>14){const k=EBK.tex.keys().next().value;EBK.tex.delete(k)}p.catch(()=>EBK.tex.delete(key));return p}
-function ebkWarm(){clearTimeout(EBK.wt);EBK.wt=setTimeout(()=>{if(!document.getElementById('ebk')||!window.html2canvas)return;if(EBK.busy){ebkWarm();return}const run=()=>{if(EBK.busy)return;const two=ebkSpread(),p=EBK.p,N=EBK.N,w=[];
+function ebkWarm(){clearTimeout(EBK.wt);EBK.wt=setTimeout(()=>{if(!document.getElementById('ebk')||!window.html2canvas)return;if(EBK.busy){ebkWarm();return}const run=()=>{if(EBK.busy||ebkScroll())return;const two=ebkSpread(),p=EBK.p,N=EBK.N,w=[];
  if(two){const lo=p%2===0?p:p-1;w.push(lo+1,lo+2,lo,lo-1)}else w.push(p,p+1,p-1);w.filter(n=>n>=1&&n<=N).forEach(n=>ebkTex(n).catch(()=>{}))};if(window.requestIdleCallback)requestIdleCallback(run,{timeout:3000});else run()},900)}
 function ebkSpec(dir){const N=EBK.N,p=EBK.p;
  if(ebkSpread()){const lo=p%2===0?p:p-1;
@@ -1053,9 +1066,29 @@ function ebkShadow(host,html){const r=host.shadowRoot||host.attachShadow({mode:'
  if(window.CSSStyleSheet&&r.adoptedStyleSheets!==undefined){if(EBK.sheet===undefined){try{const sh=new CSSStyleSheet();sh.replaceSync(BKSH+BKCSS);EBK.sheet=sh}catch(e){EBK.sheet=null}}
   if(EBK.sheet){r.adoptedStyleSheets=[EBK.sheet];r.innerHTML=html;return r}}
  r.innerHTML='<style>'+BKSH+BKCSS+'</style>'+html;return r}
-function ebkMakePage(n){const d=document.createElement('div');if(n<1||n>EBK.N){d.className='pgw e';return d}d.className='pgw';d.dataset.n=n;d.innerHTML='<div class="pgh"></div><canvas class="pgc"></canvas>';
+function ebkMakePage(n){const d=document.createElement('div');if(n<1||n>EBK.N){d.className='pgw e';return d}d.className='pgw';d.dataset.n=n;return ebkFillPage(d,n)}
+function ebkFillPage(d,n){d.innerHTML='<div class="pgh"></div><canvas class="pgc"></canvas>';
  const r=ebkShadow(d.querySelector('.pgh'),EBKCSS+'<div class="bkdoc scr" style="--bks:1">'+bkPageHtml(EBK.plan,n-1)+'</div>');
  r.addEventListener('click',ev=>{if(EBK.tool!=='none'||EBK.noclick)return;if(ev.target.closest&&ev.target.closest('.fq')){ebkGradePage(+d.dataset.n);return}const q=ev.target.closest&&ev.target.closest('.no,.qn');if(!q)return;const u=q.closest('.u.q[data-c]');if(u)ebkReveal(u.dataset.c)});ebkBindDraw(d.querySelector('canvas.pgc'));return d}
+function ebkScrollTo(p,instant){const st=document.getElementById('ebst'),d=document.querySelector('#ebsp .pgw[data-n="'+p+'"]');if(!st||!d)return;EBK.sg=Date.now();st.scrollTo({top:Math.max(0,d.offsetTop-(EBK.view==='strip'?0:6)),behavior:instant?'auto':'smooth'})}
+function ebkMount(d){if(!d.dataset.ph)return;delete d.dataset.ph;d.classList.remove('ph');ebkFillPage(d,+d.dataset.n);const k=(EBK.pgw||0)/(210*BK_MM);const h=d.querySelector('.pgh'),doc=h&&h.shadowRoot&&h.shadowRoot.querySelector('.bkdoc');if(doc&&k)doc.style.setProperty('--bks',k.toFixed(4));const c=d.querySelector('canvas.pgc');if(c)ebkCanvas(c);ebkMarkNumsOne(d)}
+function ebkUnmount(d){if(d.dataset.ph||!d.firstChild)return;d.innerHTML='';d.dataset.ph=1;d.classList.add('ph')}
+function ebkMarkNumsOne(d){const h=d.querySelector('.pgh'),r=h&&h.shadowRoot;if(!r)return;r.querySelectorAll('.u.q[data-c]').forEach(u=>{const q=u.querySelector('.no,.qn');if(q)q.classList.toggle('ebon',EBK.rev.includes(u.dataset.c))})}
+function ebkUiSyncLite(){const cur=EBK.p;ebkSave(EBK.id,{last:cur});if(typeof urlSync==='function')urlSync();if(EBK.rail)thumbAct(EBK.rail,cur-1);
+ const r=document.getElementById('ebr');if(r)r.value=cur;const ct=document.getElementById('ebc');if(ct)ct.textContent=cur+' / '+EBK.N;
+ const bs=document.getElementById('ebs');if(bs)bs.classList.toggle('on',EBK.marks.includes(cur));
+ const bm=document.getElementById('ebm');if(bm)bm.innerHTML='<option value="">북마크…</option>'+EBK.marks.map(n=>`<option value="${n}">p.${n}</option>`).join('');
+ const bv=document.getElementById('ebv');if(bv)bv.value=EBK.view;ebkVL()}
+function ebkDrawScroll(){const sp=document.getElementById('ebsp'),st=document.getElementById('ebst');if(!sp||!st)return;if(EBK.io){EBK.io.disconnect();EBK.io=null}
+ sp.className='sp sc'+(EBK.view==='strip'?' strip':'');sp.innerHTML='';const fr=document.createDocumentFragment();
+ for(let n=1;n<=EBK.N;n++){const d=document.createElement('div');d.className='pgw ph';d.dataset.n=n;d.dataset.ph=1;fr.appendChild(d)}
+ sp.appendChild(fr);EBK.sm=0;ebkScale();
+ EBK.io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)ebkMount(e.target);else ebkUnmount(e.target)}),{root:st,rootMargin:'170% 0px'});
+ sp.querySelectorAll('.pgw').forEach(d=>EBK.io.observe(d));
+ ebkScrollTo(EBK.p,1);EBK.sm=1;
+ if(!st._ebsc){st._ebsc=1;let tk=0;st.addEventListener('scroll',()=>{if(!ebkScroll()||tk)return;tk=1;requestAnimationFrame(()=>{tk=0;const a=sp.firstChild,b=sp.children[1];if(!a)return;const step=b?b.offsetTop-a.offsetTop:a.offsetHeight;if(!step)return;
+   const p=Math.max(1,Math.min(EBK.N,1+Math.floor((st.scrollTop+st.clientHeight*.3-a.offsetTop)/step)));if(p!==EBK.p){EBK.p=p;ebkUiSyncLite()}})},{passive:true})}
+ ebkUiSyncLite();ebkMarkNums()}
 const EBKCSS='<style>.fq{cursor:pointer}.u.q .no,.u.q .qn{cursor:pointer}.u.q .no.ebon,.u.q .qn.ebon{background:#ffe27a!important;color:#222!important;border-radius:5px;box-shadow:0 0 0 2px #f7b928}</style>';
 function ebkCurlDraw(t,raw){if(EBK.r2){ebkCurlDraw2D(t,raw);return}const G=EBK.G;if(!G||!EBK.cs)return;const {gl,U}=G,s=EBK.cs;const e=raw?t:(t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2);let a,R;
  if(s.book){a=1-.5*e;R=.075*Math.pow(Math.sin(Math.PI*e),.75)+.004}else{R=.07;a=1-1.14*e}
@@ -1093,7 +1126,7 @@ async function ebkFlip(dir){if(EBK.busy)return;const s=ebkSpec(dir);if(!s)return
  EBK.np=s.np;EBK.rev=[];try{await ebkAnim(0,1,s.book?950:800)}catch(e){console.warn(e)}ebkCurlEnd(true)}
 /* 끌어서 넘기기: 가로로 끌면 손가락을 따라 말려 올라가고, 놓을 때 3할 넘게 말렸으면 끝까지 넘김 */
 function ebkScrubBind(s){let st=null;
- s.addEventListener('pointerdown',e=>{if(EBK.busy||!EBKFX||EBK.tool!=='none'||EBK.z>1.02||e.button>0)return;if(e.target.closest&&e.target.closest('button,select,input,.eba'))return;st={x:e.clientX,y:e.clientY,id:e.pointerId,state:0,dx:0}},true);
+ s.addEventListener('pointerdown',e=>{if(ebkScroll()||EBK.busy||!EBKFX||EBK.tool!=='none'||EBK.z>1.02||e.button>0)return;if(e.target.closest&&e.target.closest('button,select,input,.eba'))return;st={x:e.clientX,y:e.clientY,id:e.pointerId,state:0,dx:0}},true);
  s.addEventListener('pointermove',async e=>{if(!st||e.pointerId!==st.id)return;const dx=e.clientX-st.x,dy=e.clientY-st.y;
   if(st.state===0){if(Math.abs(dx)<14||Math.abs(dx)<Math.abs(dy)*1.2)return;st.state=1;st.dir=dx<0?1:-1;const sp=ebkSpec(st.dir);if(!sp){st=null;return}st.spec=sp;if(!(ebkTexReady(sp.f)&&(!sp.k||ebkTexReady(sp.k)))){ebkTex(sp.f).catch(()=>{});if(sp.k)ebkTex(sp.k).catch(()=>{});st.state=3;EBK.noclick=1;return}EBK.busy=1;EBK.noclick=1;try{s.setPointerCapture(e.pointerId)}catch(x){}
    let ok=false;try{ok=await ebkCurlPrep(sp)}catch(x){}if(!st){return}if(!ok){EBK.busy=0;st=null;ebkDraw();return}st.state=2;EBK.np=sp.np}
