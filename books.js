@@ -742,7 +742,7 @@ function bkMockCover(plan){const M=plan.M;
  '<table class="idt"><tr><td class="k">학 년</td><td style="width:20mm"></td><td class="k">반</td><td style="width:20mm"></td><td class="k">번 호</td><td style="width:20mm"></td><td class="k">이 름</td><td></td></tr></table><div class="cvqr"><div class="qq">'+qrSvg(bkUrl(plan,{n:0}))+'</div><span>어느 쪽의 QR을 스캔해도<br>시험 전체를 채점해요</span></div><div class="foot">이 문제지의 저작권은 출제자에게 있으며, 무단 복제 · 전재를 금합니다.</div></div>'}
 const BKGUTS=[[0,'없음'],[3,'3mm'],[5,'5mm'],[7,'7mm']];
 function bkGutKey(plan){const P=bkParts(plan.id);return P&&P.kind==='x'?P.def.base:bkBare(plan.id)}
-function bkGutOf(plan){if(!plan||!plan.id||plan.subj==='me')return 0;const k=bkGutKey(plan);const m=BKO.gutm||{};if(m[k]!=null)return +m[k]||0;const r=bkxAll().find(x=>x.id===k);return r&&+r.gut||0}
+function bkGutOf(plan){if(!plan||!plan.id)return 0;const k=bkGutKey(plan);const m=BKO.gutm||{};if(m[k]!=null)return +m[k]||0;const r=bkxAll().find(x=>x.id===k);return r&&+r.gut||0}
 function bkGutSet(key,v){const m=Object.assign({},BKO.gutm||{});m[key]=+v||0;bkOset({gutm:m})}
 function bkPageHtml(plan,i){const h=bkPageHtml0(plan,i),f=plan.dz&&plan.dz.font&&typeof FONTS!=='undefined'&&FONTS[plan.dz.font];return f?'<style>.bp,.bp *{font-family:'+f[1]+'!important}</style>'+h:h}
 function bkPageHtml0(plan,i){
@@ -1189,7 +1189,7 @@ function bkBarHtml(plan){
  const gap=o([[0,'기본'],[1,'조금 넓게'],[2,'넓게'],[3,'아주 넓게']],BKO.gap||0);
  const fnt=Object.entries(FONTS).map(([k,v])=>`<option value="${k}" ${(BKO.font||'paper')===k?'selected':''}>${v[0]}</option>`).join('');
  const des=plan.kind==='m'?tbS('pdes','','디자인','palette','디자인',o([['exam','시험지 (흑백)'],['color','컬러 포인트']],BKO.design||'exam')):'';
- const gk=plan.subj==='me'?'':tbS('pgut','','제본 여백','bind','제본 여백',o(BKGUTS,bkGutOf(plan)));
+ const gk=tbS('pgut','','제본 여백','bind','제본 여백',o(BKGUTS,bkGutOf(plan)));
  return tbS('pgap','','문제 간격','gap','문제 간격',gap)+tbT('pdup','','양면 인쇄: 답안이 뒷면에서 시작하지 않게 빈 쪽을 채워요','duplex','양면 인쇄',dupGet()?'on':'')+des+gk+swHtml(BKO.color||'',bkPal().p,true)+tbS('pfnt','','글꼴','type','글꼴',fnt)}
 async function bkRepop(o){if(!BKPOP||!BKPOP.win||BKPOP.win.closed)return;bkOset(o);if(BKPOP.subj!==SUBJ)await setSubject(BKPOP.subj);
  const plan=await bkPlan(bkPid(BKPOP.id));if(!plan)return;await bkShowIn(BKPOP.win,plan,BKPOP.all)}
@@ -1332,7 +1332,7 @@ function bkfBuilder(){const d=BKV.d,subs=bkSubs();
   <div class="bkc"><h3>글꼴 <small>이 교재에만 적용돼요</small></h3><div class="bkrow"><label for="bffont">글꼴</label><select id="bffont" class="bkin" onchange="bkfRead();bkxEst()"><option value="">인쇄 설정 따라가기</option>${Object.entries(FONTS).map(([k,v])=>`<option value="${k}" ${d.font===k?'selected':''}>${esc(v[0])}</option>`).join('')}</select></div></div>
   <div class="bkc"><h3>출력 <small>문제 간격은 인쇄 창의 「옵션」에서 바꿀 수 있어요</small></h3>
    <div class="bkrow"><label>정답 · 해설</label><div class="bkctl">${seg('ans',[[0,'정답 + 해설'],[1,'정답표만'],[2,'넣지 않기']],d.ans|0)}</div></div>
-   ${SUBJ==='me'?'':`<div class="bkrow"><label>제본 여백</label><div class="bkctl">${seg('gut',BKGUTS.map(([v,t])=>[v,t]),d.gut|0)}</div></div>`}
+   <div class="bkrow"><label>제본 여백</label><div class="bkctl">${seg('gut',BKGUTS.map(([v,t])=>[v,t]),d.gut|0)}</div></div>
    <div class="bkrow"><label>채점 QR</label><label class="swr bkswt"><span><b>문제 쪽마다 QR 넣기</b><small>쪽 아래 QR을 찍어 바로 채점해요</small></span><input class="swi" type="checkbox" id="bfq" ${d.noqr?'':'checked'} onchange="bkfRead()"></label></div></div>`;
  const nav=`<div class="bkn">${step>1?`<button class="s" onclick="bkfStep(${step-1})">‹ 이전</button>`:'<button class="s" onclick="BKV={v:\'shelf\',id:null};render()">취소</button>'}<span style="flex:1"></span>${step<3?`<button class="p" onclick="bkfStep(${step+1})">다음 ›</button>`:'<button class="p" onclick="bkxSaveBook()">교재 만들기</button>'}</div>`;
  const side=`<aside class="bkb-side"><div class="card bkpvc"><div class="bkpvh"><b>미리보기</b><span id="bkpvc" class="m"></span></div><div class="bkpvt"><button class="on" onclick="bkfPvTab(0)">표지</button><button onclick="bkfPvTab(1)">차례</button><button onclick="bkfPvTab(2)">본문</button><button onclick="bkfPvTab(3)">정답</button>${d.back?'<button onclick="bkfPvTab(4)">뒷표지</button>':''}</div><div id="bkpv"><div id="bkpvp" class="bkpvp"></div></div><p id="bkpvs" class="m" style="margin:8px 0 0;font-size:13px"></p></div>
@@ -1406,11 +1406,11 @@ function bkxSaveBook(){bkxRead();const d=BKV.d;let nm=(d.name||'').trim();if(!nm
  if(d.kind==='free'){const pts=bkfParts(d);if(!pts.length){toast('넣을 구성을 하나 이상 고르세요');return}
   if(d.pre==='part'&&!(d.subs||[]).length){toast('파고들 소단원을 하나 이상 고르세요');return}
   let id=bkxId(SUBJ,{...d,parts:pts}),cp=0;const ex=new Set(bkxAll().map(b=>b.id));while(ex.has(id)&&cp<500){cp++;id=bkxId(SUBJ,{...d,parts:pts,copy:cp.toString(36)})}
-  const a=bkxAll();a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:'free',gut:SUBJ==='me'?0:(d.gut||0),color:d.color||'',cover:d.cover|0,noqr:d.noqr?1:0,font:d.font||'',lf:d.lf||'solvi',lfp:d.lfp||'br',lb:d.lb||'solvi',lbp:d.lbp||'bc',back:d.back?1:0,cx:d.cx||null,t:Date.now()});bkxStore(a);
+  const a=bkxAll();a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:'free',gut:d.gut||0,color:d.color||'',cover:d.cover|0,noqr:d.noqr?1:0,font:d.font||'',lf:d.lf||'solvi',lfp:d.lfp||'br',lb:d.lb||'solvi',lbp:d.lbp||'bc',back:d.back?1:0,cx:d.cx||null,t:Date.now()});bkxStore(a);
   delete BKP[id];BKV={v:'shelf',id:null};toast('교재를 만들었어요');render();scrollTo(0,0);return id}
  if(d.kind!=='full'){if(!Object.keys(d.inc||{}).length){toast('넣을 구성을 하나 이상 고르세요');return}
   if(d.kind==='part'&&!d.subs.length){toast('파고들 소단원을 하나 이상 고르세요');return}}
- const id=bkxId(SUBJ,d);const a=bkxAll().filter(b=>b.id!==id);if(d.kind==='full'&&(d.subs||[]).length&&nm===BKK.full[0])nm='범위 모의고사';a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:d.kind==='last'?'std':d.kind,rounds:d.rounds||20,gut:SUBJ==='me'?0:(d.gut||0),t:Date.now()});bkxStore(a);
+ const id=bkxId(SUBJ,d);const a=bkxAll().filter(b=>b.id!==id);if(d.kind==='full'&&(d.subs||[]).length&&nm===BKK.full[0])nm='범위 모의고사';a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:d.kind==='last'?'std':d.kind,rounds:d.rounds||20,gut:d.gut||0,t:Date.now()});bkxStore(a);
  delete BKP[id];Object.keys(BKP).forEach(k=>{if(k.startsWith(id+'r'))delete BKP[k]});
  BKV={v:'shelf',id:null};toast('교재를 만들었어요');render();scrollTo(0,0)}
 function bkxDel(id){const b=bkxAll().find(x=>x.id===id);if(!b||b.asg||!confirm('「'+b.name+'」 교재를 삭제할까요?\n(이미 인쇄한 책의 QR은 그대로 채점돼요)'))return;
@@ -1433,7 +1433,7 @@ function bkBuilder(){if(BKV.d&&BKV.d.kind==='free')return bkfBuilder();const d=B
  return `<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><button class="s" onclick="BKV={v:'shelf',id:null};render()" style="padding:6px 12px;border-radius:8px">‹ 교재함</button><h2 style="margin:0">교재 만들기 <small style="font-weight:400;color:var(--m);font-size:13px">${esc(SNAME[SUBJ])}</small></h2></div>
  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0">${['std','last','drill','part','full'].map(chip).join('')}</div>
  <div class="g2"><div><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">교재 이름</label><input id="bxn" value="${esc(d.name)}" maxlength="30" oninput="bkxRead()"></div><div><label style="display:block;font-size:12px;color:var(--m);margin-bottom:3px">부제</label><input id="bxs" value="${esc(d.sub||'')}" maxlength="40" oninput="bkxRead()"></div></div>
- ${SUBJ==='me'?'':`<div style="margin-top:12px;font-size:13px;font-weight:700">제본 여백 <small style="font-weight:400;color:var(--m)">스프링·제본용. 홀수 쪽은 왼쪽, 짝수 쪽은 오른쪽 안쪽 여백을 늘려요(바깥 여백은 그만큼 줄어요)</small></div><select id="bxg" style="width:auto;margin:6px 0" onchange="bkxRead()">${BKGUTS.map(([v,t])=>`<option value="${v}" ${(d.gut||0)===v?'selected':''}>${t}</option>`).join('')}</select>`}
+ <div style="margin-top:12px;font-size:13px;font-weight:700">제본 여백 <small style="font-weight:400;color:var(--m)">스프링·제본용. 홀수 쪽은 왼쪽, 짝수 쪽은 오른쪽 안쪽 여백을 늘려요(바깥 여백은 그만큼 줄어요)</small></div><select id="bxg" style="width:auto;margin:6px 0" onchange="bkxRead()">${BKGUTS.map(([v,t])=>`<option value="${v}" ${(d.gut||0)===v?'selected':''}>${t}</option>`).join('')}</select>
  ${body}<p id="bxe" class="hint" style="margin:10px 0 0"></p>
  <div style="display:flex;gap:8px;margin-top:12px"><button class="p" onclick="bkxSaveBook()">교재 만들기</button><button class="s" onclick="BKV={v:'shelf',id:null};render()">취소</button></div></div>`}
 function bkxRange(){const a=+document.getElementById('bxr1').value,b=+document.getElementById('bxr2').value,lo=Math.min(a,b),hi=Math.max(a,b);bkSubs().forEach((s,i)=>{const e=document.getElementById('bxs_'+i);if(e)e.checked=i>=lo&&i<=hi});bkxRead();bkxEst()}
