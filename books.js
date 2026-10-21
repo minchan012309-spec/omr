@@ -420,8 +420,10 @@ function bkPlanType(id){
 
 /* ---------- 내 교재 : 직접 만든 책 · 전범위 모의고사 ---------- */
 const BKXK='omr_books_v1',BKXF={concept:1,ox:2,bl:4,basic:8,type:16,essay:32,all:64,last:128};
-function bkxAll(){try{return JSON.parse(localStorage.getItem(BKXK)||'[]')}catch(e){return[]}}
-function bkxStore(a){try{localStorage.setItem(BKXK,JSON.stringify(a))}catch(e){}}
+function bkxLocal(){try{return JSON.parse(localStorage.getItem(BKXK)||'[]')}catch(e){return[]}}
+function bkAsgRecs(){const o=[];(typeof BKASG!=='undefined'?BKASG:[]).forEach(a=>{try{const n=JSON.parse(a.note||'{}');if(n&&n.bk&&n.bk.id&&!o.some(x=>x.id===n.bk.id))o.push({...n.bk,asg:1,due:a.due||''})}catch(e){}});return o}
+function bkxAll(){const l=bkxLocal();bkAsgRecs().forEach(r=>{if(!l.some(x=>x.id===r.id))l.push(r)});return l}
+function bkxStore(a){try{localStorage.setItem(BKXK,JSON.stringify((a||[]).filter(x=>!x.asg)))}catch(e){}}
 function bkxId(subj,d){
  if(d.kind==='free')return subj+'-xf'+bkfPayload(d);
  const lvS=(d.lv&&d.lv!==15?'l'+d.lv.toString(16):'');
@@ -770,23 +772,23 @@ function bkBookList(){const S=bkSel();const sk=bkScope(S).map(s=>s.k),inS=k=>sk.
  const L=nd?[]:[
  {id:SUBJ+'-c',name:'개념서',sub:'개념 정리 · OX · 빈칸 · 기초 5지선다'+rg,meta:'OX '+sm(S.ox)+' · 빈칸 '+sm(S.bl)+' · 기초 '+sm(S.basic)+'문항'},
  {id:SUBJ+'-t',name:'유형서',sub:'소단원 → 유형 → 난이도별 문제 (N제)'+rg,meta:'객관식·단답형 '+S.type.filter(q=>inS(q.sub)).length+' · 서술형 '+S.essay.filter(q=>inS(q.sub)).length+'문항'}];
- bkxAll().filter(b=>b.subj===SUBJ).forEach(b=>L.push({id:b.id,name:b.name,sub:b.sub||BKK[b.kind==='full'?'full':'std'][0],meta:b.kind==='full'?'전범위 · '+(b.rounds||20)+'회분':'내가 만든 교재',custom:1,full:b.kind==='full'}));
+ bkxAll().filter(b=>b.subj===SUBJ).forEach(b=>L.push({id:b.id,name:b.name,sub:b.sub||BKK[b.kind==='full'?'full':'std'][0],meta:b.asg?'선생님이 배포한 교재'+(b.due?' · 마감 '+b.due:''):b.kind==='full'?'전범위 · '+(b.rounds||20)+'회분':'내가 만든 교재',custom:1,asg:!!b.asg,full:b.kind==='full'}));
  return L}
 async function bkShow(){
  await bkInit();await conceptLoad();
  if(BKV.id&&bkParts(BKV.id)&&bkParts(BKV.id).subj!==SUBJ){BKV={v:'shelf',id:null}}
- if(BKV.v==='new'&&BKV.d&&BKV.d.subj&&BKV.d.subj!==SUBJ)BKV={v:'shelf',id:null}
+ if(BKV.v==='new'&&(bkIsStud()||(BKV.d&&BKV.d.subj&&BKV.d.subj!==SUBJ)))BKV={v:'shelf',id:null}
  if(BKV.v==='read'&&BKV.id)return bkReader(BKV.id);
  if(BKV.v==='new'){$('#main').innerHTML=bkBuilder();bkxEst();return}
  if(BKV.v==='rounds'){$('#main').innerHTML=bkRounds(BKV.id);return}
  const L=bkBookList(),m=$('#main');
- const card=b=>`<div class="bkcard"><div class="bkcov"><i></i><b>${esc(b.custom?b.name:SNAME[SUBJ])}</b><span>${esc(b.custom?SNAME[SUBJ]:b.name)}</span><em>Solvi</em></div><div class="bi2"><h3>${esc(b.name)}</h3><p>${esc(b.sub)}<br><small>${esc(b.meta)}</small></p><div class="bt2">${b.full?`<button class="p" onclick="BKV={v:'rounds',id:'${b.id}'};bkShow()">회차 보기</button>`:`<button class="p" onclick="bkOpen('${b.id}')">열기</button><button class="s" onclick="bkPrint('${b.id}',1)">인쇄 · PDF</button>`}${b.custom?`<button class="s" onclick="bkxDel('${b.id}')">삭제</button>`:''}</div></div></div>`;
+ const card=b=>`<div class="bkcard"><div class="bkcov"><i></i><b>${esc(b.custom?b.name:SNAME[SUBJ])}</b><span>${esc(b.custom?SNAME[SUBJ]:b.name)}</span><em>Solvi</em></div><div class="bi2"><h3>${esc(b.name)}</h3><p>${esc(b.sub)}<br><small>${esc(b.meta)}</small></p><div class="bt2">${b.full?`<button class="p" onclick="BKV={v:'rounds',id:'${b.id}'};bkShow()">회차 보기</button>`:`<button class="p" onclick="bkOpen('${b.id}')">열기</button><button class="s" onclick="bkPrint('${b.id}',1)">인쇄 · PDF</button>`}${b.custom&&!b.asg&&bkCanDist()?`<button class="s" onclick="bkDistOpen('${b.id}')">학생에게 배포${bkDistN(b.id)?' · '+bkDistN(b.id)+'명':''}</button>`:''}${b.custom&&!b.asg?`<button class="s" onclick="bkxDel('${b.id}')">삭제</button>`:''}</div></div></div>`;
  m.innerHTML=`<div class="card"><h2>교재 <small style="font-weight:400;color:var(--m);font-size:13px">${esc(SNAME[SUBJ])}</small></h2>
  <p style="margin:-4px 0 14px;font-size:13px;color:var(--m);line-height:1.6">문제 쪽 아래 <b>QR</b>을 스캔하면 그 쪽이 바로 채점돼요.</p>
- ${L.some(b=>!b.custom)?`<div class="bkshelf">${L.filter(b=>!b.custom).map(card).join('')}</div>`:`<div class="m" style="font-size:13px">이 과목은 기본 교재 없이, 아래 <b>교재 만들기</b>로 필요한 범위·유형만 골라 처음부터 만들어요.</div>`}</div>
- <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2 style="margin:0">내 교재</h2><button class="p" onclick="bkNew('std')">＋ 교재 만들기</button></div>
- <p style="margin:6px 0 12px;font-size:13px;color:var(--m);line-height:1.6">종합, 직전 대비, 양치기, 전범위 모의고사 중에서 골라 만들어요.</p>
- ${L.some(b=>b.custom)?`<div class="bkshelf">${L.filter(b=>b.custom).map(card).join('')}</div>`:`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">${['std','last','drill','part','full'].map(k=>`<button class="s" onclick="bkNew('${k}')" style="text-align:left;padding:12px;border-radius:10px"><b style="display:block">${BKK[k][0]}</b><small style="font-weight:400;color:var(--m)">${BKK[k][1]}</small></button>`).join('')}</div>`}</div>`}
+ ${L.some(b=>!b.custom)?`<div class="bkshelf">${L.filter(b=>!b.custom).map(card).join('')}</div>`:(bkIsStud()?`<div class="m" style="font-size:13px">이 과목은 기본 교재 없이, 선생님이 배포한 교재를 아래에서 열어 볼 수 있어요.</div>`:`<div class="m" style="font-size:13px">이 과목은 기본 교재 없이, 아래 <b>교재 만들기</b>로 필요한 범위·유형만 골라 처음부터 만들어요.</div>`)}</div>
+ <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2 style="margin:0">${bkIsStud()?'배포받은 교재':'내 교재'}</h2>${bkIsStud()?'':`<button class="p" onclick="bkNew('std')">＋ 교재 만들기</button>`}</div>
+ <p style="margin:6px 0 12px;font-size:13px;color:var(--m);line-height:1.6">${bkIsStud()?'선생님이 배포한 교재가 여기에 나와요. 교재는 선생님이 만들어 배포해요.':'종합, 직전 대비, 양치기, 전범위 모의고사 중에서 골라 만들어요. 만든 교재는 「학생에게 배포」로 학생 화면에 올릴 수 있어요.'}</p>
+ ${L.some(b=>b.custom)?`<div class="bkshelf">${L.filter(b=>b.custom).map(card).join('')}</div>`:bkIsStud()?`<div class="m" style="font-size:13px">아직 배포받은 교재가 없어요.</div>`:`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">${['std','last','drill','part','full'].map(k=>`<button class="s" onclick="bkNew('${k}')" style="text-align:left;padding:12px;border-radius:10px"><b style="display:block">${BKK[k][0]}</b><small style="font-weight:400;color:var(--m)">${BKK[k][1]}</small></button>`).join('')}</div>`}</div>`}
 function bkGroups(plan){const g=new Map();plan.pages.forEach(p=>{if(!p.codes||!p.codes.length)return;const k=plan.kind==='m'?'문제지':((p.sub?p.sub.k+' ':'')+(p.label||''));if(!g.has(k))g.set(k,[]);g.get(k).push(p)});return g}
 async function bkPath(lv){
  const s1=$('#bkp1'),s2=$('#bkp2'),s3=$('#bkp3'),go=$('#bkpg');
@@ -814,7 +816,7 @@ async function bkReader(id){
  else if(plan.kind==='x'){plan.toc.forEach(r=>r.items.forEach(([n,p])=>jumps.push([r.sub.k+' '+n,p])));if(plan.toc.es)jumps.push(['서술형',plan.toc.es.p])}
  else{jumps.push(['문제지',2],['정답 및 해설',plan.aStart])}
  jumps.push(['정답 · 해설',plan.aStart]);const seen=new Set();const J=jumps.filter(j=>j[1]&&!seen.has(j[0]+j[1]) && seen.add(j[0]+j[1]));
- m.innerHTML=`<div class="bkrd">${tbT('','bkClose()','교재함으로','shelf','교재함')}<b class="bkt">${esc(plan.title)}</b><span class="sp1"></span>${tbS('bkj','bkJump(this.value)','목차로 이동','toc','목차','<option value="">이동…</option><option value="1">표지</option>'+J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join(''))}${plan.kind==='m'?tbT('','bkGradeAll(\''+id+'\')','시험 전체 채점','grade','전체 채점','pr'):''}${tbT('','thumbTog(\'#main>.thr\')','쪽 썸네일 보이기/숨기기','thumb','썸네일')}<i class="tbv"></i>${tbT('','bkZoom(-1)','작게','zout','축소')}<button class="tbx" onclick="bkZoom(0)" title="크기 초기화"><b class="pct" id="bkzl">${Math.round((BKV.z||1)*100)}%</b><span class="lb">배율</span></button>${tbT('','bkZoom(1)','크게','zin','확대')}<i class="tbv"></i>${typeof ft==='function'&&!ft('ebook')?'':tbT('','bkEbook(\''+id+'\')','eBook으로 보기 (필기·수업 모드)','ebook','eBook','pr')}${tbT('bkdup','bkDupTog()','인쇄·PDF에서 답안이 뒷면에서 시작하지 않게 빈 쪽을 채워요','duplex','양면',dupGet()?'on':'')}<i class="tbv"></i>${tbT('','bkPdf(\''+id+'\',1)','PDF로 받기','pdf','PDF')}${tbT('','bkPrint(\''+id+'\',0)','문제만 인쇄','print','문제만')}${tbT('','bkPrint(\''+id+'\',1)','전체 인쇄 · PDF (정답·해설 포함)','print','전체 인쇄','pr')}</div><div id="bkpages"></div>`;
+ m.innerHTML=`<div class="bkrd">${tbT('','bkClose()','교재함으로','shelf','교재함')}<b class="bkt">${esc(plan.title)}</b><span class="sp1"></span>${tbS('bkj','bkJump(this.value)','목차로 이동','toc','목차','<option value="">이동…</option><option value="1">표지</option>'+J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join(''))}${plan.kind==='m'?tbT('','bkGradeAll(\''+id+'\')','시험 전체 채점','grade','전체 채점','pr'):''}${tbT('','thumbTog(\'#main>.thr\')','쪽 썸네일 보이기/숨기기','thumb','썸네일')}${bkCanDist()&&bkxAll().some(x=>x.id===id&&!x.asg)?tbT('','bkDistOpen(\''+id+'\')','학생에게 배포','send','배포'):''}<i class="tbv"></i>${tbT('','bkZoom(-1)','작게','zout','축소')}<button class="tbx" onclick="bkZoom(0)" title="크기 초기화"><b class="pct" id="bkzl">${Math.round((BKV.z||1)*100)}%</b><span class="lb">배율</span></button>${tbT('','bkZoom(1)','크게','zin','확대')}<i class="tbv"></i>${typeof ft==='function'&&!ft('ebook')?'':tbT('','bkEbook(\''+id+'\')','eBook으로 보기 (필기·수업 모드)','ebook','eBook','pr')}${tbT('bkdup','bkDupTog()','인쇄·PDF에서 답안이 뒷면에서 시작하지 않게 빈 쪽을 채워요','duplex','양면',dupGet()?'on':'')}<i class="tbv"></i>${tbT('','bkPdf(\''+id+'\',1)','PDF로 받기','pdf','PDF')}${tbT('','bkPrint(\''+id+'\',0)','문제만 인쇄','print','문제만')}${tbT('','bkPrint(\''+id+'\',1)','전체 인쇄 · PDF (정답·해설 포함)','print','전체 인쇄','pr')}</div><div id="bkpages"></div>`;
  const hdr=document.querySelector('header');const rd=document.querySelector('.bkrd');if(rd&&hdr)rd.style.top=(hdr.getBoundingClientRect().height+6)+'px';const box=$('#bkpages');bkScale();
  box.innerHTML=plan.pages.map((p,i)=>`<div class="bkw" id="bkpg${p.n}" data-i="${i}" style="width:var(--bkw);height:var(--bkh)"></div>`+(p.codes&&p.codes.length?`<div class="bkbar" style="width:var(--bkw)"><span><b>p.${p.n}</b> · ${p.codes.length}문항</span>${STUD&&!permOn('pageSolve')?'':`<button class="s" onclick="bkSolve('${id}',${plan.kind==='m'?0:p.n})">${plan.kind==='m'?'시험 화면에서 풀기':'이 쪽 풀기'}</button>`}<button class="p" onclick="${plan.kind==='m'?`bkGradeAll('${id}')`:`bkGradePage('${id}',${p.n})`}">${plan.kind==='m'?'시험 전체 채점하기':'이 쪽 채점하기'}</button></div>`:'<div style="height:10px"></div>')).join('');
  const fill=el=>{if(el.dataset.f)return;el.dataset.f=1;bkShadow(el,'<div class="bkdoc scr">'+bkPageHtml(plan,+el.dataset.i)+'</div>')};
@@ -861,7 +863,7 @@ ${TBXCSS.replace(/§/g,'#ebk ')}
 #ebk .stg{flex:1;position:relative;overflow:auto;touch-action:pan-x pan-y;overscroll-behavior:contain}#ebk .sp{display:flex;align-items:center;justify-content:center;gap:2px;width:max-content;min-width:100%;min-height:100%;margin:0 auto;padding:6px}
 #ebk .pgw{background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.5);position:relative;flex:none}#ebk .pgw.e{background:none;box-shadow:none}#ebk .pgh{position:absolute;inset:0}#ebk canvas.pgc{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
 #ebk.dr canvas.pgc{pointer-events:auto;touch-action:none}#ebk.dr.lz canvas.pgc{cursor:none}#ebk.dr.er canvas.pgc{cursor:cell}#ebk.dr canvas.pgc{cursor:crosshair}
-#ebk .nv{position:fixed;top:50%;transform:translateY(-50%);width:44px;height:80px;z-index:6;background:#0007;border:0;color:#fff;font-size:30px;opacity:0;transition:.2s;justify-content:center;padding:0}#ebk .nv:hover,#ebk.proj.show .nv{opacity:.6}#ebk .nv.l{left:0;border-radius:0 12px 12px 0}#ebk .nv.r{right:0;border-radius:12px 0 0 12px}
+#ebk .nv{position:fixed;top:50%;transform:translateY(-50%);width:50px;height:96px;z-index:9;background:#0009;border:0;color:#fff;font-size:34px;opacity:.7;transition:.2s;justify-content:center;padding:0;-webkit-tap-highlight-color:transparent}#ebk .nv:hover{opacity:1}#ebk.proj:not(.show) .nv{opacity:0}#ebk.thon .nv.l{left:140px}#ebk .nv.l{left:0;border-radius:0 12px 12px 0}#ebk .nv.r{right:0;border-radius:12px 0 0 12px}
 #ebk .bt{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#12151b;flex:none}#ebk input[type=range]{flex:1;accent-color:#f7b928}#ebk .ct{min-width:70px;text-align:center;font-variant-numeric:tabular-nums}
 #ebk .eba{position:fixed;right:0;top:0;bottom:0;width:min(380px,92vw);background:#fff;color:#1b2430;z-index:8;box-shadow:-6px 0 24px #0005;display:flex;flex-direction:column;transform:translateX(105%);transition:transform .25s;user-select:text;-webkit-user-select:text}#ebk .eba.open{transform:none}
 #ebk .eba .ah{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid #dde3ea}#ebk .eba .ah b{flex:1}#ebk .eba .ah button{background:#eef2f7;color:#1b2430;border-color:#d4dce6}#ebk .eba .al{flex:1;overflow:auto;padding:10px 12px}
@@ -1156,15 +1158,14 @@ let BKPOP=null;
 function bkBarHtml(plan){
  const o=(a,sel)=>a.map(([v,t])=>`<option value="${v}" ${String(sel)===String(v)?'selected':''}>${t}</option>`).join('');
  const gap=o([[0,'기본'],[1,'조금 넓게'],[2,'넓게'],[3,'아주 넓게']],BKO.gap||0);
- const cur=(BKO.color&&PAL[BKO.color])||null;
  const fnt=Object.entries(FONTS).map(([k,v])=>`<option value="${k}" ${(BKO.font||'paper')===k?'selected':''}>${v[0]}</option>`).join('');
- const des=plan.kind==='m'?`<label>디자인<select id="pdes">${o([['exam','시험지 (흑백)'],['color','컬러 포인트']],BKO.design||'exam')}</select></label>`:'';
- const gk=plan.subj==='me'?'':`<label>제본 여백<select id="pgut">${o(BKGUTS,bkGutOf(plan))}</select></label>`;
- return `<label>문제 간격<select id="pgap">${gap}</select></label><label>양면 인쇄<select id="pdup">${o([[0,'끄기'],[1,'켜기 (빈 쪽 채움)']],dupGet()?1:0)}</select></label>${des}${gk}<label>색상${swHtml(BKO.color||'',bkPal().p,true)}</label><label>글꼴<select id="pfnt">${fnt}</select></label>`}
+ const des=plan.kind==='m'?tbS('pdes','','디자인','palette','디자인',o([['exam','시험지 (흑백)'],['color','컬러 포인트']],BKO.design||'exam')):'';
+ const gk=plan.subj==='me'?'':tbS('pgut','','제본 여백','bind','제본 여백',o(BKGUTS,bkGutOf(plan)));
+ return tbS('pgap','','문제 간격','gap','문제 간격',gap)+tbT('pdup','','양면 인쇄: 답안이 뒷면에서 시작하지 않게 빈 쪽을 채워요','duplex','양면 인쇄',dupGet()?'on':'')+des+gk+swHtml(BKO.color||'',bkPal().p,true)+tbS('pfnt','','글꼴','type','글꼴',fnt)}
 async function bkRepop(o){if(!BKPOP||!BKPOP.win||BKPOP.win.closed)return;bkOset(o);if(BKPOP.subj!==SUBJ)await setSubject(BKPOP.subj);
  const plan=await bkPlan(bkPid(BKPOP.id));if(!plan)return;await bkShowIn(BKPOP.win,plan,BKPOP.all)}
 async function bkShowIn(w,plan,all){window._popExtra=bkBarHtml(plan);try{await cbPrintHtml(bkDocHtml(plan,all),w)}finally{window._popExtra=''}
- popWire(w,d=>{d.getElementById('pgap').onchange=e=>bkRepop({gap:+e.target.value});d.getElementById('pdup').onchange=e=>{dupSet(+e.target.value);bkRepop({})};const des=d.getElementById('pdes');if(des)des.onchange=e=>bkRepop({design:e.target.value});swWire(d,v=>bkRepop({color:v}));const gu=d.getElementById('pgut');if(gu)gu.onchange=e=>{bkGutSet(bkGutKey(plan),e.target.value);bkRepop({})};d.getElementById('pfnt').onchange=e=>bkRepop({font:e.target.value})})}
+ popWire(w,d=>{d.getElementById('pgap').onchange=e=>bkRepop({gap:+e.target.value});d.getElementById('pdup').onclick=()=>{dupSet(!dupGet());bkRepop({})};const des=d.getElementById('pdes');if(des)des.onchange=e=>bkRepop({design:e.target.value});swWire(d,v=>bkRepop({color:v}));const gu=d.getElementById('pgut');if(gu)gu.onchange=e=>{bkGutSet(bkGutKey(plan),e.target.value);bkRepop({})};d.getElementById('pfnt').onchange=e=>bkRepop({font:e.target.value})})}
 async function bkPrint(id,all){
  id=bkPid(id);
  if(typeof isMob==='function'&&isMob()){toast('휴대폰·태블릿은 인쇄 창이 열리지 않는 경우가 많아 PDF로 만들어 드려요. 저장한 PDF를 열어 인쇄하세요');return bkPdf(id,all)}
@@ -1324,7 +1325,42 @@ function bkfCm(k,v){bkfRead();(BKV.d.cm[k]=BKV.d.cm[k]||{m:'d',n:10}).m=v;bkShow
 function bkfLv(k,m){bkfRead();BKV.d.lv[k]=m;bkShow()}
 function bkfShow2(){bkShow()}
 const BKK={last:['직전 대비 교재','핵심 개념·OX·빈칸·대표 유형만 압축'],std:['종합 교재','개념·확인 문제·유형을 골라 한 권으로'],drill:['개념 양치기','OX · 빈칸만 전 문항 반복'],part:['특정 부분 양치기','고른 소단원만 전 문항 파고들기'],full:['전범위 모의고사','회차별로 인쇄하는 시험지']};
-function bkNew(kind){BKV={v:'new',id:null,step:1,d:kind==='full'?bkxPreset('full'):bkfNew(kind&&kind!=='std'?kind:'std')};render();scrollTo(0,0)}
+
+/* ---------- 교재 배포 (선생님 → 학생). 학생은 교재를 만들 수 없고, 배포받은 교재만 열어요. 배포 기록은 assignments(wid='bk~교재id', note=교재 설정 JSON)에 저장 ---------- */
+const bkIsStud=()=>typeof STUD!=='undefined'&&!!STUD;
+const bkCanDist=()=>typeof teacher==='function'&&teacher()&&!bkIsStud();
+const bkDistN=id=>new Set((typeof BKDIST!=='undefined'?BKDIST:[]).filter(a=>a.wid==='bk~'+id).map(a=>a.student_id)).size;
+let BKD=null;
+function bkDistOpen(id){if(!bkCanDist())return;const rec=bkxAll().find(b=>b.id===id);if(!rec||rec.asg){toast('이 교재는 배포할 수 없어요');return}
+ if(!(cloud()&&sess)){toast('온라인 저장에 로그인해야 학생에게 배포할 수 있어요');return}
+ if(!STU.length){toast('먼저 「학생」 탭에서 학생을 등록해 주세요');return}
+ BKD={id,mode:'all',cls:[],ids:[],due:''};bkDistDraw()}
+function bkDistT(){const D=BKD;return D.mode==='all'?STU.slice():D.mode==='cls'?STU.filter(s=>D.cls.includes(clsName(s))):STU.filter(s=>D.ids.includes(s.id))}
+function bkDistDraw(){const D=BKD;if(!D)return;const rec=bkxAll().find(b=>b.id===D.id);if(!rec)return;
+ let el=document.getElementById('bkdist');if(!el){el=document.createElement('div');el.id='bkdist';el.style.cssText='position:fixed;inset:0;z-index:100;background:#0008;display:grid;place-items:center;padding:14px';el.onclick=e=>{if(e.target===el)bkDistClose()};document.body.appendChild(el)}
+ const cl=clsList(),g={};STU.forEach(s=>(g[clsName(s)||'반 미지정']=g[clsName(s)||'반 미지정']||[]).push(s));
+ const ts=bkDistT(),have=bkDistN(D.id);
+ const mode=(v,t)=>`<button type="button" class="scb${D.mode===v?' on':''}" aria-pressed="${D.mode===v}" onclick="BKD.mode='${v}';bkDistDraw()">${t}</button>`;
+ let body='';
+ if(D.mode==='cls')body=`<div class="scopebar nb" style="margin-top:10px">${cl.length?cl.map(([c,n])=>`<button type="button" class="scb${D.cls.includes(c)?' on':''}" data-v="${esc(c)}" onclick="bkDistCls(this.dataset.v)">${esc(c)} <b>${n}</b></button>`).join(''):'<span class="m">학생의 「학년·반」을 입력하면 반 단위로 고를 수 있어요.</span>'}</div>`;
+ if(D.mode==='pick')body=`<div style="margin-top:10px;max-height:240px;overflow:auto;display:grid;gap:4px">${Object.entries(g).sort((a,b)=>a[0].localeCompare(b[0],'ko',{numeric:true})).map(([gr,ss])=>`<div><b style="font-size:12px;color:var(--m)">${esc(gr)}</b>${ss.map(x=>`<label class="cb" style="display:flex;gap:8px;align-items:center;padding:3px 0"><input type="checkbox" ${D.ids.includes(x.id)?'checked':''} onchange="bkDistPick('${x.id}',this.checked)"> ${esc(x.name)}${bkHasDist(D.id,x.id)?' <span class="m">· 이미 배포됨</span>':''}</label>`).join('')}</div>`).join('')}</div>`;
+ el.innerHTML=`<div class="card" style="max-width:520px;width:100%;max-height:92vh;overflow:auto;margin:0"><h3 style="margin:0 0 4px">학생에게 배포</h3><div class="m" style="margin-bottom:10px">「${esc(rec.name)}」을 고른 학생의 <b>교재</b> 탭에 올려요. 학생은 보기만 할 수 있어요.${have?` · 현재 <b>${have}명</b>에게 배포됨`:''}</div>
+ <div class="scopebar nb">${mode('all','전체 학생 '+STU.length+'명')}${mode('cls','반 선택')}${mode('pick','직접 선택')}</div>${body}
+ <div class="dsum" style="margin:10px 0">${ts.length?`<b>${ts.length}명</b>에게 배포`:'<span class="m">배포할 학생을 고르세요</span>'}</div>
+ <div class="fld"><label for="bkdue">마감일 (선택)</label><input id="bkdue" type="date" value="${esc(D.due)}" onchange="BKD.due=this.value"></div>
+ <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px">${have?`<button class="s" onclick="bkDistUndo()">배포 모두 취소</button>`:''}<button class="s" onclick="bkDistClose()">닫기</button><button class="p" onclick="bkDistGo()" ${ts.length?'':'disabled'}>배포하기</button></div></div>`}
+const bkHasDist=(id,sid)=>(typeof BKDIST!=='undefined'?BKDIST:[]).some(a=>a.wid==='bk~'+id&&a.student_id===sid);
+function bkDistCls(c){const D=BKD;D.cls=D.cls.includes(c)?D.cls.filter(x=>x!==c):D.cls.concat(c);bkDistDraw()}
+function bkDistPick(id,on){const D=BKD;D.ids=D.ids.filter(x=>x!==id);if(on)D.ids.push(id);bkDistDraw()}
+function bkDistClose(){const el=document.getElementById('bkdist');if(el)el.remove();BKD=null}
+async function bkDistGo(){const D=BKD;if(!D)return;const rec=bkxAll().find(b=>b.id===D.id);if(!rec)return;const ts=bkDistT();if(!ts.length){toast('배포할 학생을 고르세요');return}
+ const nw=ts.filter(s=>!bkHasDist(D.id,s.id));const pub={...rec};delete pub.asg;delete pub.due;delete pub.t;
+ try{if(nw.length){const rows=nw.map(s=>({student_id:s.id,wid:'bk~'+D.id,title:rec.name,due:D.due||null,note:JSON.stringify({bk:pub}),t:Date.now()}));const r=await sb('/rest/v1/assignments',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows)});if(!r.ok)throw 0}
+  await asSync();toast(nw.length?nw.length+'명에게 교재를 배포했어요'+(ts.length>nw.length?' (이미 받은 '+(ts.length-nw.length)+'명 제외)':''):'선택한 학생은 모두 이미 받았어요');bkDistClose();if(tab==='books')bkShow()}
+ catch(e){toast('배포하지 못했어요. 로그인 상태와 학생 목록을 확인하세요')}}
+async function bkDistUndo(){const D=BKD;if(!D||!confirm('이 교재를 배포받은 모든 학생에게서 거두어들일까요?'))return;
+ try{const r=await sb('/rest/v1/assignments?wid=eq.'+encodeURIComponent('bk~'+D.id),{method:'DELETE'});if(!r.ok)throw 0;await asSync();toast('배포를 취소했어요');bkDistClose();if(tab==='books')bkShow()}catch(e){toast('배포를 취소하지 못했어요')}}
+function bkNew(kind){if(bkIsStud()){toast('교재는 선생님이 만들어 배포해요');return}BKV={v:'new',id:null,step:1,d:kind==='full'?bkxPreset('full'):bkfNew(kind&&kind!=='std'?kind:'std')};render();scrollTo(0,0)}
 function bkxRead(){const d=BKV.d;if(!d)return;if(d.kind==='free')return bkfRead();const g=i=>document.getElementById(i);
  if(g('bxn'))d.name=g('bxn').value;if(g('bxg'))d.gut=+g('bxg').value||0;if(g('bxs'))d.sub=g('bxs').value;
  if(g('bxl_1')){let lv=0;[['1',1],['2',2],['4',4],['8',8]].forEach(([k,b])=>{const e=g('bxl_'+k);if(e&&e.checked)lv|=b});d.lv=lv||15}
@@ -1346,7 +1382,7 @@ function bkxSaveBook(){bkxRead();const d=BKV.d;let nm=(d.name||'').trim();if(!nm
  const id=bkxId(SUBJ,d);const a=bkxAll().filter(b=>b.id!==id);if(d.kind==='full'&&(d.subs||[]).length&&nm===BKK.full[0])nm='범위 모의고사';a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:d.kind==='last'?'std':d.kind,rounds:d.rounds||20,gut:SUBJ==='me'?0:(d.gut||0),t:Date.now()});bkxStore(a);
  delete BKP[id];Object.keys(BKP).forEach(k=>{if(k.startsWith(id+'r'))delete BKP[k]});
  BKV={v:'shelf',id:null};toast('교재를 만들었어요');render();scrollTo(0,0)}
-function bkxDel(id){const b=bkxAll().find(x=>x.id===id);if(!b||!confirm('「'+b.name+'」 교재를 삭제할까요?\n(이미 인쇄한 책의 QR은 그대로 채점돼요)'))return;
+function bkxDel(id){const b=bkxAll().find(x=>x.id===id);if(!b||b.asg||!confirm('「'+b.name+'」 교재를 삭제할까요?\n(이미 인쇄한 책의 QR은 그대로 채점돼요)'))return;
  bkxStore(bkxAll().filter(x=>x.id!==id));Object.keys(BKP).forEach(k=>{if(k===id||k.startsWith(id+'r'))delete BKP[k]});bkShow()}
 function bkBuilder(){if(BKV.d&&BKV.d.kind==='free')return bkfBuilder();const d=BKV.d,subs=bkSubs();const S=bkSel();
  const chip=k=>`<button class="${d.kind===k?'p':'s'}" onclick="bkxKind('${k}')" style="text-align:left;padding:10px 12px;border-radius:10px;min-width:0"><b style="display:block;font-size:14px">${BKK[k][0]}</b><small style="font-weight:400;opacity:.8">${BKK[k][1]}</small></button>`;
