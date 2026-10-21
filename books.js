@@ -836,6 +836,19 @@ const EBI={pdf:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stro
  print:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>'};
 EBI.mark='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg>';
 EBI.thumb='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="8" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>';
+const EBP={close:'<path d="M15 18l-6-6 6-6"/>',toc:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',mark:'<path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/>',marks:'<path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/><path d="M9.5 8h5M9.5 11.5h3"/>',
+ view:'<path d="M2 5h7a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H2z"/><path d="M22 5h-7a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H22z"/>',thumb:'<rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="8" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+ grade:'<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>',zout:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M8 11h6"/>',zin:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M8 11h6M11 8v6"/>',
+ proj:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',pdf:'<path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v3h16v-3"/>',print:'<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>',
+ move:'<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V12m0-1.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-.5a6 6 0 0 1-4.6-2.2L4.2 14.4a1.5 1.5 0 0 1 2.3-1.9L8 14"/>',
+ pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',hl:'<path d="M9 11l-6 6v3h9l3-3"/><path d="M22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/>',
+ er:'<path d="M20 20H9L3.5 14.5a2 2 0 0 1 0-2.8L12 3.2a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L12 20"/><path d="M7.5 10.5l6 6"/>',lz:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+ wid:'<path d="M4 6h16" stroke-width="1.2"/><path d="M4 12h16" stroke-width="2.6"/><path d="M4 18.5h16" stroke-width="4.4"/>',undo:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>',trash:'<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v6M14 10v6"/>',
+ finger:'<path d="M9 11V5a2 2 0 0 1 4 0v6"/><path d="M13 9a2 2 0 0 1 4 0v5a7 7 0 0 1-7 7 6 6 0 0 1-5-3l-2-3a1.5 1.5 0 0 1 2.3-1.8L9 14"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+ fx:'<path d="M12 3l1.8 4.7 4.7 1.8-4.7 1.8L12 16l-1.8-4.7-4.7-1.8 4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>',bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>'};
+const ebI=k=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+EBP[k]+'</svg>';
+const ebT=(id,click,title,ic,lab,cls,extra)=>'<button class="tb'+(cls?' '+cls:'')+'"'+(id?' id="'+id+'"':'')+' onclick="'+click+'" title="'+title+'" aria-label="'+title+'"'+(extra?' '+extra:'')+'>'+ebI(ic)+'<span class="lb">'+lab+'</span></button>';
+const ebS=(id,change,title,ic,lab,opts)=>'<label class="tb sel" title="'+title+'">'+ebI(ic)+'<span class="lb">'+lab+'</span><select id="'+id+'" onchange="'+change+'" aria-label="'+title+'">'+opts+'</select></label>';
 const EBC=['#e5484d','#2f7fd0','#1f9d55','#111111','#f7b928','#8e4ec6'];
 async function bkEbook(id){
  id=bkPid(id);try{await bkLoadJs('lib/html2canvas.min.js',()=>window.html2canvas)}catch(e){}await bkInit();const P0=bkParts(id);if(P0&&P0.subj!==SUBJ)await setSubject(P0.subj);const plan=await bkPlan(id);if(!plan)return;
@@ -846,8 +859,16 @@ async function bkEbook(id){
  const J=[['표지',1]];if(plan.kind==='c')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.c]));else if(plan.kind==='t')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.p]));else if(plan.kind==='x')plan.toc.forEach(r=>r.items.forEach(([n,p])=>J.push([r.sub.k+' '+n,p])));if(plan.aStart)J.push(['정답 · 해설',plan.aStart]);
  const seen=new Set();EBK.J=J.filter(j=>j[1]&&!seen.has(j[1])&&seen.add(j[1]));
  el.innerHTML=`<style>#ebk{position:fixed;inset:0;z-index:50;background:#1b1f27;color:#e8ecf2;display:flex;flex-direction:column;font:14px Pretendard,PretendardLocal,sans-serif;user-select:none;-webkit-user-select:none}#ebk.wh{background:#f1f3f6}
-#ebk .ebw{background:#12151b;flex:none}#ebk .eb,#ebk .et{display:flex;gap:6px;align-items:center;padding:6px 10px;flex-wrap:wrap}#ebk .et{padding-top:0}#ebk .eb b{flex:1;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#ebk .sp1{flex:1}
+#ebk .ebw{background:#12151b;flex:none}#ebk .eb,#ebk .et{display:flex;gap:6px;align-items:center;padding:6px 10px;flex-wrap:wrap}#ebk .et{padding-top:0}#ebk .eb>b{flex:1;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#ebk .sp1{flex:1}
 #ebk button,#ebk select{font:inherit;background:#2a303b;color:#e8ecf2;border:1px solid #3a4250;border-radius:8px;padding:6px 10px;cursor:pointer;max-width:44vw;display:inline-flex;align-items:center;gap:4px}#ebk button.on{background:#f7b928;color:#222;border-color:#f7b928}#ebk .eb button,#ebk .et button{flex:none;white-space:nowrap}#ebk button.ebi{padding:6px 11px;justify-content:center}#ebk button.ebi svg{width:18px!important;height:18px!important;flex:none;display:block}#ebk button.pr{background:#2f9d66;border-color:#2f9d66;color:#fff;font-weight:700}
+#ebk .tb{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:54px;height:56px;padding:7px 8px 5px;background:transparent;border:0;border-radius:10px;color:#d6dce6;position:relative;flex:none;max-width:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#ebk .tb svg{width:21px;height:21px;display:block;flex:none}#ebk .tb .lb{font-size:10.5px;line-height:1;letter-spacing:-.2px;white-space:nowrap;color:#97a3b4;font-weight:500}#ebk .tb .pct{font-size:14px;line-height:21px;height:21px;font-weight:700;font-variant-numeric:tabular-nums}
+#ebk .tb:hover{background:#262c37}#ebk .tb.on{background:#f7b928;color:#1b1f27}#ebk .tb.on .lb{color:#1b1f27;font-weight:700}#ebk .tb.on svg{stroke:#1b1f27}
+#ebk .tb.sel select{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;padding:0;max-width:none!important;font-size:16px;cursor:pointer}
+#ebk .tb.pr{background:#2f9d66;color:#fff;margin-left:2px}#ebk .tb.pr .lb{color:#e6fff3}#ebk .tb.pr:hover{background:#34ac72}
+#ebk .vd{width:1px;height:32px;background:#2e3541;flex:none;margin:0 5px;align-self:center}#ebk .cds{display:inline-flex;align-items:center;gap:9px;margin:0 6px;flex:none}
+#ebk .eb,#ebk .et{gap:2px;padding:5px 10px}#ebk .et{padding-top:0}#ebk .eb>b{padding:0 6px;font-size:15px}
+#ebk .thr .thi{display:block!important;padding:3px 0 2px!important;max-width:none!important;min-height:0!important;background:none!important;border:2px solid transparent!important;border-radius:8px;text-align:center}#ebk .thr .thi.on{border-color:#f7b928!important}#ebk .thr .thi small{display:block;margin-top:4px;font-size:11px;text-align:center}
 #ebk .cd{width:26px!important;height:26px!important;min-width:26px!important;max-width:26px!important;min-height:26px!important;max-height:26px!important;aspect-ratio:1/1;padding:0!important;border-radius:50%!important;border:2px solid #fff3;flex:none;box-sizing:border-box;line-height:0;font-size:0;-webkit-appearance:none;appearance:none;display:block}#ebk .cd.on{border-color:#fff;box-shadow:0 0 0 2px #f7b928}#ebk #ebs.on svg{fill:currentColor}
 #ebk .sp.sc{flex-direction:column;justify-content:flex-start;align-items:center;gap:14px;padding:10px 8px 48px}#ebk .sp.sc.strip{gap:0;padding:0 0 48px}#ebk .sp.sc.strip .pgw{box-shadow:none}#ebk .pgw.ph{background:#fff}
 #ebk.thon .stg{margin-left:140px}#ebk .thr{z-index:7;background:#1b1f27;border-color:#3a4250}#ebk .thr .thi{color:#aab4c2}#ebk .thr .thi.on{border-color:#f7b928;color:#f7b928}
@@ -870,22 +891,22 @@ async function bkEbook(id){
 #ebk .ld{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#000a;color:#fff;border-radius:10px;padding:8px 14px;z-index:9;display:none;font-size:13px}@keyframes ebFade{from{opacity:.2}to{opacity:1}}#ebk .spp.fd{animation:ebFade .3s ease both}
 #ebk .laser{position:fixed;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:radial-gradient(circle,#ff2b2b 0 35%,#ff2b2b66 36% 70%,#0000 71%);pointer-events:none;z-index:9;display:none}
 #ebk .eg{display:inline-flex;gap:6px;flex:none}
-@media (max-width:1100px){#ebk .eb,#ebk .et{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;gap:6px;padding:6px 8px}#ebk .eb::-webkit-scrollbar,#ebk .et::-webkit-scrollbar{display:none}
- #ebk .eb b{flex:1 0 80px;min-width:80px;max-width:34vw}#ebk .sp1{display:none}#ebk select{max-width:36vw;flex:none}#ebk button,#ebk select{min-height:36px}
+@media (max-width:1100px){#ebk .tb{min-width:48px;padding:7px 5px 5px}#ebk .eb,#ebk .et{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;gap:6px;padding:6px 8px}#ebk .eb::-webkit-scrollbar,#ebk .et::-webkit-scrollbar{display:none}
+ #ebk .eb>b{flex:1 0 80px;min-width:80px;max-width:34vw}#ebk .sp1{display:none}#ebk select{max-width:36vw;flex:none}#ebk button,#ebk select{min-height:36px}
  #ebk .eg{position:sticky;right:0;background:#12151b;padding-left:8px;box-shadow:-10px 0 10px -4px #12151b}#ebk .ebi span{display:none}#ebk .ebi{padding:6px 10px}#ebk .eb>button.pr,#ebk .eg .pr{padding:6px 12px}}
 @media (max-width:600px){#ebk .et{padding-top:2px}}</style>
-<div class="ebw"><div class="eb"><button onclick="bkEbookClose()">닫기</button><b>${esc(plan.title)}</b>
-<select id="ebj" onchange="ebkGo(+this.value);this.value=''"><option value="">목차…</option>${EBK.J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}</select>
-<select id="ebm" onchange="ebkGo(+this.value);this.value=''"><option value="">북마크…</option></select><button id="ebs" class="ebi" onclick="ebkMark()" title="이 쪽 책갈피 (누르면 켜고 끔)" aria-label="책갈피">${EBI.mark}</button><select id="ebv" onchange="ebkSetView(this.value)" title="보기 방식"><option value="auto">자동</option><option value="one">한 쪽</option><option value="two">펼침면</option><option value="scroll">스크롤</option><option value="strip">밀착 스크롤</option></select>
-<button class="ebi" onclick="ebkRail()" title="쪽 썸네일 보이기/숨기기" aria-label="썸네일">${EBI.thumb}</button><button onclick="ebkList()" title="목록형 화면에서 풀기·채점">목록·채점</button><span class="sp1"></span>
-<button class="ebi" onclick="ebkZoom(-1)" title="축소 (−)">−</button><button id="ebz" onclick="ebkFit()" title="화면에 맞추기 (0)">100%</button><button class="ebi" onclick="ebkZoom(1)" title="확대 (+)">+</button>
-<button id="ebp" onclick="ebkProj()" title="수업용 전체 화면 (P)">수업 모드</button>
-<span class="eg"><button class="ebi" onclick="bkPdf(EBK.id,1)" title="PDF 다운로드">${EBI.pdf}<span>PDF</span></button><button class="ebi pr" onclick="bkPrint(EBK.id,1)" title="인쇄">${EBI.print}<span>인쇄</span></button></span></div>
-<div class="et"><button data-t="none" onclick="ebkTool('none')" title="이동·선택 (V)">이동</button><button data-t="pen" onclick="ebkTool('pen')" title="펜 (D)">펜</button><button data-t="hl" onclick="ebkTool('hl')" title="형광펜 (H)">형광펜</button><button data-t="er" onclick="ebkTool('er')" title="지우개 (E)">지우개</button><button data-t="lz" onclick="ebkTool('lz')" title="레이저 포인터 (L)">레이저</button>
-<span style="display:inline-flex;align-items:center;gap:8px;margin:0 8px;flex:none">${EBC.map(c=>`<button class="cd" data-c="${c}" style="background:${c}" onclick="ebkColor('${c}')" aria-label="색"></button>`).join('')}</span>
-<select id="ebw" onchange="EBK.w=+this.value"><option value="2">가늘게</option><option value="3" selected>보통</option><option value="6">굵게</option><option value="10">매우 굵게</option></select>
-<button onclick="ebkUndo()" title="되돌리기 (Ctrl+Z)">되돌리기</button><button onclick="ebkClear()" title="이 쪽 필기 모두 지우기">필기 지우기</button><button id="ebf" onclick="ebkFinger()" title="손가락으로도 필기">손가락 필기</button><button id="ebb" onclick="ebkBg()" title="배경 밝기">배경</button><button id="ebx" onclick="ebkFx()" title="쪽 넘김 효과 켜기/끄기">넘김 효과</button>
-<button id="eba" onclick="ebkPanel()" title="번호를 누르면 정답·해설이 나와요">정답·해설</button></div></div>
+<div class="ebw"><div class="eb">${ebT('','bkEbookClose()','교재 닫기','close','닫기')}<b>${esc(plan.title)}</b><span class="sp1"></span>
+${ebS('ebj','ebkGo(+this.value);this.value=\'\'','목차로 이동','toc','목차',`<option value="">목차…</option>${EBK.J.map(j=>`<option value="${j[1]}">${esc(j[0])} · p.${j[1]}</option>`).join('')}`)}
+${ebT('ebs','ebkMark()','이 쪽 책갈피 (누르면 켜고 끔)','mark','책갈피')}${ebS('ebm','ebkGo(+this.value);this.value=\'\'','내 책갈피로 이동','marks','책갈피 목록','<option value="">책갈피…</option>')}<i class="vd"></i>
+${ebS('ebv','ebkSetView(this.value)','보기 방식','view','<span id="ebvl">자동</span>','<option value="auto">자동</option><option value="one">한 쪽</option><option value="two">펼침면</option><option value="scroll">스크롤</option><option value="strip">밀착 스크롤</option>')}${ebT('','ebkRail()','쪽 썸네일 보이기/숨기기','thumb','썸네일')}${ebT('','ebkList()','목록형 화면에서 풀기·채점','grade','목록·채점')}<i class="vd"></i>
+${ebT('','ebkZoom(-1)','축소 (−)','zout','축소')}<button class="tb" id="ebz" onclick="ebkFit()" title="화면에 맞추기 (0)"><b class="pct" id="ebzp">100%</b><span class="lb">맞춤</span></button>${ebT('','ebkZoom(1)','확대 (+)','zin','확대')}<i class="vd"></i>
+${ebT('ebp','ebkProj()','수업용 전체 화면 (P)','proj','수업 모드')}
+<span class="eg">${ebT('','bkPdf(EBK.id,1)','PDF 다운로드','pdf','PDF')}${ebT('','bkPrint(EBK.id,1)','인쇄','print','인쇄','pr')}</span></div>
+<div class="et">${ebT('','ebkTool(\'none\')','이동·선택 (V)','move','이동','','data-t="none"')}${ebT('','ebkTool(\'pen\')','펜 (D)','pen','펜','','data-t="pen"')}${ebT('','ebkTool(\'hl\')','형광펜 (H)','hl','형광펜','','data-t="hl"')}${ebT('','ebkTool(\'er\')','지우개 (E)','er','지우개','','data-t="er"')}${ebT('','ebkTool(\'lz\')','레이저 포인터 (L)','lz','레이저','','data-t="lz"')}<i class="vd"></i>
+<span class="cds">${EBC.map(c=>`<button class="cd" data-c="${c}" style="background:${c}" onclick="ebkColor('${c}')" aria-label="색"></button>`).join('')}</span>
+${ebS('ebw','EBK.w=+this.value','선 굵기','wid','굵기','<option value="2">가늘게</option><option value="3" selected>보통</option><option value="6">굵게</option><option value="10">매우 굵게</option>')}<i class="vd"></i>
+${ebT('','ebkUndo()','되돌리기 (Ctrl+Z)','undo','되돌리기')}${ebT('','ebkClear()','이 화면 필기 모두 지우기','trash','필기 지우기')}${ebT('ebf','ebkFinger()','손가락으로도 필기','finger','손가락 필기')}<i class="vd"></i>
+${ebT('ebb','ebkBg()','배경 밝기','sun','배경')}${ebT('ebx','ebkFx()','쪽 넘김 효과 켜기/끄기','fx','넘김 효과')}${ebT('eba','ebkPanel()','번호를 누르면 정답·해설이 나와요','bulb','정답·해설')}</div></div>
 <div class="stg" id="ebst"><div class="sp" id="ebsp"></div><canvas id="ebcv"></canvas></div><div class="ld" id="ebld">책장을 준비하는 중…</div>
 <button class="nv l" onclick="ebkStep(-1)" aria-label="이전">‹</button><button class="nv r" onclick="ebkStep(1)" aria-label="다음">›</button>
 <div class="bt"><button onclick="ebkStep(-1)">‹</button><input type="range" id="ebr" min="1" max="${N}" value="${EBK.p}" oninput="ebkGo(+this.value,1)"><span class="ct" id="ebc"></span><button onclick="ebkStep(1)">›</button></div>
@@ -916,6 +937,7 @@ function ebkList(){EBK.hist=0;const id=EBK.id,p=EBK.p;bkEbookClose();BKV={v:'rea
 function ebkProj(on){const el=document.getElementById('ebk');if(!el)return;on=on===undefined?!EBK.proj:!!on;EBK.proj=on?1:0;el.classList.toggle('proj',!!on);document.getElementById('ebp').classList.toggle('on',!!on);
  if(on){try{el.requestFullscreen&&el.requestFullscreen()}catch(e){}toast('수업 모드 · 화면을 움직이면 메뉴가 나타나요 (Esc로 종료)')}else if(document.fullscreenElement){try{document.exitFullscreen()}catch(e){}}
  ebkPing();setTimeout(ebkScale,150)}
+function ebkVL(){const l=document.getElementById('ebvl');if(l)l.textContent={auto:'자동',one:'한 쪽',two:'펼침면',scroll:'스크롤',strip:'밀착 스크롤'}[EBK.view]||'자동'}
 function ebkScroll(){return EBK.view==='scroll'||EBK.view==='strip'}
 function ebkSpread(){if(ebkScroll())return false;const st=document.getElementById('ebst');const w=st.clientWidth,h=st.clientHeight;return EBK.view==='two'||(EBK.view==='auto'&&w>=h*1.25&&w>=900)}
 function ebkSetView(v){if(!['auto','one','two','scroll','strip'].includes(v))v='auto';EBK.view=v;ebkSave(EBK.id,{view:v});EBK.z=1;const s=document.getElementById('ebst');if(s){s.scrollLeft=0;s.scrollTop=0}ebkDraw(0,1);if(ebkScroll())toast(v==='strip'?'밀착 스크롤: 쪽을 이어 붙여 위아래로 넘겨요':'스크롤: 위아래로 밀어서 넘겨요')}
@@ -931,7 +953,7 @@ function ebkFit(){EBK.z=1;ebkScale();const s=document.getElementById('ebst');if(
 function ebkBase(){const st=document.getElementById('ebst'),cnt=ebkSpread()?2:1;const pw=210*BK_MM,ph=297*BK_MM;if(ebkScroll())return {pw,ph,s:(st.clientWidth-(EBK.view==='strip'?0:16))/pw};return {pw,ph,s:Math.min((st.clientWidth-16)/cnt/pw,(st.clientHeight-16)/ph)}}
 function ebkScale(){const sp=document.getElementById('ebsp');if(!sp)return;const {pw,ph,s}=ebkBase();const k=s*EBK.z;EBK.pgw=pw*k;const keepP=ebkScroll()&&EBK.sm?EBK.p:0;
  sp.querySelectorAll('.pgw').forEach(e=>{e.style.width=pw*k+'px';e.style.height=ph*k+'px';const h=e.querySelector('.pgh');const d=h&&h.shadowRoot&&h.shadowRoot.querySelector('.bkdoc');if(d)d.style.setProperty('--bks',k.toFixed(4));const c=e.querySelector('canvas.pgc');if(c)ebkCanvas(c)});
- const z=document.getElementById('ebz');if(z)z.textContent=Math.round(EBK.z*100)+'%';if(keepP)ebkScrollTo(keepP,1)}
+ const z=document.getElementById('ebzp');if(z)z.textContent=Math.round(EBK.z*100)+'%';if(keepP)ebkScrollTo(keepP,1)}
 function ebkCanvas(c){const r=c.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);c.width=Math.max(1,Math.round(r.width*d));c.height=Math.max(1,Math.round(r.height*d));ebkRedraw(c)}
 function ebkRedraw(c,dot){const n=+c.parentNode.dataset.n,g=c.getContext('2d'),W=c.width,H=c.height;g.clearRect(0,0,W,H);g.lineCap='round';g.lineJoin='round';
  ((EBK.pen||{})[n]||[]).forEach(s=>ebkStroke(g,s,W,H));if(dot&&dot.p&&dot.p.length)ebkStroke(g,dot,W,H)}
@@ -981,7 +1003,7 @@ function ebkUiSync(){const N=EBK.N;const shown=ebkScroll()?[EBK.p||1]:[...docume
  const r=document.getElementById('ebr');if(r)r.value=cur;const ct=document.getElementById('ebc');if(ct)ct.textContent=shown.join('-')+' / '+N;
  const mk=shown.some(n=>EBK.marks.includes(n));const bs=document.getElementById('ebs');if(bs)bs.classList.toggle('on',mk);
  const bm=document.getElementById('ebm');if(bm)bm.innerHTML='<option value="">북마크…</option>'+EBK.marks.map(n=>`<option value="${n}">p.${n}</option>`).join('');
- const bv=document.getElementById('ebv');if(bv)bv.value=EBK.view;ebkRevDraw();ebkWarm()}
+ const bv=document.getElementById('ebv');if(bv)bv.value=EBK.view;ebkVL();ebkRevDraw();ebkWarm()}
 
 /* ---------- 말아 올리는(페이지 컬) 효과: 페이지를 그림으로 만들어 WebGL로 원통처럼 말아 넘김 ---------- */
 const EBVS='attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
@@ -1070,7 +1092,7 @@ function ebkUiSyncLite(){const cur=EBK.p;ebkSave(EBK.id,{last:cur});if(typeof ur
  const r=document.getElementById('ebr');if(r)r.value=cur;const ct=document.getElementById('ebc');if(ct)ct.textContent=cur+' / '+EBK.N;
  const bs=document.getElementById('ebs');if(bs)bs.classList.toggle('on',EBK.marks.includes(cur));
  const bm=document.getElementById('ebm');if(bm)bm.innerHTML='<option value="">북마크…</option>'+EBK.marks.map(n=>`<option value="${n}">p.${n}</option>`).join('');
- const bv=document.getElementById('ebv');if(bv)bv.value=EBK.view}
+ const bv=document.getElementById('ebv');if(bv)bv.value=EBK.view;ebkVL()}
 function ebkDrawScroll(){const sp=document.getElementById('ebsp'),st=document.getElementById('ebst');if(!sp||!st)return;if(EBK.io){EBK.io.disconnect();EBK.io=null}
  sp.className='sp sc'+(EBK.view==='strip'?' strip':'');sp.innerHTML='';const fr=document.createDocumentFragment();
  for(let n=1;n<=EBK.N;n++){const d=document.createElement('div');d.className='pgw ph';d.dataset.n=n;d.dataset.ph=1;fr.appendChild(d)}
