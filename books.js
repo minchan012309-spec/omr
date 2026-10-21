@@ -626,13 +626,14 @@ function bkPlanFree(id,d){
   if(newSub)units.push(bkU('sb:'+s.k+':'+i,bkSbn(s),{keep:true}));
   const hk='h:'+b.k+':'+s.k+':'+b.arr.length+':'+i;
   units.push(bkU(hk,'<div class="u ct"><span>'+nm+'</span><small>'+esc(s.k)+' · '+b.arr.length+'문항</small></div>',{keep:true}));hdKey.set(SUBJ+'|'+hk,item);
-  if(b.k==='o'||b.k==='b')b.arr.forEach((q,k)=>units.push(bkU('o:'+q.code+':'+b.k,bkOxHtml(q,k+1,b.k==='o'?'ox':'bl'),{code:q.code})));
-  else if(b.k==='m')b.arr.forEach((q,k)=>units.push(bkU('q:'+q.code,bkQHtml(q,k+1,{code:1}),{code:q.code})));
+  b._n=[];
+  if(b.k==='o'||b.k==='b')b.arr.forEach((q,k)=>{no++;b._n[k]=no;units.push(bkU('o:'+q.code+':'+b.k,bkOxHtml(q,no,b.k==='o'?'ox':'bl'),{code:q.code}))});
+  else if(b.k==='m')b.arr.forEach((q,k)=>{no++;b._n[k]=no;units.push(bkU('q:'+q.code,bkQHtml(q,no,{code:1}),{code:q.code}))});
   else if(b.k==='t'){let cur=null,ti=0;
    b.arr.forEach(q=>{if(d.sort===0&&q.type!==cur){cur=q.type;ti++;const grp=b.arr.filter(x=>x.type===cur);const av=grp.reduce((a,x)=>a+LVI[bkLv(x)],0)/grp.length;const n=Math.max(1,Math.min(4,Math.round(av)+1));
      units.push(bkU('th:'+s.k+':'+ti+':'+cur,'<div class="th"><b>유형 '+String(ti).padStart(2,'0')+'</b><span>'+esc(cur)+'</span><small>'+'★'.repeat(n)+'☆'.repeat(4-n)+'</small></div>',{keep:true}))}
-    no++;nums.set(q.code,no);units.push(bkU('q:'+q.code+':t',bkQHtml(q,no,{lv:bkLv(q),code:1}),{code:q.code}))})}
-  else if(b.k==='e')b.arr.forEach(q=>{no++;nums.set(q.code,no);units.push(bkU('q:'+q.code+':e',bkQHtml(q,no,{ans:1,code:1,lv:bkLv(q)}),{code:q.code}))});
+    no++;nums.set(q.code,no);b._n.push(no);units.push(bkU('q:'+q.code+':t',bkQHtml(q,no,{lv:bkLv(q),code:1}),{code:q.code}))})}
+  else if(b.k==='e')b.arr.forEach(q=>{no++;nums.set(q.code,no);b._n.push(no);units.push(bkU('q:'+q.code+':e',bkQHtml(q,no,{ans:1,code:1,lv:bkLv(q)}),{code:q.code}))});
   buf.push(...units);total+=b.arr.length;lastSub=s.k});
  flush();
  // 정답·해설
@@ -641,10 +642,10 @@ function bkPlanFree(id,d){
   blocks.forEach((b,i)=>{if(b.k==='c')return;const s=b.s,nm=BKFN[b.k];
    if(d.grp!==1&&ls!==s.k){au.push(bkU('as:'+s.k+':'+i,'<div class="u ct"><span>'+esc(s.k)+' '+esc(s.name)+'</span></div>',{keep:true}));ls=s.k}
    const mcq=b.k==='m'||b.k==='t'||b.k==='e';
-   const cells=b.arr.map((q,k)=>{const n=b.k==='t'||b.k==='e'?nums.get(q.code):k+1;
+   const cells=b.arr.map((q,k)=>{const n=(b._n&&b._n[k])||k+1;
     return '<div><b>'+n+'</b><span>'+(b.k==='o'?bkAnsOf(q):b.k==='b'?esc((q.blanks||[]).join(' / ')):b.k==='e'?'서술':bkCir(q.ans))+'</span></div>'}).join('');
    au.push(bkU('ak:'+b.k+':'+s.k+':'+b.arr.length+':'+i,'<div class="u k"><div class="ct sm"><span>'+(d.grp===1?esc(s.k)+' · ':'')+nm+' 정답</span></div><div class="kg '+(b.k==='b'?'w2':'')+'">'+cells+'</div></div>',{}));
-   if(d.ans===0&&mcq)b.arr.forEach((q,k)=>au.push(bkU('x:'+q.code,bkXHtml(q,b.k==='t'||b.k==='e'?nums.get(q.code):k+1),{})))});
+   if(d.ans===0&&mcq)b.arr.forEach((q,k)=>au.push(bkU('x:'+q.code,bkXHtml(q,(b._n&&b._n[k])||k+1),{})))});
   aStart=pages.length+1;
   bkPack(au,2,BK_BODY).forEach(p=>pages.push({k:'ak',kind:'a',label:d.ans===0?'정답 · 해설':'정답',...bkCI(p)}))}
  const toc=[...tocM.values()].filter(r=>r.items.length);
