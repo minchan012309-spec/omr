@@ -74,7 +74,7 @@ function acMonthHtml(){
 function acPinHtml(){
  const cnt={};AC.stu.forEach(s=>{if(s.att_pin)cnt[s.att_pin]=(cnt[s.att_pin]||0)+1});const dup=Object.values(cnt).filter(n=>n>1).length;
  const rows=AC.stu.map(s=>`<div class="axp"><b>${esc(s.name)}<small>${esc(s.grade||'')}</small></b><input type="tel" inputmode="numeric" placeholder="전화번호 예) 010-1234-5678" value="${esc(s.phone||'')}" onchange="acPhone('${s.id}',this.value)"><input class="pin ${s.att_pin&&cnt[s.att_pin]>1?'dup':''}" type="text" inputmode="numeric" maxlength="8" placeholder="출결 번호" value="${esc(s.att_pin||'')}" onchange="acPin('${s.id}',this.value)"></div>`).join('');
- return `<div class="card"><h2 style="margin-top:0">학생별 출결 번호</h2><p class="m">학원 입구 태블릿에서 학생이 누르는 번호예요. 전화번호를 적으면 <b>010 뒤의 앞 5자리</b>가 자동으로 들어가요 (예: 010-<b>12345</b>576). 직접 바꿔도 돼요.</p>
+ return `<div class="card"><h2 style="margin-top:0">학생별 출결 번호</h2><p class="m">학원 입구 태블릿에서 학생이 누르는 번호예요. 전화번호를 적으면 <b>010 뒤의 앞 5자리</b>가 자동으로 들어가요 (예: 010-<b>12345</b>678). 직접 바꿔도 돼요.</p>
  ${dup?`<div class="hint">번호가 겹치는 학생이 있어요. 단말에서 이름을 골라 입력하게 되지만, 겹치지 않게 바꾸는 편이 편해요.</div>`:''}
  <div class="row" style="margin:6px 0"><button class="s sm" onclick="acFillPins()">전화번호로 빈 번호 채우기</button></div>
  <div class="axps"><div class="axp hd"><b>학생</b><span>전화번호</span><span>출결 번호</span></div>${rows||'<div class="empty">등록한 학생이 없어요.</div>'}</div></div>`}
@@ -147,7 +147,7 @@ function kioskOpen(){
 #kiosk .kx{position:absolute;right:0;top:0;width:70px;height:70px;background:none;border:0;opacity:0}</style>
 <button class="kx" aria-label="해제" onclick="kioskTap()"></button>
 <svg viewBox="0 8 162 76" width="130" aria-hidden="true"><path d="M23.8 56.8C36.1 56.8 43.8 51.6 45.4 42.2C46.7 34.4 42.6 29.9 32.2 28L28.6 27.3C23.9 26.4 22.3 25.2 22.7 22.9C23.1 20.6 25.9 18.9 29.6 18.9C33.6 18.9 35.7 20.8 35.5 24.2H47.4C48.7 14.4 42.1 8.7 30.4 8.7C19.4 8.7 11.1 14.3 9.7 22.8C8.4 30.1 12.8 35.2 21.5 36.9L26 37.8C31.1 38.8 32.9 40.2 32.5 42.4C32.1 44.8 29.1 46.5 25 46.5C20.3 46.5 17.7 44.3 18.1 40.5H5.8C4.2 50.7 10.6 56.8 23.8 56.8Z M63.1 56.8C75.6 56.8 83.5 47.7 83.5 36.8C83.5 27.8 77.3 22.2 67.5 22.2C55.6 22.2 47.1 30.6 47.1 42.2C47.1 51.2 53.3 56.8 63.1 56.8ZM63.9 47C61.7 47 59.6 45.5 59.6 42.3C59.6 37.6 62 32 66.7 32C68.9 32 71 33.5 71 36.7C71 41.4 68.6 47 63.9 47Z M102.9 9.4H90.4L82.7 56H95.2Z M107.6 56H121.9L139.2 23H125.8L119.6 37C118.5 39.6 117.3 42.1 116.3 44.7C116 42.1 115.8 39.6 115.4 37L113.7 23H101.2Z M134.3 56H146.8L152.3 23H139.8ZM146.5 20.3C150.1 20.3 153.3 17.6 153.9 14.2C154.5 10.8 152.1 8.1 148.5 8.1C144.9 8.1 141.7 10.8 141.1 14.2C140.5 17.6 142.9 20.3 146.5 20.3Z" fill="#1d5ca6"/><path d="M4 68 L27.1 78 L150.3 62" fill="none" stroke="#ffc21a" stroke-width="7" stroke-linecap="round"/></svg>
-<div class="kt">출결 번호를 눌러 주세요</div><div class="kc" id="kclk"></div><div class="kh">예) 전화번호가 010-<b>1234 5</b>576 이면 <b>12345</b> 를 누르고 「확인」</div><div class="kd" id="kdg"></div>
+<div class="kt">출결 번호를 눌러 주세요</div><div class="kc" id="kclk"></div><div class="kh">예) 전화번호가 010-<b>12345</b>678 이면 <b>12345</b> 를 누르고 「확인」</div><div class="kd" id="kdg"></div>
 <div class="kp">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="kioskKey('${n}')">${n}</button>`).join('')}<button onclick="kioskKey('c')" aria-label="지우기">⌫</button><button onclick="kioskKey('0')">0</button><button class="go" onclick="kioskGo()">확인</button></div>
 <div class="kr" id="krs"></div>`;
  document.body.appendChild(k);KIO.pin='';KIO.n=0;kioskDraw();clearInterval(KIO.ck);KIO.ck=setInterval(kioskClock,15000);kioskClock();
