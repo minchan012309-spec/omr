@@ -178,7 +178,8 @@ const PA={sec:'att',mon:'',recs:[],notes:[],fees:[],pay:{},ld:0,err:''};
 async function pAttView(){
  const m=$('#main');if(!STUD||!STUD.parent){m.innerHTML='';return}
  if(!PA.mon)PA.mon=kstDay().slice(0,7);
- if(!PA.ld){m.innerHTML='<div class="card">'+ldg('불러오는 중…')+'</div>';await paLoad()}
+ if(!PA.ld||Date.now()-(PA.t||0)>15000){if(!PA.ld)m.innerHTML='<div class="card">'+ldg('불러오는 중…')+'</div>';await paLoad()}
+ clearTimeout(PA.pt);PA.pt=setTimeout(()=>{if(tab==='patt'&&STUD&&STUD.parent){PA.t=0;pAttView()}},60000)
  const S=[['att','출결'],['note','안내문'],['fee','납부']];
  const seg=`<div class="bkseg axseg" role="tablist">${S.map(([k,l])=>`<button role="tab" class="${PA.sec===k?'on':''}" onclick="PA.sec='${k}';pAttView()">${l}${k==='fee'&&PA.fees.some(f=>f.paid_amount<f.amount)?' <i class="axdot"></i>':''}</button>`).join('')}</div>`;
  let b='';
@@ -189,11 +190,15 @@ async function pAttView(){
  m.innerHTML=`<div class="tsh"><div><h1>${esc((STINFO&&STINFO.name)||'자녀')} 학생</h1><p>출결과 학원 안내, 납부 내역을 확인해요.</p></div></div>${seg}${b}`}
 async function paLoad(){PA.err='';const a={p_login:STUD.login,p_pw:STUD.pw};
  try{const[y,mo]=PA.mon.split('-').map(Number);const to=PA.mon+'-'+String(new Date(Date.UTC(y,mo,0)).getUTCDate()).padStart(2,'0');
-  const [r1,r2,r3]=await Promise.all([rpc('pa_attendance',{...a,p_from:PA.mon+'-01',p_to:to}),rpc('pa_notices',a),rpc('pa_fees',a)]);
-  if([r1,r2,r3].some(r=>r.status===404)){PA.err='학원에서 아직 출결·안내문 기능을 켜지 않았어요.';PA.ld=1;return}
-  PA.recs=(r1.ok&&await r1.json())||[];PA.notes=(r2.ok&&await r2.json())||[];const f=r3.ok?await r3.json():null;PA.fees=(f&&f.fees)||[];PA.pay=(f&&f.pay)||{};if(!PA.pay.clientKey)PA.pay.clientKey=TOSS_TEST_KEY
+  const rs=await Promise.all([rpc('pa_attendance',{...a,p_from:PA.mon+'-01',p_to:to}),rpc('pa_notices',a),rpc('pa_fees',a)]);
+  const bad=rs.find(r=>!r.ok);
+  if(bad){let m='';try{m=(await bad.text()).slice(0,160)}catch(e){}console.warn('parent rpc',bad.status,m);
+   PA.err=bad.status===404?'학원에서 아직 출결·안내문 기능을 켜지 않았어요. (서버 준비가 필요해요)':'불러오지 못했어요 (오류 '+bad.status+'). 선생님께 알려 주세요.'+(m?' · '+m:'');PA.ld=1;PA.t=Date.now();return}
+  const [r1,r2,r3]=await Promise.all(rs.map(r=>r.json()));
+  if(r1===null&&r2===null&&r3===null){PA.err='로그인 정보를 확인하지 못했어요. 다시 로그인해 주세요.';PA.ld=1;PA.t=Date.now();return}
+  PA.recs=r1||[];PA.notes=r2||[];PA.fees=(r3&&r3.fees)||[];PA.pay=(r3&&r3.pay)||{};if(!PA.pay.clientKey)PA.pay.clientKey=TOSS_TEST_KEY
  }catch(e){PA.err='불러오지 못했어요. 연결을 확인해 주세요.'}
- PA.ld=1}
+ PA.ld=1;PA.t=Date.now()}
 function paFeeHtml(){
  if(!PA.fees.length)return '<div class="card"><div class="empty">청구된 내역이 없어요.</div></div>';
  const today=kstDay(),P=PA.pay||{};
