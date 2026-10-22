@@ -1,4 +1,5 @@
 /* Solvi 늦게 불러오는 코드: acad — 출결 · 학부모 안내문 · 수납 · 출결 단말. index.html 의 전역(sb, rpc, esc, $, toast, STUD …)을 그대로 씁니다. */
+const TOSS_TEST_KEY='test_ck_ALnQvDd2VJml6AZbKqDw3Mj7X41m';
 const AC={sec:'day',day:'',mon:'',sid:'',stu:[],recs:[],mrecs:[],fees:[],notes:[],pay:{items:[],demo:false,clientKey:'',bank:''},ld:0,err:'',q:''};
 const AST={in:['출석','#1f9d55'],late:['지각','#e09a00'],absent:['결석','#d9534f'],excused:['사유','#7a8aa0']};
 const kstDay=(d)=>new Date((d||new Date()).getTime()+9*36e5).toISOString().slice(0,10);
@@ -29,7 +30,7 @@ async function acLoad(){
   if(AC.sec==='month'&&AC.sid)AC.mrecs=await acJ('/rest/v1/attendance?select=*&student_id=eq.'+AC.sid+'&day=gte.'+AC.mon+'-01&day=lte.'+AC.mon+'-31');
   if(AC.sec==='note')AC.notes=await acJ('/rest/v1/parent_notices?select=*&order=created_at.desc&limit=40');
   if(AC.sec==='fee')AC.fees=await acJ('/rest/v1/fees?select=*&order=created_at.desc&limit=600');
-  if(AC.sec==='fee'||AC.sec==='rate'){const d=(await tsRaw())||{};AC.pay=Object.assign({items:[],demo:false,clientKey:'',bank:''},d.pay||{})}
+  if(AC.sec==='fee'||AC.sec==='rate'){const d=(await tsRaw())||{};AC.pay=Object.assign({items:[],demo:false,clientKey:TOSS_TEST_KEY,bank:''},d.pay||{});if(!AC.pay.clientKey)AC.pay.clientKey=TOSS_TEST_KEY}
  }catch(e){AC.err=acMissing(e)?'sql':'불러오지 못했어요 ('+(e.status||'연결')+')'}
  AC.ld=1}
 const acStuName=id=>{const s=AC.stu.find(x=>x.id===id);return s?s.name:'(삭제된 학생)'};
@@ -124,7 +125,7 @@ function acRateHtml(){
  <div class="card"><h2 style="margin-top:0">결제 설정</h2>
  <label class="swr"><span><b>데모 결제 허용</b><small>학부모 앱에서 「결제하기」를 누르면 실제 돈 없이 납부 완료로 바뀌어요. 시연·테스트용이니 실제로 쓸 땐 꺼 주세요.</small></span><input class="swi" type="checkbox" ${P.demo?'checked':''} onchange="acPaySet('demo',this.checked)"></label>
  <div class="g2" style="margin-top:10px"><div class="fld"><label>토스페이먼츠 클라이언트 키 <small class="m">test_ck_… (테스트) 또는 live_ck_… (실제). 공개 키라 여기 저장해도 안전해요</small></label><input value="${esc(P.clientKey||'')}" placeholder="test_ck_" onchange="acPaySet('clientKey',this.value.trim())"></div><div class="fld"><label>계좌 이체 안내 <small class="m">학부모 앱에 그대로 보여요</small></label><input value="${esc(P.bank||'')}" placeholder="예) 국민 000-00-000000 홍길동" maxlength="80" onchange="acPaySet('bank',this.value.trim())"></div></div>
- <div class="hint"><b>토스 결제 연결 순서</b><br>1) 토스페이먼츠 개발자센터 가입 → 「API 개별 연동 키」의 테스트 키 확인<br>2) 위 칸에 클라이언트 키 입력<br>3) <code>supabase functions deploy toss-confirm --no-verify-jwt</code> 와 <code>supabase secrets set TOSS_SECRET_KEY=시크릿키</code> 실행 (시크릿 키는 절대 화면에 쓰지 마세요)<br>4) 실제 결제는 토스 가맹점 심사를 통과한 뒤 live 키로 바꾸면 돼요.<br>클라이언트 키가 없으면 데모 결제 또는 계좌 이체 안내로 동작해요.</div></div>`}
+ <div class="hint"><b>토스 결제 연결 순서</b><br>1) 토스페이먼츠 개발자센터 가입 → 「API 개별 연동 키」의 테스트 키 확인<br>2) 위 칸에 클라이언트 키 입력 (지금은 테스트 키가 기본으로 들어 있어요)<br>3) <code>supabase functions deploy toss-confirm --no-verify-jwt</code> 와 <code>supabase secrets set TOSS_SECRET_KEY=시크릿키</code> 실행 (시크릿 키는 절대 화면에 쓰지 마세요)<br>4) 실제 결제는 토스 가맹점 심사를 통과한 뒤 live 키로 바꾸면 돼요.<br>클라이언트 키가 없으면 데모 결제 또는 계좌 이체 안내로 동작해요.</div></div>`}
 async function acPaySave(){const d=(await tsRaw())||{};d.pay=AC.pay;const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:d,updated_at:new Date().toISOString()})});if(!r.ok)toast('저장하지 못했어요');else toast('저장했어요')}
 function acPaySet(k,v){AC.pay[k]=v;acPaySave()}
 function acItem(i,k,v){const it=AC.pay.items[i];if(!it)return;it[k]=k==='amount'?Math.max(0,Math.round(+v||0)):v;acPaySave()}
@@ -190,14 +191,14 @@ async function paLoad(){PA.err='';const a={p_login:STUD.login,p_pw:STUD.pw};
  try{const[y,mo]=PA.mon.split('-').map(Number);const to=PA.mon+'-'+String(new Date(Date.UTC(y,mo,0)).getUTCDate()).padStart(2,'0');
   const [r1,r2,r3]=await Promise.all([rpc('pa_attendance',{...a,p_from:PA.mon+'-01',p_to:to}),rpc('pa_notices',a),rpc('pa_fees',a)]);
   if([r1,r2,r3].some(r=>r.status===404)){PA.err='학원에서 아직 출결·안내문 기능을 켜지 않았어요.';PA.ld=1;return}
-  PA.recs=(r1.ok&&await r1.json())||[];PA.notes=(r2.ok&&await r2.json())||[];const f=r3.ok?await r3.json():null;PA.fees=(f&&f.fees)||[];PA.pay=(f&&f.pay)||{}
+  PA.recs=(r1.ok&&await r1.json())||[];PA.notes=(r2.ok&&await r2.json())||[];const f=r3.ok?await r3.json():null;PA.fees=(f&&f.fees)||[];PA.pay=(f&&f.pay)||{};if(!PA.pay.clientKey)PA.pay.clientKey=TOSS_TEST_KEY
  }catch(e){PA.err='불러오지 못했어요. 연결을 확인해 주세요.'}
  PA.ld=1}
 function paFeeHtml(){
  if(!PA.fees.length)return '<div class="card"><div class="empty">청구된 내역이 없어요.</div></div>';
  const today=kstDay(),P=PA.pay||{};
  const rows=PA.fees.map(f=>{const p=f.paid_amount>=f.amount,od=!p&&f.due&&f.due<today;
-  return `<div class="axf ${p?'ok':od?'od':''}"><div><b>${esc(f.title)}</b><small>${f.due?f.due.slice(5).replace('-','/')+'까지':''}${p&&f.paid_at?' · '+new Date(f.paid_at).toLocaleDateString('ko-KR')+' 납부':''}</small></div><span class="axamt">${won(f.amount)}</span><span class="axst">${p?'납부 완료':od?'연체':'미납'}</span><span class="axab">${p?'':(P.clientKey?`<button class="p sm" onclick="paToss(${f.id})">결제하기</button>`:P.demo?`<button class="p sm" onclick="paDemo(${f.id})">결제하기 (데모)</button>`:'')}</span></div>`}).join('');
+  return `<div class="axf ${p?'ok':od?'od':''}"><div><b>${esc(f.title)}</b><small>${f.due?f.due.slice(5).replace('-','/')+'까지':''}${p&&f.paid_at?' · '+new Date(f.paid_at).toLocaleDateString('ko-KR')+' 납부':''}</small></div><span class="axamt">${won(f.amount)}</span><span class="axst">${p?'납부 완료':od?'연체':'미납'}</span><span class="axab">${p?'':(P.clientKey?`<button class="p sm" onclick="paToss(${f.id})">결제하기</button>`:'')+(P.demo?`<button class="s sm" onclick="paDemo(${f.id})">데모 결제</button>`:'')}</span></div>`}).join('');
  return `<div class="card">${rows}${!P.clientKey&&!P.demo&&P.bank?`<div class="hint" style="margin-top:10px"><b>계좌 이체 안내</b><br>${esc(P.bank)}<br><small>이체하시면 선생님이 확인 후 납부 완료로 바꿔 드려요.</small></div>`:''}${P.clientKey&&P.bank?`<p class="tsn2">계좌 이체: ${esc(P.bank)}</p>`:''}</div>`}
 async function paDemo(id){if(!confirm('데모 결제예요. 실제 돈은 나가지 않고 납부 완료로만 바뀌어요. 진행할까요?'))return;try{const r=await rpc('pa_fee_demo_pay',{p_login:STUD.login,p_pw:STUD.pw,p_fee:id});const ok=r.ok&&await r.json();toast(ok?'납부 완료로 바뀌었어요':'결제하지 못했어요');PA.ld=0;pAttView()}catch(e){toast('결제하지 못했어요')}}
 async function paToss(id){const f=PA.fees.find(x=>x.id===id);if(!f)return;
