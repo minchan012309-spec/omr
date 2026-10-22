@@ -1097,3 +1097,313 @@ begin
   return json_build_object('code', r.code, 'open', r.open);
 end $$;
 grant execute on function join_code_regen() to authenticated;
+
+-- ===== sql_20_attendance_billing.sql =====
+-- 20. 출결 · 학부모 안내문 · 수납 관리 (토스페이먼츠 연동 준비 포함)
+-- Supabase 대시보드 > SQL Editor 에 통째로 붙여넣고 Run. 이미 실행했어도 다시 실행해도 됩니다.
+-- (sql_16_parent.sql 이 먼저 실행되어 있어야 해요)
+-- =====================================================================
+create extension if not exists pgcrypto with schema extensions;
+
+-- 20-1) 학생 연락처·출결 번호 (출결 번호 기본값은 앱이 전화번호 일부로 채워 줘요)
+alter table students add column if not exists phone text;
+alter table students add column if not exists att_pin text;
+
+-- 20-2) 출결 기록 (하루에 학생당 1줄)
+create table if not exists attendance (
+  id         bigint generated always as identity primary key,
+  user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  student_id uuid not null references students(id) on delete cascade,
+  day        date not null,
+  status     text not null default 'in' check (status in ('in','late','absent','excused')),
+  t_in       timestamptz,
+  t_out      timestamptz,
+  memo       text,
+  unique (student_id, day)
+);
+create index if not exists attendance_user_day on attendance (user_id, day);
+alter table attendance enable row level security;
+drop policy if exists "att all" on attendance;
+create policy "att all" on attendance for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- 20-3) 출결 단말(태블릿)에서 번호를 입력하면 등원 → 같은 날 다시 입력하면 하원으로 기록 (선생님 계정으로 로그인한 단말에서 호출)
+create or replace function att_checkin(p_pin text, p_student uuid default null) returns json
+language plpgsql security definer set search_path = public, extensions as $$
+declare c int; s students%rowtype; a attendance%rowtype; d date := (now() at time zone 'Asia/Seoul')::date; kind text;
+begin
+  if auth.uid() is null then raise exception 'not allowed'; end if;
+  if length(coalesce(trim(p_pin), '')) < 3 then return json_build_object('ok', false, 'err', 'pin'); end if;
+  select count(*) into c from students where user_id = auth.uid() and att_pin = trim(p_pin) and (p_student is null or id = p_student);
+  if c = 0 then return json_build_object('ok', false, 'err', 'pin'); end if;
+  if c > 1 then
+    return json_build_object('ok', false, 'err', 'choose', 'choose',
+      (select json_agg(json_build_object('id', id, 'name', name, 'grade', grade)) from students where user_id = auth.uid() and att_pin = trim(p_pin)));
+  end if;
+  select * into s from students where user_id = auth.uid() and att_pin = trim(p_pin) and (p_student is null or id = p_student);
+  select * into a from attendance where student_id = s.id and day = d;
+  if not found or a.t_in is null then
+    insert into attendance (user_id, student_id, day, status, t_in) values (auth.uid(), s.id, d, 'in', now())
+      on conflict (student_id, day) do update set t_in = now(), status = case when attendance.status in ('absent','excused') then 'in' else attendance.status end;
+    kind := 'in';
+  elsif a.t_out is null and now() - a.t_in > interval '10 minutes' then
+    update attendance set t_out = now() where id = a.id;
+    kind := 'out';
+  else
+    kind := 'dup';
+  end if;
+  return json_build_object('ok', true, 'kind', kind, 'name', s.name, 'grade', s.grade, 't', now());
+end $$;
+grant execute on function att_checkin(text, uuid) to authenticated;
+
+-- 20-4) 학부모 안내문 (student_id 가 비어 있으면 모든 학부모에게)
+create table if not exists parent_notices (
+  id         bigint generated always as identity primary key,
+  user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  student_id uuid references students(id) on delete cascade,
+  title      text not null,
+  body       text not null default '',
+  created_at timestamptz not null default now()
+);
+create index if not exists parent_notices_user on parent_notices (user_id, created_at desc);
+alter table parent_notices enable row level security;
+drop policy if exists "pn all" on parent_notices;
+create policy "pn all" on parent_notices for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- 20-5) 수납(학원비·교재비 등)
+create table if not exists fees (
+  id          bigint generated always as identity primary key,
+  user_id     uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  student_id  uuid not null references students(id) on delete cascade,
+  kind        text not null default 'tuition',          -- tuition(학원비) · book(교재비) · etc
+  title       text not null,
+  amount      integer not null check (amount >= 0),
+  due         date,
+  paid_amount integer not null default 0,
+  paid_at     timestamptz,
+  method      text,                                      -- 현금 · 계좌이체 · 카드 · 토스 · 데모
+  pay_key     text,                                      -- 토스 paymentKey
+  memo        text,
+  created_at  timestamptz not null default now()
+);
+create index if not exists fees_user on fees (user_id, due);
+create index if not exists fees_student on fees (student_id);
+alter table fees enable row level security;
+drop policy if exists "fees all" on fees;
+create policy "fees all" on fees for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- 20-6) 학부모 화면용 조회 (읽기 전용)
+create or replace function pa_attendance(p_login text, p_pw text, p_from date, p_to date) returns json
+language plpgsql security definer set search_path = public, extensions as $$
+declare a parent_accounts%rowtype;
+begin
+  a := _pa_auth(p_login, p_pw);
+  if a.id is null then return null; end if;
+  return (select coalesce(json_agg(json_build_object('day', x.day, 'status', x.status, 't_in', x.t_in, 't_out', x.t_out, 'memo', x.memo) order by x.day), '[]'::json)
+          from attendance x where x.student_id = a.student_id and x.day between p_from and p_to);
+end $$;
+create or replace function pa_notices(p_login text, p_pw text) returns json
+language plpgsql security definer set search_path = public, extensions as $$
+declare a parent_accounts%rowtype;
+begin
+  a := _pa_auth(p_login, p_pw);
+  if a.id is null then return null; end if;
+  return (select coalesce(json_agg(json_build_object('id', n.id, 'title', n.title, 'body', n.body, 't', n.created_at) order by n.created_at desc), '[]'::json)
+          from (select * from parent_notices where user_id = a.user_id and (student_id is null or student_id = a.student_id) order by created_at desc limit 60) n);
+end $$;
+create or replace function pa_fees(p_login text, p_pw text) returns json
+language plpgsql security definer set search_path = public, extensions as $$
+declare a parent_accounts%rowtype; pay jsonb;
+begin
+  a := _pa_auth(p_login, p_pw);
+  if a.id is null then return null; end if;
+  select coalesce(data->'pay', '{}'::jsonb) into pay from teacher_settings where user_id = a.user_id;
+  return json_build_object(
+    'pay', json_build_object('demo', coalesce((pay->>'demo')::boolean, false), 'clientKey', coalesce(pay->>'clientKey', ''), 'bank', coalesce(pay->>'bank', '')),
+    'fees', (select coalesce(json_agg(json_build_object('id', f.id, 'kind', f.kind, 'title', f.title, 'amount', f.amount, 'due', f.due, 'paid_amount', f.paid_amount, 'paid_at', f.paid_at, 'method', f.method) order by f.due desc nulls last, f.id desc), '[]'::json)
+             from fees f where f.student_id = a.student_id));
+end $$;
+-- 데모 결제: 선생님이 「데모 결제 허용」을 켠 경우에만 동작해요 (실제 돈은 오가지 않아요)
+create or replace function pa_fee_demo_pay(p_login text, p_pw text, p_fee bigint) returns boolean
+language plpgsql security definer set search_path = public, extensions as $$
+declare a parent_accounts%rowtype; ok boolean;
+begin
+  a := _pa_auth(p_login, p_pw);
+  if a.id is null then return false; end if;
+  select coalesce((data->'pay'->>'demo')::boolean, false) into ok from teacher_settings where user_id = a.user_id;
+  if not coalesce(ok, false) then return false; end if;
+  update fees set paid_amount = amount, paid_at = now(), method = '데모 결제' where id = p_fee and student_id = a.student_id and paid_amount < amount;
+  return found;
+end $$;
+-- 토스 결제 승인 확인 후 Edge Function(toss-confirm)이 서비스 키로만 호출해요
+create or replace function _pa_auth_row(p_login text, p_pw text) returns json
+language plpgsql security definer set search_path = public, extensions as $$
+declare a parent_accounts%rowtype;
+begin
+  a := _pa_auth(p_login, p_pw);
+  if a.id is null then return null; end if;
+  return json_build_object('id', a.id, 'student_id', a.student_id, 'user_id', a.user_id);
+end $$;
+revoke all on function _pa_auth_row(text, text) from public, anon, authenticated;
+grant execute on function _pa_auth_row(text, text) to service_role;
+create or replace function fee_mark_paid(p_fee bigint, p_student uuid, p_key text, p_method text) returns boolean
+language plpgsql security definer set search_path = public, extensions as $$
+begin
+  update fees set paid_amount = amount, paid_at = now(), method = coalesce(p_method, '토스'), pay_key = p_key where id = p_fee and student_id = p_student and paid_amount < amount;
+  return found;
+end $$;
+revoke all on function fee_mark_paid(bigint, uuid, text, text) from public, anon, authenticated;
+grant execute on function fee_mark_paid(bigint, uuid, text, text) to service_role;
+create or replace function fee_amount(p_fee bigint, p_student uuid) returns integer
+language sql security definer set search_path = public as $$ select amount from fees where id = p_fee and student_id = p_student $$;
+revoke all on function fee_amount(bigint, uuid) from public, anon, authenticated;
+grant execute on function fee_amount(bigint, uuid) to service_role;
+
+grant execute on function pa_attendance(text, text, date, date) to anon, authenticated;
+grant execute on function pa_notices(text, text) to anon, authenticated;
+grant execute on function pa_fees(text, text) to anon, authenticated;
+grant execute on function pa_fee_demo_pay(text, text, bigint) to anon, authenticated;
+
+-- ===== sql_21_shared_academy.sql =====
+-- =====================================================================
+-- 21. 한 학원을 여러 선생님 계정이 함께 쓰기 (대표 선생님 + 공동 선생님)
+-- Supabase 대시보드 > SQL Editor 에 통째로 붙여넣고 Run. 이미 실행했어도 다시 실행해도 됩니다.
+-- 반드시 sql_20_attendance_billing.sql 까지 모두 실행한 뒤에 실행하세요.
+--
+-- 방식: 공동 선생님이 로그인하면 서버가 "이 사람의 데이터 주인 = 대표 선생님"으로 취급해요.
+--       그래서 학생·채점·학습지·출결·수납·설정이 대표 선생님과 똑같이 보이고 같이 바뀝니다.
+--       (대표 선생님 본인의 동작은 전혀 달라지지 않아요.)
+-- =====================================================================
+create extension if not exists pgcrypto with schema extensions;
+
+create table if not exists academy_members (
+  member_id  uuid primary key references auth.users(id) on delete cascade,
+  owner_id   uuid not null references auth.users(id) on delete cascade,
+  label      text,
+  created_at timestamptz not null default now()
+);
+create index if not exists academy_members_owner on academy_members (owner_id);
+create table if not exists academy_invites (
+  code       text primary key,
+  owner_id   uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now() + interval '7 days'
+);
+-- 정책을 만들지 않으면 일반 사용자는 직접 읽거나 쓸 수 없고, 아래 함수로만 접근해요.
+alter table academy_members enable row level security;
+alter table academy_invites enable row level security;
+
+-- 데이터 주인: 공동 선생님이면 대표 선생님, 아니면 본인
+create or replace function acad_owner() returns uuid
+language sql stable security definer set search_path = public as $$
+  select coalesce((select owner_id from academy_members where member_id = auth.uid()), auth.uid())
+$$;
+grant execute on function acad_owner() to anon, authenticated;
+
+-- 대표 선생님: 초대 코드 만들기 (7일 동안 한 번만 쓸 수 있어요)
+create or replace function acad_invite() returns text
+language plpgsql security definer set search_path = public, extensions as $$
+declare c text; n int := 0; al text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+begin
+  if auth.uid() is null or exists (select 1 from academy_members where member_id = auth.uid()) then raise exception 'not allowed'; end if;
+  delete from academy_invites where expires_at < now();
+  if (select count(*) from academy_invites where owner_id = auth.uid()) >= 10 then raise exception 'too many invites'; end if;
+  loop
+    c := '';
+    for i in 1..8 loop c := c || substr(al, 1 + floor(random() * length(al))::int, 1); end loop;
+    begin
+      insert into academy_invites (code, owner_id) values (c, auth.uid());
+      return c;
+    exception when unique_violation then
+      n := n + 1; if n > 20 then raise exception 'try again'; end if;
+    end;
+  end loop;
+end $$;
+
+-- 공동 선생님: 코드로 합류 (이미 학생 데이터를 가진 계정은 합류할 수 없어요 — 데이터가 가려지는 걸 막기 위해)
+create or replace function acad_join(p_code text, p_label text default null) returns boolean
+language plpgsql security definer set search_path = public, extensions as $$
+declare iv academy_invites%rowtype;
+begin
+  if auth.uid() is null then raise exception 'not allowed'; end if;
+  select * into iv from academy_invites where code = upper(trim(p_code)) and expires_at > now();
+  if not found then return false; end if;
+  if iv.owner_id = auth.uid() then raise exception 'self'; end if;
+  if exists (select 1 from academy_members where member_id = auth.uid() or owner_id = auth.uid()) then raise exception 'already'; end if;
+  if exists (select 1 from students where user_id = auth.uid()) then raise exception 'has data'; end if;
+  insert into academy_members (member_id, owner_id, label) values (auth.uid(), iv.owner_id, nullif(trim(coalesce(p_label, '')), ''));
+  delete from academy_invites where code = iv.code;
+  return true;
+end $$;
+
+create or replace function acad_info() returns json
+language plpgsql security definer set search_path = public, extensions as $$
+declare m academy_members%rowtype;
+begin
+  if auth.uid() is null then return null; end if;
+  select * into m from academy_members where member_id = auth.uid();
+  if found then
+    return json_build_object('role', 'member', 'owner', (select email from auth.users where id = m.owner_id));
+  end if;
+  return json_build_object('role', 'owner',
+    'members', (select coalesce(json_agg(json_build_object('id', a.member_id, 'label', a.label, 'email', u.email, 't', a.created_at) order by a.created_at), '[]'::json)
+                from academy_members a join auth.users u on u.id = a.member_id where a.owner_id = auth.uid()),
+    'invites', (select coalesce(json_agg(json_build_object('code', i.code, 'exp', i.expires_at) order by i.created_at desc), '[]'::json)
+                from academy_invites i where i.owner_id = auth.uid() and i.expires_at > now()));
+end $$;
+
+create or replace function acad_member_remove(p_member uuid) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  delete from academy_members where member_id = p_member and owner_id = auth.uid();
+end $$;
+create or replace function acad_invite_revoke(p_code text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  delete from academy_invites where code = p_code and owner_id = auth.uid();
+end $$;
+create or replace function acad_leave() returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  delete from academy_members where member_id = auth.uid();
+end $$;
+grant execute on function acad_invite() to authenticated;
+grant execute on function acad_join(text, text) to authenticated;
+grant execute on function acad_info() to authenticated;
+grant execute on function acad_member_remove(uuid) to authenticated;
+grant execute on function acad_invite_revoke(text) to authenticated;
+grant execute on function acad_leave() to authenticated;
+
+-- ---------------------------------------------------------------------
+-- 기존 규칙(auth.uid() = user_id)을 "데이터 주인 = acad_owner()"로 바꿔요.
+-- 대표 선생님에게는 결과가 똑같고, 공동 선생님에게는 대표 선생님의 데이터가 열려요.
+-- 개발자·버그 신고 관련 표/함수는 건드리지 않아요.
+-- ---------------------------------------------------------------------
+do $$
+declare
+  r record; q text; w text; d text;
+  tbls text[] := array['students','attempts','worksheets','assignments','notices','teacher_settings','teacher_join','signup_requests','wrong_notes','q_reports','parent_accounts','attendance','parent_notices','fees'];
+  fns  text[] := array['approve_signup','att_checkin','issue_login','revoke_login','join_code_regen','join_info','join_open_set','parent_issue','parent_list','parent_revoke','reject_signup'];
+begin
+  -- 1) 정책
+  for r in select * from pg_policies where schemaname = 'public' and tablename = any(tbls) loop
+    q := r.qual; w := r.with_check;
+    if coalesce(q, '') like '%auth.uid()%' or coalesce(w, '') like '%auth.uid()%' then
+      execute format('alter policy %I on public.%I %s %s', r.policyname, r.tablename,
+        case when coalesce(q, '') like '%auth.uid()%' then 'using (' || replace(q, 'auth.uid()', 'public.acad_owner()') || ')'
+             when q is not null then 'using (' || q || ')' else '' end,
+        case when coalesce(w, '') like '%auth.uid()%' then 'with check (' || replace(w, 'auth.uid()', 'public.acad_owner()') || ')'
+             when w is not null then 'with check (' || w || ')' else '' end);
+    end if;
+  end loop;
+  -- 2) 새 줄을 만들 때 user_id 기본값
+  for r in select table_name, column_name from information_schema.columns
+           where table_schema = 'public' and table_name = any(tbls) and column_default like '%auth.uid()%' loop
+    execute format('alter table public.%I alter column %I set default public.acad_owner()', r.table_name, r.column_name);
+  end loop;
+  -- 3) 함수 안의 auth.uid()
+  for r in select p.oid from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+           where n.nspname = 'public' and p.proname = any(fns) loop
+    d := pg_get_functiondef(r.oid);
+    if d like '%auth.uid()%' then execute replace(d, 'auth.uid()', 'public.acad_owner()'); end if;
+  end loop;
+end $$;
