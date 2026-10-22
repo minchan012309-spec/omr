@@ -199,5 +199,10 @@ function paFeeHtml(){
  if(!PA.fees.length)return '<div class="card"><div class="empty">청구된 내역이 없어요.</div></div>';
  const today=kstDay(),P=PA.pay||{};
  const rows=PA.fees.map(f=>{const p=f.paid_amount>=f.amount,od=!p&&f.due&&f.due<today;
-  return `<div class="axf ${p?'ok':od?'od':''}"><div><b>${esc(f.title)}</b><small>${f.due?f.due.slice(5).replace('-','/')+'까지':''}${p&&f.paid_at?' · '+new Date(f.paid_at).toLocaleDateString('ko-KR')+' 납부':''}</small></div><span class="axamt">${won(f.amount)}</span><span class="axst">${p?'납부 완료':od?'연체':'미납'}</span><span class="axab"></span></div>`}).join('');
- return `<div class="card">${rows}${P.bank?`<div class="hint" style="margin-top:10px"><b>계좌 이체 안내</b><br>${esc(P.bank)}<br><small>입금하시면 선생님이 확인 후 납부 완료로 바꿔 드려요.</small></div>`:''}</div>`}
+  return `<div class="axf ${p?'ok':od?'od':''}"><div><b>${esc(f.title)}</b><small>${f.due?f.due.slice(5).replace('-','/')+'까지':''}${p&&f.paid_at?' · '+new Date(f.paid_at).toLocaleDateString('ko-KR')+' 납부':''}</small></div><span class="axamt">${won(f.amount)}</span><span class="axst">${p?'납부 완료':od?'연체':'미납'}</span><span class="axab">${p?'':`<button class="p sm" onclick="paPay(${f.id})">납부하기</button>`}</span></div>`}).join('');
+ return `<div class="card">${rows}<div id="axpay"></div></div>`}
+
+function paPay(id){const f=PA.fees.find(x=>x.id===id),P=PA.pay||{},e=document.getElementById('axpay');if(!f||!e)return;
+ e.innerHTML=`<div class="hint" style="margin-top:10px"><b>${esc(f.title)} · ${won(f.amount)}</b><br>${P.bank?`아래 계좌로 이체해 주세요.<br><span style="font-size:16px;font-weight:700;color:var(--t);letter-spacing:.01em">${esc(P.bank)}</span><div style="margin-top:8px"><button class="s sm" onclick="paCopy()">계좌 복사</button></div><small style="display:block;margin-top:6px">입금하시면 선생님이 확인한 뒤 납부 완료로 바꿔 드려요.</small>`:'아직 계좌 안내가 등록되지 않았어요. 학원에 문의해 주세요.'}</div>`;
+ e.scrollIntoView({behavior:'smooth',block:'nearest'})}
+function paCopy(){const b=(PA.pay||{}).bank||'';try{navigator.clipboard.writeText(b).then(()=>toast('계좌를 복사했어요'),()=>toast('복사하지 못했어요'))}catch(e){toast('복사하지 못했어요')}}
