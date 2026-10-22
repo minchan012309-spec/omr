@@ -730,7 +730,7 @@ function bkCoverX(plan){if(plan.dz&&plan.dz.cover===6)return bkCoverNavy(plan);c
  return '<div class="cv'+(plan.dz&&plan.dz.cover?' cs'+plan.dz.cover:'')+'"><div class="c1"><span>Solvi · 과학</span><span>'+esc(SNAME[SUBJ])+'</span></div>'+bkDeco()+'<div class="c2"><div class="bar"></div><div class="kd">'+(plan.last?'FINAL CHECK':plan.drill?'DRILL BOOK':'MY BOOK')+'</div><h1>'+esc(plan.title)+'</h1><h2>'+esc(plan.sub||SNAME[SUBJ])+'</h2><div class="ln"></div><ul>'+rows.map(r=>'<li><b>'+r[0]+'</b><span>'+esc(r[1])+'</span></li>').join('')+'</ul></div>'+
   '<div class="c4">문제 쪽 아래 QR을 스캔하면 그 페이지를 바로 채점할 수 있습니다</div>'+bkCoverLogo(plan)+'</div>'}
 function bkLogoHtml(src,cls){if(!src||src==='none')return '';
- if(src==='solvi'){const c=bkPal();return '<svg class="'+cls+'" viewBox="'+WMVB+'" role="img" aria-label="Solvi"><path d="'+WMD+'" fill="'+c.pd+'"/><path d="'+WMU+'" fill="none" stroke="#ffc21a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>'}
+ if(src==='solvi'){const c=bkPal();return lgSvg('w',c.pd,cls)}
  if(src==='academy'){const c=acCfg(),u=c.logo||c.logoDark;if(c.mode==='logo'&&u)return '<img class="'+cls+'" src="'+u+'" alt="">';if(c.name)return '<span class="'+cls+' tx">'+esc(c.name)+'</span>';if(u)return '<img class="'+cls+'" src="'+u+'" alt="">'}
  return ''}
 function bkCoverLogo(plan){const z=plan.dz;if(!z||!z.lf||z.lf==='none')return '';const h=bkLogoHtml(z.lf,'lg');return h?'<div class="cvlogo '+(z.lfp==='bl'?'L':z.lfp==='bc'?'C':'R')+'">'+h+'</div>':''}
@@ -1191,7 +1191,7 @@ function bkSheets(plan,all){const last=plan.pages[plan.pages.length-1],back=!!(a
  if(dp&&all&&plan.aStart>1&&plan.aStart-1<n&&plan.aStart%2===0)a.splice(plan.aStart-1,0,-1);
  if(back){if(dp&&a.length%2===0)a.push(-1);a.push(plan.pages.length-1)}else if(dp&&a.length%2)a.push(-1);
  return a}
-const BKLOGO='<svg viewBox="0 8 162 76" role="img" aria-label="Solvi" ><path d="M23.8 56.8C36.1 56.8 43.8 51.6 45.4 42.2C46.7 34.4 42.6 29.9 32.2 28L28.6 27.3C23.9 26.4 22.3 25.2 22.7 22.9C23.1 20.6 25.9 18.9 29.6 18.9C33.6 18.9 35.7 20.8 35.5 24.2H47.4C48.7 14.4 42.1 8.7 30.4 8.7C19.4 8.7 11.1 14.3 9.7 22.8C8.4 30.1 12.8 35.2 21.5 36.9L26 37.8C31.1 38.8 32.9 40.2 32.5 42.4C32.1 44.8 29.1 46.5 25 46.5C20.3 46.5 17.7 44.3 18.1 40.5H5.8C4.2 50.7 10.6 56.8 23.8 56.8Z M63.1 56.8C75.6 56.8 83.5 47.7 83.5 36.8C83.5 27.8 77.3 22.2 67.5 22.2C55.6 22.2 47.1 30.6 47.1 42.2C47.1 51.2 53.3 56.8 63.1 56.8ZM63.9 47C61.7 47 59.6 45.5 59.6 42.3C59.6 37.6 62 32 66.7 32C68.9 32 71 33.5 71 36.7C71 41.4 68.6 47 63.9 47Z M102.9 9.4H90.4L82.7 56H95.2Z M107.6 56H121.9L139.2 23H125.8L119.6 37C118.5 39.6 117.3 42.1 116.3 44.7C116 42.1 115.8 39.6 115.4 37L113.7 23H101.2Z M134.3 56H146.8L152.3 23H139.8ZM146.5 20.3C150.1 20.3 153.3 17.6 153.9 14.2C154.5 10.8 152.1 8.1 148.5 8.1C144.9 8.1 141.7 10.8 141.1 14.2C140.5 17.6 142.9 20.3 146.5 20.3Z" fill="#8a96a6"/><path d="M4 68 L27.1 78 L150.3 62" fill="none" stroke="#ffc21a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const BKLOGO=lgSvg('w','#8a96a6');
 const bkBlankHtml=()=>'<div class="bp bk bkblank"><div class="bklg">'+blankLogoHtml()+'</div></div>';
 const bkSheetHtml=(plan,i)=>i<0?bkBlankHtml():bkPageHtml(plan,i);
 function bkDocHtml(plan,all){
