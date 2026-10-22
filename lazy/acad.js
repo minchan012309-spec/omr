@@ -1,5 +1,4 @@
 /* Solvi 늦게 불러오는 코드: acad — 출결 · 학부모 안내문 · 수납 · 출결 단말. index.html 의 전역(sb, rpc, esc, $, toast, STUD …)을 그대로 씁니다. */
-const TOSS_TEST_KEY='test_ck_ALnQvDd2VJml6AZbKqDw3Mj7X41m';
 const AC={sec:'day',day:'',mon:'',sid:'',stu:[],recs:[],mrecs:[],fees:[],notes:[],pay:{items:[],demo:false,clientKey:'',bank:''},ld:0,err:'',q:''};
 const AST={in:['출석','#1f9d55'],late:['지각','#e09a00'],absent:['결석','#d9534f'],excused:['사유','#7a8aa0']};
 const kstDay=(d)=>new Date((d||new Date()).getTime()+9*36e5).toISOString().slice(0,10);
@@ -9,7 +8,7 @@ const pinFrom=p=>{let d=String(p||'').replace(/\D/g,'');if(d.startsWith('010'))d
 const SQLMSG='<div class="hint"><b>서버에 출결·수납 표가 아직 없어요.</b> Supabase 「SQL Editor」에서 <code>supabase/sql_20_attendance_billing.sql</code> 내용을 한 번 실행해 주세요.</div>';
 const needCloud=()=>!(typeof cloud==='function'&&cloud()&&sess);
 const atNeed='<div class="card"><div class="hint"><b>온라인 저장에 로그인해야 쓸 수 있어요.</b> 출결·안내문·수납은 서버에 저장돼서 학부모 앱에도 보여요.</div></div>';
-const SEGS=[['day','출결'],['month','월간 달력'],['pin','출결 번호'],['note','안내문'],['fee','수납'],['rate','요금·결제 설정']];
+const SEGS=[['day','출결'],['month','월간 달력'],['pin','출결 번호'],['note','안내문'],['fee','수납'],['rate','요금·계좌']];
 
 async function acJ(path,o){const r=await sb(path,o);if(!r.ok){const e=new Error('http '+r.status);e.status=r.status;try{e.body=await r.text()}catch(x){}throw e}const t=await r.text();return t?JSON.parse(t):null}
 const acMissing=e=>e&&(e.status===404||e.status===400||/does not exist|schema cache|column/i.test(e.body||''));
@@ -30,7 +29,7 @@ async function acLoad(){
   if(AC.sec==='month'&&AC.sid)AC.mrecs=await acJ('/rest/v1/attendance?select=*&student_id=eq.'+AC.sid+'&day=gte.'+AC.mon+'-01&day=lte.'+AC.mon+'-31');
   if(AC.sec==='note')AC.notes=await acJ('/rest/v1/parent_notices?select=*&order=created_at.desc&limit=40');
   if(AC.sec==='fee')AC.fees=await acJ('/rest/v1/fees?select=*&order=created_at.desc&limit=600');
-  if(AC.sec==='fee'||AC.sec==='rate'){const d=(await tsRaw())||{};AC.pay=Object.assign({items:[],demo:false,clientKey:TOSS_TEST_KEY,bank:''},d.pay||{});if(!AC.pay.clientKey)AC.pay.clientKey=TOSS_TEST_KEY}
+  if(AC.sec==='fee'||AC.sec==='rate'){const d=(await tsRaw())||{};AC.pay=Object.assign({items:[],bank:''},d.pay||{})}
  }catch(e){AC.err=acMissing(e)?'sql':'불러오지 못했어요 ('+(e.status||'연결')+')'}
  AC.ld=1}
 const acStuName=id=>{const s=AC.stu.find(x=>x.id===id);return s?s.name:'(삭제된 학생)'};
@@ -122,10 +121,7 @@ async function acFeeDel(id){if(!confirm('이 청구를 삭제할까요?'))return
 function acRateHtml(){
  const P=AC.pay,items=(P.items||[]).map((it,i)=>`<div class="axit"><input value="${esc(it.name)}" placeholder="이름" onchange="acItem(${i},'name',this.value)"><input type="number" min="0" step="1000" value="${it.amount}" onchange="acItem(${i},'amount',this.value)"><select onchange="acItem(${i},'kind',this.value)"><option value="tuition" ${it.kind!=='book'?'selected':''}>학원비</option><option value="book" ${it.kind==='book'?'selected':''}>교재비</option></select><button class="s sm" onclick="acItemDel(${i})">삭제</button></div>`).join('');
  return `<div class="card"><h2 style="margin-top:0">요금표</h2><p class="m">자주 쓰는 학원비·교재비를 등록해 두면 「수납」에서 고르기만 하면 돼요.</p>${items||'<div class="empty">등록한 항목이 없어요.</div>'}<div class="row" style="margin-top:8px"><button class="s" onclick="acItemAdd()">항목 추가</button></div></div>
- <div class="card"><h2 style="margin-top:0">결제 설정</h2>
- <label class="swr"><span><b>데모 결제 허용</b><small>학부모 앱에서 「결제하기」를 누르면 실제 돈 없이 납부 완료로 바뀌어요. 시연·테스트용이니 실제로 쓸 땐 꺼 주세요.</small></span><input class="swi" type="checkbox" ${P.demo?'checked':''} onchange="acPaySet('demo',this.checked)"></label>
- <div class="g2" style="margin-top:10px"><div class="fld"><label>토스페이먼츠 클라이언트 키 <small class="m">test_ck_… (테스트) 또는 live_ck_… (실제). 공개 키라 여기 저장해도 안전해요</small></label><input value="${esc(P.clientKey||'')}" placeholder="test_ck_" onchange="acPaySet('clientKey',this.value.trim())"></div><div class="fld"><label>계좌 이체 안내 <small class="m">학부모 앱에 그대로 보여요</small></label><input value="${esc(P.bank||'')}" placeholder="예) 국민 000-00-000000 홍길동" maxlength="80" onchange="acPaySet('bank',this.value.trim())"></div></div>
- <div class="hint"><b>토스 결제 연결 순서</b><br>1) 토스페이먼츠 개발자센터 가입 → 「API 개별 연동 키」의 테스트 키 확인<br>2) 위 칸에 클라이언트 키 입력 (지금은 테스트 키가 기본으로 들어 있어요)<br>3) <code>supabase functions deploy toss-confirm --no-verify-jwt</code> 와 <code>supabase secrets set TOSS_SECRET_KEY=시크릿키</code> 실행 (시크릿 키는 절대 화면에 쓰지 마세요)<br>4) 실제 결제는 토스 가맹점 심사를 통과한 뒤 live 키로 바꾸면 돼요.<br>클라이언트 키가 없으면 데모 결제 또는 계좌 이체 안내로 동작해요.</div></div>`}
+ <div class="card"><h2 style="margin-top:0">계좌 이체 안내</h2><p class="m">학부모 앱의 「납부」 화면에 그대로 보여요. 입금을 확인하면 「수납」에서 납부 처리를 눌러 주세요.</p><div class="fld" style="max-width:460px"><input value="${esc(P.bank||'')}" placeholder="예) 국민 000-00-000000 홍길동" maxlength="80" onchange="acPaySet('bank',this.value.trim())"></div></div>`}
 async function acPaySave(){const d=(await tsRaw())||{};d.pay=AC.pay;const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:d,updated_at:new Date().toISOString()})});if(!r.ok)toast('저장하지 못했어요');else toast('저장했어요')}
 function acPaySet(k,v){AC.pay[k]=v;acPaySave()}
 function acItem(i,k,v){const it=AC.pay.items[i];if(!it)return;it[k]=k==='amount'?Math.max(0,Math.round(+v||0)):v;acPaySave()}
@@ -196,26 +192,12 @@ async function paLoad(){PA.err='';const a={p_login:STUD.login,p_pw:STUD.pw};
    PA.err=bad.status===404?'학원에서 아직 출결·안내문 기능을 켜지 않았어요. (서버 준비가 필요해요)':'불러오지 못했어요 (오류 '+bad.status+'). 선생님께 알려 주세요.'+(m?' · '+m:'');PA.ld=1;PA.t=Date.now();return}
   const [r1,r2,r3]=await Promise.all(rs.map(r=>r.json()));
   if(r1===null&&r2===null&&r3===null){PA.err='로그인 정보를 확인하지 못했어요. 다시 로그인해 주세요.';PA.ld=1;PA.t=Date.now();return}
-  PA.recs=r1||[];PA.notes=r2||[];PA.fees=(r3&&r3.fees)||[];PA.pay=(r3&&r3.pay)||{};if(!PA.pay.clientKey)PA.pay.clientKey=TOSS_TEST_KEY
+  PA.recs=r1||[];PA.notes=r2||[];PA.fees=(r3&&r3.fees)||[];PA.pay=(r3&&r3.pay)||{}
  }catch(e){PA.err='불러오지 못했어요. 연결을 확인해 주세요.'}
  PA.ld=1;PA.t=Date.now()}
 function paFeeHtml(){
  if(!PA.fees.length)return '<div class="card"><div class="empty">청구된 내역이 없어요.</div></div>';
  const today=kstDay(),P=PA.pay||{};
  const rows=PA.fees.map(f=>{const p=f.paid_amount>=f.amount,od=!p&&f.due&&f.due<today;
-  return `<div class="axf ${p?'ok':od?'od':''}"><div><b>${esc(f.title)}</b><small>${f.due?f.due.slice(5).replace('-','/')+'까지':''}${p&&f.paid_at?' · '+new Date(f.paid_at).toLocaleDateString('ko-KR')+' 납부':''}</small></div><span class="axamt">${won(f.amount)}</span><span class="axst">${p?'납부 완료':od?'연체':'미납'}</span><span class="axab">${p?'':(P.clientKey?`<button class="p sm" onclick="paToss(${f.id})">결제하기</button>`:'')+(P.demo?`<button class="s sm" onclick="paDemo(${f.id})">데모 결제</button>`:'')}</span></div>`}).join('');
- return `<div class="card">${rows}${!P.clientKey&&!P.demo&&P.bank?`<div class="hint" style="margin-top:10px"><b>계좌 이체 안내</b><br>${esc(P.bank)}<br><small>이체하시면 선생님이 확인 후 납부 완료로 바꿔 드려요.</small></div>`:''}${P.clientKey&&P.bank?`<p class="tsn2">계좌 이체: ${esc(P.bank)}</p>`:''}</div>`}
-async function paDemo(id){if(!confirm('데모 결제예요. 실제 돈은 나가지 않고 납부 완료로만 바뀌어요. 진행할까요?'))return;try{const r=await rpc('pa_fee_demo_pay',{p_login:STUD.login,p_pw:STUD.pw,p_fee:id});const ok=r.ok&&await r.json();toast(ok?'납부 완료로 바뀌었어요':'결제하지 못했어요');PA.ld=0;pAttView()}catch(e){toast('결제하지 못했어요')}}
-async function paToss(id){const f=PA.fees.find(x=>x.id===id);if(!f)return;
- try{if(!window.TossPayments){await new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://js.tosspayments.com/v2/standard';s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
-  const tp=window.TossPayments(PA.pay.clientKey),pay=tp.payment({customerKey:'solvi-'+String(STUD.login).replace(/[^A-Za-z0-9_-]/g,'').slice(0,40).padEnd(2,'x')});
-  const base=location.origin+location.pathname;
-  await pay.requestPayment({method:'CARD',amount:{currency:'KRW',value:f.amount},orderId:'solvi-'+f.id+'-'+Date.now().toString(36),orderName:f.title,successUrl:base+'?tosspay='+f.id,failUrl:base+'?tosspay=fail',customerName:(STINFO&&STINFO.name)||undefined})
- }catch(e){if(e&&e.code!=='USER_CANCEL')toast('결제창을 열지 못했어요')}}
-async function tossReturn(){
- const q=new URLSearchParams(location.search),k=q.get('paymentKey'),o=q.get('orderId'),a=q.get('amount'),f=+q.get('tosspay');
- history.replaceState(null,'',location.pathname+location.hash);
- if(!k||!o||!a||!f||!STUD||!STUD.parent){if(q.get('tosspay')==='fail')toast('결제가 취소되었어요');return}
- toast('결제를 확인하는 중이에요…');
- try{const r=await fetch(base_()+'/functions/v1/toss-confirm',{method:'POST',headers:hdr({'Content-Type':'application/json'}),body:JSON.stringify({login:STUD.login,pw:STUD.pw,feeId:f,paymentKey:k,orderId:o,amount:+a})});const j=await r.json().catch(()=>({}));
-  toast(j.ok?'결제가 완료됐어요':(j.err||'결제를 확인하지 못했어요'));PA.ld=0;PA.sec='fee';tab='patt';render()}catch(e){toast('결제를 확인하지 못했어요')}}
+  return `<div class="axf ${p?'ok':od?'od':''}"><div><b>${esc(f.title)}</b><small>${f.due?f.due.slice(5).replace('-','/')+'까지':''}${p&&f.paid_at?' · '+new Date(f.paid_at).toLocaleDateString('ko-KR')+' 납부':''}</small></div><span class="axamt">${won(f.amount)}</span><span class="axst">${p?'납부 완료':od?'연체':'미납'}</span><span class="axab"></span></div>`}).join('');
+ return `<div class="card">${rows}${P.bank?`<div class="hint" style="margin-top:10px"><b>계좌 이체 안내</b><br>${esc(P.bank)}<br><small>입금하시면 선생님이 확인 후 납부 완료로 바꿔 드려요.</small></div>`:''}</div>`}
