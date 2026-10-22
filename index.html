@@ -1731,7 +1731,7 @@ async function finish(force){
  scrollTo(0,0);render()}
 /* ---------- 교재 탭 (books.js 를 처음 열 때 불러옴) ---------- */
 let _bkp=null;
-function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=55';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
+function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=56';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
 function booksView(){$('#main').innerHTML='<div class="card">'+ldg('교재를 불러오는 중…')+'</div>';bkLoad().then(()=>{if(tab==='books')return bkShow()}).then(()=>{if(tab==='books'&&typeof BKV!=='undefined'&&BKV.v==='shelf'&&!$('#bkstbar'))$('#main').insertAdjacentHTML('afterbegin','<div class="hint" id="bkstbar" style="margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span>교재를 얼마나 채점했는지, 어느 쪽이 남았는지 한눈에 볼 수 있어요.</span><button class="p sm" style="margin-left:auto" onclick="REC.m=\'book\';tab=\'rec\';render()">교재 현황 보기</button></div>')}).catch(()=>{$('#main').innerHTML='<div class="card"><h2>교재</h2><p>교재를 불러오지 못했습니다. 인터넷 연결을 확인하고 다시 눌러 주세요.</p><button class="p" onclick="render()">다시 시도</button></div>'})}
 function bkPageSolve(){const id=$('#bpb').value,n=parseInt($('#bp').value);if(!n){alert('쪽 번호를 입력하세요.');return}bkLoad().then(()=>bkSolve(id,n)).catch(()=>alert('교재를 불러오지 못했습니다.'))}
 function bkPageGo(){const g=+($('#bpgap')||{value:0}).value;const id=$('#bpb').value+(g?'~g'+g:''),n=parseInt($('#bp').value);if(!n){alert('쪽 번호를 입력하세요.');return}bkLoad().then(()=>bkGradePage(id,n)).catch(()=>alert('교재를 불러오지 못했습니다.'))}
@@ -2844,14 +2844,15 @@ const TBP={close:'<path d="M15 18l-6-6 6-6"/>',toc:'<path d="M8 6h13M8 12h13M8 1
 const tbI=k=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(TBP[k]||'')+'</svg>';
 const tbT=(id,click,title,ic,lab,cls,extra)=>'<button type="button" class="tbx'+(cls?' '+cls:'')+'"'+(id?' id="'+id+'"':'')+' onclick="'+click+'" title="'+title+'" aria-label="'+title+'"'+(extra?' '+extra:'')+'>'+tbI(ic)+'<span class="lb">'+lab+'</span></button>';
 const tbS=(id,change,title,ic,lab,opts)=>'<label class="tbx sel" title="'+title+'">'+tbI(ic)+'<span class="lb">'+lab+'</span><select id="'+id+'" onchange="'+change+'" aria-label="'+title+'">'+opts+'</select></label>';
-const THRCSS=`.thr{position:fixed;left:6px;top:64px;bottom:8px;width:128px;overflow:auto;z-index:31;display:flex;flex-direction:column;gap:8px;padding:8px 6px;box-sizing:border-box;background:var(--surface);border:1px solid var(--l);border-radius:12px;box-shadow:0 4px 16px #0002;overscroll-behavior:contain}.thr.off{display:none}
+const THRCSS=`.thr{position:fixed;left:6px;top:64px;bottom:8px;width:calc(var(--thw,128)*1px);overflow:auto;z-index:31;display:flex;flex-direction:column;gap:8px;padding:8px 6px;box-sizing:border-box;background:var(--surface);border:1px solid var(--l);border-radius:12px;box-shadow:0 4px 16px #0002;overscroll-behavior:contain}.thr.off{display:none}
 .thr .thi{display:block!important;flex:none;width:100%;text-align:center;padding:3px 0 2px;border:2px solid transparent;border-radius:8px;background:none;cursor:pointer;font:inherit;color:var(--m);min-height:0;box-shadow:none}.thr .thi.on{border-color:var(--b);color:var(--b);font-weight:700}.thr .thi small{display:block;font-size:11px;margin-top:3px}
-.thr .thp{width:108px;height:153px;margin:0 auto;background:#fff;box-shadow:0 1px 5px #0003;overflow:hidden;position:relative}.thr .ths{position:absolute;left:0;top:0;width:793.7px;height:1122.5px;transform:scale(.13607);transform-origin:0 0;pointer-events:none}
+.thr .thp{width:calc(var(--thw,128)*1px - 20px);height:calc((var(--thw,128)*1px - 20px)*1.4142);margin:0 auto;background:#fff;box-shadow:0 1px 5px #0003;overflow:hidden;position:relative}.thr .ths{position:absolute;left:0;top:0;width:793.7px;height:1122.5px;transform:scale(calc((var(--thw,128) - 20)/793.7));transform-origin:0 0;pointer-events:none}.thg{position:fixed;top:0;bottom:0;width:10px;margin-left:-5px;cursor:col-resize;z-index:32;touch-action:none}.thg::after{content:'';position:absolute;top:50%;left:3px;width:4px;height:42px;margin-top:-21px;border-radius:3px;background:currentColor;opacity:0;transition:opacity .15s}.thg:hover::after,.thg.on::after{opacity:.35}.thr.off+.thg{display:none}
 @media print{.thr{display:none!important}#wsPaper{zoom:1!important}}`;
 (()=>{const st=document.createElement('style');st.textContent=THRCSS;document.head.appendChild(st)})();
 function thumbOn(){try{const v=localStorage.getItem('omr_thumbs');return v==null?innerWidth>=1100:v==='1'}catch(e){return innerWidth>=1100}}
+function thumbW(){try{return Math.max(84,Math.min(300,+localStorage.getItem('omr_thw')||128))}catch(e){return 128}}
 function thumbSet(v){try{localStorage.setItem('omr_thumbs',v?'1':'0')}catch(e){}}
-function thumbRail(o){const old=o.parent.querySelector(':scope>.thr');if(old)old.remove();
+function thumbRail(o){o.parent.querySelectorAll(':scope>.thr,:scope>.thg').forEach(x=>x.remove());
  const doc=o.parent.ownerDocument,IO=doc.defaultView.IntersectionObserver;
  const r=doc.createElement('div');r.className='thr'+(thumbOn()?'':' off');r.setAttribute('role','navigation');r.setAttribute('aria-label','쪽 미리보기');
  const lb=i=>String(o.label?o.label(i):i+1);
@@ -2859,11 +2860,18 @@ function thumbRail(o){const old=o.parent.querySelector(':scope>.thr');if(old)old
  o.parent.appendChild(r);
  const io=new IO(es=>es.forEach(e=>{if(!e.isIntersecting)return;io.unobserve(e.target);const t=e.target.querySelector('.ths');if(t&&!t.dataset.f){t.dataset.f=1;try{o.render(t,+e.target.dataset.i)}catch(x){}}}),{root:r,rootMargin:'400px 0px'});
  r.querySelectorAll('.thi').forEach(b=>{io.observe(b);b.onclick=()=>o.go(+b.dataset.i)});
- r.setTop=px=>{r.style.top=px+'px'};return r}
+ const W0=thumbW();o.parent.style.setProperty('--thw',W0);
+ const g=doc.createElement('div');g.className='thg';g.title='끌어서 미리보기 크기 조절';g.setAttribute('role','separator');g.setAttribute('aria-orientation','vertical');o.parent.appendChild(g);
+ const place=()=>{const b=r.getBoundingClientRect();g.style.left=(b.right+1)+'px';g.style.top=b.top+'px';g.style.bottom='auto';g.style.height=b.height+'px';g.style.color=getComputedStyle(r).color||'#888'};
+ g.onpointerdown=e=>{e.preventDefault();g.setPointerCapture(e.pointerId);g.classList.add('on');const x0=e.clientX,w0=thumbW();let w=w0;
+  g.onpointermove=m=>{w=Math.max(84,Math.min(300,Math.round(w0+m.clientX-x0)));o.parent.style.setProperty('--thw',w);place()};
+  g.onpointerup=g.onpointercancel=()=>{g.classList.remove('on');o.onSize&&o.onSize();g.onpointermove=g.onpointerup=g.onpointercancel=null;try{localStorage.setItem('omr_thw',String(w))}catch(x){}}};
+ g.ondblclick=()=>{o.parent.style.setProperty('--thw',128);try{localStorage.removeItem('omr_thw')}catch(x){}place()};
+ r.setTop=px=>{r.style.top=px+'px';place()};r.place=place;setTimeout(place,0);doc.defaultView.addEventListener('resize',place);return r}
 function thumbAct(r,i){if(!r)return;const o=r.querySelector('.thi.on');if(o&&+o.dataset.i===i)return;if(o)o.classList.remove('on');const b=r.querySelector('.thi[data-i="'+i+'"]');if(!b)return;b.classList.add('on');
  const rb=b.getBoundingClientRect(),rr=r.getBoundingClientRect();if(rb.top<rr.top+4||rb.bottom>rr.bottom-4)r.scrollTop+=rb.top-rr.top-(rr.height-rb.height)/2}
-function thumbTog(sel){const r=document.querySelector(sel);if(!r)return;const on=r.classList.contains('off');r.classList.toggle('off',!on);thumbSet(on)}
-function wsThumbs(){const v=$('#wsView'),sh=$('#wsPaper').shadowRoot;const old=v.querySelector(':scope>.thr');if(old)old.remove();if(!sh||v.classList.contains('wsm'))return;
+function thumbTog(sel){const r=document.querySelector(sel);if(!r)return;const on=r.classList.contains('off');r.classList.toggle('off',!on);thumbSet(on);r.place&&setTimeout(r.place,0)}
+function wsThumbs(){const v=$('#wsView'),sh=$('#wsPaper').shadowRoot;v.querySelectorAll(':scope>.thr,:scope>.thg').forEach(x=>x.remove());if(!sh||v.classList.contains('wsm'))return;
  const pgs=[...sh.querySelectorAll('.pg')];if(pgs.length<2)return;const css=[...sh.querySelectorAll('style')].map(x=>x.outerHTML).join('');
  const view=v;let n=0;const nums=pgs.map(p=>p.classList.contains('wblank')?'빈 쪽':String(++n));
  const r=thumbRail({parent:v,n:pgs.length,label:i=>nums[i],render:(el,i)=>{const rt=el.attachShadow({mode:'open'});rt.innerHTML=css+'<style>.pg{margin:0!important;box-shadow:none!important}</style><div class="wrap"><div class="pages">'+pgs[i].outerHTML+'</div></div>'},
@@ -3287,7 +3295,7 @@ function popThumbs(w){const d=w.document;if(!d.body||d.querySelector('.thr'))ret
  if(pages.length<2)return;let n=0;const nums=pages.map(x=>cln(x)||String(++n));
  const st=d.createElement('style');st.textContent=THRCSS+'.thr{--surface:#fff;--l:#dde3ea;--m:#6b7684;--b:#2f7fd0;top:10px!important;z-index:99998;font-family:Pretendard,PretendardLocal,sans-serif}@media print{.thr{display:none!important}}';d.head.appendChild(st);
  const r=thumbRail({parent:d.body,n:pages.length,label:i=>nums[i],render:(el,i)=>{const rt=el.attachShadow({mode:'open'});rt.innerHTML=css+open+pages[i].outerHTML+close},go:i=>pages[i].scrollIntoView({behavior:'smooth',block:'start'})});
- const bar=d.getElementById('pbar');if(bar){const b=d.createElement('button');b.type='button';b.className='tbx';b.title='쪽 썸네일 보이기/숨기기';b.innerHTML=tbI('thumb')+'<span class="lb">썸네일</span>';b.onclick=()=>{const on=r.classList.contains('off');r.classList.toggle('off',!on);thumbSet(on)};bar.insertBefore(b,bar.firstChild)}
+ const bar=d.getElementById('pbar');if(bar){const b=d.createElement('button');b.type='button';b.className='tbx';b.title='쪽 썸네일 보이기/숨기기';b.innerHTML=tbI('thumb')+'<span class="lb">썸네일</span>';b.onclick=()=>{const on=r.classList.contains('off');r.classList.toggle('off',!on);thumbSet(on);r.place&&setTimeout(r.place,0)};bar.insertBefore(b,bar.firstChild)}
  let tk=0;w.addEventListener('scroll',()=>{if(tk)return;tk=w.requestAnimationFrame(()=>{tk=0;let k=0;pages.forEach((p,i)=>{if(p.getBoundingClientRect().top<=80)k=i});thumbAct(r,k)})},{passive:true});thumbAct(r,0)}
 const POPZ={z:1};
 function popBarInit(w){const d=w.document,bar=d.getElementById('pbar');if(!bar)return;
