@@ -439,7 +439,21 @@ const BKXK='omr_books_v1',BKXF={concept:1,ox:2,bl:4,basic:8,type:16,essay:32,all
 function bkxLocal(){try{return JSON.parse(localStorage.getItem(BKXK)||'[]')}catch(e){return[]}}
 function bkAsgRecs(){const o=[];(typeof BKASG!=='undefined'?BKASG:[]).forEach(a=>{try{const n=JSON.parse(a.note||'{}');if(n&&n.bk&&n.bk.id&&!o.some(x=>x.id===n.bk.id))o.push({...n.bk,asg:1,due:a.due||''})}catch(e){}});return o}
 function bkxAll(){const l=bkxLocal();bkAsgRecs().forEach(r=>{if(!l.some(x=>x.id===r.id))l.push(r)});return l}
-function bkxStore(a){try{localStorage.setItem(BKXK,JSON.stringify((a||[]).filter(x=>!x.asg)))}catch(e){}}
+function bkxStore(a){try{localStorage.setItem(BKXK,JSON.stringify((a||[]).filter(x=>!x.asg)))}catch(e){}bkxPushSoon()}
+/* ---------- 선생님 교재 목록을 계정(teacher_settings.data.books)에 보관해 다른 기기에서도 보이게 ---------- */
+const bkxCloudOk=()=>typeof teacher==='function'&&teacher()&&typeof cloud==='function'&&cloud()&&typeof sess!=='undefined'&&!!sess&&!(typeof STUD!=='undefined'&&STUD);
+let _bkxT=0,_bkxP=null,_bkxBusy=null;
+async function bkxWrite(d){try{const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:d,updated_at:new Date().toISOString()})});return r.ok}catch(e){return false}}
+function bkxMerge(cl,loc,del){const m=new Map();[...(cl||[]),...(loc||[])].forEach(b=>{if(!b||!b.id||del.has(b.id))return;const o=m.get(b.id);if(!o||(b.t||0)>=(o.t||0))m.set(b.id,b)});return [...m.values()].sort((a,b)=>(a.t||0)-(b.t||0))}
+async function bkxSync(force){if(!bkxCloudOk())return false;if(_bkxBusy)return _bkxBusy;if(!force&&Date.now()-_bkxT<15000)return false;
+ return _bkxBusy=(async()=>{try{_bkxT=Date.now();const d=await tsRaw();if(d===null)return false;const del=new Set(d.booksDel||[]);const loc=bkxLocal(),cl=d.books||[];const merged=bkxMerge(cl,loc,del);
+  const changedLocal=JSON.stringify(merged)!==JSON.stringify(loc);
+  if(changedLocal)try{localStorage.setItem(BKXK,JSON.stringify(merged))}catch(e){}
+  if(JSON.stringify(merged)!==JSON.stringify(cl)){d.books=merged;await bkxWrite(d)}
+  return changedLocal}catch(e){return false}finally{_bkxBusy=null}})()}
+function bkxPushSoon(){if(!bkxCloudOk())return;clearTimeout(_bkxP);_bkxP=setTimeout(async()=>{try{const d=await tsRaw();if(d===null)return;const del=new Set(d.booksDel||[]);d.books=bkxMerge(d.books,bkxLocal(),del);
+  await bkxWrite(d)}catch(e){}},600)}
+async function bkxTomb(id){if(!bkxCloudOk())return;try{const d=await tsRaw();if(d===null)return;d.booksDel=[...new Set([...(d.booksDel||[]),id])].slice(-300);d.books=(d.books||[]).filter(b=>b.id!==id);await bkxWrite(d)}catch(e){}}
 function bkxId(subj,d){
  if(d.kind==='free')return subj+'-xf'+bkfPayload(d);
  const lvS=(d.lv&&d.lv!==15?'l'+d.lv.toString(16):'');
@@ -805,6 +819,7 @@ function bkBookList(){const S=bkSel();const sk=bkScope(S).map(s=>s.k),inS=k=>sk.
  return L}
 async function bkShow(){
  await bkInit();await conceptLoad();
+ if(!BKV._synced){BKV._synced=1;bkxSync(true).then(ch=>{if(ch&&tab==='books'&&BKV.v==='shelf')bkShow()})}
  if(BKV.id&&bkParts(BKV.id)&&bkParts(BKV.id).subj!==SUBJ){BKV={v:'shelf',id:null}}
  if(BKV.v==='new'&&(bkIsStud()||(BKV.d&&BKV.d.subj&&BKV.d.subj!==SUBJ)))BKV={v:'shelf',id:null}
  if(BKV.v==='read'&&BKV.id)return bkReader(BKV.id);
@@ -1414,7 +1429,7 @@ function bkxSaveBook(){bkxRead();const d=BKV.d;let nm=(d.name||'').trim();if(!nm
  delete BKP[id];Object.keys(BKP).forEach(k=>{if(k.startsWith(id+'r'))delete BKP[k]});
  BKV={v:'shelf',id:null};toast('교재를 만들었어요');render();scrollTo(0,0)}
 function bkxDel(id){const b=bkxAll().find(x=>x.id===id);if(!b||b.asg||!confirm('「'+b.name+'」 교재를 삭제할까요?\n(이미 인쇄한 책의 QR은 그대로 채점돼요)'))return;
- bkxStore(bkxAll().filter(x=>x.id!==id));Object.keys(BKP).forEach(k=>{if(k===id||k.startsWith(id+'r'))delete BKP[k]});bkShow()}
+ bkxStore(bkxAll().filter(x=>x.id!==id));bkxTomb(id);Object.keys(BKP).forEach(k=>{if(k===id||k.startsWith(id+'r'))delete BKP[k]});bkShow()}
 function bkBuilder(){if(BKV.d&&BKV.d.kind==='free')return bkfBuilder();const d=BKV.d,subs=bkSubs();const S=bkSel();
  const chip=k=>`<button class="${d.kind===k?'p':'s'}" onclick="bkxKind('${k}')" style="text-align:left;padding:10px 12px;border-radius:10px;min-width:0"><b style="display:block;font-size:14px">${BKK[k][0]}</b><small style="font-weight:400;opacity:.8">${BKK[k][1]}</small></button>`;
  const ck=(k,l)=>`<label class="chk"><input type="checkbox" id="bxi_${k}" ${d.inc[k]?'checked':''} onchange="bkxRead();bkxEst()"> ${l}</label>`;
