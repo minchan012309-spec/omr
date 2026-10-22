@@ -19,7 +19,7 @@ async function tsetView(){
  const off=Object.keys(P).filter(k=>P[k]===false).length;const mq=permNumT('maxQ',60);
  const NAV=[['acad','학원 정보'],['perm','학생 권한'],['ws','학습지'],['bk','교재'],['ui','화면'],['msg','알림·도움말'],['data','데이터·서버'],['join','가입'],['bug','신고'],['acct','계정']];
  $('#main').innerHTML=`<div class="tsh"><div><h1>학원 설정</h1><p>학원 이름·로고, 학생이 쓸 수 있는 기능, 학습지·교재 기본값을 정해요. 내 화면 설정은 오른쪽 위 ⚙ 「개인화 설정」에서 바꿔요.</p></div><div class="tsb"><span class="${off?'warn':''}">학생 기능 ${off?off+'개 제한':'모두 허용'}</span><span>${cloud()&&sess?'온라인 저장 연결됨':'이 기기에만 저장'}</span></div></div>
- <div class="dvl"><nav class="dvn">${NAV.map(([k,l])=>`<button data-k="${k}" onclick="tsSel('${k}')">${l}</button>`).join('')}</nav><div class="dvr">
+ <div class="dvl ts tp-${PREF.tsPos==='top'?'top':'left'} tz-${['s','l'].includes(PREF.tsSize)?PREF.tsSize:'m'}"><nav class="dvn" aria-label="설정 항목">${NAV.map(([k,l])=>`<button data-k="${k}" onclick="tsSel('${k}')">${l}</button>`).join('')}<div class="tsl" role="group" aria-label="탭 배치"><span>탭 위치</span><div class="tseg"><button class="${PREF.tsPos==='top'?'':'on'}" onclick="tsLay('tsPos','left')">왼쪽</button><button class="${PREF.tsPos==='top'?'on':''}" onclick="tsLay('tsPos','top')">위쪽</button></div><span>크기</span><div class="tseg">${[['s','작게'],['m','보통'],['l','크게']].map(([v,n])=>`<button class="${(['s','l'].includes(PREF.tsSize)?PREF.tsSize:'m')===v?'on':''}" onclick="tsLay('tsSize','${v}')">${n}</button>`).join('')}</div></div></nav><div class="dvr">
  ${sec('acad','students','학원 정보','왼쪽 위 로고 옆과 학습지 머리글에 쓰이는 학원 이름·로고예요. 학생 화면에도 똑같이 보여요.',(()=>{const c=acCfg(),rp=jget('omr_rep_v1',[]);const mo=(v,t,d)=>`<label class="acm ${c.mode===v?'on':''}"><input type="radio" name="acmode" value="${v}" ${c.mode===v?'checked':''} onchange="acMode('${v}')"><b>${t}</b><small>${d}</small></label>`;
   return (cloud()&&sess?'':'<div class="hint"><b>온라인 저장에 로그인해야 학생 화면에도 표시돼요.</b></div>')+
   `<div class="tgp"><h3>왼쪽 위에 표시할 것</h3><div class="acms">${mo('text','학원 이름','글자로 Solvi 옆에 표시')}${mo('logo','로고 이미지','올린 이미지를 표시')}${mo('none','표시 안 함','Solvi만 표시')}</div></div>
@@ -53,6 +53,7 @@ async function tsetView(){
  ${sec('acct','students','계정','이 기기에 저장된 계정을 전환하거나 로그아웃해요.',`<div id="acctbox">${acctHtml()}</div>`)}</div></div>`;tsSel(TSEL);bugLoad().then(bugRender)}
 
 let TSEL='acad';
+function tsLay(k,v){PREF[k]=v;prefSave();const d=document.querySelector('.dvl.ts');if(!d)return;d.className='dvl ts tp-'+(PREF.tsPos==='top'?'top':'left')+' tz-'+(['s','l'].includes(PREF.tsSize)?PREF.tsSize:'m');d.querySelectorAll('.tsl .tseg').forEach(g=>{const ks=g.parentNode.querySelectorAll('.tseg');const isPos=g===ks[0];g.querySelectorAll('button').forEach(b=>{const bv=b.getAttribute('onclick').match(/'([^']+)'\)$/)[1];b.classList.toggle('on',bv===(isPos?(PREF.tsPos==='top'?'top':'left'):(['s','l'].includes(PREF.tsSize)?PREF.tsSize:'m')))})})}
 
 function tsSel(k){if(!document.getElementById('ts_'+k))k='acad';TSEL=k;document.querySelectorAll('.dvr>.tsc').forEach(e=>{e.hidden=e.id!=='ts_'+k});document.querySelectorAll('.dvn button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k))}
 
