@@ -884,9 +884,17 @@ html:not([data-theme=dark]) .card{background:#ffffffc7;-webkit-backdrop-filter:b
 html:not([data-theme=dark]) .stick,html:not([data-theme=dark]) .mkgo{background:#ffffffd9;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 @media(max-width:720px){html:not([data-theme=dark]) nav{background:#ffffffe6;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}}
 html:not([data-theme=dark]) .warn,.warn{background:color-mix(in srgb,var(--y) 14%,#ffffffcc);border:1px solid color-mix(in srgb,var(--y) 45%,transparent);border-radius:12px}
-/* 안내 상자: 노란 면 대신 연한 유리 + 왼쪽 포인트 */
-.hint{background:color-mix(in srgb,var(--b) 7%,#ffffffcc);border:1px solid color-mix(in srgb,var(--b) 18%,transparent);border-left:3px solid var(--y);border-radius:12px;padding:10px 14px;color:var(--m);line-height:1.6}
-html[data-theme=dark] .hint{background:#ffffff0d;border-color:#ffffff1f;border-left-color:var(--y)}
+/* 안내 상자: 색 면·색 선 없이, 회색 바탕에 작은 글씨 */
+.hint,.warn,.dsum.warn,.sfhint,.lockb,.wnm,.dgwn{background:var(--sf2)!important;border:0!important;border-radius:12px!important;color:var(--m2)!important;box-shadow:none!important}
+.hint,.warn,.sfhint,.lockb,.wnm{padding:10px 14px;line-height:1.6}
+.hint b,.warn b,.lockb b,.wnm b{color:var(--t)}
+.dgwn{padding:8px 12px!important}.dgwn b{color:var(--t)!important}
+.cbi .cbwk{background:var(--sf2)!important;color:var(--m2)!important;border:0!important}.cbi .cbwk::before{background:var(--m)!important}
+#pvbar{background:var(--surface)!important;border-bottom:1px solid var(--l)!important;color:var(--t)}
+.exbar.w1{background:var(--sf2)!important;border-color:var(--l)!important}
+html[data-theme=dark] .hint,html[data-theme=dark] .warn,html[data-theme=dark] .dsum.warn,html[data-theme=dark] .sfhint,html[data-theme=dark] .lockb,html[data-theme=dark] .wnm,html[data-theme=dark] .dgwn{background:#ffffff0f!important;color:#aab4c2!important}
+html[data-theme=dark] .hint b,html[data-theme=dark] .warn b,html[data-theme=dark] .lockb b,html[data-theme=dark] .wnm b,html[data-theme=dark] .dgwn b{color:var(--t)!important}
+html[data-theme=dark] #pvbar{background:var(--surface)!important}
 </style>
 <style>
 /* 학원 설정 탭: 위치(왼쪽/위쪽)·크기 선택, 애플 스타일 */
