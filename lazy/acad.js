@@ -97,7 +97,7 @@ function acNoteHtml(){
  const wo='<option value="">첨부 안 함</option>'+ws.map(w=>`<option value="${esc(w.id)}">${esc(w.title)} · ${esc(fmtNo(w.id))}</option>`).join('');
  const tag={all:'학생·학부모',parent:'학부모',student:'학생'};
  const list=AC.notes.map(n=>`<div class="axnl"><div><b>${esc(n.title)}</b><small>${new Date(n.t).toLocaleString('ko-KR')} · ${n.sid?esc(acStuName(n.sid)):'전체'} · ${tag[n.aud]||'학생'}</small><p>${esc(n.body).replace(/\n/g,'<br>')}</p></div><button class="s sm" onclick="acNoteDel('${n.src}',${n.id})">삭제</button></div>`).join('');
- return `<div class="card"><h2 style="margin-top:0">알림장 쓰기</h2><p class="m" style="margin:0 0 12px">오늘 수업 진도와 숙제를 적어 학생과 학부모에게 보내요. 학생은 알림(종)에서, 학부모는 「안내문」에서 봐요.</p>
+ return `<div class="card axform"><h2 style="margin-top:0">알림장 쓰기</h2><p class="m" style="margin:0 0 12px">오늘 수업 진도와 숙제를 적어 학생과 학부모에게 보내요. 학생은 알림(종)에서, 학부모는 「안내문」에서 봐요.</p>
  <div class="g2"><div class="fld"><label>받는 사람</label><select id="ntTo">${opts}</select></div><div class="fld"><label>보낼 곳</label><select id="ntAud"><option value="all">학생 + 학부모</option><option value="parent">학부모만</option><option value="student">학생만</option></select></div></div>
  <div class="fld" style="margin-top:10px"><label>오늘 진도</label><input id="ntP" maxlength="120" placeholder="예) 유형서 p.12~15 · 엔탈피와 열화학 반응식"></div>
  <div class="g2" style="margin-top:10px"><div class="fld"><label>숙제</label>${acTplChips('hw')}<textarea id="ntH" style="width:100%" rows="2" maxlength="300" placeholder="예) 유형서 p.16~17 풀어오기"></textarea></div><div class="fld"><label>숙제 학습지 붙이기 <small class="m">번호가 함께 들어가요</small></label><select id="ntW">${wo}</select></div></div>

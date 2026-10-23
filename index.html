@@ -324,6 +324,11 @@ mark.hl{background:#ffe27a;color:inherit;border-radius:2px;padding:0 1px}
 @media(max-width:420px){.tcs{grid-template-columns:1fr}}
 @media(max-width:900px){.g2s .resc{order:-1}}
 @media(max-width:720px){nav{overflow-x:auto;justify-content:flex-start}nav button{flex:1 0 auto;padding:12px 13px 14px;white-space:nowrap}}
+@media(max-width:720px){nav{overflow:visible;justify-content:space-around}nav button{flex:1 1 0;padding:12px 2px 14px}}
+#navmore{position:fixed;inset:0;z-index:40}#navmore .nmb{position:absolute;inset:0;background:#0006;animation:nmf .2s}#navmore .nms{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:24px 24px 0 0;padding:10px 16px calc(24px + env(safe-area-inset-bottom));animation:nmu .25s cubic-bezier(.2,.8,.2,1)}.nmh{display:block;width:40px;height:4px;border-radius:2px;background:var(--l);margin:0 auto 14px}.nmg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.nmg button{border:0;background:var(--bg2,#f2f4f6);color:inherit;font:inherit;font-size:15px;padding:16px 6px;border-radius:14px;cursor:pointer}@keyframes nmu{from{transform:translateY(100%)}}@keyframes nmf{from{opacity:0}}
+@media(max-width:520px){.axform .g2{grid-template-columns:1fr}}
+textarea{font-family:inherit}
+
 
 #bkbar{max-width:calc(100vw - 16px)}
 @media(max-width:720px){#bkbar{left:8px;right:8px;transform:none;flex-wrap:wrap;justify-content:space-between;padding:8px 10px;gap:6px}#bkbar span{flex:1 0 100%;font-size:14px}#bkbar button{flex:1;white-space:nowrap;padding:8px 6px;font-size:14px}}
@@ -1370,7 +1375,11 @@ function navCustom(L){const hide=new Set(PREF.navHide||[]),ord=PREF.navOrder||[]
 function nav(){const hb=document.getElementById('helpBtn');if(hb)hb.hidden=!STUD||!!STUD.parent||!permOn('tour');
 const PK={satt:'att',smap:'make',stat:'stat',rec:'stat',concept:'concept',books:'books',wrong:'wrong',diag:'diag',tasks:'tasks',enter:'enter',shist:'shist'};
 const T=STUD?STUD.parent?PT():[['home','홈'],['tasks','과제'],['satt','출결'],['enter','채점'],['wrong','오답노트'],['stat','유형 분석'],...(ft('rec')?[['rec','학습 현황']]:[]),['concept','개념학습'],['books','교재'],['smap','학습지 만들기'],['shist','기록']].filter(([k])=>!PK[k]||permOn(PK[k])):teacher()?navCustom([['thome','홈'],['grade','채점'],['weak','취약 유형'],['concept','개념학습'],['books','교재'],['ws','학습지'],['wrong','오답노트'],['stu','학생'+(SG.list.length?' ('+SG.list.length+')':'')],['att','출결·수납'],['diary','알림장'],['stat','누적 분석'],...(ft('rec')?[['rec','학습 현황']]:[]),['search','문항 검색'],['tset','학원 설정'+(BUG.list.length?' ('+BUG.list.length+')':'')],...(DEV.ok?[['dev','개발자']]:[])]):[['enter','번호 채점']];
- if(!T.find(x=>x[0]===tab)&&!(tab==='grade'&&cur)&&!(tab==='prac'&&PR)&&!(tab==='sim'||tab==='chal')&&!((tab==='build'||tab==='bdesign'||tab==='bmake'||tab==='wsedit'||tab==='review')&&teacher())&&!(tab==='prac'&&STUD)&&!(tab==='mock'&&teacher()))tab=T[0][0];$('#nav').innerHTML=T.map(([k,v])=>`<button class="${tab===k||(k==='ws'&&['build','bdesign','review'].includes(tab))||(k===(STUD?'stat':'weak')&&(tab==='sim'||tab==='chal'))||(k==='books'&&tab==='mock')||(k==='enter'&&tab==='grade'&&STUD)?'on':''}" onclick="navGo('${k}')">${v}</button>`).join('')}
+ if(!T.find(x=>x[0]===tab)&&!(tab==='grade'&&cur)&&!(tab==='prac'&&PR)&&!(tab==='sim'||tab==='chal')&&!((tab==='build'||tab==='bdesign'||tab==='bmake'||tab==='wsedit'||tab==='review')&&teacher())&&!(tab==='prac'&&STUD)&&!(tab==='mock'&&teacher()))tab=T[0][0];const isOn=k=>tab===k||(k==='ws'&&['build','bdesign','review'].includes(tab))||(k===(STUD?'stat':'weak')&&(tab==='sim'||tab==='chal'))||(k==='books'&&tab==='mock')||(k==='enter'&&tab==='grade'&&STUD);
+ const mob=innerWidth<=720&&T.length>5,main=mob?T.slice(0,4):T,rest=mob?T.slice(4):[];window._navMob=mob;window._navRest=rest;
+ $('#nav').innerHTML=main.map(([k,v])=>`<button class="${isOn(k)?'on':''}" onclick="navGo('${k}')">${v}</button>`).join('')+(rest.length?`<button class="${rest.some(x=>isOn(x[0]))?'on':''}" onclick="navMore()" aria-haspopup="dialog">더보기</button>`:'')}
+function navMore(){const r=window._navRest||[];let d=$('#navmore');if(d)d.remove();d=document.createElement('div');d.id='navmore';d.innerHTML=`<div class="nmb" onclick="this.parentNode.remove()"></div><div class="nms" role="dialog" aria-label="전체 메뉴"><i class="nmh"></i><div class="nmg">${r.map(([k,v])=>`<button onclick="document.getElementById('navmore').remove();navGo('${k}')">${v}</button>`).join('')}</div></div>`;document.body.appendChild(d)}
+addEventListener('resize',()=>{clearTimeout(window._nrt);window._nrt=setTimeout(()=>{if(window._navMob!==undefined&&(innerWidth<=720)!==!!window._navMob&&document.getElementById('nav'))nav()},150)})
 let _navKey=null;
 function goHome(){const k=STUD?'home':(teacher()?'thome':'enter');if(cur&&tab==='grade'&&!cur.done&&!confirm('채점을 그만둘까요? 입력한 내용은 저장되지 않습니다.'))return;if(cur&&tab==='grade'){clearInterval(_tm);if(!cur.done)gdraftClear();cur=null}PR=null;$('#exp').classList.remove('open');tab=k;render();scrollTo(0,0)}
 function navGo(k){if((k==='grade'||k==='enter')&&cur&&tab==='grade'){if(!cur.done&&!confirm('채점을 그만둘까요? 입력한 내용은 저장되지 않습니다.'))return;clearInterval(_tm);cur=null}if((k==='weak'||k==='build')&&tab===k)resetW();tab=k;render()}
@@ -1492,7 +1501,7 @@ const navSel=k=>`#nav button[onclick*="'${k}'"]`;
 const TOURS={
  intro:{name:'처음 시작하기',desc:'학습지를 만들고 화면에서 풀어 봐요',steps:[
   {welcome:1,text:'Solvi에 온 걸 환영해요! 직접 눌러 보며 기능을 익혀 볼까요? 1분이면 끝나요.'},
-  {sel:'#nav',text:'메뉴로 화면을 옮겨 다녀요. 옆으로 밀면 더 보여요.',next:1},
+  {sel:'#nav',text:'메뉴로 화면을 옮겨 다녀요. 모바일에서는 「더보기」에 나머지 메뉴가 있어요.',next:1},
   {sel:navSel('smap'),text:'「학습지 만들기」를 눌러 보세요.',click:1},
   {sel:'.heat .cell',text:'풀고 싶은 유형을 눌러 고르세요. 해골·빨강 표시가 먼저 보강할 유형이에요.',until:()=>W.sel.size>0},
   {sel:'.stick .p',text:'「화면에서 풀기」를 누르면 바로 풀 수 있어요. 인쇄가 필요하면 왼쪽 「인쇄용으로 만들기」를 쓰세요.',click:1},
