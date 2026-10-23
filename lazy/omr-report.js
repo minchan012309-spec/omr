@@ -87,7 +87,7 @@ function repRender(){const days=REP.days,cls=REP.kind==='cls';let body='',title=
   <div class="g2"><div><h2>반이 어려워하는 유형</h2>${CS.tr.slice(0,5).length?`<table><tr><th>유형</th><th>정답률</th><th>풀이</th></tr>${CS.tr.slice(0,5).map(o=>`<tr><td class="l">${esc2(o.type)}</td><td><b style="color:#d9534f">${Math.round(o.p*100)}%</b></td><td>${o.n}</td></tr>`).join('')}</table>`:'<div style="color:#586476">기록이 없어요.</div>'}</div>
   <div><h2>이 기간에 안 푼 학생</h2><div>${rowsS.filter(r=>!r.m.P.n).map(r=>esc2(r.x.name)).join(', ')||'모두 풀었어요!'}</div></div></div>
   <h2>선생님 코멘트</h2><div class="cm" contenteditable="true" oninput="REP.cm=this.innerText">${esc2(REP.cm)}</div>`}
- mount($('#wsPaper'),`<style>${css}</style><div class="pg">${body}<div class="ft">Solvi · ${esc2(title)} · ${now}</div></div>`);
+ mount($('#wsPaper'),`<style>${css}</style><div class="pg"><div style="position:absolute;right:15mm;top:13mm">${footLogoHtml(7)}</div>${body}<div class="ft">Solvi · ${esc2(title)} · ${now}</div></div>`);
  $('#wsBar').innerHTML=`<button class="p" onclick="window.print()">인쇄 / PDF로 저장</button><span class="seg" style="margin:0 8px">${[7,14,30].map(d=>`<label><input type="radio" name="rd" ${REP.days===d?'checked':''} onchange="repDays(${d})"><span>${d}일</span></label>`).join('')}</span><button class="wsx" onclick="closeWs()" title="닫기" aria-label="닫기">✕</button><span class="m">인쇄 창에서 「PDF로 저장」을 고르면 파일로 받을 수 있어요 · 코멘트는 페이지 아래 칸에서 직접 쓸 수 있어요</span>`;
  let ps=document.getElementById('wsPrintStyle');if(!ps){ps=document.createElement('style');ps.id='wsPrintStyle';document.head.appendChild(ps)}ps.textContent='@page{size:A4;margin:0}';$('#wsView').classList.add('open');pushNav()}
 
@@ -167,6 +167,7 @@ function omrCardL(id){const w=WSH.find(x=>x.id===id);if(!w)return;const qs=w.cod
  <div class="qrb">${qrSvg(url)}<b>${fmtNo(w.id)}</b></div>
  <div class="nb2"><em>답안 표기 방법</em><div class="ex"><i class="f"></i>올바른 표기</div><div class="ex"><u>✓ ✗ ○ ◔</u>잘못된 표기</div>칸 안을 <b style="position:static;transform:none;font-size:inherit;color:#1b2430">진하게 모두</b> 칠해요. 복수 정답은 모두 칠하고, 네 모서리의 검은 네모는 가리지 마세요.</div>
  ${zeb.join('')}${blk.join('')}${nums.join('')}${bub}
+ <div style="position:absolute;left:20mm;top:194.2mm">${footLogoHtml(5)}</div>
  <div class="ft">${esc(w.title)} · 번호 ${fmtNo(w.id)} · 채점 화면의 「OMR 사진으로 입력」으로 읽어요${n>G.cap?` · ${G.cap}번까지만 인쇄돼요`:''}</div></div>`;
  mount($('#wsPaper'),html);omrBar(id,'L');
  let ps=document.getElementById('wsPrintStyle');if(!ps){ps=document.createElement('style');ps.id='wsPrintStyle';document.head.appendChild(ps)}ps.textContent='@page{size:A4 landscape;margin:0}';$('#wsView').classList.add('open');pushNav()}
@@ -196,7 +197,7 @@ function omrCardP(id){const w=WSH.find(x=>x.id===id);if(!w)return;const qs=w.cod
 .pg .tb{position:absolute;left:24mm;top:10mm;width:30mm;height:14mm;background:${RD};color:#fff;border-radius:1.5mm;text-align:center;font-weight:800;font-size:17pt;letter-spacing:.12em;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-left:.12em}.pg .tb small{font-size:6.5pt;letter-spacing:.3em;font-weight:600;margin-bottom:1mm;padding-left:.3em}
 .h{position:absolute;left:58mm;width:104mm;top:10mm}.h strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:${mock?'15':'13.5'}pt;line-height:1.25;color:${RD}}.h span{display:block;font-size:9pt;color:#586476;margin-top:1.2mm}
 .qrb{position:absolute;left:165mm;top:8mm;width:22mm;text-align:center}.qrb svg{width:22mm;height:22mm;display:block}.qrb b{position:static;transform:none;display:block;font-family:ui-monospace,Menlo,monospace;font-size:7pt;letter-spacing:.1em;font-weight:400;margin-top:.5mm;color:#1b2430}
-.note{position:absolute;left:24mm;right:24mm;bottom:12mm;font-size:7.4pt;color:#586476;line-height:1.5;text-align:center}.note b{position:static;transform:none;font-weight:700;font-size:inherit;color:${RD}}.note .ok{color:#111}.ft{position:absolute;left:24mm;right:24mm;bottom:8mm;font-size:7.5pt;color:#8794a3;text-align:center}@media print{.pg{box-shadow:none;margin:0}}</style>
+.note{position:absolute;left:24mm;right:24mm;bottom:12mm;font-size:7.4pt;color:#586476;line-height:1.5;text-align:center}.note b{position:static;transform:none;font-weight:700;font-size:inherit;color:${RD}}.note .ok{color:#111}.ft{position:absolute;left:24mm;right:24mm;bottom:8mm;padding-left:38mm;font-size:7.5pt;color:#8794a3;text-align:center}@media print{.pg{box-shadow:none;margin:0}}</style>
  <div class="pg" data-n="${n}">${mk}<div class="tb"><small>OMR</small>답안지</div><div class="h"><strong>${esc(w.title)}</strong><span>${esc(subjN)}${mock&&cv.area?' · '+esc(cv.area):''} · ${n}문항 · ${new Date(w.t).toLocaleDateString('ko-KR')}</span></div>
  <div class="qrb">${qrSvg(url)}<b>${fmtNo(w.id)}</b></div><div class="fr"></div><div class="fr2"></div><div class="ip"></div>
  <span class="bt" style="left:24mm;top:41mm">성 명</span><div class="box" style="left:38mm;top:37.5mm;width:54mm;height:7.5mm"></div>
@@ -205,6 +206,7 @@ function omrCardP(id){const w=WSH.find(x=>x.id===id);if(!w)return;const qs=w.cod
  <span class="bt" style="left:24mm;top:82mm">감독 확인</span><div class="box" style="left:38mm;top:73.5mm;width:25mm;height:14mm"></div><span class="bt" style="left:66mm;top:82mm">점 수</span><div class="box" style="left:76mm;top:73.5mm;width:16mm;height:14mm"></div>
  ${grpLab}${ib}${blk.join('')}${nums}${bub}
  <div class="note"><b>답안 표기 방법</b> 올바른 표기 <span class="ok">●</span> · 잘못된 표기 ✓ ✗ ○ — 정답 칸을 <b>진하게 칠하세요</b>(✓ 표시는 인식이 어려워요). 복수 정답은 모두 칠합니다. ${mock?'수험번호·과목번호·형도 해당 숫자를 칠하세요. ':'학년·반·번호도 해당 숫자를 칠하세요. '}네 모서리의 검은 네모는 가리지 마세요.</div>
+ <div style="position:absolute;left:24mm;bottom:5.4mm">${footLogoHtml(4.6)}</div>
  <div class="ft">${esc(w.title)} · 번호 ${fmtNo(w.id)} · 채점 화면의 「OMR 사진으로 입력」으로 읽어요${n>G.cap?` · ${G.cap}번까지만 인쇄돼요`:''}</div></div>`;
  mount($('#wsPaper'),html);omrBar(id,'P');
  let ps=document.getElementById('wsPrintStyle');if(!ps){ps=document.createElement('style');ps.id='wsPrintStyle';document.head.appendChild(ps)}ps.textContent='@page{size:A4;margin:0}';$('#wsView').classList.add('open');pushNav()}
