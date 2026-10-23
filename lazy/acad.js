@@ -24,7 +24,7 @@ async function attView(){
 async function diaryView(){
  const m=$('#main');if(needCloud()){m.innerHTML=atNeed;return}
  if(!AC.ld||AC.sec!=='diary'){AC.sec='diary';m.innerHTML='<div class="card">'+ldg('불러오는 중…')+'</div>';AC.err='';
-  try{AC.stu=await acJ('/rest/v1/students?select=id,name,grade,phone,att_pin&order=name.asc&limit=2000');const a=await acJ('/rest/v1/notices?select=*&order=t.desc&limit=60');let b=[];try{b=await acJ('/rest/v1/parent_notices?select=*&order=created_at.desc&limit=30')}catch(e){}AC.notes=[...a.map(n=>({src:'n',id:n.id,title:n.title,body:n.body,t:+n.t,sid:n.student_id,aud:n.audience||'student'})),...b.map(n=>({src:'p',id:n.id,title:n.title,body:n.body,t:new Date(n.created_at).getTime(),sid:n.student_id,aud:'parent'}))].sort((x,y)=>y.t-x.t);AC.ld=1}
+  try{AC.stu=await acJ('/rest/v1/students?select=id,name,grade,phone,att_pin&order=name.asc&limit=2000');const a=await acJ('/rest/v1/notices?select=*&order=t.desc&limit=60');let b=[];try{b=await acJ('/rest/v1/parent_notices?select=*&order=created_at.desc&limit=30')}catch(e){}AC.notes=[...a.map(n=>({src:'n',id:n.id,title:n.title,body:n.body,t:+n.t,sid:n.student_id,aud:n.audience||'student'})),...b.map(n=>({src:'p',id:n.id,title:n.title,body:n.body,t:new Date(n.created_at).getTime(),sid:n.student_id,aud:'parent'}))].sort((x,y)=>y.t-x.t);AC.tpl=Object.assign({hw:[],msg:[]},((await tsRaw())||{}).diaryTpl||{});AC.ld=1}
   catch(e){AC.err=acMissing(e)?'sql':'불러오지 못했어요. 연결을 확인해 주세요.'}}
  m.innerHTML=`<div class="tsh"><div><h1>알림장</h1><p>오늘 나간 진도와 숙제를 학생·학부모에게 보내요.</p></div></div>${AC.err==='sql'?SQLMSG:AC.err?`<div class="hint">${esc(AC.err)}</div>`:acNoteHtml()}`}
 function acSec(k){AC.sec=k;AC.ld=0;attView()}
@@ -100,11 +100,20 @@ function acNoteHtml(){
  return `<div class="card"><h2 style="margin-top:0">알림장 쓰기</h2><p class="m" style="margin:0 0 12px">오늘 수업 진도와 숙제를 적어 학생과 학부모에게 보내요. 학생은 알림(종)에서, 학부모는 「안내문」에서 봐요.</p>
  <div class="g2"><div class="fld"><label>받는 사람</label><select id="ntTo">${opts}</select></div><div class="fld"><label>보낼 곳</label><select id="ntAud"><option value="all">학생 + 학부모</option><option value="parent">학부모만</option><option value="student">학생만</option></select></div></div>
  <div class="fld" style="margin-top:10px"><label>오늘 진도</label><input id="ntP" maxlength="120" placeholder="예) 유형서 p.12~15 · 엔탈피와 열화학 반응식"></div>
- <div class="g2" style="margin-top:10px"><div class="fld"><label>숙제</label><textarea id="ntH" style="width:100%" rows="2" maxlength="300" placeholder="예) 유형서 p.16~17 풀어오기"></textarea></div><div class="fld"><label>숙제 학습지 붙이기 <small class="m">번호가 함께 들어가요</small></label><select id="ntW">${wo}</select></div></div>
- <div class="fld" style="margin-top:10px"><label>전달 사항</label><textarea id="ntB" style="width:100%" rows="2" maxlength="500" placeholder="예) 다음 주 수요일 쪽지시험이 있어요"></textarea></div>
+ <div class="g2" style="margin-top:10px"><div class="fld"><label>숙제</label>${acTplChips('hw')}<textarea id="ntH" style="width:100%" rows="2" maxlength="300" placeholder="예) 유형서 p.16~17 풀어오기"></textarea></div><div class="fld"><label>숙제 학습지 붙이기 <small class="m">번호가 함께 들어가요</small></label><select id="ntW">${wo}</select></div></div>
+ <div class="fld" style="margin-top:10px"><label>전달 사항</label>${acTplChips('msg')}<textarea id="ntB" style="width:100%" rows="2" maxlength="500" placeholder="예) 다음 주 수요일 쪽지시험이 있어요"></textarea></div>
  <div class="fld" style="margin-top:10px"><label>제목 <small class="m">비우면 「10월 23일 알림장」으로 보내요</small></label><input id="ntT" maxlength="60"></div>
  <button class="p axwide" onclick="acNoteSend()">알림장 보내기</button></div>
  <div class="card"><h2 style="margin-top:0">보낸 알림장 · 안내문</h2>${list||'<div class="empty">아직 보낸 글이 없어요.</div>'}</div>`}
+const TPK={hw:'ntH',msg:'ntB'};
+function acTplChips(k){const L=(AC.tpl&&AC.tpl[k])||[];return `<div class="axtpl" data-k="${k}">${L.map((t,i)=>`<span class="axchip"><button type="button" onclick="acTplUse('${k}',${i})" title="${esc(t)}">${esc(t.length>16?t.slice(0,16)+'…':t)}</button><button type="button" class="x" aria-label="양식 삭제" onclick="acTplDel('${k}',${i})">×</button></span>`).join('')}<button type="button" class="axchip add" onclick="acTplAdd('${k}')">+ 지금 내용을 양식으로 저장</button></div>`}
+function acTplUse(k,i){const el=$('#'+TPK[k]);if(!el)return;const t=AC.tpl[k][i];el.value=el.value.trim()?el.value.trim()+'\n'+t:t;el.focus()}
+async function acTplSave(){const d=(await tsRaw())||{};d.diaryTpl=AC.tpl;const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:d,updated_at:new Date().toISOString()})});if(!r.ok)toast('양식을 저장하지 못했어요');return r.ok}
+function acTplRefresh(k){document.querySelectorAll('.axtpl').forEach(b=>{if(b.dataset.k===k)b.outerHTML=acTplChips(k)})}
+async function acTplAdd(k){const v=($('#'+TPK[k]).value||'').trim();if(!v){toast('먼저 칸에 양식으로 쓸 내용을 적어 주세요');return}
+ if((AC.tpl[k]||[]).includes(v)){toast('이미 저장된 양식이에요');return}if((AC.tpl[k]||[]).length>=20){toast('양식은 20개까지 저장할 수 있어요');return}
+ AC.tpl[k]=(AC.tpl[k]||[]).concat([v]);if(await acTplSave()){acTplRefresh(k);toast('양식으로 저장했어요')}}
+async function acTplDel(k,i){AC.tpl[k].splice(i,1);await acTplSave();acTplRefresh(k)}
 async function acNoteSend(){
  const to=$('#ntTo').value,aud=$('#ntAud').value,pg=$('#ntP').value.trim(),hw=$('#ntH').value.trim(),etc=$('#ntB').value.trim(),wid=$('#ntW').value;let t=$('#ntT').value.trim();
  if(!pg&&!hw&&!etc){toast('진도, 숙제, 전달 사항 중 하나는 적어 주세요');return}
