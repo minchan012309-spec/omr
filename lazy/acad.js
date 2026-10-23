@@ -97,7 +97,7 @@ function acNoteHtml(){
  const wo='<option value="">첨부 안 함</option>'+ws.map(w=>`<option value="${esc(w.id)}">${esc(w.title)} · ${esc(fmtNo(w.id))}</option>`).join('');
  const tag={all:'학생·학부모',parent:'학부모',student:'학생'};
  const list=AC.notes.map(n=>`<div class="axnl"><div><b>${esc(n.title)}</b><small>${new Date(n.t).toLocaleString('ko-KR')} · ${n.sid?esc(acStuName(n.sid)):'전체'} · ${tag[n.aud]||'학생'}</small><p>${esc(n.body).replace(/\n/g,'<br>')}</p></div><button class="s sm" onclick="acNoteDel('${n.src}',${n.id})">삭제</button></div>`).join('');
- return `<div class="card axform"><h2 style="margin-top:0">알림장 쓰기</h2><p class="m" style="margin:0 0 12px">오늘 수업 진도와 숙제를 적어 학생과 학부모에게 보내요. 학생은 알림(종)에서, 학부모는 「안내문」에서 봐요.</p>
+ return `<div class="card axform"><h2 style="margin-top:0">알림장 쓰기</h2><p class="m" style="margin:0 0 12px">오늘 수업 진도와 숙제를 적어 학생과 학부모에게 보내요. 학생은 알림(종)에서, 학부모는 「알림장」 탭에서 봐요.</p>
  <div class="g2"><div class="fld"><label>받는 사람</label><select id="ntTo">${opts}</select></div><div class="fld"><label>보낼 곳</label><select id="ntAud"><option value="all">학생 + 학부모</option><option value="parent">학부모만</option><option value="student">학생만</option></select></div></div>
  <div class="fld" style="margin-top:10px"><label>오늘 진도</label><input id="ntP" maxlength="120" placeholder="예) 유형서 p.12~15 · 엔탈피와 열화학 반응식"></div>
  <div class="g2" style="margin-top:10px"><div class="fld"><label>숙제</label>${acTplChips('hw')}<textarea id="ntH" style="width:100%" rows="2" maxlength="300" placeholder="예) 유형서 p.16~17 풀어오기"></textarea></div><div class="fld"><label>숙제 학습지 붙이기 <small class="m">번호가 함께 들어가요</small></label><select id="ntW">${wo}</select></div></div>
@@ -213,14 +213,14 @@ async function pAttView(){
  try{if(localStorage.getItem('omr_tosspend'))await tossReturn()}catch(e){}
  if(!PA.ld||Date.now()-(PA.t||0)>15000){if(!PA.ld)m.innerHTML='<div class="card">'+ldg('불러오는 중…')+'</div>';await paLoad()}
  clearTimeout(PA.pt);PA.pt=setTimeout(()=>{if(tab==='patt'&&STUD&&STUD.parent){PA.t=0;pAttView()}},60000)
- const S=[['att','출결'],['note','안내문'],['fee','납부']];
+ const S=[['att','출결'],['note','알림장'],['fee','납부']];
  const seg=`<div class="bkseg axseg" role="tablist">${S.map(([k,l])=>`<button role="tab" class="${PA.sec===k?'on':''}" onclick="PA.sec='${k}';pAttView()">${l}${k==='fee'&&PA.fees.some(f=>f.paid_amount<f.amount)?' <i class="axdot"></i>':''}</button>`).join('')}</div>`;
  let b='';
  if(PA.err)b=`<div class="card"><div class="hint">${esc(PA.err)}</div></div>`;
  else if(PA.sec==='att')b=`<div class="card"><div class="row" style="gap:8px"><button class="s sm" onclick="PA.mon=ymAdd(PA.mon,-1);PA.ld=0;pAttView()">‹</button><b style="flex:1;text-align:center">${PA.mon.replace('-','년 ')}월 출결</b><button class="s sm" onclick="PA.mon=ymAdd(PA.mon,1);PA.ld=0;pAttView()">›</button></div>${acCal(PA.recs,PA.mon)}</div>`;
  else if(PA.sec==='note')b=`<div class="card">${PA.notes.length?PA.notes.map(n=>`<div class="axnl"><div><b>${esc(n.title)}</b><small>${new Date(n.t).toLocaleString('ko-KR')}</small><p>${esc(n.body).replace(/\n/g,'<br>')}</p></div></div>`).join(''):'<div class="empty">받은 안내문이 없어요.</div>'}</div>`;
  else b=paFeeHtml();
- m.innerHTML=`<div class="tsh"><div><h1>${esc((STINFO&&STINFO.name)||'자녀')} 학생</h1><p>출결과 학원 안내, 납부 내역을 확인해요.</p></div></div>${seg}${b}`}
+ m.innerHTML=`<div class="tsh"><div><h1>${esc((STINFO&&STINFO.name)||'자녀')} 학생</h1><p>출결과 알림장, 납부 내역을 확인해요.</p></div></div>${seg}${b}`}
 async function paLoad(){PA.err='';const a={p_login:STUD.login,p_pw:STUD.pw};
  try{const[y,mo]=PA.mon.split('-').map(Number);const to=PA.mon+'-'+String(new Date(Date.UTC(y,mo,0)).getUTCDate()).padStart(2,'0');
   const rs=await Promise.all([rpc('pa_attendance',{...a,p_from:PA.mon+'-01',p_to:to}),rpc('pa_notices',a),rpc('pa_fees',a)]);
