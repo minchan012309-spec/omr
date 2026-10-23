@@ -9,7 +9,7 @@ const pinFrom=p=>{let d=String(p||'').replace(/\D/g,'');if(d.startsWith('010'))d
 const SQLMSG='<div class="hint"><b>서버에 출결·수납 표가 아직 없어요.</b> Supabase 「SQL Editor」에서 <code>supabase/sql_20_attendance_billing.sql</code> 내용을 한 번 실행해 주세요.</div>';
 const needCloud=()=>!(typeof cloud==='function'&&cloud()&&sess);
 const atNeed='<div class="card"><div class="hint"><b>온라인 저장에 로그인해야 쓸 수 있어요.</b> 출결·안내문·수납은 서버에 저장돼서 학부모 앱에도 보여요.</div></div>';
-const SEGS=[['day','출결'],['month','월간 달력'],['pin','출결 번호'],['note','안내문'],['fee','수납'],['rate','요금·계좌']];
+const SEGS=[['day','출결'],['month','월간 달력'],['pin','출결 번호'],['note','알림장'],['fee','수납'],['rate','요금·계좌']];
 
 async function acJ(path,o){const r=await sb(path,o);if(!r.ok){const e=new Error('http '+r.status);e.status=r.status;try{e.body=await r.text()}catch(x){}throw e}const t=await r.text();return t?JSON.parse(t):null}
 const acMissing=e=>e&&(e.status===404||e.status===400||/does not exist|schema cache|column/i.test(e.body||''));
@@ -28,7 +28,7 @@ async function acLoad(){
   AC.stu=await acJ('/rest/v1/students?select=id,name,grade,phone,att_pin&order=name.asc&limit=2000');
   if(AC.sec==='day')AC.recs=await acJ('/rest/v1/attendance?select=*&day=eq.'+AC.day);
   if(AC.sec==='month'&&AC.sid)AC.mrecs=await acJ('/rest/v1/attendance?select=*&student_id=eq.'+AC.sid+'&day=gte.'+AC.mon+'-01&day=lte.'+AC.mon+'-31');
-  if(AC.sec==='note')AC.notes=await acJ('/rest/v1/parent_notices?select=*&order=created_at.desc&limit=40');
+  if(AC.sec==='note'){const a=await acJ('/rest/v1/notices?select=*&order=t.desc&limit=60');let b=[];try{b=await acJ('/rest/v1/parent_notices?select=*&order=created_at.desc&limit=30')}catch(e){}AC.notes=[...a.map(n=>({src:'n',id:n.id,title:n.title,body:n.body,t:+n.t,sid:n.student_id,aud:n.audience||'student'})),...b.map(n=>({src:'p',id:n.id,title:n.title,body:n.body,t:new Date(n.created_at).getTime(),sid:n.student_id,aud:'parent'}))].sort((x,y)=>y.t-x.t)}
   if(AC.sec==='fee')AC.fees=await acJ('/rest/v1/fees?select=*&order=created_at.desc&limit=600');
   if(AC.sec==='fee'||AC.sec==='rate'){const d=(await tsRaw())||{};AC.pay=Object.assign({items:[],bank:''},d.pay||{})}
  }catch(e){AC.err=acMissing(e)?'sql':'불러오지 못했어요 ('+(e.status||'연결')+')'}
@@ -56,12 +56,12 @@ async function acSet(sid,st){const body={student_id:sid,day:AC.day,status:st};if
 async function acClr(sid){try{await acJ('/rest/v1/attendance?student_id=eq.'+sid+'&day=eq.'+AC.day,{method:'DELETE'});AC.recs=AC.recs.filter(x=>x.student_id!==sid);attView()}catch(e){toast('지우지 못했어요')}}
 
 /* ---------- 월간 달력 (선생님·학부모 공용) ---------- */
-function acCal(recs,ym){
+function acCal(recs,ym,o){o=o||{};
  const by={};recs.forEach(r=>by[r.day]=r);const [Y,M]=ym.split('-').map(Number);const first=new Date(Date.UTC(Y,M-1,1)).getUTCDay(),n=new Date(Date.UTC(Y,M,0)).getUTCDate(),td=kstDay();
  let h='<div class="axcal">'+['일','월','화','수','목','금','토'].map((d,i)=>`<i class="dw${i%6?'':' we'}">${d}</i>`).join('');
  for(let i=0;i<first;i++)h+='<u></u>';
  for(let d=1;d<=n;d++){const k=ym+'-'+String(d).padStart(2,'0'),r=by[k],st=r?AST[r.status]:null;
-  h+=`<b class="${k===td?'td':''}${st?' has':''}" ${st?`style="--c:${st[1]}" title="${st[0]}${r.t_in?' · 등원 '+kstTime(r.t_in):''}${r.t_out?' · 하원 '+kstTime(r.t_out):''}"`:''}><em>${d}</em>${st?`<span>${st[0]}</span>${r.t_in?`<small>${kstTime(r.t_in)}${r.t_out?'–'+kstTime(r.t_out):''}</small>`:''}`:''}</b>`}
+  h+=`<b class="${k===td?'td':''}${st?' has':''}" ${st?`style="--c:${st[1]}" title="${st[0]}${!o.noTime&&r.t_in?' · 등원 '+kstTime(r.t_in):''}${!o.noTime&&r.t_out?' · 하원 '+kstTime(r.t_out):''}"`:''}><em>${d}</em>${st?`<span>${st[0]}</span>${!o.noTime&&r.t_in?`<small>${kstTime(r.t_in)}${r.t_out?'–'+kstTime(r.t_out):''}</small>`:''}`:''}</b>`}
  h+='</div>';
  const c={in:0,late:0,absent:0,excused:0};recs.forEach(r=>{if(c[r.status]!=null)c[r.status]++});
  return h+`<div class="axsum" style="margin-top:12px"><span style="--c:#1f9d55"><b>${c.in}</b>출석</span><span style="--c:#e09a00"><b>${c.late}</b>지각</span><span style="--c:#d9534f"><b>${c.absent}</b>결석</span><span style="--c:#7a8aa0"><b>${c.excused}</b>사유</span></div>`}
@@ -86,13 +86,33 @@ async function acFillPins(){let n=0;for(const s of AC.stu){if(!s.att_pin&&pinFro
 
 /* ---------- 학부모 안내문 ---------- */
 function acNoteHtml(){
- const opts=AC.stu.map(s=>`<option value="${s.id}">${esc(s.name)} ${esc(s.grade||'')}</option>`).join('');
- const list=AC.notes.map(n=>`<div class="axnl"><div><b>${esc(n.title)}</b><small>${new Date(n.created_at).toLocaleString('ko-KR')} · ${n.student_id?esc(acStuName(n.student_id)):'전체 학부모'}</small><p>${esc(n.body).replace(/\n/g,'<br>')}</p></div><button class="s sm" onclick="acNoteDel(${n.id})">삭제</button></div>`).join('');
- return `<div class="card"><h2 style="margin-top:0">안내문 보내기</h2><div class="g2"><div class="fld"><label>받는 사람</label><select id="ntTo"><option value="">모든 학부모</option>${opts}</select></div><div class="fld"><label>제목</label><input id="ntT" maxlength="60" placeholder="예) 10월 셋째 주 보강 안내"></div><div class="fld"><label>내용</label><textarea id="ntB" rows="5" maxlength="1500" placeholder="학부모 앱의 「납부·안내」에 보여요"></textarea></div></div><button class="p" onclick="acNoteSend()">보내기</button></div>
- <div class="card"><h2 style="margin-top:0">보낸 안내문</h2>${list||'<div class="empty">아직 보낸 안내문이 없어요.</div>'}</div>`}
-async function acNoteSend(){const t=$('#ntT').value.trim(),b=$('#ntB').value.trim(),to=$('#ntTo').value;if(!t){toast('제목을 적어 주세요');return}
- try{await acJ('/rest/v1/parent_notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({title:t,body:b,student_id:to||null})});toast('안내문을 보냈어요');AC.ld=0;attView()}catch(e){toast(acMissing(e)?'서버에 sql_20 을 먼저 실행해 주세요':'보내지 못했어요')}}
-async function acNoteDel(id){if(!confirm('이 안내문을 삭제할까요? 학부모 앱에서도 사라져요.'))return;try{await acJ('/rest/v1/parent_notices?id=eq.'+id,{method:'DELETE'});AC.ld=0;attView()}catch(e){toast('삭제하지 못했어요')}}
+ const cls=[...new Set(AC.stu.map(s=>String(s.grade||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko',{numeric:true}));
+ const opts='<option value="">전체 학생</option>'+cls.map(g=>`<option value="c:${esc(g)}">반 전체 · ${esc(g)}</option>`).join('')+AC.stu.map(s=>`<option value="${s.id}">${esc(s.name)} ${esc(s.grade||'')}</option>`).join('');
+ const ws=(typeof WSH!=='undefined'?WSH.slice().sort((a,b)=>b.t-a.t).slice(0,20):[]);
+ const wo='<option value="">첨부 안 함</option>'+ws.map(w=>`<option value="${esc(w.id)}">${esc(w.title)} · ${esc(fmtNo(w.id))}</option>`).join('');
+ const tag={all:'학생·학부모',parent:'학부모',student:'학생'};
+ const list=AC.notes.map(n=>`<div class="axnl"><div><b>${esc(n.title)}</b><small>${new Date(n.t).toLocaleString('ko-KR')} · ${n.sid?esc(acStuName(n.sid)):'전체'} · ${tag[n.aud]||'학생'}</small><p>${esc(n.body).replace(/\n/g,'<br>')}</p></div><button class="s sm" onclick="acNoteDel('${n.src}',${n.id})">삭제</button></div>`).join('');
+ return `<div class="card"><h2 style="margin-top:0">알림장 쓰기</h2><p class="m" style="margin:0 0 12px">오늘 수업 진도와 숙제를 적어 학생과 학부모에게 보내요. 학생은 알림(종)에서, 학부모는 「안내문」에서 봐요.</p>
+ <div class="g2"><div class="fld"><label>받는 사람</label><select id="ntTo">${opts}</select></div><div class="fld"><label>보낼 곳</label><select id="ntAud"><option value="all">학생 + 학부모</option><option value="parent">학부모만</option><option value="student">학생만</option></select></div></div>
+ <div class="fld" style="margin-top:10px"><label>오늘 진도</label><input id="ntP" maxlength="120" placeholder="예) 유형서 p.12~15 · 엔탈피와 열화학 반응식"></div>
+ <div class="g2" style="margin-top:10px"><div class="fld"><label>숙제</label><textarea id="ntH" style="width:100%" rows="2" maxlength="300" placeholder="예) 유형서 p.16~17 풀어오기"></textarea></div><div class="fld"><label>숙제 학습지 붙이기 <small class="m">번호가 함께 들어가요</small></label><select id="ntW">${wo}</select></div></div>
+ <div class="fld" style="margin-top:10px"><label>전달 사항</label><textarea id="ntB" style="width:100%" rows="2" maxlength="500" placeholder="예) 다음 주 수요일 쪽지시험이 있어요"></textarea></div>
+ <div class="fld" style="margin-top:10px"><label>제목 <small class="m">비우면 「10월 23일 알림장」으로 보내요</small></label><input id="ntT" maxlength="60"></div>
+ <button class="p axwide" onclick="acNoteSend()">알림장 보내기</button></div>
+ <div class="card"><h2 style="margin-top:0">보낸 알림장 · 안내문</h2>${list||'<div class="empty">아직 보낸 글이 없어요.</div>'}</div>`}
+async function acNoteSend(){
+ const to=$('#ntTo').value,aud=$('#ntAud').value,pg=$('#ntP').value.trim(),hw=$('#ntH').value.trim(),etc=$('#ntB').value.trim(),wid=$('#ntW').value;let t=$('#ntT').value.trim();
+ if(!pg&&!hw&&!etc){toast('진도, 숙제, 전달 사항 중 하나는 적어 주세요');return}
+ const d=new Date(Date.now()+9*36e5);if(!t)t=(d.getUTCMonth()+1)+'월 '+d.getUTCDate()+'일 알림장';
+ const w=wid?WSH.find(x=>x.id===wid):null;const L=[];
+ if(pg)L.push('오늘 진도: '+pg);if(hw||w)L.push('숙제: '+[hw,w?'학습지 「'+w.title+'」 번호 '+fmtNo(w.id):''].filter(Boolean).join(' · '));if(etc)L.push('전달 사항: '+etc);
+ const ids=to.startsWith('c:')?AC.stu.filter(s=>String(s.grade||'').trim()===to.slice(2)).map(s=>s.id):[to||null];
+ if(!ids.length){toast('그 반에 학생이 없어요');return}
+ const rows=ids.map(id=>({title:t,body:L.join('\n'),student_id:id,audience:aud}));
+ try{await acJ('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows)});toast('알림장을 보냈어요'+(ids.length>1?' · '+ids.length+'명':''));AC.ld=0;attView()}
+ catch(e){if(e.status===400&&aud==='student'){try{await acJ('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows.map(r=>({title:r.title,body:r.body,student_id:r.student_id})))});toast('알림장을 보냈어요');AC.ld=0;attView();return}catch(x){}}
+  toast(e.status===400?'학부모에게 보내려면 서버 SQL(setup.sql)을 먼저 실행해 주세요':'보내지 못했어요')}}
+async function acNoteDel(src,id){if(!confirm('이 글을 삭제할까요? 학생·학부모 화면에서도 사라져요.'))return;try{await acJ('/rest/v1/'+(src==='p'?'parent_notices':'notices')+'?id=eq.'+id,{method:'DELETE'});AC.ld=0;attView()}catch(e){toast('삭제하지 못했어요')}}
 
 /* ---------- 수납 ---------- */
 function acFeeHtml(){
@@ -230,3 +250,13 @@ async function tossReturn(){
   else{const r2=await rpc('pa_fee_demo_pay',{p_login:STUD.login,p_pw:STUD.pw,p_fee:p.f});ok=r2.ok&&await r2.json();if(!ok)msg='결제는 됐지만 서버 승인 함수가 아직 없어서 납부 완료로 바꾸지 못했어요. 학원에 알려 주세요'}}
  catch(e){msg='결제를 확인하지 못했어요'}
  toast(ok?'결제가 완료됐어요':msg||'결제를 확인하지 못했어요');PA.ld=0;PA.sec='fee';tab='patt';render()}
+
+/* ---------- 학생 앱: 출결 달력만 (시각·납부는 보이지 않아요) ---------- */
+const SA={mon:'',recs:[],ld:0,err:''};
+async function sAttView(){
+ const m=$('#main');if(!STUD||STUD.parent){m.innerHTML='';return}
+ if(!SA.mon)SA.mon=kstDay().slice(0,7);
+ if(!SA.ld){m.innerHTML='<div class="card">'+ldg('불러오는 중…')+'</div>';SA.err='';
+  try{const[y,mo]=SA.mon.split('-').map(Number);const to=SA.mon+'-'+String(new Date(Date.UTC(y,mo,0)).getUTCDate()).padStart(2,'0');const r=await rpc('st_attendance',{p_login:STUD.login,p_pw:STUD.pw,p_from:SA.mon+'-01',p_to:to});
+   if(r.status===404)SA.err='아직 출결 달력을 쓸 수 없어요. 선생님께 문의해 주세요.';else{const j=r.ok?await r.json():null;SA.recs=j||[]}}catch(e){SA.err='불러오지 못했어요. 연결을 확인해 주세요.'}SA.ld=1}
+ m.innerHTML=`<div class="tsh"><div><h1>내 출결</h1><p>이번 달 출석 현황이에요.</p></div></div>${SA.err?`<div class="card"><div class="hint">${esc(SA.err)}</div></div>`:`<div class="card"><div class="row" style="gap:8px"><button class="s sm" onclick="SA.mon=ymAdd(SA.mon,-1);SA.ld=0;sAttView()">‹</button><b style="flex:1;text-align:center">${SA.mon.replace('-','년 ')}월</b><button class="s sm" onclick="SA.mon=ymAdd(SA.mon,1);SA.ld=0;sAttView()">›</button></div>${acCal(SA.recs,SA.mon,{noTime:true})}</div>`}`}
