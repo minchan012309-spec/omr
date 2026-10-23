@@ -9,18 +9,24 @@ const pinFrom=p=>{let d=String(p||'').replace(/\D/g,'');if(d.startsWith('010'))d
 const SQLMSG='<div class="hint"><b>서버에 출결·수납 표가 아직 없어요.</b> Supabase 「SQL Editor」에서 <code>supabase/sql_20_attendance_billing.sql</code> 내용을 한 번 실행해 주세요.</div>';
 const needCloud=()=>!(typeof cloud==='function'&&cloud()&&sess);
 const atNeed='<div class="card"><div class="hint"><b>온라인 저장에 로그인해야 쓸 수 있어요.</b> 출결·안내문·수납은 서버에 저장돼서 학부모 앱에도 보여요.</div></div>';
-const SEGS=[['day','출결'],['month','월간 달력'],['pin','출결 번호'],['note','알림장'],['fee','수납'],['rate','요금·계좌']];
+const SEGS=[['day','출결'],['month','월간 달력'],['pin','출결 번호'],['fee','수납'],['rate','요금·계좌']];
 
 async function acJ(path,o){const r=await sb(path,o);if(!r.ok){const e=new Error('http '+r.status);e.status=r.status;try{e.body=await r.text()}catch(x){}throw e}const t=await r.text();return t?JSON.parse(t):null}
 const acMissing=e=>e&&(e.status===404||e.status===400||/does not exist|schema cache|column/i.test(e.body||''));
 
 async function attView(){
  const m=$('#main');if(needCloud()){m.innerHTML=atNeed;return}
- if(!AC.day)AC.day=kstDay();if(!AC.mon)AC.mon=AC.day.slice(0,7);
+ if(AC.sec==='diary'){AC.sec='day';AC.ld=0}if(!AC.day)AC.day=kstDay();if(!AC.mon)AC.mon=AC.day.slice(0,7);
  if(!AC.ld){m.innerHTML='<div class="card">'+ldg('불러오는 중…')+'</div>';await acLoad()}
  const seg=`<div class="bkseg axseg" role="tablist">${SEGS.map(([k,l])=>`<button role="tab" class="${AC.sec===k?'on':''}" onclick="acSec('${k}')">${l}</button>`).join('')}</div>`;
- const body=AC.err==='sql'?SQLMSG:AC.err?`<div class="hint">${esc(AC.err)}</div>`:({day:acDayHtml,month:acMonthHtml,pin:acPinHtml,note:acNoteHtml,fee:acFeeHtml,rate:acRateHtml}[AC.sec]||acDayHtml)();
- m.innerHTML=`<div class="tsh"><div><h1>출결 · 수납</h1><p>등원·하원 기록, 학부모 안내문, 학원비·교재비 수납을 한곳에서 관리해요. 학부모 앱에서도 바로 확인할 수 있어요.</p></div><div class="tsb"><button class="p" onclick="kioskOpen()">출결 단말 시작</button></div></div>${seg}${body}`}
+ const body=AC.err==='sql'?SQLMSG:AC.err?`<div class="hint">${esc(AC.err)}</div>`:({day:acDayHtml,month:acMonthHtml,pin:acPinHtml,fee:acFeeHtml,rate:acRateHtml}[AC.sec]||acDayHtml)();
+ m.innerHTML=`<div class="tsh"><div><h1>출결 · 수납</h1><p>등원·하원 기록과 학원비·교재비 수납을 한곳에서 관리해요. 학부모 앱에서도 바로 확인할 수 있어요.</p></div><div class="tsb"><button class="p" onclick="kioskOpen()">출결 단말 시작</button></div></div>${seg}${body}`}
+async function diaryView(){
+ const m=$('#main');if(needCloud()){m.innerHTML=atNeed;return}
+ if(!AC.ld||AC.sec!=='diary'){AC.sec='diary';m.innerHTML='<div class="card">'+ldg('불러오는 중…')+'</div>';AC.err='';
+  try{AC.stu=await acJ('/rest/v1/students?select=id,name,grade,phone,att_pin&order=name.asc&limit=2000');const a=await acJ('/rest/v1/notices?select=*&order=t.desc&limit=60');let b=[];try{b=await acJ('/rest/v1/parent_notices?select=*&order=created_at.desc&limit=30')}catch(e){}AC.notes=[...a.map(n=>({src:'n',id:n.id,title:n.title,body:n.body,t:+n.t,sid:n.student_id,aud:n.audience||'student'})),...b.map(n=>({src:'p',id:n.id,title:n.title,body:n.body,t:new Date(n.created_at).getTime(),sid:n.student_id,aud:'parent'}))].sort((x,y)=>y.t-x.t);AC.ld=1}
+  catch(e){AC.err=acMissing(e)?'sql':'불러오지 못했어요. 연결을 확인해 주세요.'}}
+ m.innerHTML=`<div class="tsh"><div><h1>알림장</h1><p>오늘 나간 진도와 숙제를 학생·학부모에게 보내요.</p></div></div>${AC.err==='sql'?SQLMSG:AC.err?`<div class="hint">${esc(AC.err)}</div>`:acNoteHtml()}`}
 function acSec(k){AC.sec=k;AC.ld=0;attView()}
 async function acLoad(){
  AC.err='';
@@ -28,7 +34,6 @@ async function acLoad(){
   AC.stu=await acJ('/rest/v1/students?select=id,name,grade,phone,att_pin&order=name.asc&limit=2000');
   if(AC.sec==='day')AC.recs=await acJ('/rest/v1/attendance?select=*&day=eq.'+AC.day);
   if(AC.sec==='month'&&AC.sid)AC.mrecs=await acJ('/rest/v1/attendance?select=*&student_id=eq.'+AC.sid+'&day=gte.'+AC.mon+'-01&day=lte.'+AC.mon+'-31');
-  if(AC.sec==='note'){const a=await acJ('/rest/v1/notices?select=*&order=t.desc&limit=60');let b=[];try{b=await acJ('/rest/v1/parent_notices?select=*&order=created_at.desc&limit=30')}catch(e){}AC.notes=[...a.map(n=>({src:'n',id:n.id,title:n.title,body:n.body,t:+n.t,sid:n.student_id,aud:n.audience||'student'})),...b.map(n=>({src:'p',id:n.id,title:n.title,body:n.body,t:new Date(n.created_at).getTime(),sid:n.student_id,aud:'parent'}))].sort((x,y)=>y.t-x.t)}
   if(AC.sec==='fee')AC.fees=await acJ('/rest/v1/fees?select=*&order=created_at.desc&limit=600');
   if(AC.sec==='fee'||AC.sec==='rate'){const d=(await tsRaw())||{};AC.pay=Object.assign({items:[],bank:''},d.pay||{})}
  }catch(e){AC.err=acMissing(e)?'sql':'불러오지 못했어요 ('+(e.status||'연결')+')'}
@@ -109,10 +114,10 @@ async function acNoteSend(){
  const ids=to.startsWith('c:')?AC.stu.filter(s=>String(s.grade||'').trim()===to.slice(2)).map(s=>s.id):[to||null];
  if(!ids.length){toast('그 반에 학생이 없어요');return}
  const rows=ids.map(id=>({title:t,body:L.join('\n'),student_id:id,audience:aud}));
- try{await acJ('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows)});toast('알림장을 보냈어요'+(ids.length>1?' · '+ids.length+'명':''));AC.ld=0;attView()}
- catch(e){if(e.status===400&&aud==='student'){try{await acJ('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows.map(r=>({title:r.title,body:r.body,student_id:r.student_id})))});toast('알림장을 보냈어요');AC.ld=0;attView();return}catch(x){}}
+ try{await acJ('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows)});toast('알림장을 보냈어요'+(ids.length>1?' · '+ids.length+'명':''));AC.ld=0;diaryView()}
+ catch(e){if(e.status===400&&aud==='student'){try{await acJ('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows.map(r=>({title:r.title,body:r.body,student_id:r.student_id})))});toast('알림장을 보냈어요');AC.ld=0;diaryView();return}catch(x){}}
   toast(e.status===400?'학부모에게 보내려면 서버 SQL(setup.sql)을 먼저 실행해 주세요':'보내지 못했어요')}}
-async function acNoteDel(src,id){if(!confirm('이 글을 삭제할까요? 학생·학부모 화면에서도 사라져요.'))return;try{await acJ('/rest/v1/'+(src==='p'?'parent_notices':'notices')+'?id=eq.'+id,{method:'DELETE'});AC.ld=0;attView()}catch(e){toast('삭제하지 못했어요')}}
+async function acNoteDel(src,id){if(!confirm('이 글을 삭제할까요? 학생·학부모 화면에서도 사라져요.'))return;try{await acJ('/rest/v1/'+(src==='p'?'parent_notices':'notices')+'?id=eq.'+id,{method:'DELETE'});AC.ld=0;diaryView()}catch(e){toast('삭제하지 못했어요')}}
 
 /* ---------- 수납 ---------- */
 function acFeeHtml(){
