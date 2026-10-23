@@ -41,7 +41,7 @@ function acDayHtml(){
  const q=AC.q.trim();const list=AC.stu.filter(s=>!q||(s.name+' '+(s.grade||'')).includes(q));
  const cnt={in:0,late:0,absent:0,excused:0,none:0};AC.stu.forEach(s=>{const r=by[s.id];cnt[r?r.status:'none']++});
  const rows=list.map(s=>{const r=by[s.id],st=r?r.status:'';
-  return `<div class="axr"><div class="axn"><b>${esc(s.name)}</b><small>${esc(s.grade||'')}</small></div>
+  return `<div class="axr"><div class="axn"><b class="axlk" role="button" tabindex="0" title="이 학생 출결 달력" onclick="AC.sid='${s.id}';acSec('month')">${esc(s.name)}</b><small>${esc(s.grade||'')}</small></div>
   <div class="axt">${r&&r.t_in?'<span title="등원">▶ '+kstTime(r.t_in)+'</span>':''}${r&&r.t_out?'<span title="하원">■ '+kstTime(r.t_out)+'</span>':''}</div>
   <div class="axq">${Object.keys(AST).map(k=>`<button class="axb ${st===k?'on':''}" style="--c:${AST[k][1]}" onclick="acSet('${s.id}','${k}')">${AST[k][0]}</button>`).join('')}${r?`<button class="axb x" title="기록 지우기" onclick="acClr('${s.id}')">✕</button>`:''}</div></div>`}).join('');
  return `<div class="card"><div class="row" style="gap:8px;flex-wrap:wrap"><button class="s sm" onclick="acDay(-1)">‹</button><input type="date" value="${AC.day}" onchange="AC.day=this.value||AC.day;AC.ld=0;attView()"><button class="s sm" onclick="acDay(1)">›</button><button class="s sm" onclick="AC.day=kstDay();AC.ld=0;attView()">오늘</button>
