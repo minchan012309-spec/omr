@@ -145,7 +145,7 @@ function kioskOpen(){
 #kiosk .kch{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}#kiosk .kch button{padding:12px 20px;border-radius:14px;border:0;background:#fff;box-shadow:0 2px 8px #0002;font:inherit;font-size:18px;font-weight:700;cursor:pointer}
 #kiosk .kx{position:absolute;right:0;top:0;width:70px;height:70px;background:none;border:0;opacity:0}</style>
 <button class="kx" aria-label="해제" onclick="kioskTap()"></button>
-${lgSvg('w','#0D387E').replace('<svg ','<svg width="150" ')}
+${lgStack('#0D387E').replace('<svg ','<svg width="120" ')}
 <div class="kt">출결 번호를 눌러 주세요</div><div class="kc" id="kclk"></div><div class="kh">예) 전화번호가 010-<b>12345</b>678 이면 <b>12345</b> 를 누르고 「확인」</div><div class="kd" id="kdg"></div>
 <div class="kp">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="kioskKey('${n}')">${n}</button>`).join('')}<button onclick="kioskKey('c')" aria-label="지우기">⌫</button><button onclick="kioskKey('0')">0</button><button class="go" onclick="kioskGo()">확인</button></div>
 <div class="kr" id="krs"></div>`;
