@@ -1,5 +1,5 @@
 /* Solvi 서비스 워커: 앱 껍데기와 한 번 불러온 데이터를 저장해 두어 오프라인에서도 열리게 합니다. */
-const VER = 'solvi-v85';
+const VER = 'solvi-v86';
 const SHELL = ['./', 'index.html', 'books.js', 'lazy/omr-report.js', 'lazy/tset.js', 'lazy/acad.js', 'bank/data.js?v=1', 'manifest.webmanifest?v=2', 'icons/icon-192.png?v=2', 'icons/icon-512.png?v=2'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VER).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
