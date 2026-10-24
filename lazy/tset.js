@@ -28,6 +28,7 @@ async function tsetView(){
   <div class="tgp"><h3>문항 · 신고 · 초기화</h3>
   <label class="swr"><span><b>난이도 자동 보정</b><small>풀이 5회 이상인 문항은 실제 정답률로 난이도(하·중·상·최)를 조정해요</small></span><input class="swi" type="checkbox" ${CALIB_ON?'checked':''} onchange="setCalib(this.checked)"></label>
   <div class="setr"><b>신고 내역</b><span class="m">${rp.length}건${rp.some(x=>!x.srv)?' (미전송 '+rp.filter(x=>!x.srv).length+')':''} · <a href="#" onclick="reportStatus();return false">처리 현황</a> · <a href="#" onclick="reportExport();return false">내려받기</a>${rp.length?' · <a href="#" onclick="if(confirm(\'신고 내역을 지울까요?\')){jset(\'omr_rep_v1\',[]);tsetView()}return false">비우기</a>':''}</span></div>
+  <div class="dz"><b>골라서 지우기</b><div class="m">채점 기록 · 학습지 · 출결 · 수납 · 알림장처럼 만들어 둔 것을 항목별로 골라 지워요. 지울 항목과 개수를 보고 정할 수 있어요.</div><button class="s dgr" onclick="wipePick()">골라서 지우기…</button></div>
   <div class="dz"><b>학습 자료만 지우기 (학생 유지)</b><div class="m">만들어 둔 학습지·교재·모의고사·채점 기록·과제·즐겨찾기·신고·내 구성을 모두 지웁니다. 등록된 학생 정보와 로그인·설정은 남아요.</div><button class="s dgr" onclick="wipeContent()">학습 자료 지우기…</button></div>
   <div class="dz"><b>전체 초기화</b><div class="m">학생·채점 기록·학습지·모의고사·즐겨찾기·신고·설정을 모두 지웁니다. 로그인과 선택한 과목만 남습니다.</div><button class="s dgr" onclick="wipeAll()">모든 데이터 초기화…</button></div></div>`})())}
  ${sec('perm','students','학생 권한','모든 학생에게 똑같이 적용돼요. 학생 앱이 열려 있으면 1분 안에 반영돼요.',
@@ -136,3 +137,59 @@ function acThemeBody(m){const c=acCfg(),key=m==='dark'?'logoDark':'logo',u=c[key
 async function acMode(m){if(await acSave({acmode:m}))tsetView()}
 
 async function acName(v){v=v.trim().slice(0,20);if(await acSave({acname:v,...(v&&acCfg().mode==='none'?{acmode:'text'}:{})}))tsetView()}
+
+/* ---------- 골라서 지우기 (항목별 선택 삭제) ---------- */
+/* [id, 이름, 설명, 온라인 표, 이 기기 저장 키, 온라인 설정(teacher_settings.data) 키] */
+const WP=[
+ ['hist','채점 기록','학생별 채점 결과와 점수',['attempts'],['omr_hist_v1'],[]],
+ ['ws','학습지 · 과제','만들어 둔 학습지와 학생에게 배정한 과제',['assignments','worksheets'],['omr_ws_v1'],[]],
+ ['books','내 교재 · 표지 구성','내가 만든 교재와 표지 설정',[],['omr_books_v1'],['books']],
+ ['att','출결 기록','등원 · 하원 · 지각 · 결석 기록',['attendance'],[],[]],
+ ['fees','수납 · 청구 내역','학원비 · 교재비 청구와 납부 내역',['fees'],[],[]],
+ ['pay','요금표 · 계좌 안내','등록해 둔 요금 항목과 계좌 이체 안내',[],[],['pay']],
+ ['notice','알림장 · 안내문','보낸 알림장과 학부모 안내문',['notices','parent_notices'],[],[]],
+ ['diary','알림장 양식','숙제 · 전달 사항으로 저장해 둔 문구',[],[],['diaryTpl']],
+ ['exam','시험 일정','학생 · 학부모 화면에 보이는 시험 일정',[],['omr_exams_v1'],['exams']],
+ ['wrong','오답노트 메모 · 사진','학생이 적어 둔 메모와 사진',['wrong_notes'],['omr_wnote_v1'],[]],
+ ['fav','즐겨찾기 · 문항 메모 · 바구니 · 내 문항','문항에 붙인 표시와 담아 둔 문항',[],['omr_fav_v1','omr_qnote_v1','omr_basket_v1','omr_my_v1','omr_presets_v1'],[]],
+ ['rep','신고 내역','이 기기에서 보낸 문항 신고',[],['omr_rep_v1'],[]],
+ ['stu','학생 (학생 계정 · 반 포함)','지우면 그 학생의 채점 기록 · 과제 · 출결 · 수납도 함께 지워져요',['students'],['omr_stu_v1','omr_curstu_v1'],[]]
+];
+const WPN={},wpK=tb=>tb==='wrong_notes'?'student_id':'id';
+function wpLocalN(k){try{const v=JSON.parse(localStorage.getItem(k)||'null');if(Array.isArray(v))return v.length;if(v&&typeof v==='object')return Object.keys(v).length}catch(e){}return 0}
+async function wpCloudN(tb){try{const r=await sb('/rest/v1/'+tb+'?select='+wpK(tb),{headers:{Prefer:'count=exact',Range:'0-0'}});if(!r.ok)return null;const m=/\/(\d+)$/.exec(r.headers.get('content-range')||'');return m?+m[1]:0}catch(e){return null}}
+function wipePick(){
+ const on=cloud()&&sess&&!STUD;
+ $('#cfgBox').classList.add('cfgw');
+ $('#cfgBox').innerHTML=`<h2 style="margin-top:0">골라서 지우기</h2><p class="m" style="margin:0 0 12px">지울 항목을 고르세요. 지운 것은 되돌릴 수 없어요. 먼저 「백업 내려받기」를 권장해요.</p>
+ <div class="wpl">${WP.map(([id,n,d])=>`<label class="wpi"><input type="checkbox" value="${id}" onchange="wpSync()"><span><b>${esc(n)}</b><small>${esc(d)}</small></span><em id="wpn_${id}"></em></label>`).join('')}</div>
+ ${on?`<label class="swr" style="margin-top:12px"><span><b>온라인 자료도 함께 지우기</b><small>끄면 이 기기에 저장된 것만 지워요. 온라인 자료는 다음 접속 때 다시 나타나요. 같은 학원 선생님과 함께 쓰는 자료는 모두에게서 사라져요.</small></span><input class="swi" id="wpCloud" type="checkbox" checked></label>`:''}
+ <div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap"><button class="s sm" onclick="wpAll(1)">모두 선택</button><button class="s sm" onclick="wpAll(0)">모두 해제</button><span class="m" id="wpsum" style="margin-left:auto"></span></div>
+ <div class="fld" style="margin-top:12px"><label>확인을 위해 「삭제」라고 입력하세요</label><input id="wpConf" autocomplete="off" oninput="wpSync()" placeholder="삭제"></div>
+ <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="s" onclick="closeCfg()">닫기</button><button class="p dgr" id="wpGo" onclick="wpRun()" disabled>선택한 항목 지우기</button></div>`;
+ $('#cfg').classList.add('open');
+ WP.forEach(async([id,,,tb,keys])=>{let n=0,ok=false;keys.forEach(k=>{n+=wpLocalN(k);ok=true});
+  if(on)for(const t of tb){const c=await wpCloudN(t);if(c!=null){n=Math.max(n,0)+c;ok=true}}
+  WPN[id]=n;const e=document.getElementById('wpn_'+id);if(e)e.textContent=ok||tb.length?(n?n.toLocaleString('ko-KR')+'개':'없음'):''})}
+function wpAll(v){document.querySelectorAll('.wpl input').forEach(i=>i.checked=!!v);wpSync()}
+function wpSync(){const c=[...document.querySelectorAll('.wpl input:checked')].map(i=>i.value),b=document.getElementById('wpGo'),f=document.getElementById('wpConf');
+ const s=document.getElementById('wpsum');if(s)s.textContent=c.length?c.length+'개 항목 선택':'';
+ if(b)b.disabled=!(c.length&&f&&f.value.trim()==='삭제')}
+async function wpRun(){
+ const sel=[...document.querySelectorAll('.wpl input:checked')].map(i=>i.value);if(!sel.length)return;
+ const pick=WP.filter(x=>sel.includes(x[0])),cl=document.getElementById('wpCloud'),cloudToo=!!(cl&&cl.checked);
+ const names=pick.map(x=>x[1]).join(', ');if(!confirm('다음 항목을 지워요'+(cloudToo?' (온라인 포함)':' (이 기기만)')+':\n'+names+'\n\n되돌릴 수 없어요. 계속할까요?'))return;
+ const failed=[];
+ await busyRun('지우는 중…',async()=>{
+  if(cloudToo){
+   const tbs=[...new Set(pick.flatMap(x=>x[3]))];
+   /* 학생을 지울 때는 딸린 자료가 먼저 정리되도록 순서를 지켜요 */
+   const order=['assignments','attempts','attendance','fees','wrong_notes','notices','parent_notices','worksheets','students'];
+   for(const tb of order.filter(t=>tbs.includes(t))){try{const r=await sb('/rest/v1/'+tb+'?'+wpK(tb)+'=not.is.null',{method:'DELETE'});if(!r.ok)failed.push(tb)}catch(e){failed.push(tb)}}
+   const ks=[...new Set(pick.flatMap(x=>x[5]))];
+   if(ks.length){try{const d=(await tsRaw());if(d===null)throw 0;ks.forEach(k=>{delete d[k]});const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:d,updated_at:new Date().toISOString()})});if(!r.ok)failed.push('설정')}catch(e){failed.push('설정')}}
+  }
+  pick.forEach(x=>x[4].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}}));
+ });
+ if(failed.length&&!confirm('온라인에서 지우지 못한 항목이 있어요: '+failed.join(', ')+'\n그래도 이 기기의 항목은 지웠어요. 화면을 새로 열까요?'))return;
+ alert('지웠어요. 화면을 새로 엽니다.');location.reload()}
