@@ -96,13 +96,14 @@ function acNoteHtml(){
  const ws=(typeof WSH!=='undefined'?WSH.slice().sort((a,b)=>b.t-a.t).slice(0,20):[]);
  const wo='<option value="">첨부 안 함</option>'+ws.map(w=>`<option value="${esc(w.id)}">${esc(w.title)} · ${esc(fmtNo(w.id))}</option>`).join('');
  const tag={all:'학생·학부모',parent:'학부모',student:'학생'};
- const list=AC.notes.map(n=>`<div class="axnl"><div><b>${esc(n.title)}</b><small>${new Date(n.t).toLocaleString('ko-KR')} · ${n.sid?esc(acStuName(n.sid)):'전체'} · ${tag[n.aud]||'학생'}</small><p>${esc(n.body).replace(/\n/g,'<br>')}</p></div><button class="s sm" onclick="acNoteDel('${n.src}',${n.id})">삭제</button></div>`).join('');
+ const list=AC.notes.map(n=>`<div class="axnl"><div><b>${esc(n.title)}</b><small>${new Date(n.t).toLocaleString('ko-KR')} · ${n.sid?esc(acStuName(n.sid)):'전체'} · ${tag[n.aud]||'학생'}</small><p>${esc(n.body).replace(/\n/g,'<br>')}</p></div><button class="s sm" aria-label="삭제: ${esc(n.title)}" onclick="acNoteDel('${n.src}',${n.id})">삭제</button></div>`).join('');
  return `<div class="card axform"><h2 style="margin-top:0">알림장 쓰기</h2><p class="m" style="margin:0 0 12px">오늘 수업 진도와 숙제를 적어 학생과 학부모에게 보내요. 학생은 알림(종)에서, 학부모는 「알림장」 탭에서 봐요.</p>
- <div class="g2"><div class="fld"><label>받는 사람</label><select id="ntTo">${opts}</select></div><div class="fld"><label>보낼 곳</label><select id="ntAud"><option value="all">학생 + 학부모</option><option value="parent">학부모만</option><option value="student">학생만</option></select></div></div>
- <div class="fld" style="margin-top:10px"><label>오늘 진도</label><input id="ntP" maxlength="120" placeholder="예) 유형서 p.12~15 · 엔탈피와 열화학 반응식"></div>
- <div class="g2" style="margin-top:10px"><div class="fld"><label>숙제</label>${acTplChips('hw')}<textarea id="ntH" style="width:100%" rows="2" maxlength="300" placeholder="예) 유형서 p.16~17 풀어오기"></textarea></div><div class="fld"><label>숙제 학습지 붙이기 <small class="m">번호가 함께 들어가요</small></label><select id="ntW">${wo}</select></div></div>
- <div class="fld" style="margin-top:10px"><label>전달 사항</label>${acTplChips('msg')}<textarea id="ntB" style="width:100%" rows="2" maxlength="500" placeholder="예) 다음 주 수요일 쪽지시험이 있어요"></textarea></div>
- <div class="fld" style="margin-top:10px"><label>제목 <small class="m">비우면 「10월 23일 알림장」으로 보내요</small></label><input id="ntT" maxlength="60"></div>
+ <div class="g2"><div class="fld"><label for="ntTo">받는 사람</label><select id="ntTo">${opts}</select></div><div class="fld"><label for="ntAud">보낼 곳</label><select id="ntAud"><option value="all">학생 + 학부모</option><option value="parent">학부모만</option><option value="student">학생만</option></select></div></div>
+ <div class="fld" style="margin-top:10px"><label for="ntP">오늘 진도</label><input id="ntP" maxlength="120" placeholder="예) 유형서 p.12~15 · 엔탈피와 열화학 반응식"></div>
+ <div class="fld" style="margin-top:10px"><label for="ntH">숙제</label>${acTplChips('hw')}<textarea id="ntH" style="width:100%" rows="2" maxlength="300" placeholder="예) 유형서 p.16~17 풀어오기"></textarea></div>
+ <div class="fld" style="margin-top:10px"><label for="ntW">숙제 학습지 붙이기 <small>학습지 이름과 번호가 함께 들어가요</small></label><select id="ntW">${wo}</select></div>
+ <div class="fld" style="margin-top:10px"><label for="ntB">전달 사항</label>${acTplChips('msg')}<textarea id="ntB" style="width:100%" rows="2" maxlength="500" placeholder="예) 다음 주 수요일 쪽지시험이 있어요"></textarea></div>
+ <div class="fld" style="margin-top:10px"><label for="ntT">제목 <small>비우면 「10월 23일 알림장」으로 보내요</small></label><input id="ntT" maxlength="60"></div>
  <button class="p axwide" onclick="acNoteSend()">알림장 보내기</button></div>
  <div class="card"><h2 style="margin-top:0">보낸 알림장 · 안내문</h2>${list||'<div class="empty">아직 보낸 글이 없어요.</div>'}</div>`}
 const TPK={hw:'ntH',msg:'ntB'};
@@ -258,8 +259,8 @@ async function paToss(id){const f=PA.fees.find(x=>x.id===id);if(!f)return;
   /* PC 결제창은 페이지를 옮기지 않고 결과만 돌려주기도 해요 */
   if(res&&res.paymentKey)await tossConfirm({k:res.paymentKey,o:res.orderId,a:res.amount&&res.amount.value!=null?res.amount.value:f.amount,f:f.id})
  }catch(e){try{localStorage.removeItem('omr_tosspend')}catch(x){}if(e&&e.code==='USER_CANCEL')return;payDone(false,'결제하지 못했어요',(e&&e.message)||'결제창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요.')}}
-function payDone(ok,title,sub){const o=document.getElementById('paydone');if(o)o.remove();const d=document.createElement('div');d.id='paydone';d.className='paok'+(ok?'':' bad');d.setAttribute('role','alertdialog');d.setAttribute('aria-label',title);
- d.innerHTML='<div class="pdc"><svg class="pdi" viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="42"/>'+(ok?'<path d="M25 43l12 12 23-25"/>':'<path d="M28 28l28 28M56 28L28 56"/>')+'</svg><h2>'+esc(title)+'</h2><p>'+esc(sub||'')+'</p><button class="p axwide" onclick="document.getElementById(\'paydone\').remove()">확인</button></div>';document.body.appendChild(d);try{navigator.vibrate&&navigator.vibrate(ok?[30,40,30]:80)}catch(e){}}
+function payDone(ok,title,sub){const o=document.getElementById('paydone');if(o)o.remove();const d=document.createElement('div');d.id='paydone';d.className='paok'+(ok?'':' bad');d.setAttribute('role','alertdialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-label',title);const prev=document.activeElement;const close=()=>{d.remove();document.removeEventListener('keydown',kd,true);try{prev&&prev.focus&&prev.focus()}catch(e){}};const kd=e=>{if(e.key==='Escape'||e.key==='Enter'){e.preventDefault();close()}};
+ d.innerHTML='<div class="pdc"><svg class="pdi" viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="42"/>'+(ok?'<path d="M25 43l12 12 23-25"/>':'<path d="M28 28l28 28M56 28L28 56"/>')+'</svg><h2>'+esc(title)+'</h2><p>'+esc(sub||'')+'</p><button class="p axwide" id="paydoneok">확인</button></div>';document.body.appendChild(d);d.querySelector('#paydoneok').onclick=close;d.addEventListener('click',e=>{if(e.target===d)close()});document.addEventListener('keydown',kd,true);d.querySelector('#paydoneok').focus();try{navigator.vibrate&&navigator.vibrate(ok?[30,40,30]:80)}catch(e){}}
 /* 결제창에서 돌아오면: 서버 승인 함수(toss-confirm)가 있으면 그걸로, 없으면 「테스트 결제 완료 처리」가 켜져 있을 때만 납부 완료로 바꿔요 */
 async function tossReturn(){
  let p=null;try{p=JSON.parse(localStorage.getItem('omr_tosspend')||'null')}catch(e){}
