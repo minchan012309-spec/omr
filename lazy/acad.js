@@ -222,6 +222,10 @@ async function pAttView(){
  else b=paFeeHtml();
  m.innerHTML=`<div class="tsh"><div><h1>${esc((STINFO&&STINFO.name)||'자녀')} 학생</h1><p>출결과 알림장, 납부 내역을 확인해요.</p></div></div>${seg}${b}`}
 async function paLoad(){PA.err='';const a={p_login:STUD.login,p_pw:STUD.pw};
+ if(STUD.preview){try{const[y,mo]=PA.mon.split('-').map(Number),to=PA.mon+'-'+String(new Date(Date.UTC(y,mo,0)).getUTCDate()).padStart(2,'0'),id=STUD.sid;
+  const[rc,nt,pn,fe]=await Promise.all([acJ('/rest/v1/attendance?select=*&student_id=eq.'+id+'&day=gte.'+PA.mon+'-01&day=lte.'+to),acJ('/rest/v1/notices?select=*&order=t.desc&limit=60'),acJ('/rest/v1/parent_notices?select=*&order=created_at.desc&limit=30').catch(()=>[]),acJ('/rest/v1/fees?select=*&student_id=eq.'+id+'&order=created_at.desc&limit=100').catch(()=>[])]);
+  PA.recs=rc||[];PA.notes=[...(nt||[]).filter(n=>(!n.student_id||n.student_id===id)&&['parent','all'].includes(n.audience||'student')).map(n=>({id:n.id,title:n.title,body:n.body,t:+n.t})),...(pn||[]).filter(n=>!n.student_id||n.student_id===id).map(n=>({id:-n.id,title:n.title,body:n.body,t:new Date(n.created_at).getTime()}))].sort((x,y)=>y.t-x.t);
+  PA.fees=fe||[];PA.pay=((await tsRaw())||{}).pay||{};PA.pay.clientKey=PA.pay.clientKey||TOSS_KEY}catch(e){PA.err='미리보기를 불러오지 못했어요.'}PA.ld=1;PA.t=Date.now();return}
  try{const[y,mo]=PA.mon.split('-').map(Number);const to=PA.mon+'-'+String(new Date(Date.UTC(y,mo,0)).getUTCDate()).padStart(2,'0');
   const rs=await Promise.all([rpc('pa_attendance',{...a,p_from:PA.mon+'-01',p_to:to}),rpc('pa_notices',a),rpc('pa_fees',a)]);
   const bad=rs.find(r=>!r.ok);
@@ -240,6 +244,7 @@ function paFeeHtml(){
  return `<div class="card">${rows}<div id="axpay"></div></div>`}
 
 function paPay(id){const f=PA.fees.find(x=>x.id===id),P=PA.pay||{},e=document.getElementById('axpay');if(!f||!e)return;
+ if(STUD&&STUD.preview){e.innerHTML='<div class="hint" style="margin-top:10px">선생님 화면의 미리보기에서는 결제할 수 없어요. 결제는 학부모 계정(아이디·비밀번호)으로 접속해서 해 주세요.</div>';return}
  e.innerHTML=`<div class="hint" style="margin-top:10px"><b>${esc(f.title)} · ${won(f.amount)}</b><button class="p axwide" onclick="paToss(${f.id})">카드로 결제하기</button>${P.bank?`<b>계좌 이체</b><br><span style="font-size:16px;font-weight:700;color:var(--t);letter-spacing:.01em">${esc(P.bank)}</span><div style="margin-top:8px"><button class="s axwide" onclick="paCopy()">계좌 복사</button></div><small style="display:block;margin-top:6px">입금하시면 선생님이 확인한 뒤 납부 완료로 바꿔 드려요.</small>`:'아직 계좌 안내가 등록되지 않았어요. 학원에 문의해 주세요.'}</div>`;
  e.scrollIntoView({behavior:'smooth',block:'nearest'})}
 function paCopy(){const b=(PA.pay||{}).bank||'';try{navigator.clipboard.writeText(b).then(()=>toast('계좌를 복사했어요'),()=>toast('복사하지 못했어요'))}catch(e){toast('복사하지 못했어요')}}
@@ -248,22 +253,32 @@ async function paToss(id){const f=PA.fees.find(x=>x.id===id);if(!f)return;
  try{if(!window.TossPayments){await new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://js.tosspayments.com/v2/standard';s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
   const tp=window.TossPayments(PA.pay.clientKey||TOSS_KEY),pay=tp.payment({customerKey:'solvi-'+String(STUD.login).replace(/[^A-Za-z0-9_-]/g,'').slice(0,40).padEnd(2,'x')});
   const base=location.origin+location.pathname;
-  await pay.requestPayment({method:'CARD',amount:{currency:'KRW',value:f.amount},orderId:'solvi-'+f.id+'-'+Date.now().toString(36),orderName:f.title,successUrl:base+'?tosspay='+f.id,failUrl:base+'?tosspay=fail',customerName:(STINFO&&STINFO.name)||undefined})
- }catch(e){if(e&&e.code!=='USER_CANCEL')toast('결제창을 열지 못했어요'+(e&&e.message?' ('+e.message+')':''))}}
+  try{localStorage.setItem('omr_tosspend',JSON.stringify({f:f.id,t:f.title,w:f.amount}))}catch(x){}
+  const res=await pay.requestPayment({method:'CARD',amount:{currency:'KRW',value:f.amount},orderId:'solvi-'+f.id+'-'+Date.now().toString(36),orderName:f.title,successUrl:base+'?tosspay='+f.id,failUrl:base+'?tosspay=fail',customerName:(STINFO&&STINFO.name)||undefined});
+  /* PC 결제창은 페이지를 옮기지 않고 결과만 돌려주기도 해요 */
+  if(res&&res.paymentKey)await tossConfirm({k:res.paymentKey,o:res.orderId,a:res.amount&&res.amount.value!=null?res.amount.value:f.amount,f:f.id})
+ }catch(e){try{localStorage.removeItem('omr_tosspend')}catch(x){}if(e&&e.code==='USER_CANCEL')return;payDone(false,'결제하지 못했어요',(e&&e.message)||'결제창을 열지 못했어요. 잠시 뒤 다시 시도해 주세요.')}}
+function payDone(ok,title,sub){const o=document.getElementById('paydone');if(o)o.remove();const d=document.createElement('div');d.id='paydone';d.className='paok'+(ok?'':' bad');d.setAttribute('role','alertdialog');d.setAttribute('aria-label',title);
+ d.innerHTML='<div class="pdc"><svg class="pdi" viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="42"/>'+(ok?'<path d="M25 43l12 12 23-25"/>':'<path d="M28 28l28 28M56 28L28 56"/>')+'</svg><h2>'+esc(title)+'</h2><p>'+esc(sub||'')+'</p><button class="p axwide" onclick="document.getElementById(\'paydone\').remove()">확인</button></div>';document.body.appendChild(d);try{navigator.vibrate&&navigator.vibrate(ok?[30,40,30]:80)}catch(e){}}
 /* 결제창에서 돌아오면: 서버 승인 함수(toss-confirm)가 있으면 그걸로, 없으면 「테스트 결제 완료 처리」가 켜져 있을 때만 납부 완료로 바꿔요 */
 async function tossReturn(){
  let p=null;try{p=JSON.parse(localStorage.getItem('omr_tosspend')||'null')}catch(e){}
  const q=new URLSearchParams(location.search);
- if(q.get('paymentKey')){p={k:q.get('paymentKey'),o:q.get('orderId'),a:q.get('amount'),f:+q.get('tosspay')};try{localStorage.setItem('omr_tosspend',JSON.stringify(p))}catch(e){}history.replaceState(null,'',location.pathname+location.hash)}
- else if(q.get('tosspay')==='fail'){history.replaceState(null,'',location.pathname+location.hash);toast('결제가 취소되었어요');return}
- if(!p||!p.k||!p.f)return;if(!STUD||!STUD.parent)return;
+ if(q.get('paymentKey')){p={...(p||{}),k:q.get('paymentKey'),o:q.get('orderId'),a:q.get('amount'),f:+q.get('tosspay')};try{localStorage.setItem('omr_tosspend',JSON.stringify(p))}catch(e){}history.replaceState(null,'',location.pathname+location.hash)}
+ else if(q.get('tosspay')==='fail'){history.replaceState(null,'',location.pathname+location.hash);try{localStorage.removeItem('omr_tosspend')}catch(e){}payDone(false,'결제가 취소됐어요','결제는 진행되지 않았어요. 필요하면 다시 시도해 주세요.');return}
+ if(!p||!p.k||!p.f)return;if(!STUD||!STUD.parent||STUD.preview)return;
+ await tossConfirm(p)}
+/* 결제 승인: 서버 승인 함수(toss-confirm)가 있으면 그걸로, 없으면 「테스트 결제 완료 처리」가 켜져 있을 때만 납부 완료로 바꿔요 */
+async function tossConfirm(p){
  try{localStorage.removeItem('omr_tosspend')}catch(e){}
  toast('결제를 확인하는 중이에요…');let msg='',ok=false;
  try{const r=await fetch(base_()+'/functions/v1/toss-confirm',{method:'POST',headers:hdr({'Content-Type':'application/json'}),body:JSON.stringify({login:STUD.login,pw:STUD.pw,feeId:p.f,paymentKey:p.k,orderId:p.o,amount:+p.a})});
   if(r.status!==404){const j=await r.json().catch(()=>({}));ok=!!j.ok;msg=j.err||''}
   else{const r2=await rpc('pa_fee_demo_pay',{p_login:STUD.login,p_pw:STUD.pw,p_fee:p.f});ok=r2.ok&&await r2.json();if(!ok)msg='결제는 됐지만 서버 승인 함수가 아직 없어서 납부 완료로 바꾸지 못했어요. 학원에 알려 주세요'}}
  catch(e){msg='결제를 확인하지 못했어요'}
- toast(ok?'결제가 완료됐어요':msg||'결제를 확인하지 못했어요');PA.ld=0;PA.sec='fee';tab='patt';render()}
+ const f=(PA.fees||[]).find(x=>x.id===p.f),what=f?f.title+' · '+won(f.amount):(p.t?p.t+' · '+won(p.w||0):'');
+ PA.ld=0;PA.sec='fee';tab='patt';render();
+ if(ok)payDone(true,'결제가 완료됐어요',what||'납부 내역에 반영됐어요');else payDone(false,'결제를 확인하지 못했어요',msg||'잠시 뒤 납부 내역을 다시 확인해 주세요.')}
 
 /* ---------- 학생 앱: 출결 달력만 (시각·납부는 보이지 않아요) ---------- */
 const SA={mon:'',recs:[],ld:0,err:''};
