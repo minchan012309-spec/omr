@@ -2482,8 +2482,8 @@ function wsToDiary(id){try{const d=JSON.parse(localStorage.getItem('omr_diary_dr
 function wsDup(id){const w=WSH.find(x=>x.id===id);if(!w)return;const r={...w,id:newNo(),t:Date.now(),title:w.title+' (복사)',codes:w.codes.slice()};WSH.push(r);wsStore();if(srv==='cloud')wsPost(r).catch(()=>{});toast('학습지를 복제했어요');render()}
 async function wsReprint(id){const w=WSH.find(x=>x.id===id);await ensureCodes(w.codes);openWs(w)}
 const WSSEL=new Set();let WSLAST=null;
-function wsSelTog(id){if(WSSEL.has(id)){WSSEL.delete(id);if(WSLAST===id)WSLAST=null}else{WSSEL.add(id);WSLAST=id}wsListView()}
-function wsSelAll(on){const list=WSH.filter(w=>!CUR_S||w.sid===CUR_S);WSSEL.clear();WSLAST=null;if(on)list.forEach(w=>WSSEL.add(w.id));wsListView()}
+function wsSelTog(id){if(WSSEL.has(id)){WSSEL.delete(id);if(WSLAST===id)WSLAST=null}else{WSSEL.add(id);WSLAST=id}WOPEN=null;wsListView()}
+function wsSelAll(on){const list=WSH.filter(w=>!CUR_S||w.sid===CUR_S);WSSEL.clear();WSLAST=null;WOPEN=null;if(on)list.forEach(w=>WSSEL.add(w.id));wsListView()}
 async function wsDelSel(){if(!WSSEL.size)return;if(!confirm(WSSEL.size+'개의 학습지 기록을 지울까요? (채점 기록은 남습니다)'))return;
  const ids=[...WSSEL];WSH=WSH.filter(w=>!WSSEL.has(w.id));wsStore();WSSEL.clear();
  if(srv==='cloud'){for(const id of ids)await sb('/rest/v1/worksheets?wid=eq.'+encodeURIComponent(id),{method:'DELETE'})}wsListView()}
@@ -2960,7 +2960,7 @@ async function wsResetDo(id,t){const w=WSH.find(x=>x.id===id);if(!w)return;if(!c
   if(cloud()&&sess){try{await sb('/rest/v1/attempts?set=eq.ws&sub=eq.'+encodeURIComponent(id)+(t?'&t=eq.'+t:''),{method:'DELETE'});if(!t)await sb('/rest/v1/worksheets?wid=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({meta:wsMeta(w)})})}catch(e){}}
   calibAll()});toast('초기화했어요');if(t)wsReset(id);else closeCfg();rr_ws()}
 function rr_ws(){if(tab==='ws')wsListView()}
-function wsMenu(id,ev){ev.stopPropagation();WOPEN=WOPEN===id?null:id;keepScroll(wsListView)}
+function wsMenu(id,ev){ev.stopPropagation();WOPEN=WOPEN===id?null:id;if(WOPEN)WSLAST=null;keepScroll(wsListView)}
 
 
 /* ---------- 이름 · 시작 체크리스트 · 채점 이어하기 · 시스템 점검 ---------- */
