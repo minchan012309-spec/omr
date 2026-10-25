@@ -56,6 +56,11 @@ _JO = {'은(는)': ('은', '는'), '이(가)': ('이', '가'), '을(를)': ('을
 def _batchim(c):
     if '가' <= c <= '힣':
         return (ord(c) - 0xAC00) % 28
+    o = ord(c)
+    if 0x11A8 <= o <= 0x11FF or 0xD7CB <= o <= 0xD7FB:   # 옛 한글 받침
+        return 1
+    if 0x1161 <= o <= 0x11A7 or 0xD7B0 <= o <= 0xD7C6:   # 옛 한글 모음으로 끝남
+        return 0
     return -1
 
 def josa(s):
