@@ -22,7 +22,7 @@ const BKCSS=`
 @font-face{font-family:Paperozi;src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2') format('woff2');font-weight:700;font-display:swap}
 @font-face{font-family:Paperozi;src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');font-weight:800;font-display:swap}
 @font-face{font-family:Paperozi;src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2') format('woff2');font-weight:900;font-display:swap}
-.bkdoc{font-family:Pretendard,PretendardLocal,'Noto Sans CJK KR','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111;font-weight:400;-webkit-print-color-adjust:exact;print-color-adjust:exact;word-break:keep-all;overflow-wrap:break-word}
+.bkdoc{font-family:YetHangul,Pretendard,PretendardLocal,'Noto Sans CJK KR','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111;font-weight:400;-webkit-print-color-adjust:exact;print-color-adjust:exact;word-break:keep-all;overflow-wrap:break-word}
 .bkdoc *{box-sizing:border-box}
 .bkdoc i{font-family:'Times New Roman','Noto Serif CJK KR',serif;font-style:italic}.bkdoc sub,.bkdoc sup{font-size:70%;line-height:0}
 .bkdoc .bkblank .bklg{position:absolute;right:12mm;bottom:10mm;display:flex;align-items:center;gap:1.4mm;font:800 8.5pt/1 Pretendard,sans-serif;letter-spacing:-.02em;color:#8a96a6}.bkdoc .bkblank .bklg svg{height:12mm;width:auto;display:block}.bkdoc .bkblank .bklg img{height:12mm;width:auto;max-width:40mm;object-fit:contain;display:block}.bkdoc .bkblank .bklg .bld{width:.3mm;height:10mm;background:#9aa5b1;display:block}.bkdoc .bkblank .bklg .blt{font-weight:800;font-size:8.5pt;color:#8a96a6;white-space:nowrap}
@@ -148,6 +148,14 @@ const BKCSS=`
 .bkdoc .cbk .fg{margin:2mm 0 3mm;text-align:center;break-inside:avoid}.bkdoc .cbk .fg img,.bkdoc .cbk .fg svg{max-width:100%;height:auto;max-height:66mm}
 .bkdoc .cbk .fg .cap{font-size:10.6px;color:#555;margin-top:1mm}
 .bkdoc .cbk .two-c{display:grid;grid-template-columns:1fr 1fr;gap:5mm;align-items:start}
+.bkdoc .cbk .ex{margin:2.2mm 0 3.2mm;padding:1.4mm 3.4mm 1.6mm;background:#fff;border:.25mm solid var(--line);border-left:1mm solid var(--p);border-radius:1.6mm;break-inside:avoid}
+.bkdoc .cbk .ex .elb{display:inline-block;font-size:9.4px;font-weight:700;color:var(--pd);margin-bottom:.4mm}
+.bkdoc .cbk .ex p.s{margin:0;line-height:2.55;letter-spacing:.05em}.bkdoc .cbk .ex p.n{margin:1mm 0 0;font-size:11.4px;color:#555;line-height:1.55;letter-spacing:0}
+.bkdoc .cbk .an{display:inline-block;text-align:center;line-height:1.1;vertical-align:bottom;margin:0 .3mm}.bkdoc .cbk .an u{display:block;text-decoration:none;border-bottom:.4mm solid var(--p);padding:0 .3mm}
+.bkdoc .cbk .an i{display:block;font-style:normal;font-size:8px;color:var(--pd);font-weight:700;line-height:1.35;letter-spacing:0;white-space:nowrap}
+.bkdoc .cbk ol.n,.bkdoc .cbk ol.st{margin:.8mm 0 2.2mm;padding-left:5mm}.bkdoc .cbk ol.st>li{margin:.9mm 0}
+.bkdoc .u.q .psg.sp{letter-spacing:.06em;line-height:2.45;margin-bottom:2mm}.bkdoc .u.q .psg.sp p{margin:0 0 1.4mm}
+
 .bkdoc .cbk .tag{display:inline-block;font-size:.9em;font-weight:700;color:#fff;background:var(--p);padding:0 1.2mm;margin-right:1mm}
 .bkdoc .cbk .tp{white-space:nowrap}.bkdoc .cbk .sm{font-size:.92em;color:#555}
 .bkdoc .cbk .fr{text-indent:0;display:inline-block;vertical-align:middle;text-align:center;line-height:1.12;margin:0 .6mm}.bkdoc .cbk img{max-width:100%}
@@ -166,7 +174,7 @@ const BKCSS=`
 .bkdoc .cv .deco{position:absolute;right:8mm;bottom:50mm;width:96mm;height:96mm}
 .bkdoc .cv .c3{position:absolute;left:16mm;right:16mm;bottom:22mm;border-collapse:collapse;width:calc(100% - 32mm);font-size:13px}
 .bkdoc .cv .c3 td{border:.3mm solid var(--line);height:13mm;text-align:center}.bkdoc .cv .c3 td.k{width:21mm;font-weight:800;letter-spacing:3px;background:var(--pl);color:var(--pd)}
-.bkdoc .cv.nv{position:absolute;inset:0;overflow:hidden;color:#f4f6f3;background:radial-gradient(120% 90% at 85% 55%,var(--c3,#1a3d7c) 0%,rgba(0,0,0,0) 60%),linear-gradient(160deg,var(--c1,#081a3d) 0%,var(--c2,#0e2a5c) 100%);font-family:Paperozi,Pretendard,PretendardLocal,'Noto Sans KR',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.bkdoc .cv.nv{position:absolute;inset:0;overflow:hidden;color:#f4f6f3;background:radial-gradient(120% 90% at 85% 55%,var(--c3,#1a3d7c) 0%,rgba(0,0,0,0) 60%),linear-gradient(160deg,var(--c1,#081a3d) 0%,var(--c2,#0e2a5c) 100%);font-family:Paperozi,YetHangul,Pretendard,PretendardLocal,'Noto Sans KR',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .bkdoc .cv.nv::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.018) 0 2px,rgba(255,255,255,0) 2px 7px);pointer-events:none}
 .bkdoc .cv.nv .wm{position:absolute;left:72mm;top:46mm;font-size:250mm;font-weight:900;line-height:1;color:rgba(255,255,255,.07)}
 .bkdoc .cv.nv .tl{position:absolute;top:26mm;left:24mm}.bkdoc .cv.nv .sr{font-size:4.2mm;font-weight:800;letter-spacing:.34em}.bkdoc .cv.nv .bk{margin-top:1.6mm;font-size:3.4mm;font-weight:400;opacity:.8}
@@ -240,12 +248,12 @@ const BKSCR=`
 
 /* ---------- 준비: 글꼴 · 높이표 · 개념 · 모의고사 ---------- */
 const BKCDN='https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css';
-function bkFontCss(abs){const b=abs||'';return [[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold']].map(([w,n])=>`@font-face{font-family:PretendardLocal;font-weight:${w};font-display:swap;src:url(${b}fonts/Pretendard-${n}.woff2) format('woff2')}`).join('')}
+function bkFontCss(abs){const b=abs||'';return [[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold']].map(([w,n])=>`@font-face{font-family:PretendardLocal;font-weight:${w};font-display:swap;src:url(${b}fonts/Pretendard-${n}.woff2) format('woff2')}`).join('')+`@font-face{font-family:YetHangul;font-display:swap;src:url(${b}fonts/YetHangul.woff2) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}`}
 function bkInit(){
  if(BKREADY)return BKREADY;
  BKREADY=(async()=>{
   if(!document.getElementById('bkcss')){const s=document.createElement('style');s.id='bkcss';s.textContent=bkFontCss('')+BKSCR;document.head.appendChild(s)}
-  try{await Promise.all([400,600,700,800].map(w=>document.fonts.load(w+' 12px Pretendard','가A1')))}catch(e){}
+  try{await Promise.all([400,600,700,800].map(w=>document.fonts.load(w+' 12px Pretendard','가A1')).concat(document.fonts.load('400 12px YetHangul','\u1109\u119e')))}catch(e){}
   try{const r=await fetch('books/heights.json?v=2');if(r.ok)BKHT=await r.json()}catch(e){}
   if(!BKHT)BKHT={};
  })();
@@ -894,7 +902,7 @@ async function bkEbook(id){
  el=document.createElement('div');el.id='ebk';
  const J=[['표지',1]];if(plan.kind==='c')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.c]));else if(plan.kind==='t')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.p]));else if(plan.kind==='x')plan.toc.forEach(r=>r.items.forEach(([n,p])=>J.push([r.sub.k+' '+n,p])));if(plan.aStart)J.push(['정답 · 해설',plan.aStart]);
  const seen=new Set();EBK.J=J.filter(j=>j[1]&&!seen.has(j[1])&&seen.add(j[1]));
- el.innerHTML=`<style>#ebk{position:fixed;inset:0;z-index:50;background:#1b1f27;color:#e8ecf2;display:flex;flex-direction:column;font:14px Pretendard,PretendardLocal,sans-serif;user-select:none;-webkit-user-select:none}#ebk.wh{background:#f1f3f6}
+ el.innerHTML=`<style>#ebk{position:fixed;inset:0;z-index:50;background:#1b1f27;color:#e8ecf2;display:flex;flex-direction:column;font:14px YetHangul,Pretendard,PretendardLocal,sans-serif;user-select:none;-webkit-user-select:none}#ebk.wh{background:#f1f3f6}
 #ebk .ebw{background:#12151b;flex:none}#ebk .eb,#ebk .et{display:flex;gap:6px;align-items:center;padding:6px 10px;flex-wrap:wrap}#ebk .et{padding-top:0}#ebk .eb>b{flex:1;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#ebk .sp1{flex:1}
 #ebk button,#ebk select{font:inherit;background:#2a303b;color:#e8ecf2;border:1px solid #3a4250;border-radius:8px;padding:6px 10px;cursor:pointer;max-width:44vw;display:inline-flex;align-items:center;gap:4px}#ebk button.on{background:#f7b928;color:#222;border-color:#f7b928}#ebk .eb button,#ebk .et button{flex:none;white-space:nowrap}#ebk button.ebi{padding:6px 11px;justify-content:center}#ebk button.ebi svg{width:18px!important;height:18px!important;flex:none;display:block}#ebk button.pr{background:#2f9d66;border-color:#2f9d66;color:#fff;font-weight:700}
 #ebk{--t:#d6dce6;--m:#97a3b4;--sf2:#262c37;--l:#2e3541;--b:#2f9d66;--y:#f7b928}
