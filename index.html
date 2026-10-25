@@ -565,6 +565,7 @@ header h1:hover .logo{transform:none}.rt{animation:none}.tc,.res,.wi,.mki,.rl,.c
 .mkw-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.mkw-chips button{all:unset;cursor:pointer;padding:6px 14px;border-radius:999px;font-size:13px;background:#f0f2f5}.mkw-chips button.on{background:var(--p,#3b6fe0);color:#fff;font-weight:700}.mkw-chips button:focus-visible{outline:2px solid var(--p,#3b6fe0);outline-offset:2px}.mkw-chips input{width:64px;padding:5px 6px;text-align:center}
 .mkw-t{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}.mkw-t th,.mkw-t td{padding:9px 6px;text-align:center;border-bottom:1px solid #e3e8ee}.mkw-t thead th{font-size:12.5px}.mkw-t tbody th{text-align:left;font-weight:600;font-size:12.5px}.mkw-t tr.mu td,.mkw-t tr.mu th{color:#8b95a3}.mkw-t input{width:54px;padding:5px 4px;text-align:center}
 .mkw-f{flex:none;display:flex;align-items:center;gap:12px;padding:12px 20px;border-top:1px solid #e3e8ee}.mkw-fb{margin-left:auto;display:flex;gap:8px}
+@media(max-width:600px){.mkw-st{flex-wrap:nowrap}.mkw-st button{white-space:nowrap;flex:none}.mkw-st u{flex:none}.mkw-f>.m{display:none}.mkw-fb{width:100%}.mkw-fb button{flex:1;white-space:nowrap}}
 @media(max-width:900px){.mkw-3{display:block;overflow:auto}.mkw-c{border-right:0;border-bottom:1px solid #e3e8ee;overflow:visible}.mkw-h{flex-wrap:wrap;height:auto;padding:8px 14px}.mkw-st{margin-left:0;order:3;width:100%;overflow:auto}.mkw-l{width:100%}}
 
 @media(min-width:1000px){.bdz{grid-template-columns:minmax(0,1fr) 380px}.bdset{order:2;position:sticky;top:66px;max-height:calc(100vh - 200px);display:flex;flex-direction:column}.bdset #bdp{overflow:auto;flex:1;min-height:0}.bdr{order:1;position:static}.bdr .bdp{position:sticky;top:66px}}
@@ -1459,7 +1460,7 @@ window.addEventListener('popstate',async e=>{const k=(e.state&&e.state.k)||'';co
  tab=p[0];if(p[1]!=='1')cur=null;if(p[2]!=='1')PR=null;if(p[3]!=='1')$('#wsView').classList.remove('open');_navKey=k;render(true)});
 function resetW(){FL='';FLS=0;W=JSON.parse(JSON.stringify(WDEF));W.sel=new Map();BQ='';BU=[];BD.codes=null;saveW()}
 const FRESHFROM=['build','bdesign','bmake','review','weak','prac','wsedit'];
-function render(skip){tipHide();if(tab==='diag'){tab='wrong';WRM='diag'}if(tab==='wrong'&&STUD&&WRM==='diag'&&!permOn('diag'))WRM='note';if((tab==='build'||tab==='weak')&&window._lt!==tab&&!FRESHFROM.includes(window._lt||'')){try{resetW()}catch(e){}BGO=0}{const m=document.getElementById('main');if(m){if(window._lt!==tab){m.classList.remove('pgin');void m.offsetWidth;m.classList.add('pgin');clearTimeout(window._pgt);window._pgt=setTimeout(()=>m.classList.remove('pgin'),600)}window._lt=tab}}if(teacher()&&tab==='enter'&&!STUD)tab=(window._st0?'thome':(window._st0=1,PREF.start||'thome'));{const m=$('#qsheet');if(m&&(!cur||cur.done||cur.mark))m.classList.remove('open')}nav();try{scopeRender()}catch(e){}({grade:gradeView,bdesign:bdesignView,mock:mockView,wrong:wrongHub,diag:wrongHub,thome:teacherHome,enter:enterView,weak:weakView,concept:conceptView,books:booksView,ws:wsListView,stu:stuView,stat:statView,rec:recView,sim:simView,chal:chalView,dev:devView,search:searchView,tset:tsetView,att:attView,diary:diaryView,patt:pAttView,satt:sAttView,prac:pracView,build:(()=>(!BGO&&!(W.sel&&W.sel.size)&&teacher()?startView:buildView)()),bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();try{if(NT.who!==nWho()){NT.who=nWho();nStart();if(STUD)setTimeout(updAuto,2500)}nBadge()}catch(e){}decorate()}
+function render(skip){tipHide();if(tab==='diag'){tab='wrong';WRM='diag'}if(tab==='wrong'&&STUD&&WRM==='diag'&&!permOn('diag'))WRM='note';if((tab==='build'||tab==='weak')&&window._lt!==tab&&!FRESHFROM.includes(window._lt||'')){try{resetW()}catch(e){}BGO=0;BMODE=''}{const m=document.getElementById('main');if(m){if(window._lt!==tab){m.classList.remove('pgin');void m.offsetWidth;m.classList.add('pgin');clearTimeout(window._pgt);window._pgt=setTimeout(()=>m.classList.remove('pgin'),600)}window._lt=tab}}if(teacher()&&tab==='enter'&&!STUD)tab=(window._st0?'thome':(window._st0=1,PREF.start||'thome'));{const m=$('#qsheet');if(m&&(!cur||cur.done||cur.mark))m.classList.remove('open')}nav();try{scopeRender()}catch(e){}({grade:gradeView,bdesign:bdesignView,mock:mockView,wrong:wrongHub,diag:wrongHub,thome:teacherHome,enter:enterView,weak:weakView,concept:conceptView,books:booksView,ws:wsListView,stu:stuView,stat:statView,rec:recView,sim:simView,chal:chalView,dev:devView,search:searchView,tset:tsetView,att:attView,diary:diaryView,patt:pAttView,satt:sAttView,prac:pracView,build:(()=>(!BGO&&!(W.sel&&W.sel.size)&&teacher()?startView:buildView)()),bmake:bmakeView,review:reviewView,wsedit:wsEditView,home:studHome,tasks:studTasks,smap:sMapView,shist:sHistView})[tab]();if(!skip)pushNav();try{if(NT.who!==nWho()){NT.who=nWho();nStart();if(STUD)setTimeout(updAuto,2500)}nBadge()}catch(e){}decorate()}
 const lastRes=()=>{const m={};H().forEach(h=>h.items.forEach(x=>{(m[x.c]=m[x.c]||[]).push(x.r)}));return m};
 function statsFrom(hs,keyf,filter){const m={};
  hs.forEach(h=>h.items.forEach(x=>{const q=qMeta(x.c);if(!q||!q.type||(filter&&!filter(q)))return;const k=keyf(q);const o=m[k]=m[k]||{k,n:0,r:0,rec:[],q};o.n++;o.r+=x.r;o.rec.push(x.r)}));
@@ -2227,16 +2228,24 @@ function bcountCard(){return ` <div class="card bcount"><h3 style="margin:0 0 10
  ${W.mode==='total'?`<span class="tot"><input type="number" min="1" max="300" value="${W.total}" onchange="W.total=Math.max(1,parseInt(this.value)||1);saveW();buildView()">문항 ${[10,20,30].map(n=>`<button class="s sm" onclick="setTotal(${n})">${n}</button>`).join('')}<select onchange="W.dist=this.value;saveW();buildView()"><option value="weak" ${W.dist==='weak'?'selected':''}>취약 유형에 더 많이</option><option value="even" ${W.dist==='even'?'selected':''}>고르게</option></select></span>`:`<span class="tot">전체 <input type="number" min="1" max="60" value="${W.n}" onchange="bulkN(this.value)">문항씩</span>`}</div></div>
  <div class="bcrow"><div class="m">서술형</div><div class="bcv"><select onchange="setEssay(this.value)"><option value="0" ${!W.essay?'selected':''}>넣지 않음</option>${[1,2,3,4,5,6,8,10].map(n=>`<option value="${n}" ${+W.essay===n?'selected':''}>${n}문항 넣기</option>`).join('')}</select><span class="m">${W.essay?(essPool()>=+W.essay?'선택한 단원에서 서술형 '+W.essay+'문항을 마지막에 넣어요.':`선택한 단원의 서술형은 ${essPool()}문항뿐이라 ${essPool()}문항만 들어가요.`):`선택한 단원에 서술형 ${essPool()}문항 있어요.`}</span></div></div></div>`}
 /* ===== 학습지 만들기 첫 화면: 어떤 방식으로 만들지 먼저 고르기 ===== */
-let BGO=0;
-function bGo(f){BGO=1;tab='build';try{f&&f()}catch(e){}render()}
+let BGO=0,BMODE='';
+function bGo(f){BGO=1;BMODE='';tab='build';try{f&&f()}catch(e){}render()}
+function bsPick(rows,n,note){bPush();W.sel=new Map();rows.slice(0,n).forEach(o=>W.sel.set(o.k,W.n));saveW();BMODE=note}
+function bsWeak(){const rows=typeRows();let c=rows.filter(o=>['skull','red','yellow'].includes(o.lv));let note='채점 기록에서 정답률이 낮은 유형 '+Math.min(6,c.length)+'개를 골랐어요. 빼거나 더할 수 있어요.';
+ if(!c.length){c=rows.filter(o=>o.pool>0).sort((a,b)=>b.pool-a.pool);note='아직 채점 기록이 없어 문항이 많은 유형을 대신 골랐어요. 채점이 쌓이면 약한 유형이 자동으로 골라져요.'}
+ else c.sort((a,b)=>a.p-b.p);bsPick(c,6,note)}
+function bsEssay(){W.sets.essay=1;W.essay=5;const ks=new Set(DATA.filter(q=>q.set==='essay'&&q.sub&&q.type).map(q=>q.sub+'|'+q.type));const c=typeRows().filter(o=>ks.has(o.k));
+ bsPick(c.length?c:typeRows().filter(o=>o.pool>0),8,c.length?'서술형 문항이 있는 유형 '+Math.min(8,c.length)+'개를 골랐고, 서술형 5문항을 넣었어요. 아래 「문항 수」에서 바꿀 수 있어요.':'서술형이 있는 유형을 찾지 못해 일반 유형으로 시작해요.')}
+function bsHard(){W.lvr={'하':0,'중':2,'상':5,'최':3};W.sets.top=1;BOPEN.lv=1;const c=typeRows().filter(o=>o.pool>0).map(o=>{const l=lvCounts(o.sub,o.type);return{o,h:(l['상']||0)+(l['최']||0)}}).filter(x=>x.h>0).sort((a,b)=>b.h-a.h).map(x=>x.o);
+ bsPick(c,8,'상·최상 문항이 많은 유형 '+Math.min(8,c.length)+'개를 골랐고, 난이도 비율을 상·최 위주로 맞췄어요.')}
 const BSTARTS=[
  ['문제 은행',[
-  ['유형별','유형을 골라 문항 수만큼 맞춤 출제','',()=>0],
-  ['취약 유형 자동','정답률이 낮은 유형을 골라 채워 드려요','',()=>autoPick()],
+  ['유형별','유형을 직접 골라 문항 수만큼 출제','',()=>0],
+  ['취약 유형 자동','정답률이 낮은 유형을 골라 시작','',()=>bsWeak()],
   ['문항 검색해서 담기','문항 번호·키워드로 찾아 담은 뒤 만들기','tab=\'search\';render()',null]]],
  ['목적별',[
-  ['서술형 위주','서술형 문항을 넣어 출제','',()=>{W.sets.essay=1;W.essay=5}],
-  ['고난도','상·최상위 비중을 높여 출제','',()=>{W.lvr={'하':0,'중':2,'상':5,'최':3};W.sets.top=1}],
+  ['서술형 위주','서술형이 있는 유형을 골라 시작','',()=>bsEssay()],
+  ['고난도','상·최상 문항이 많은 유형을 골라 시작','',()=>bsHard()],
   ['오답 유사 학습지','틀린 문항의 쌍둥이·유사 문항 출제','tab=\'sim\';render()',null],
   ['단원 챌린지','단원을 골라 도전 학습지 출제','tab=\'chal\';render()',null]]],
  ['시험지',[
@@ -2257,7 +2266,7 @@ function buildView(){
  const lvs=LVS.map(l=>l+(W.lvr[l]||0)).join(' ');
  const tcard=o=>{const on=W.sel.has(o.k);
   return `<div class="tc ${on?'on':''}" data-k="${esc(o.k)}" data-n="${esc((o.type+' '+o.sub+' '+o.subname).toLowerCase())}" onclick="togSel(this.dataset.k)" onmousemove="tip(event,this)" onmouseleave="tipHide()"><i class="ic">${ICON[o.lv]}</i><span class="tn">${esc(o.type)}<small>${o.n?Math.round(o.p*100)+'% · ':''}DB ${o.pool.toLocaleString()}</small></span>${on?(W.mode==='total'?`<b class="tcn">${plan[o.k]}</b>`:`<span class="cnt" onclick="event.stopPropagation()"><button onclick="cntAdj(this.closest('.tc').dataset.k,-1)">−</button><input type="number" min="1" max="60" value="${W.sel.get(o.k)}" onchange="cntSet(this.closest('.tc').dataset.k,this.value)"><button onclick="cntAdj(this.closest('.tc').dataset.k,1)">＋</button></span>`):''}</div>`};
- let h=`<div class="bld"><div class="bmain"><div class="card bhead">${stepper(1)}<div class="row"><h2 style="margin:0">새 학습지</h2><span class="sjpill">${esc(SNAME[SUBJ])}</span>${bankStatus()}<button class="s sm" style="margin-left:auto" onclick="tab='ws';render()">← 내 학습지</button></div>
+ let h=`<div class="bld"><div class="bmain"><div class="card bhead">${stepper(1)}${BMODE?`<div class="hint">${esc(BMODE)}</div>`:''}<div class="row"><h2 style="margin:0">새 학습지</h2><span class="sjpill">${esc(SNAME[SUBJ])}</span>${bankStatus()}<button class="s sm" style="margin-left:auto" onclick="tab='ws';render()">← 내 학습지</button></div>
  <div class="row"><input class="bsearch" style="flex:1" type="search" placeholder="유형 검색" value="${esc(BQ)}" oninput="bFilter(this.value)"></div>
  <div class="row btools"><button class="s sm" onclick="autoPick()" title="정답률이 낮은 유형을 자동으로 골라 줍니다">⚡ 취약 유형 자동 선택</button><button class="s sm" onclick="selAllTypes()">전체 선택</button><button class="s sm" onclick="bClear()">선택 비우기</button><button class="s sm" onclick="bUndo()" ${BU.length?'':'disabled'} title="Ctrl+Z">↶ 되돌리기</button></div>
  ${legendHtml(rows.reduce((a,o)=>(a[o.lv]=(a[o.lv]||0)+1,a),{}))}</div>`+bcountCard()+`<div id="btypes">`;
@@ -4486,7 +4495,7 @@ async function mockPick(sc,obj,ps,used){
    if(got){usedSet.add(got.code);fam[srcKey(got)]=(fam[srcKey(got)]||0)+1;seenType[got.type]=(seenType[got.type]||0)+1;picked.push(got)}}}
  return picked}
 async function mockCreate(){
- const sc=MKF.scope==='all'?subs.map(x=>x[0]):MKF.subs;if(!sc.length){alert('지정 범위의 소단원을 하나 이상 고르세요.');return}
+ mkEns();const sc=MKF.scope==='all'?subs.map(x=>x[0]):MKF.subs;if(!sc.length){alert('지정 범위의 소단원을 하나 이상 고르세요.');return}
  const obj=mkObjN();const lsum=MKF.lvc.reduce((a,b)=>a+b,0);if(lsum!==obj){alert('난이도별 문항 수의 합이 '+obj+'문항이어야 합니다. (현재 '+lsum+')');return}
  let ps=mkPerSub(sc,obj);const psum=Object.values(ps).reduce((a,b)=>a+b,0);if(psum!==obj){alert('소단원별 문항 수의 합이 '+obj+'문항이어야 합니다. (현재 '+psum+')');return}
  const all=jget(MK,[]);const used=new Set();if(MKF.dup)all.filter(m=>m.subj===SUBJ).forEach(m=>{const w=WSH.find(x=>x.id===m.wid);(w?w.codes:[]).forEach(c=>used.add(c))});
