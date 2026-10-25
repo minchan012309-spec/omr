@@ -133,7 +133,7 @@ def book_items(bank_sigs, n_basic=8, n_std=14, n_top=14):
 # ------------------------------------------------------------ 자료(src_*.py) 문항
 def source_items():
     out, seq = [], collections.Counter()
-    for name in ('src_mock', 'src_nn', 'src_school', 'src_extra'):
+    for name in ('src_mock', 'src_nn1', 'src_nn2', 'src_nn3', 'src_school', 'src_extra'):
         m = optional(name)
         if not m: continue
         for d in m.ITEMS:
