@@ -3111,7 +3111,7 @@ async function openWs(rec,pv,opt){
   else if(hk==='mock')head=`<div class="ph1">${qrFirst}<div class="ac">${esc(rec.academy||SNAME[SUBJ])}</div><div class="hd"><div class="tt">${esc(rec.title)}</div><div class="st">${esc(rec.subt||'')}</div></div><div class="inf"><span class="nm"><em>성명</em><u>${esc(nm)}</u></span><span class="sc"><em>점수</em><u></u>/ ${tp}</span></div></div>`;
   else head=`<div class="ph1"><div class="hd">${ac}<div class="tt">${esc(rec.title)}</div><div class="st">${esc(rec.subt||'')}</div></div>${qrFirst}<div class="inf"><span class="nm"><em>이름</em><u>${esc(nm)}</u></span><span><em>날짜</em>${date}</span><span><em>문항</em>${n}문항</span><span class="sc"><em>점수</em><u></u>/ ${tp}</span></div></div>`;
   pg.innerHTML=head+`<div class="cols"><div class="col"></div><div class="col"></div></div>
-  <div class="pf"><span class="pnw"><span class="pn">${pn}</span><span class="sl"> / </span><span class="tot"></span>${exam?'':'　'+esc(rec.title)}</span>${rec.qr?'':`<span class="pflg">${footLogoHtml(3.4,'',hdrm==='solvi'?{noSolvi:1}:null)}</span>`}${rec.qr&&!sol&&!first?`<div class="qr" title="누르면 채점 화면으로 이동합니다"><span>채점하려면 스캔하거나<br>번호를 입력하세요<br><span class="no">${fmtNo(rec.id)}</span></span>${qrSvg(url)}</div>`:''}</div>`;
+  <div class="pf"><span class="pnw"><span class="pn">${pn}</span><span class="sl"> / </span><span class="tot"></span>${exam?'':'　'+esc(rec.title)}</span>${rec.qr?'':`<span class="pflg">${footLogoHtml(3.4)}</span>`}${rec.qr&&!sol&&!first?`<div class="qr" title="누르면 채점 화면으로 이동합니다"><span>채점하려면 스캔하거나<br>번호를 입력하세요<br><span class="no">${fmtNo(rec.id)}</span></span>${qrSvg(url)}</div>`:''}</div>`;
   pg.querySelectorAll('.qrh:not(.lgh),.pf .qr').forEach(e=>e.addEventListener('click',goQr));
   pages.appendChild(pg);all.push(pg);
   {const ph=pg.querySelector('.ph1'),q=ph&&ph.querySelector('.qrh');if(q&&getComputedStyle(q).position==='absolute'){const ex=ph.querySelector('.inf,.nb');const b=ex?Math.max(0,ph.offsetHeight-ex.offsetTop):0;q.style.cssText+=';top:0;bottom:'+b+'px;display:flex;flex-direction:column;justify-content:center'}}
@@ -3824,10 +3824,9 @@ function blankLogoHtml(){const wm=lgStack('#8a96a6');
 /* 인쇄물 구석에 넣는 작은 로고: 솔비 글자 로고(회색) + 학원 로고/이름. 쪽마다 쓰므로 그림 하나를 <img>로 재사용 */
 let _LGDATA='';
 const lgData=()=>_LGDATA||(_LGDATA='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(lgSvg('w','#8a96a6').replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" ')));
-function footLogoHtml(h,style,opt){h=h||5;const cc=acCfg(),o=ACPRINT||{mode:cc.mode,name:cc.name,src:cc.mode==='logo'?(cc.logo||cc.logoDark):'',filter:''};let ac='';
+function footLogoHtml(h,style){h=h||5;const cc=acCfg(),o=ACPRINT||{mode:cc.mode,name:cc.name,src:cc.mode==='logo'?(cc.logo||cc.logoDark):'',filter:''};let ac='';
  if(o.mode==='logo'&&o.src&&LOGO_RE.test(o.src))ac='<img src="'+o.src+'" alt="" style="display:block;height:'+(h*1.15).toFixed(1)+'mm;width:auto;max-width:28mm;object-fit:contain;'+(o.filter?'filter:'+o.filter:'')+'">';
  else if(o.mode==='text'&&o.name)ac='<span style="font-size:'+(h*1.55).toFixed(1)+'pt;font-weight:700;color:#8a96a6;white-space:nowrap">'+esc(o.name)+'</span>';
- if(opt&&opt.noSolvi)return ac?'<span class="flg" style="display:inline-flex;align-items:center;'+(style||'')+'">'+ac+'</span>':'';
  return '<span class="flg" style="display:inline-flex;align-items:center;gap:1.6mm;'+(style||'')+'"><img src="'+lgData()+'" alt="Solvi" style="display:block;height:'+h+'mm;width:auto">'+(ac?'<span style="display:block;width:.25mm;height:'+h+'mm;background:#c8d0da"></span>'+ac:'')+'</span>'}
 addEventListener('load',()=>{try{acRender()}catch(e){console.warn('acRender',e)}setTimeout(()=>{try{acPull()}catch(e){}},1200)});document.addEventListener('visibilitychange',()=>{if(!document.hidden)try{acPull()}catch(e){}});
 function acCache(o){try{if(o&&(o.logo||o.logoDark||o.acname||o.acmode))localStorage.setItem('omr_ac',JSON.stringify({logo:o.logo||'',logoDark:o.logoDark||'',acname:o.acname||'',acmode:o.acmode||'',logov:o.logov||''}));else localStorage.removeItem('omr_ac')}catch(e){}}
