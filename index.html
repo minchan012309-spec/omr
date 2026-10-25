@@ -934,6 +934,7 @@ html[data-theme=dark] #pvbar{background:var(--surface)!important}
 .axform .fld label small{margin-left:6px;font-size:12px;font-weight:400;color:var(--m)}
 .fsr button:focus-visible,.axchip button:focus-visible,.nmg button:focus-visible,#paydoneok:focus-visible,#cfgBox .wpi:focus-within{outline:2px solid var(--b);outline-offset:2px}
 @media(prefers-reduced-motion:reduce){.paok,.paok *,#navmore *{animation:none!important}.paok .pdi path{stroke-dashoffset:0}}
+.axnl p,.axnl b,.axnl small{overflow-wrap:anywhere}.axnl>div{min-width:0}.axchip button{max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .axtpl{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 8px}.axchip{display:inline-flex;align-items:center;background:var(--bg2,#f2f4f6);border-radius:999px;font-size:13px;overflow:hidden}.axchip button{border:0;background:none;color:inherit;font:inherit;padding:6px 8px 6px 12px;cursor:pointer;min-height:0}.axchip .x{padding:6px 10px 6px 2px;opacity:.5}.axchip.add{padding:6px 12px;border:1px dashed var(--l);background:none;color:var(--m,#6b7684)}
 .axnl{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--l)}.axnl:first-child{border-top:0}.axnl>div{flex:1;min-width:0}.axnl small{display:block;color:var(--m);font-size:12px;margin:2px 0 6px}.axnl p{margin:0;line-height:1.6;font-size:14px;word-break:keep-all}
 .axf{display:grid;grid-template-columns:minmax(140px,1.4fr) 100px 120px auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--l)}.axf:first-of-type{border-top:0}.axf small{display:block;color:var(--m);font-size:12px}.axf .axamt{font-weight:700;font-variant-numeric:tabular-nums}.axf .axst{font-size:12.5px;font-weight:600;color:#c2760a}.axf.ok .axst{color:#1f9d55}.axf.od .axst{color:#d9534f}.axf .axab{display:flex;gap:6px;justify-content:flex-end}
@@ -1377,6 +1378,18 @@ function a11y(root){
  const m=document.getElementById('main');if(m&&!m.querySelector('h1,h2')){const c=m.querySelector('.card h3,.card b');if(c&&!c.getAttribute('role')){c.setAttribute('role','heading');c.setAttribute('aria-level','2')}}}
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.getAttribute&&e.target.getAttribute('role')==='button'&&e.target.tagName!=='BUTTON'&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){e.preventDefault();e.target.click()}});
 let _icoT=0;new MutationObserver(ms=>{if(_icoT)return;_icoT=setTimeout(()=>{_icoT=0;iconize(document.body);try{a11y(document.body)}catch(e){}try{chipify(document.getElementById('main')||document.body)}catch(e){}},60)}).observe(document.body,{childList:true,subtree:true,characterData:true});
+/* 클릭만 붙은 div·span을 키보드·화면 읽기에서도 단추로 쓰게 해요 (Enter · Space) */
+const KBSEL='div[onclick],span[onclick],li[onclick],p[onclick],i[onclick],b[onclick]';
+function kbEnhance(){try{document.querySelectorAll(KBSEL).forEach(e=>{
+ if(e.hasAttribute('role')||e.hasAttribute('tabindex')||e.hasAttribute('aria-hidden')||e.classList.contains('nmb'))return;
+ const up=e.parentElement&&e.parentElement.closest('button,a,label,[role=button]');if(up)return;
+ if(e.querySelector('button,a,input,select,textarea,[onclick],[role=button]'))return;
+ const nm=(e.getAttribute('aria-label')||e.title||e.textContent||'').trim();if(!nm)return;
+ const r=e.getBoundingClientRect();if(r.width>innerWidth*.8&&r.height>innerHeight*.5)return;
+ e.setAttribute('role','button');e.setAttribute('tabindex','0');e.dataset.kb='1';if(!e.getAttribute('aria-label')&&nm.length>40)e.setAttribute('aria-label',nm.slice(0,40))})}catch(x){}}
+document.addEventListener('keydown',e=>{const t=e.target;if((e.key==='Enter'||e.key===' ')&&t&&t.dataset&&t.dataset.kb==='1'&&!e.repeat){e.preventDefault();t.click()}});
+let _kbT=0;new MutationObserver(()=>{clearTimeout(_kbT);_kbT=setTimeout(kbEnhance,150)}).observe(document.documentElement,{childList:true,subtree:true});
+addEventListener('load',kbEnhance);
 function decorate(){document.body.dataset.tab=tab;document.body.classList.toggle('isparent',!!(STUD&&STUD.parent));document.body.classList.toggle('hasfab',!!document.querySelector('.fab'));document.querySelectorAll('button').forEach(b=>{if(!b.title){const t=b.textContent.trim();if(t)b.title=t}})}
 function goFull(){bkLoad().then(()=>{tab='books';bkGoFull();render();scrollTo(0,0)}).catch(()=>alert('교재를 불러오지 못했습니다.'))}
 function navCustom(L){const hide=new Set(PREF.navHide||[]),ord=PREF.navOrder||[];let r=L.filter(x=>x[0]==='thome'||x[0]==='tset'||!hide.has(x[0]));if(ord.length)r=r.map((x,i)=>[x,i]).sort((a,b)=>{const ia=ord.indexOf(a[0][0]),ib=ord.indexOf(b[0][0]);return (ia<0?1e3+a[1]:ia)-(ib<0?1e3+b[1]:ib)}).map(x=>x[0]);return r}
@@ -1388,7 +1401,7 @@ const T=STUD?STUD.parent?PT():[['home','홈'],['tasks','과제'],['satt','출결
  $('#nav').innerHTML=main.map(([k,v])=>`<button class="${isOn(k)?'on':''}" onclick="navGo('${k}')">${v}</button>`).join('')+(rest.length?`<button class="${rest.some(x=>isOn(x[0]))?'on':''}" onclick="navMore()" aria-haspopup="dialog">더보기</button>`:'')}
 function navMoreClose(){const d=$('#navmore');if(!d)return;d.remove();document.removeEventListener('keydown',navMoreKey,true);const t=document.querySelector('#nav button[aria-haspopup]');if(t){t.setAttribute('aria-expanded','false');try{t.focus()}catch(e){}}}
 function navMoreKey(e){if(e.key==='Escape'){e.preventDefault();navMoreClose()}}
-function navMore(){const r=window._navRest||[];let d=$('#navmore');if(d){navMoreClose();return}d=document.createElement('div');d.id='navmore';d.innerHTML=`<div class="nmb" onclick="navMoreClose()"></div><div class="nms" role="dialog" aria-modal="true" aria-label="전체 메뉴"><i class="nmh"></i><div class="nmg">${r.map(([k,v])=>`<button onclick="navMoreClose();navGo('${k}')">${v}</button>`).join('')}</div></div>`;document.body.appendChild(d);const t=document.querySelector('#nav button[aria-haspopup]');if(t)t.setAttribute('aria-expanded','true');document.addEventListener('keydown',navMoreKey,true);const f=d.querySelector('.nmg button');if(f)f.focus()}
+function navMore(){const r=window._navRest||[];let d=$('#navmore');if(d){navMoreClose();return}d=document.createElement('div');d.id='navmore';d.innerHTML=`<div class="nmb" aria-hidden="true" onclick="navMoreClose()"></div><div class="nms" role="dialog" aria-modal="true" aria-label="전체 메뉴"><i class="nmh"></i><div class="nmg">${r.map(([k,v])=>`<button onclick="navMoreClose();navGo('${k}')">${v}</button>`).join('')}</div></div>`;document.body.appendChild(d);const t=document.querySelector('#nav button[aria-haspopup]');if(t)t.setAttribute('aria-expanded','true');document.addEventListener('keydown',navMoreKey,true);const f=d.querySelector('.nmg button');if(f)f.focus()}
 function navCap(n){return innerWidth<=720?(n>5?4:n):innerWidth<=1100?(n>8?7:n):n}
 addEventListener('resize',()=>{clearTimeout(window._nrt);window._nrt=setTimeout(()=>{if(window._navMob!==undefined&&window._navRest&&navCap(window._navMob+window._navRest.length)!==window._navMob&&document.getElementById('nav'))nav()},150)})
 let _navKey=null;
@@ -1740,10 +1753,10 @@ function inkAttach(w,store,key){
  const pos=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)/(r.width||1),(e.clientY-r.top)/(r.height||1)*(cv.clientHeight||r.height),e.pressure||.5]};
  const mode=()=>{cv.style.pointerEvents=INK.on?'auto':'none';cv.style.touchAction=INK.finger?'none':'pan-y pinch-zoom';cv.classList.toggle('er',INK.tool==='eraser')};
  const erase=(p)=>{const rw=W_();const before=S.length;for(let i=S.length-1;i>=0;i--){if(S[i].p.some(q=>Math.hypot((q[0]-p[0])*rw,q[1]-p[1])<14))S.splice(i,1)}if(S.length!==before)draw()};
- cv.addEventListener('pointerdown',e=>{if(!INK.on)return;if(e.pointerType==='touch'&&!INK.finger)return;e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(x){}
+ let pid=null;cv.addEventListener('pointerdown',e=>{if(!INK.on)return;if(st)return;if(e.pointerType==='touch'&&!INK.finger)return;e.preventDefault();pid=e.pointerId;try{cv.setPointerCapture(e.pointerId)}catch(x){}
   const p=pos(e);if(INK.tool==='eraser'){st={er:1};erase(p);return}st={c:INK.color,w:INK.w,p:[p]};S.push(st);draw()});
- cv.addEventListener('pointermove',e=>{if(!st)return;e.preventDefault();const L=e.getCoalescedEvents?e.getCoalescedEvents():[e];for(const ev of (L.length?L:[e])){const p=pos(ev);if(st.er){erase(p);continue}const a=st.p[st.p.length-1];if(Math.hypot((p[0]-a[0])*W_(),p[1]-a[1])<.6)continue;st.p.push(p);dot(a,p,st.w*(0.55+(p[2]||.5)*.9),st.c)}});
- const end=()=>{st=null};['pointerup','pointercancel','pointerleave'].forEach(n=>cv.addEventListener(n,end));
+ cv.addEventListener('pointermove',e=>{if(!st||e.pointerId!==pid)return;e.preventDefault();const L=e.getCoalescedEvents?e.getCoalescedEvents():[e];for(const ev of (L.length?L:[e])){const p=pos(ev);if(st.er){erase(p);continue}const a=st.p[st.p.length-1];if(Math.hypot((p[0]-a[0])*W_(),p[1]-a[1])<.6)continue;st.p.push(p);dot(a,p,st.w*(0.55+(p[2]||.5)*.9),st.c)}});
+ const end=e=>{if(e&&e.pointerId!=null&&pid!=null&&e.pointerId!==pid)return;st=null;pid=null};['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(n=>cv.addEventListener(n,end));addEventListener('blur',()=>end());
  cv.addEventListener('touchstart',e=>{const t=e.touches[0];if(INK.on&&t&&t.touchType==='stylus')e.preventDefault()},{passive:false});
  cv.addEventListener('touchmove',e=>{const t=e.touches[0];if(INK.on&&t&&t.touchType==='stylus')e.preventDefault()},{passive:false});
  cv.addEventListener('contextmenu',e=>e.preventDefault());
@@ -1882,7 +1895,7 @@ async function finish(force){
  scrollTo(0,0);render()}
 /* ---------- 교재 탭 (books.js 를 처음 열 때 불러옴) ---------- */
 let _bkp=null;
-function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=60';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
+function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=61';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
 function booksView(){$('#main').innerHTML='<div class="card">'+ldg('교재를 불러오는 중…')+'</div>';bkLoad().then(()=>{if(tab==='books')return bkShow()}).then(()=>{if(tab==='books'&&typeof BKV!=='undefined'&&BKV.v==='shelf'&&!$('#bkstbar'))$('#main').insertAdjacentHTML('afterbegin','<div class="hint" id="bkstbar" style="margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span>교재를 얼마나 채점했는지, 어느 쪽이 남았는지 한눈에 볼 수 있어요.</span><button class="p sm" style="margin-left:auto" onclick="REC.m=\'book\';tab=\'rec\';render()">교재 현황 보기</button></div>')}).catch(()=>{$('#main').innerHTML='<div class="card"><h2>교재</h2><p>교재를 불러오지 못했습니다. 인터넷 연결을 확인하고 다시 눌러 주세요.</p><button class="p" onclick="render()">다시 시도</button></div>'})}
 function bkPageSolve(){const id=$('#bpb').value,n=parseInt($('#bp').value);if(!n){alert('쪽 번호를 입력하세요.');return}bkLoad().then(()=>bkSolve(id,n)).catch(()=>alert('교재를 불러오지 못했습니다.'))}
 function bkPageGo(){const g=+($('#bpgap')||{value:0}).value;const id=$('#bpb').value+(g?'~g'+g:''),n=parseInt($('#bp').value);if(!n){alert('쪽 번호를 입력하세요.');return}bkLoad().then(()=>bkGradePage(id,n)).catch(()=>alert('교재를 불러오지 못했습니다.'))}
@@ -3047,7 +3060,7 @@ function thumbRail(o){o.parent.querySelectorAll(':scope>.thr,:scope>.thg').forEa
  const place=()=>{const b=r.getBoundingClientRect();g.style.left=(b.right+1)+'px';g.style.top=b.top+'px';g.style.bottom='auto';g.style.height=b.height+'px';g.style.color=getComputedStyle(r).color||'#888'};
  g.onpointerdown=e=>{e.preventDefault();g.setPointerCapture(e.pointerId);g.classList.add('on');const x0=e.clientX,w0=thumbW();let w=w0;
   g.onpointermove=m=>{w=Math.max(84,Math.min(300,Math.round(w0+m.clientX-x0)));o.parent.style.setProperty('--thw',w);place()};
-  g.onpointerup=g.onpointercancel=()=>{g.classList.remove('on');o.onSize&&o.onSize();g.onpointermove=g.onpointerup=g.onpointercancel=null;try{localStorage.setItem('omr_thw',String(w))}catch(x){}}};
+  g.onpointerup=g.onpointercancel=g.onlostpointercapture=()=>{g.classList.remove('on');o.onSize&&o.onSize();g.onpointermove=g.onpointerup=g.onpointercancel=g.onlostpointercapture=null;try{localStorage.setItem('omr_thw',String(w))}catch(x){}}};
  g.ondblclick=()=>{o.parent.style.setProperty('--thw',128);try{localStorage.removeItem('omr_thw')}catch(x){}place()};
  r.setTop=px=>{r.style.top=px+'px';place()};r.place=place;setTimeout(place,0);doc.defaultView.addEventListener('resize',place);return r}
 function thumbAct(r,i){if(!r)return;const o=r.querySelector('.thi.on');if(o&&+o.dataset.i===i)return;if(o)o.classList.remove('on');const b=r.querySelector('.thi[data-i="'+i+'"]');if(!b)return;b.classList.add('on');
@@ -3501,7 +3514,7 @@ function popBarInit(w){const d=w.document,bar=d.getElementById('pbar');if(!bar)r
  g.addEventListener('pointerdown',e=>{const r=bar.getBoundingClientRect();st={dx:e.clientX-r.left,dy:e.clientY-r.top};bar.classList.remove('snap');try{g.setPointerCapture(e.pointerId)}catch(x){}e.preventDefault()});
  g.addEventListener('pointermove',e=>{if(!st)return;bar.style.left=Math.max(0,Math.min(w.innerWidth-bar.offsetWidth,e.clientX-st.dx))+'px';bar.style.top=Math.max(0,Math.min(w.innerHeight-bar.offsetHeight,e.clientY-st.dy))+'px'});
  const end=e=>{if(!st)return;st=null;const r=bar.getBoundingClientRect();pos=keyOf(r.left+r.width/2,r.top+r.height/2);jset2('omr_pbar',pos);place(pos,1)};
- g.addEventListener('pointerup',end);g.addEventListener('pointercancel',end);
+ g.addEventListener('pointerup',end);g.addEventListener('pointercancel',end);g.addEventListener('lostpointercapture',end);
  g.addEventListener('keydown',e=>{const R='tmb',C='lcr';let r=R.indexOf(pos[0]),c=C.indexOf(pos[1]);if(e.key==='ArrowLeft')c=Math.max(0,c-1);else if(e.key==='ArrowRight')c=Math.min(2,c+1);else if(e.key==='ArrowUp')r=Math.max(0,r-1);else if(e.key==='ArrowDown')r=Math.min(2,r+1);else return;e.preventDefault();let k=R[r]+C[c];if(k==='mc')k=pos[0]==='b'?'bc':'tc';pos=k;jset2('omr_pbar',pos);place(pos,1)})}
 function popWire(w,fn){try{const d=w.document;const p=d.getElementById('pb-print'),c=d.getElementById('pb-close');if(p)p.onclick=()=>{try{w.focus();w.print()}catch(e){alert('이 기기에서는 인쇄 창을 열 수 없어요. 브라우저 메뉴의 공유·인쇄를 쓰거나 PDF로 받아 주세요.')}};if(c)c.onclick=()=>w.close();if(fn)fn(d);try{popThumbs(w)}catch(e){}try{popBarInit(w)}catch(e){}}catch(e){}}
 function popInject(html){const base='<base href="'+location.href.split('#')[0]+'">';
