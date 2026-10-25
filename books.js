@@ -999,7 +999,7 @@ function ebkUndo(){const u=EBK.undo.pop();if(!u)return;const a=(EBK.pen[u.n]||[]
 function ebkClear(){const vr=document.getElementById('ebst').getBoundingClientRect();const ps=[...document.querySelectorAll('#ebsp .pgw[data-n]')].filter(e=>{if(!ebkScroll())return true;const r=e.getBoundingClientRect();return r.bottom>vr.top&&r.top<vr.bottom}).map(e=>+e.dataset.n).filter(n=>(EBK.pen[n]||[]).length);if(!ps.length){toast('지울 필기가 없어요');return}if(!confirm('이 화면의 필기를 모두 지울까요?'))return;ps.forEach(n=>{EBK.undo.push({k:'del',n,prev:EBK.pen[n]});EBK.pen[n]=[]});ebkPenSave();document.querySelectorAll('#ebsp canvas.pgc').forEach(c=>ebkRedraw(c))}
 function ebkBindDraw(c){let cur=null,last=null;const pt=e=>{const r=c.getBoundingClientRect();return [Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))]};
  const n=+c.parentNode.dataset.n;const ok=e=>e.pointerType!=='touch'||EBK.finger;
- c.addEventListener('pointerdown',e=>{if(!ok(e)||EBK.tool==='none')return;e.preventDefault();c.setPointerCapture(e.pointerId);EBK.drawing=1;const p=pt(e);
+ c.addEventListener('pointerdown',e=>{if(!ok(e)||EBK.tool==='none')return;if(EBK.drawing&&EBK.tool!=='lz')return;e.preventDefault();c.setPointerCapture(e.pointerId);EBK.drawing=1;const p=pt(e);
   if(EBK.tool==='pen'||EBK.tool==='hl'){cur={t:EBK.tool,c:EBK.color,w:EBK.w,p:[p]};ebkRedraw(c,cur)}
   else if(EBK.tool==='er'){EBK.erPrev=(EBK.pen[n]||[]).slice();EBK.erHit=0;ebkErase(c,n,p)}
   else if(EBK.tool==='lz')ebkLaser(e)});
@@ -1010,7 +1010,7 @@ function ebkBindDraw(c){let cur=null,last=null;const pt=e=>{const r=c.getBoundin
   if(cur&&cur.p.length){(EBK.pen[n]=EBK.pen[n]||[]).push(cur);EBK.undo.push({k:'add',n});if(EBK.undo.length>100)EBK.undo.shift();ebkPenSave()}
   else if(EBK.tool==='er'&&EBK.erHit){EBK.undo.push({k:'del',n,prev:EBK.erPrev});ebkPenSave()}
   cur=null;ebkRedraw(c)};
- c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end);
+ c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end);c.addEventListener('lostpointercapture',end);
  c.addEventListener('pointerleave',()=>{if(EBK.tool==='lz'){const l=document.getElementById('ebls');if(l)l.style.display='none'}})}
 function ebkErase(c,n,p){const a=EBK.pen[n]||[];const r=c.getBoundingClientRect();const rad=Math.max(.012,12/r.width);
  const keep=a.filter(s=>!s.p.some(q=>Math.hypot((q[0]-p[0])*r.width,(q[1]-p[1])*r.height)<rad*r.width));if(keep.length!==a.length){EBK.pen[n]=keep;EBK.erHit=1;ebkRedraw(c)}}

@@ -39,6 +39,8 @@ async function tsetView(){
  <div class="fld"><label>선생님 이름</label><input value="${esc(teacherName())}" maxlength="20" onchange="try{localStorage.setItem(TN,this.value.trim())}catch(e){}tsetSaved()"></div>
  <div class="fld"><label>문항 수</label><input type="number" min="5" max="100" value="${PREF.total}" onchange="PREF.total=Math.max(5,Math.min(100,+this.value||15));prefSave();tsetSaved()"></div>
  ${sel('lvr','난이도 구성',[['basic','기초 (하 중심)'],['std','표준'],['hard','도전 (상 중심)']])}${sel('wsCols','단 수',[[2,'2단'],[1,'1단']])}${selG('wsFont','글꼴')}</div>
+ <div class="fld" style="max-width:460px;margin-top:10px"><label>글자 크기 기본값 <small class="m">새 학습지 · 모의고사가 이 크기로 시작해요. 문제와 답지가 같이 바뀌어요</small></label>
+  <div class="fsd"><span class="fsr"><button type="button" aria-label="글자 줄이기" onclick="wsFsDef(-5)">−</button><b id="fsdv">${wsFsClamp(PREF.wsFs||100)}%</b><button type="button" aria-label="글자 키우기" onclick="wsFsDef(5)">+</button></span><button class="s sm" onclick="wsFsDef(0)">처음 크기(100%)</button></div></div>
  <div class="tgp"><h3>문제 앞 태그 기본값<small>새 학습지에서 문제 번호 옆에 붙는 태그</small></h3><div class="swg">${Object.entries(TAGN).map(([k,v])=>`<label class="swr"><span><b>${esc(v)}</b></span><input class="swi" type="checkbox" ${(PREF.tags||{})[k]?'checked':''} onchange="PREF.tags=PREF.tags||{};PREF.tags['${k}']=this.checked?1:0;prefSave();tsetSaved()"></label>`).join('')}</div></div>
  <div class="swg" style="margin-top:12px">${pf('wsAns','정답·해설 페이지 포함','학습지 뒤에 정답과 해설을 붙여요')}${pf('wsQr','쪽마다 QR 넣기','QR을 찍어 바로 채점해요')}</div>`)}
  ${sec('bk','book','교재 인쇄 기본값','교재를 인쇄할 때의 기본 모양이에요.',`<div class="g2">${sel('bkGap','문제 간격',[[0,'기본'],[1,'조금 넓게'],[2,'넓게'],[3,'아주 넓게']])}${selG('bkFont','글꼴')}</div><p class="tsn2">교재를 새로 만들 때의 난이도·문항 수는 「교재 ▸ 교재 만들기」에서 정해요.</p>`)}
@@ -174,11 +176,13 @@ function wpAll(v){document.querySelectorAll('.wpl input').forEach(i=>i.checked=!
 function wpSync(){const c=[...document.querySelectorAll('.wpl input:checked')].map(i=>i.value),b=document.getElementById('wpGo'),f=document.getElementById('wpConf');
  const s=document.getElementById('wpsum');if(s)s.textContent=c.length?c.length+'개 항목 선택':'';
  if(b)b.disabled=!(c.length&&f&&f.value.trim()==='삭제')}
+let WP_BUSY=0;
 async function wpRun(){
+ if(WP_BUSY)return;
  const sel=[...document.querySelectorAll('.wpl input:checked')].map(i=>i.value);if(!sel.length)return;
  const pick=WP.filter(x=>sel.includes(x[0])),cl=document.getElementById('wpCloud'),cloudToo=!!(cl&&cl.checked);
  const names=pick.map(x=>x[1]).join(', ');if(!confirm('다음 항목을 지워요'+(cloudToo?' (온라인 포함)':' (이 기기만)')+':\n'+names+'\n\n되돌릴 수 없어요. 계속할까요?'))return;
- const failed=[];
+ const failed=[];WP_BUSY=1;
  await busyRun('지우는 중…',async()=>{
   if(cloudToo){
    const tbs=[...new Set(pick.flatMap(x=>x[3]))];
@@ -190,5 +194,8 @@ async function wpRun(){
   }
   pick.forEach(x=>x[4].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}}));
  });
+ WP_BUSY=0;
  if(failed.length&&!confirm('온라인에서 지우지 못한 항목이 있어요: '+failed.join(', ')+'\n그래도 이 기기의 항목은 지웠어요. 화면을 새로 열까요?'))return;
  alert('지웠어요. 화면을 새로 엽니다.');location.reload()}
+
+function wsFsDef(d){PREF.wsFs=d===0?100:wsFsClamp((+PREF.wsFs||100)+d);prefSave();prefApply();const e=document.getElementById('fsdv');if(e)e.textContent=PREF.wsFs+'%';tsetSaved()}
