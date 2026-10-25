@@ -10,7 +10,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import build
 import hllib
-from hllib import render, pts_for, sig, plain, CIR, esc, REGISTRY
+from hllib import render, pts_for, sig, plain, CIR, esc, REGISTRY, josa
 from outline import TYPES, BYTAG, BYLABEL, SUBS, BUNDLE, SUB_ORDER
 import srclib
 
@@ -148,6 +148,23 @@ def source_items():
     return out
 
 
+def essay_items():
+    m = optional('src_school')
+    out = []
+    if not m or not hasattr(m, 'ESSAY'): return out
+    for i, d in enumerate(m.ESSAY, 1):
+        ty = BYLABEL[d['typ']]
+        sub = ty['sub']
+        code = d['code']
+        qid = 'q-' + re.sub(r'[^A-Za-z0-9]', '', code); sid = 's-' + re.sub(r'[^A-Za-z0-9]', '', code)
+        q = '<div class="q" id="%s"><div class="qh"><b class="qn">%d</b><span class="qp">[4점]</span></div><div class="qs">%s</div></div>' % (qid, i, d['body'])
+        e = ('<div class="sol" id="%s"><div class="sh"><span class="sn">%d</span><span class="sa t">정답 아래 참고</span><span class="sc2">%s</span></div><div class="ss">출처 : %s</div>'
+             '<p><span class="lb">정답</span> %s</p><div class="gr"><div class="gh">채점 핵심 (이 답안에 반드시 들어가야 하는 내용)</div>%s</div>'
+             '<p><span class="lb">핵심 개념</span> %s</p></div>') % (sid, i, code, esc(d['src']), esc(d['answer']), ''.join('<div class="gi">%s</div>' % esc(r) for r in d['rubric']), d['core'])
+        out.append({'code': code, 'no': i, 'set': 'essay', 'sub': sub, 'subname': SUBS[sub]['name'], 'type': ty['label'], 'ans': d['answer'], 'lv': d['lv'], 'fam': 'ess' + code, 'q': josa(q), 'exp': josa(e), 'src': d['src']})
+    return out
+
+
 # ------------------------------------------------------------ OX · 빈칸 (TF 은행에서)
 TFSRC = [('kb_gram_a', 'TF_GA', 'Ⅱ-A'), ('kb_tf_b', 'TF_HON', 'Ⅱ-B'), ('kb_tf_b', 'TF_NEGEND', 'Ⅱ-B'), ('kb_tf_b', 'TF_TENSE', 'Ⅱ-B'), ('kb_tf_b', 'TF_VOICE', 'Ⅱ-B'),
          ('kb_word2', 'TF_WORD', 'Ⅱ-C'), ('kb_tf', 'ORTH_CONCEPT', 'Ⅲ-A'), ('kb_speech2', 'TF_SPEECH', 'Ⅰ-A'), ('kb_speech2', 'TF_DISC', 'Ⅰ-B'), ('kb_speech2', 'TF_CONV', 'Ⅰ-C')]
@@ -242,6 +259,20 @@ def blank_items(start=0, per_sub=14):
             data.append({'code': code, 'no': seq, 'set': 'blank', 'sub': sub, 'subname': SUBS[sub]['name'], 'type': label, 'ans': ', '.join(terms), 'lv': '',
                          'q': '<div class="q"><div class="qs"><p>%s</p></div></div>' % s2, 'exp': '<p>%s</p>' % ans_t, 'blanks': terms})
             sec_bl[(sub, no)].append(code)
+    m = optional('src_short')
+    if m:
+        for sub, no, stem, answers, expl in m.BLANKS:
+            seq += 1
+            code = 'L-%03d' % seq
+            parts = stem.split('___')
+            if len(parts) - 1 != len(answers):
+                print('  (경고) 빈칸 수 불일치:', stem); continue
+            qs = ''.join(esc(parts[i]) + ('<span class="bk">%s</span>' % '㉠㉡㉢㉣㉤'[i] if i < len(answers) else '') for i in range(len(parts)))
+            ans_t = ''.join(esc(parts[i]) + ('&lt;&lt;%s&gt;&gt;' % answers[i] if i < len(answers) else '') for i in range(len(parts)))
+            label = (types_of(sub, no) or [BYTAG[[t['tag'] for t in TYPES if t['sub'] == sub][0]]])[0]['label']
+            data.append({'code': code, 'no': seq, 'set': 'blank', 'sub': sub, 'subname': SUBS[sub]['name'], 'type': label, 'ans': ', '.join(answers), 'lv': '',
+                         'q': '<div class="q"><div class="qs"><p>%s</p></div></div>' % qs, 'exp': '<p>%s</p><p>%s</p>' % (ans_t, esc(expl)), 'blanks': answers, 'src': '국어의 원리 확인 문제'})
+            sec_bl[(sub, no)].append(code)
     return data, sec_bl
 
 
@@ -306,7 +337,7 @@ def main():
     src = source_items()
     ox, pools, sec_ox = ox_items()
     bl, sec_bl = blank_items()
-    data = src + book_items(bank_sigs) + ox + bl
+    data = src + book_items(bank_sigs) + ox + bl + essay_items()
     ess = optional('src_essay')
     if ess: data += ess.items(render_src=srclib.render_src)
     dump(os.path.join(OUT, 'data.json'), data)
