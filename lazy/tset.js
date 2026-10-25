@@ -174,11 +174,13 @@ function wpAll(v){document.querySelectorAll('.wpl input').forEach(i=>i.checked=!
 function wpSync(){const c=[...document.querySelectorAll('.wpl input:checked')].map(i=>i.value),b=document.getElementById('wpGo'),f=document.getElementById('wpConf');
  const s=document.getElementById('wpsum');if(s)s.textContent=c.length?c.length+'개 항목 선택':'';
  if(b)b.disabled=!(c.length&&f&&f.value.trim()==='삭제')}
+let WP_BUSY=0;
 async function wpRun(){
+ if(WP_BUSY)return;
  const sel=[...document.querySelectorAll('.wpl input:checked')].map(i=>i.value);if(!sel.length)return;
  const pick=WP.filter(x=>sel.includes(x[0])),cl=document.getElementById('wpCloud'),cloudToo=!!(cl&&cl.checked);
  const names=pick.map(x=>x[1]).join(', ');if(!confirm('다음 항목을 지워요'+(cloudToo?' (온라인 포함)':' (이 기기만)')+':\n'+names+'\n\n되돌릴 수 없어요. 계속할까요?'))return;
- const failed=[];
+ const failed=[];WP_BUSY=1;
  await busyRun('지우는 중…',async()=>{
   if(cloudToo){
    const tbs=[...new Set(pick.flatMap(x=>x[3]))];
@@ -190,5 +192,6 @@ async function wpRun(){
   }
   pick.forEach(x=>x[4].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}}));
  });
+ WP_BUSY=0;
  if(failed.length&&!confirm('온라인에서 지우지 못한 항목이 있어요: '+failed.join(', ')+'\n그래도 이 기기의 항목은 지웠어요. 화면을 새로 열까요?'))return;
  alert('지웠어요. 화면을 새로 엽니다.');location.reload()}
