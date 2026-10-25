@@ -26,7 +26,7 @@ async function diaryView(){
  if(!AC.ld||AC.sec!=='diary'){AC.sec='diary';m.innerHTML='<div class="card">'+ldg('불러오는 중…')+'</div>';AC.err='';
   try{AC.stu=await acJ('/rest/v1/students?select=id,name,grade,phone,att_pin&order=name.asc&limit=2000');const a=await acJ('/rest/v1/notices?select=*&order=t.desc&limit=60');let b=[];try{b=await acJ('/rest/v1/parent_notices?select=*&order=created_at.desc&limit=30')}catch(e){}AC.notes=[...a.map(n=>({src:'n',id:n.id,title:n.title,body:n.body,t:+n.t,sid:n.student_id,aud:n.audience||'student'})),...b.map(n=>({src:'p',id:n.id,title:n.title,body:n.body,t:new Date(n.created_at).getTime(),sid:n.student_id,aud:'parent'}))].sort((x,y)=>y.t-x.t);AC.tpl=Object.assign({hw:[],msg:[]},((await tsRaw())||{}).diaryTpl||{});AC.ld=1}
   catch(e){AC.err=acMissing(e)?'sql':'불러오지 못했어요. 연결을 확인해 주세요.'}}
- m.innerHTML=`<div class="tsh"><div><h1>알림장</h1><p>오늘 나간 진도와 숙제를 학생·학부모에게 보내요.</p></div></div>${AC.err==='sql'?SQLMSG:AC.err?`<div class="hint">${esc(AC.err)}</div><button class="s sm" style="margin-top:10px" onclick="AC.ld=0;AC.sec==='diary'?diaryView():attView()">다시 불러오기</button>`:acNoteHtml()}`}
+ m.innerHTML=`<div class="tsh"><div><h1>알림장</h1><p>오늘 나간 진도와 숙제를 학생·학부모에게 보내요.</p></div></div>${AC.err==='sql'?SQLMSG:AC.err?`<div class="hint">${esc(AC.err)}</div><button class="s sm" style="margin-top:10px" onclick="AC.ld=0;AC.sec==='diary'?diaryView():attView()">다시 불러오기</button>`:acNoteHtml()}`;if(!AC.err)acDraftLoad()}
 function acSec(k){AC.sec=k;AC.ld=0;attView()}
 async function acLoad(){
  AC.err='';
@@ -49,11 +49,22 @@ function acDayHtml(){
   return `<div class="axr"><div class="axn"><b class="axlk" role="button" tabindex="0" title="이 학생 출결 달력" onclick="AC.sid='${s.id}';acSec('month')">${esc(s.name)}</b><small>${esc(s.grade||'')}</small></div>
   <div class="axt">${r&&r.t_in?'<span title="등원">▶ '+kstTime(r.t_in)+'</span>':''}${r&&r.t_out?'<span title="하원">■ '+kstTime(r.t_out)+'</span>':''}</div>
   <div class="axq">${Object.keys(AST).map(k=>`<button class="axb ${st===k?'on':''}" style="--c:${AST[k][1]}" onclick="acSet('${s.id}','${k}')">${AST[k][0]}</button>`).join('')}${r?`<button class="axb x" title="기록 지우기" onclick="acClr('${s.id}')">✕</button>`:''}</div></div>`}).join('');
- return `<div class="card"><div class="row" style="gap:8px;flex-wrap:wrap"><button class="s sm" onclick="acDay(-1)">‹</button><input type="date" aria-label="출결 날짜" value="${AC.day}" onchange="AC.day=this.value||AC.day;AC.ld=0;attView()"><button class="s sm" onclick="acDay(1)">›</button><button class="s sm" onclick="AC.day=kstDay();AC.ld=0;attView()">오늘</button>
+ return `<div class="card"><div class="row" style="gap:8px;flex-wrap:wrap"><button class="s sm" onclick="acDay(-1)">‹</button><input type="date" aria-label="출결 날짜" value="${AC.day}" onchange="AC.day=this.value||AC.day;AC.ld=0;attView()"><button class="s sm" onclick="acDay(1)">›</button><button class="s sm" onclick="AC.day=kstDay();AC.ld=0;attView()">오늘</button><button class="s sm" onclick="acAllIn()" title="아직 기록이 없는 학생을 모두 출석으로 기록해요">미기록 전원 출석</button>
  <input type="search" placeholder="이름·학년 검색" value="${esc(AC.q)}" oninput="AC.q=this.value;clearTimeout(window._acq);window._acq=setTimeout(()=>{const k=$('#acrows');if(k)k.innerHTML=acRowsOnly()},180)" style="margin-left:auto;width:190px"></div>
+ ${AC.undo&&AC.undo.day===AC.day?`<div class="axundo" role="status"><span>${AC.undo.ids.length}명을 출석으로 기록했어요</span><button class="s sm" onclick="acUndo()">되돌리기</button></div>`:''}
  <div class="axsum"><span style="--c:#1f9d55"><b>${cnt.in}</b>출석</span><span style="--c:#e09a00"><b>${cnt.late}</b>지각</span><span style="--c:#d9534f"><b>${cnt.absent}</b>결석</span><span style="--c:#7a8aa0"><b>${cnt.excused}</b>사유</span><span style="--c:#9aa6b4"><b>${cnt.none}</b>미기록</span></div>
  <div id="acrows">${rows||'<div class="empty">등록한 학생이 없어요.</div>'}</div>
  <p class="tsn2">출결 단말(태블릿)에서 번호를 입력하면 등원이 기록되고, 같은 날 한 번 더 입력하면 하원이 기록돼요. 여기서 직접 고칠 수도 있어요.</p></div>`}
+async function acAllIn(){
+ const have=new Set(AC.recs.map(r=>r.student_id)),ids=AC.stu.filter(s=>!have.has(s.id)).map(s=>s.id);
+ if(!ids.length){toast('기록이 없는 학생이 없어요');return}
+ if(!confirm('기록이 없는 '+ids.length+'명을 '+AC.day.slice(5).replace('-','월 ')+'일 출석으로 기록할까요?'))return;
+ const now=new Date().toISOString(),rows=ids.map(id=>({student_id:id,day:AC.day,status:'in',t_in:now}));
+ try{await acJ('/rest/v1/attendance?on_conflict=student_id,day',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(rows)});AC.undo={day:AC.day,ids};AC.ld=0;attView()}
+ catch(e){toast('기록하지 못했어요. 연결을 확인하고 다시 눌러 주세요')}}
+async function acUndo(){const u=AC.undo;if(!u)return;
+ try{await acJ('/rest/v1/attendance?day=eq.'+u.day+'&student_id=in.('+u.ids.join(',')+')',{method:'DELETE'});AC.undo=null;AC.ld=0;attView()}
+ catch(e){toast('되돌리지 못했어요')}}
 function acRowsOnly(){const d=document.createElement('div');d.innerHTML=acDayHtml();const k=d.querySelector('#acrows');return k?k.innerHTML:''}
 function acDay(n){const d=new Date(AC.day+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);AC.day=d.toISOString().slice(0,10);AC.ld=0;attView()}
 async function acSet(sid,st){const body={student_id:sid,day:AC.day,status:st};if(st==='in'||st==='late'){const r=AC.recs.find(x=>x.student_id===sid);if(!r||!r.t_in)body.t_in=new Date().toISOString()}
@@ -73,7 +84,7 @@ function acCal(recs,ym,o){o=o||{};
 const ymAdd=(ym,n)=>{const [Y,M]=ym.split('-').map(Number);const d=new Date(Date.UTC(Y,M-1+n,1));return d.toISOString().slice(0,7)};
 function acMonthHtml(){
  const opts=AC.stu.map(s=>`<option value="${s.id}" ${s.id===AC.sid?'selected':''}>${esc(s.name)} ${esc(s.grade||'')}</option>`).join('');
- return `<div class="card"><div class="row" style="gap:8px;flex-wrap:wrap"><select onchange="AC.sid=this.value;AC.ld=0;attView()"><option value="">학생 선택</option>${opts}</select><button class="s sm" onclick="AC.mon=ymAdd(AC.mon,-1);AC.ld=0;attView()">‹</button><b>${AC.mon.replace('-','년 ')}월</b><button class="s sm" onclick="AC.mon=ymAdd(AC.mon,1);AC.ld=0;attView()">›</button></div>
+ return `<div class="card"><div class="row" style="gap:8px;flex-wrap:wrap"><select onchange="AC.sid=this.value;AC.ld=0;attView()"><option value="">학생 선택</option>${opts}</select><button class="s sm" onclick="AC.mon=ymAdd(AC.mon,-1);AC.ld=0;attView()">‹</button><b>${AC.mon.replace('-','년 ')}월</b><button class="s sm" onclick="AC.mon=ymAdd(AC.mon,1);AC.ld=0;attView()">›</button>${AC.mon!==kstDay().slice(0,7)?`<button class="s sm" onclick="AC.mon=kstDay().slice(0,7);AC.ld=0;attView()">이번 달</button>`:''}</div>
  ${AC.sid?acCal(AC.mrecs,AC.mon):'<div class="empty">학생을 고르면 한 달 출결이 달력으로 보여요. 학부모 앱에서도 같은 모양으로 보여요.</div>'}</div>`}
 
 /* ---------- 출결 번호(전화번호 일부가 기본값) ---------- */
@@ -96,14 +107,15 @@ function acNoteHtml(){
  const ws=(typeof WSH!=='undefined'?WSH.slice().sort((a,b)=>b.t-a.t).slice(0,20):[]);
  const wo='<option value="">첨부 안 함</option>'+ws.map(w=>`<option value="${esc(w.id)}">${esc(w.title)} · ${esc(fmtNo(w.id))}</option>`).join('');
  const tag={all:'학생·학부모',parent:'학부모',student:'학생'};
- const list=AC.notes.map(n=>`<div class="axnl"><div><b>${esc(n.title)}</b><small>${new Date(n.t).toLocaleString('ko-KR')} · ${n.sid?esc(acStuName(n.sid)):'전체'} · ${tag[n.aud]||'학생'}</small><p>${esc(n.body).replace(/\n/g,'<br>')}</p></div><button class="s sm" aria-label="삭제: ${esc(n.title)}" onclick="acNoteDel('${n.src}',${n.id})">삭제</button></div>`).join('');
- return `<div class="card axform"><h2 style="margin-top:0">알림장 쓰기</h2><p class="m" style="margin:0 0 12px">오늘 수업 진도와 숙제를 적어 학생과 학부모에게 보내요. 학생은 알림(종)에서, 학부모는 「알림장」 탭에서 봐요.</p>
+ const list=AC.notes.map(n=>`<div class="axnl"><div><b>${esc(n.title)}</b><small>${new Date(n.t).toLocaleString('ko-KR')} · ${n.sid?esc(acStuName(n.sid)):'전체'} · ${tag[n.aud]||'학생'}</small><p>${esc(n.body).replace(/\n/g,'<br>')}</p></div><span class="axna"><button class="s sm" aria-label="다시 쓰기: ${esc(n.title)}" onclick="acNoteReuse('${n.src}',${n.id})">다시 쓰기</button><button class="s sm" aria-label="삭제: ${esc(n.title)}" onclick="acNoteDel('${n.src}',${n.id})">삭제</button></span></div>`).join('');
+ return `<div class="card axform" oninput="acDraftSave()" onchange="acDraftSave()"><h2 style="margin-top:0">알림장 쓰기</h2><p class="m" style="margin:0 0 12px">오늘 수업 진도와 숙제를 적어 학생과 학부모에게 보내요. 학생은 알림(종)에서, 학부모는 「알림장」 탭에서 봐요.</p>
  <div class="g2"><div class="fld"><label for="ntTo">받는 사람</label><select id="ntTo">${opts}</select></div><div class="fld"><label for="ntAud">보낼 곳</label><select id="ntAud"><option value="all">학생 + 학부모</option><option value="parent">학부모만</option><option value="student">학생만</option></select></div></div>
  <div class="fld" style="margin-top:10px"><label for="ntP">오늘 진도</label><input id="ntP" maxlength="120" placeholder="예) 유형서 p.12~15 · 엔탈피와 열화학 반응식"></div>
  <div class="fld" style="margin-top:10px"><label for="ntH">숙제</label>${acTplChips('hw')}<textarea id="ntH" style="width:100%" rows="2" maxlength="300" placeholder="예) 유형서 p.16~17 풀어오기"></textarea></div>
  <div class="fld" style="margin-top:10px"><label for="ntW">숙제 학습지 붙이기 <small>학습지 이름과 번호가 함께 들어가요</small></label><select id="ntW">${wo}</select></div>
  <div class="fld" style="margin-top:10px"><label for="ntB">전달 사항</label>${acTplChips('msg')}<textarea id="ntB" style="width:100%" rows="2" maxlength="500" placeholder="예) 다음 주 수요일 쪽지시험이 있어요"></textarea></div>
  <div class="fld" style="margin-top:10px"><label for="ntT">제목 <small>비우면 「10월 23일 알림장」으로 보내요</small></label><input id="ntT" maxlength="60"></div>
+ <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap"><button class="s sm" onclick="acNoteLast()" ${AC.notes.length?'':'disabled'}>지난 알림장 불러오기</button><span class="m" id="acdraftst" style="margin-left:auto"></span></div>
  <button class="p axwide" onclick="acNoteSend()">알림장 보내기</button></div>
  <div class="card"><h2 style="margin-top:0">보낸 알림장 · 안내문</h2>${list||'<div class="empty">아직 보낸 글이 없어요.</div>'}</div>`}
 const TPK={hw:'ntH',msg:'ntB'};
@@ -115,6 +127,17 @@ async function acTplAdd(k){const v=($('#'+TPK[k]).value||'').trim();if(!v){toast
  if((AC.tpl[k]||[]).includes(v)){toast('이미 저장된 양식이에요');return}if((AC.tpl[k]||[]).length>=20){toast('양식은 20개까지 저장할 수 있어요');return}
  AC.tpl[k]=(AC.tpl[k]||[]).concat([v]);if(await acTplSave()){acTplRefresh(k);toast('양식으로 저장했어요')}}
 async function acTplDel(k,i){AC.tpl[k].splice(i,1);await acTplSave();acTplRefresh(k)}
+const ACDK='omr_diary_draft_v1';
+function acDraftSave(){const g=id=>{const e=document.getElementById(id);return e?e.value:''};try{localStorage.setItem(ACDK,JSON.stringify({to:g('ntTo'),aud:g('ntAud'),p:g('ntP'),h:g('ntH'),b:g('ntB'),t:g('ntT'),w:g('ntW'),at:Date.now()}));const s=document.getElementById('acdraftst');if(s)s.textContent='초안을 저장했어요'}catch(e){}}
+function acDraftLoad(){let d=null;try{d=JSON.parse(localStorage.getItem(ACDK)||'null')}catch(e){}if(!d)return;const set=(id,v)=>{const e=document.getElementById(id);if(e&&v!=null&&v!=='')e.value=v};
+ set('ntTo',d.to);set('ntAud',d.aud);set('ntP',d.p);set('ntH',d.h);set('ntB',d.b);set('ntT',d.t);set('ntW',d.w);
+ if(d.p||d.h||d.b){const s=document.getElementById('acdraftst');if(s)s.textContent='쓰던 초안을 불러왔어요'}}
+function acDraftClear(){try{const t=document.getElementById('ntTo'),u=document.getElementById('ntAud');if(t||u)localStorage.setItem(ACDK,JSON.stringify({to:t?t.value:'',aud:u?u.value:''}));else localStorage.removeItem(ACDK)}catch(e){}}
+function acNoteFill(n){const lines=String(n.body||'').split('\n'),g=k=>{const l=lines.find(x=>x.startsWith(k+':'));return l?l.slice(k.length+1).trim():''};
+ const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v};set('ntP',g('오늘 진도'));set('ntH',g('숙제'));set('ntB',g('전달 사항'));set('ntT','');
+ const tg=n.aud,a=document.getElementById('ntAud');if(a&&['all','parent','student'].includes(tg))a.value=tg;acDraftSave();window.scrollTo({top:0,behavior:'smooth'});const e=document.getElementById('ntP');if(e)e.focus()}
+function acNoteLast(){const n=AC.notes.find(x=>/오늘 진도:|숙제:|전달 사항:/.test(x.body||''))||AC.notes[0];if(n)acNoteFill(n)}
+function acNoteReuse(src,id){const n=AC.notes.find(x=>x.src===src&&x.id===id);if(n)acNoteFill(n)}
 let AC_SENDING=0;
 async function acNoteSend(){
  if(AC_SENDING)return;
@@ -127,8 +150,8 @@ async function acNoteSend(){
  if(!ids.length){toast('그 반에 학생이 없어요');return}
  const rows=ids.map(id=>({title:t,body:L.join('\n'),student_id:id,audience:aud}));
  AC_SENDING=1;const sb_=document.querySelector('.axform .axwide');if(sb_){sb_.disabled=true;sb_.textContent='보내는 중…'}
- try{await acJ('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows)});toast('알림장을 보냈어요'+(ids.length>1?' · '+ids.length+'명':''));AC_SENDING=0;AC.ld=0;diaryView()}
- catch(e){if(e.status===400&&aud==='student'){try{await acJ('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows.map(r=>({title:r.title,body:r.body,student_id:r.student_id})))});toast('알림장을 보냈어요');AC_SENDING=0;AC.ld=0;diaryView();return}catch(x){}}
+ try{await acJ('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows)});toast('알림장을 보냈어요'+(ids.length>1?' · '+ids.length+'명':''));acDraftClear();AC_SENDING=0;AC.ld=0;diaryView()}
+ catch(e){if(e.status===400&&aud==='student'){try{await acJ('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows.map(r=>({title:r.title,body:r.body,student_id:r.student_id})))});toast('알림장을 보냈어요');acDraftClear();AC_SENDING=0;AC.ld=0;diaryView();return}catch(x){}}
   toast(e.status===400?'학부모에게 보내려면 서버 SQL(setup.sql)을 먼저 실행해 주세요':(!navigator.onLine||!e.status)?'인터넷 연결을 확인하고 다시 눌러 주세요. 적은 내용은 그대로예요':'보내지 못했어요. 잠시 뒤 다시 눌러 주세요. 적은 내용은 그대로예요');AC_SENDING=0;if(sb_){sb_.disabled=false;sb_.textContent='알림장 보내기'}}}
 async function acNoteDel(src,id){if(!confirm('이 글을 삭제할까요? 학생·학부모 화면에서도 사라져요.'))return;try{await acJ('/rest/v1/'+(src==='p'?'parent_notices':'notices')+'?id=eq.'+id,{method:'DELETE'});AC.ld=0;diaryView()}catch(e){toast('삭제하지 못했어요')}}
 
@@ -140,13 +163,22 @@ function acFeeHtml(){
  const rows=fs.filter(f=>!AC.q||(acStuName(f.student_id)+f.title).includes(AC.q)).map(f=>{const p=paid(f),od=!p&&f.due&&f.due<today;
   return `<div class="axf ${p?'ok':od?'od':''}"><div><b>${esc(acStuName(f.student_id))}</b><small>${esc(f.title)}${f.due?' · '+f.due.slice(5).replace('-','/')+'까지':''}</small></div><span class="axamt">${won(f.amount)}</span><span class="axst">${p?'납부 완료'+(f.method?' · '+esc(f.method):''):od?'연체':'미납'}</span><span class="axab">${p?`<button class="s sm" onclick="acFeeUndo(${f.id})">취소</button>`:`<button class="p sm" onclick="acFeePay(${f.id})">납부 처리</button>`}<button class="s sm" onclick="acFeeDel(${f.id})">삭제</button></span></div>`}).join('');
  const sel=AC.stu.map(s=>`<label class="chk"><input type="checkbox" value="${s.id}" class="acfs">${esc(s.name)}<small>${esc(s.grade||'')}</small></label>`).join('');
- return `<div class="card"><div class="axsum big"><span style="--c:#2a72bf"><b>${won(tot)}</b>총 청구</span><span style="--c:#1f9d55"><b>${won(got)}</b>수납</span><span style="--c:#d9534f"><b>${won(Math.max(0,tot-got))}</b>미수${late?` (연체 ${won(late)})`:''}</span></div></div>
+ return `<div class="card"><div class="axsum big"><span style="--c:#2a72bf"><b>${won(tot)}</b>총 청구</span><span style="--c:#1f9d55"><b>${won(got)}</b>수납</span><span style="--c:#d9534f"><b>${won(Math.max(0,tot-got))}</b>미수${late?` (연체 ${won(late)})`:''}</span></div>${fs.some(f=>!paid(f))?`<div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap"><button class="s sm" onclick="acFeeRemind(false)">미납 학부모에게 안내 보내기</button>${late?`<button class="s sm" onclick="acFeeRemind(true)">연체만 보내기</button>`:''}</div>`:''}</div>
  <div class="card"><h2 style="margin-top:0">청구 만들기</h2>
  <div class="g2"><div class="fld"><label>항목</label><select id="fiSel" onchange="acFiPick(this.value)"><option value="">직접 입력</option>${items.map((it,i)=>`<option value="${i}">${esc(it.name)} · ${won(it.amount)}</option>`).join('')}</select></div><div class="fld"><label>이름</label><input id="fiT" placeholder="예) 10월 수강료" maxlength="40"></div><div class="fld"><label>금액(원)</label><input id="fiA" type="number" min="0" step="1000" placeholder="300000"></div><div class="fld"><label>납부 기한</label><input id="fiD" type="date"></div></div>
  <div class="row" style="margin:8px 0 4px"><b>대상 학생</b><button class="s sm" onclick="document.querySelectorAll('.acfs').forEach(c=>c.checked=true)">전체 선택</button><button class="s sm" onclick="document.querySelectorAll('.acfs').forEach(c=>c.checked=false)">해제</button></div><div class="axchk">${sel||'<span class="m">등록한 학생이 없어요</span>'}</div>
  <button class="p" style="margin-top:10px" onclick="acFeeAdd()">청구하기</button>${items.length?'':'<p class="tsn2">자주 쓰는 학원비·교재비는 「요금·결제 설정」에서 미리 등록해 두면 고르기만 하면 돼요.</p>'}</div>
  <div class="card"><div class="row"><h2 style="margin:0">청구 내역</h2><input type="search" placeholder="이름·항목 검색" value="${esc(AC.q)}" oninput="AC.q=this.value;clearTimeout(window._acq);window._acq=setTimeout(attView,200)" style="margin-left:auto;width:190px"></div>${rows||'<div class="empty">청구 내역이 없어요.</div>'}</div>`}
 function acFiPick(i){const it=(AC.pay.items||[])[+i];if(!it)return;$('#fiT').value=it.name;$('#fiA').value=it.amount}
+async function acFeeRemind(onlyLate){
+ const today=kstDay(),by={};
+ AC.fees.filter(f=>f.paid_amount<f.amount&&(!onlyLate||(f.due&&f.due<today))).forEach(f=>{(by[f.student_id]=by[f.student_id]||[]).push(f)});
+ const ids=Object.keys(by);if(!ids.length){toast('보낼 대상이 없어요');return}
+ const total=ids.reduce((a,id)=>a+by[id].length,0);
+ if(!confirm((onlyLate?'연체된':'아직 납부하지 않은')+' 청구 '+total+'건, 학생 '+ids.length+'명의 학부모에게 납부 안내를 보낼까요?\n(학생 화면에는 보이지 않아요)'))return;
+ const rows=ids.map(id=>({student_id:id,audience:'parent',title:'납부 안내',body:by[id].map(f=>f.title+' '+won(f.amount-f.paid_amount)+(f.due?' (기한 '+f.due.slice(5).replace('-','/')+')':'')).join('\n')+'\n납부 방법은 「납부」 탭에서 확인할 수 있어요.'}));
+ try{await acJ('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows)});toast('납부 안내를 보냈어요 · '+ids.length+'명')}
+ catch(e){toast(e.status===400?'서버 SQL(setup.sql)을 먼저 실행해 주세요':'보내지 못했어요. 연결을 확인해 주세요')}}
 async function acFeeAdd(){const title=$('#fiT').value.trim(),amount=Math.round(+$('#fiA').value||0),due=$('#fiD').value||null,ids=[...document.querySelectorAll('.acfs:checked')].map(c=>c.value);
  if(!title||!amount||!ids.length){toast('이름·금액·대상 학생을 확인해 주세요');return}
  const it=(AC.pay.items||[]).find(x=>x.name===title);const kind=it&&it.kind||'tuition';
@@ -221,7 +253,7 @@ async function pAttView(){
  const seg=`<div class="bkseg axseg" role="tablist">${S.map(([k,l])=>`<button role="tab" class="${PA.sec===k?'on':''}" onclick="PA.sec='${k}';pAttView()">${l}${k==='fee'&&PA.fees.some(f=>f.paid_amount<f.amount)?' <i class="axdot"></i>':''}</button>`).join('')}</div>`;
  let b='';
  if(PA.err)b=`<div class="card"><div class="hint">${esc(PA.err)}</div><button class="s sm" style="margin-top:10px" onclick="PA.ld=0;pAttView()">다시 불러오기</button></div>`;
- else if(PA.sec==='att')b=`<div class="card"><div class="row" style="gap:8px"><button class="s sm" onclick="PA.mon=ymAdd(PA.mon,-1);PA.ld=0;pAttView()">‹</button><b style="flex:1;text-align:center">${PA.mon.replace('-','년 ')}월 출결</b><button class="s sm" onclick="PA.mon=ymAdd(PA.mon,1);PA.ld=0;pAttView()">›</button></div>${acCal(PA.recs,PA.mon)}</div>`;
+ else if(PA.sec==='att')b=`<div class="card"><div class="row" style="gap:8px"><button class="s sm" onclick="PA.mon=ymAdd(PA.mon,-1);PA.ld=0;pAttView()">‹</button><b style="flex:1;text-align:center">${PA.mon.replace('-','년 ')}월 출결</b><button class="s sm" onclick="PA.mon=ymAdd(PA.mon,1);PA.ld=0;pAttView()">›</button>${PA.mon!==kstDay().slice(0,7)?`<button class="s sm" onclick="PA.mon=kstDay().slice(0,7);PA.ld=0;pAttView()">이번 달</button>`:''}</div>${acCal(PA.recs,PA.mon)}</div>`;
  else if(PA.sec==='note')b=`<div class="card">${PA.notes.length?PA.notes.map(n=>`<div class="axnl"><div><b>${esc(n.title)}</b><small>${new Date(n.t).toLocaleString('ko-KR')}</small><p>${esc(n.body).replace(/\n/g,'<br>')}</p></div></div>`).join(''):'<div class="empty">받은 안내문이 없어요.</div>'}</div>`;
  else b=paFeeHtml();
  m.innerHTML=`<div class="tsh"><div><h1>${esc((STINFO&&STINFO.name)||'자녀')} 학생</h1><p>출결과 알림장, 납부 내역을 확인해요.</p></div></div>${seg}${b}`}
@@ -293,4 +325,4 @@ async function sAttView(){
  if(!SA.ld){m.innerHTML='<div class="card">'+ldg('불러오는 중…')+'</div>';SA.err='';
   try{const[y,mo]=SA.mon.split('-').map(Number);const to=SA.mon+'-'+String(new Date(Date.UTC(y,mo,0)).getUTCDate()).padStart(2,'0');const r=await rpc('st_attendance',{p_login:STUD.login,p_pw:STUD.pw,p_from:SA.mon+'-01',p_to:to});
    if(r.status===404)SA.err='아직 출결 달력을 쓸 수 없어요. 선생님께 문의해 주세요.';else{const j=r.ok?await r.json():null;SA.recs=j||[]}}catch(e){SA.err='불러오지 못했어요. 연결을 확인해 주세요.'}SA.ld=1}
- m.innerHTML=`<div class="tsh"><div><h1>내 출결</h1><p>이번 달 출석 현황이에요.</p></div></div>${SA.err?`<div class="card"><div class="hint">${esc(SA.err)}</div><button class="s sm" style="margin-top:10px" onclick="SA.ld=0;sAttView()">다시 불러오기</button></div>`:`<div class="card"><div class="row" style="gap:8px"><button class="s sm" onclick="SA.mon=ymAdd(SA.mon,-1);SA.ld=0;sAttView()">‹</button><b style="flex:1;text-align:center">${SA.mon.replace('-','년 ')}월</b><button class="s sm" onclick="SA.mon=ymAdd(SA.mon,1);SA.ld=0;sAttView()">›</button></div>${acCal(SA.recs,SA.mon,{noTime:true})}</div>`}`}
+ m.innerHTML=`<div class="tsh"><div><h1>내 출결</h1><p>이번 달 출석 현황이에요.</p></div></div>${SA.err?`<div class="card"><div class="hint">${esc(SA.err)}</div><button class="s sm" style="margin-top:10px" onclick="SA.ld=0;sAttView()">다시 불러오기</button></div>`:`<div class="card"><div class="row" style="gap:8px"><button class="s sm" onclick="SA.mon=ymAdd(SA.mon,-1);SA.ld=0;sAttView()">‹</button><b style="flex:1;text-align:center">${SA.mon.replace('-','년 ')}월</b><button class="s sm" onclick="SA.mon=ymAdd(SA.mon,1);SA.ld=0;sAttView()">›</button>${SA.mon!==kstDay().slice(0,7)?`<button class="s sm" onclick="SA.mon=kstDay().slice(0,7);SA.ld=0;sAttView()">이번 달</button>`:''}</div>${acCal(SA.recs,SA.mon,{noTime:true})}</div>`}`}
