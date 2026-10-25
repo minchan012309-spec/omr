@@ -93,7 +93,7 @@ function repRender(){const days=REP.days,cls=REP.kind==='cls';let body='',title=
 
 const OMRMK=[[12,12],[198,12],[12,285],[198,285]],OMRMS=8;
 
-const OMRSUBJ={me:'01',cm:'02',ph:'03'};
+const OMRSUBJ={me:'01',cm:'02',ph:'03',hl:'04'};
 
 function omrInfoGeom(mock){const g=[];const d=3.8,pitch=4.4,y0=46;const digits=[...Array(10).keys()].map(String);
  if(mock){for(let i=0;i<8;i++)g.push({k:'수험번호',i,x:112+i*6.4,y0,pitch,d,lab:digits,grp:'수험번호'});for(let i=0;i<2;i++)g.push({k:'과목번호',i,x:166+i*6.4,y0,pitch,d,lab:digits,grp:'과목번호'});g.push({k:'홀짝',i:0,x:184,y0,pitch,d,lab:['홀','짝'],grp:'형'})}

@@ -274,6 +274,7 @@ input[type=search]{font:inherit;padding:8px 10px;border:1px solid var(--l2);bord
 /* ===== v4: 과목 구분 · 촘촘한 레이아웃 · 학습지 만들기 · 모바일 ===== */
 body[data-subj=cm]{--b:#15804c;--bd:#13744a;--bl:#e5f6ec;--bg:#f2f8f4}
 body[data-subj=ph]{--b:#6d4cc4;--bd:#5a3bad;--bl:#eee8fb;--bg:#f5f2fb}
+body[data-subj=hl]{--b:#d9622b;--bd:#b84d1d;--bl:#fdeee6;--bg:#fbf5f0}
 header{border-top:0}
 header h1{display:flex;align-items:center;gap:6px;cursor:pointer}
 header h1 small{display:inline-block;background:var(--b);color:#fff;font-size:14px;font-weight:700;padding:3px 12px;border-radius:14px;letter-spacing:-.2px}
@@ -718,12 +719,13 @@ html[data-theme=dark] #notifp .ntag.n{background:hsl(32 36% 16.5%);color:hsl(33 
 html[data-theme=dark] .sj small{color:var(--m)}
 html[data-theme=dark] body[data-subj=cm]{--b:#52c48c;--bd:#86d9b0;--bl:#1d2a24;--bg:#0f0f10}
 html[data-theme=dark] body[data-subj=ph]{--b:#a58cf0;--bd:#c5b5f7;--bl:#241f34;--bg:#0f0f10}
+html[data-theme=dark] body[data-subj=hl]{--b:#f0905f;--bd:#f7b595;--bl:#2e2119;--bg:#0f0f10}
 html[data-theme=dark] header{background:var(--hdr-dark);border-bottom:1px solid var(--hdr-line-dark)}html[data-theme=dark] header nav{background:transparent}
 html[data-theme=dark] header nav button{color:#a4a4ab}html[data-theme=dark] header nav button:hover{color:#fff}html[data-theme=dark] header nav button.on{color:#fff;border-bottom-color:var(--b)}
 html[data-theme=dark] header .sjp small{background:var(--b)!important;color:#0f0f10!important}
 html[data-theme=dark] header #stuSel{background:#26262a;color:var(--t);border:1px solid #3b3b41}
 html[data-theme=dark] header #sync,html[data-theme=dark] header #saved{color:#a4a4ab;border-color:#3b3b41}
-html[data-theme=dark] .st-hero{background:linear-gradient(120deg,#1d3556,#264a78)}html[data-theme=dark] body[data-subj=cm] .st-hero{background:linear-gradient(120deg,#17402b,#1d5a3a)}html[data-theme=dark] body[data-subj=ph] .st-hero{background:linear-gradient(120deg,#2b2352,#3c2f78)}
+html[data-theme=dark] .st-hero{background:linear-gradient(120deg,#1d3556,#264a78)}html[data-theme=dark] body[data-subj=cm] .st-hero{background:linear-gradient(120deg,#17402b,#1d5a3a)}html[data-theme=dark] body[data-subj=ph] .st-hero{background:linear-gradient(120deg,#2b2352,#3c2f78)}html[data-theme=dark] body[data-subj=hl] .st-hero{background:linear-gradient(120deg,#4a2a18,#7a4326)}
 html[data-theme=dark] .st-hero button{background:#fff;color:#1d3556}
 html[data-theme=dark] .th-hero{background:var(--bl);border-color:#2c2c30}
 html[data-theme=dark] header h1 .bn{color:var(--t)}
@@ -1115,9 +1117,9 @@ const byCode=new Proxy(_bc,{get(t,k){if(typeof k!=='string')return t[k];const v=
 const shufCode=(c,seed)=>byCode[c+'~s'+seed]?c+'~s'+seed:c;
 let STUD=null,STINFO=null,ASSIGN=[],BKASG=[],BKDIST=[],hist=[],STU=[],WSH=[],srv=false,tab='grade',cfg={sub:'',set:'mc',type:''},cur=null,idx=0,sess=null,CF={},CUR_S='',BIDX={},BLOADED={},PR=null;
 const subs=[];
-const SUB_ORDER=['Ⅱ-A','Ⅱ-B','Ⅲ-A','Ⅲ-B','Ⅲ-C','종합'],PH_ORDER=['Ⅰ-A','Ⅰ-B','Ⅰ-C','Ⅰ-D','Ⅰ-E','Ⅰ-F','Ⅰ-G','Ⅰ-H','Ⅱ-A','Ⅱ-B','Ⅲ-A','Ⅲ-B','Ⅲ-C','종합'];
+const SUB_ORDER=['Ⅱ-A','Ⅱ-B','Ⅲ-A','Ⅲ-B','Ⅲ-C','종합'],PH_ORDER=['Ⅰ-A','Ⅰ-B','Ⅰ-C','Ⅰ-D','Ⅰ-E','Ⅰ-F','Ⅰ-G','Ⅰ-H','Ⅱ-A','Ⅱ-B','Ⅲ-A','Ⅲ-B','Ⅲ-C','종합'],HL_ORDER=['Ⅰ-A','Ⅰ-B','Ⅰ-C','Ⅱ-A','Ⅱ-B','Ⅱ-C','Ⅲ-A','Ⅲ-B','Ⅲ-C','종합'];
 function calcSubs(){const m=new Map(DATA.filter(q=>q.sub).map(q=>[q.sub,q.subname]));Object.values(BIDX).forEach(b=>{if(b.sub&&!m.has(b.sub))m.set(b.sub,b.subname)});
- let a=[...m.entries()];if(SUBJ==='cm')a.sort((x,y)=>SUB_ORDER.indexOf(x[0])-SUB_ORDER.indexOf(y[0]));else if(SUBJ==='ph')a.sort((x,y)=>PH_ORDER.indexOf(x[0])-PH_ORDER.indexOf(y[0]));subs.length=0;a.forEach(x=>subs.push(x))}
+ let a=[...m.entries()];if(SUBJ==='cm')a.sort((x,y)=>SUB_ORDER.indexOf(x[0])-SUB_ORDER.indexOf(y[0]));else if(SUBJ==='ph')a.sort((x,y)=>PH_ORDER.indexOf(x[0])-PH_ORDER.indexOf(y[0]));else if(SUBJ==='hl')a.sort((x,y)=>HL_ORDER.indexOf(x[0])-HL_ORDER.indexOf(y[0]));subs.length=0;a.forEach(x=>subs.push(x))}
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function fmt(h){return String(h).replace(/_\{([^}]*)\}/g,'<sub>$1</sub>').replace(/\^\{([^}]*)\}/g,'<sup>$1</sup>')}
 const jget=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||d}catch(e){return d}};
@@ -1134,8 +1136,8 @@ function mount(el,html,css){if(el.id==='wsPaper'){const t=document.querySelector
  .wrap{font-family:Pretendard,PretendardLocal,sans-serif;font-size:10.5pt;line-height:1.62;color:#1b2430;word-break:keep-all;filter:var(--qf,none)}.wrap img,.wrap svg{filter:var(--qfi,none)}
  .q{min-height:0!important;padding-bottom:1mm!important;break-inside:auto}img{max-width:100%}.fg{max-width:460px}.fg>svg{background:#fff;border-radius:6px}mark.hl{background:#ffe27a;color:inherit;padding:0 1px;border-radius:2px;box-shadow:0 0 0 1px #f2b400 inset}${css||''}</style><div class="wrap">${html}</div>`}
 /* ---------- 문제 은행(지연 로딩) ---------- */
-/* 과목별 자료: me=물질과 에너지(bank/), cm=세포와 물질대사(cm/), ph=역학과 에너지(ph/) */
-const SNAME={me:'물질과 에너지',cm:'세포와 물질대사',ph:'역학과 에너지'},CMSET=new Set(),PHSET=new Set(),DIRS={me:'bank/',cm:'cm/',ph:'ph/'},POOL={me:DATA.slice(),cm:[],ph:[]},BIDXS={me:{},cm:{},ph:{}},TAGSUBJ={};
+/* 과목별 자료: me=물질과 에너지(bank/), cm=세포와 물질대사(cm/), ph=역학과 에너지(ph/), hl=화법과 언어(hl/) */
+const SNAME={me:'물질과 에너지',cm:'세포와 물질대사',ph:'역학과 에너지',hl:'화법과 언어'},CMSET=new Set(),PHSET=new Set(),HLSET=new Set(),DIRS={me:'bank/',cm:'cm/',ph:'ph/',hl:'hl/'},POOL={me:DATA.slice(),cm:[],ph:[],hl:[]},BIDXS={me:{},cm:{},ph:{},hl:{}},TAGSUBJ={};
 let SUBJ='me',BIDXALL={};
 const SITE={notices:[],cfg:{},ok:false};
 const DEV={ok:null,who:'',sec:'notice',stats:null,users:null,bugs:null,err:''};
@@ -1148,7 +1150,7 @@ try{const v=localStorage.getItem('omr_subj_v1');if(v&&SNAME[v])SUBJ=v}catch(e){}
 function applySubject(){document.body.dataset.subj=SUBJ;document.title=SNAME[SUBJ]+' · Solvi';if(typeof CK!=='undefined'&&!ckind()[CK.k])CK.k=ckDef();DATA.length=0;POOL[SUBJ].forEach(q=>DATA.push(q));BIDX=BIDXS[SUBJ]||{};calcSubs();const e=$('#subj');if(e)e.textContent=SNAME[SUBJ]}
 async function loadBankIndex(){
  for(const k of Object.keys(DIRS)){try{const r=await fetch(DIRS[k]+'index.json');if(r.ok){BIDXS[k]=await r.json();for(const t in BIDXS[k])TAGSUBJ[t]=k;Object.assign(BIDXALL,BIDXS[k])}}catch(e){}}
- for(const [k,S] of [['cm',CMSET],['ph',PHSET]]){try{const r=await fetch(DIRS[k]+'data.json');if(r.ok){const a=await r.json();a.forEach(q=>{if(ovHidden(q.code))return;ovApply(q);if(!byCode[q.code]){byCode[q.code]=q;POOL[k].push(q)}S.add(q.code)})}}catch(e){}}
+ for(const [k,S] of [['cm',CMSET],['ph',PHSET],['hl',HLSET]]){try{const r=await fetch(DIRS[k]+'data.json');if(r.ok){const a=await r.json();a.forEach(q=>{if(ovHidden(q.code))return;ovApply(q);if(!byCode[q.code]){byCode[q.code]=q;POOL[k].push(q)}S.add(q.code)})}}catch(e){}}
  loadMyQ();applySubject()}
 async function setSubject(k){if(!SNAME[k]||k===SUBJ){closeCfg();return}
  SUBJ=k;try{localStorage.setItem('omr_subj_v1',k)}catch(e){}
@@ -1159,7 +1161,7 @@ let CALIB_ON=(()=>{try{return localStorage.getItem('omr_calib_v1')!=='0'}catch(e
 function calibQ(q){const o=CSTAT[q.code];if(q.lv0===undefined)q.lv0=q.lv;if(!(q.lv0 in LVI))return;if(!CALIB_ON||!o||o.n<5){q.lv=q.lv0;return}
  const w=Math.min(1,o.n/20),p=o.r/o.n,a=p>=.85?0:p>=.6?1:p>=.35?2:3;q.lv=LVN[Math.round((1-w)*LVI[q.lv0]+w*a)]}
 function calibAll(){CSTAT={};hist.forEach(h=>h.items.forEach(x=>{const o=CSTAT[x.c]=CSTAT[x.c]||{n:0,r:0};o.n++;o.r+=x.r}));Object.keys(CSTAT).forEach(c=>{const q=byCode[c];if(q)calibQ(q)})}
-const subjOf=c=>MYSUBJ[c]||(CMSET.has(c)?'cm':PHSET.has(c)?'ph':TAGSUBJ[tagOf(c)]||'me');
+const subjOf=c=>MYSUBJ[c]||(CMSET.has(c)?'cm':PHSET.has(c)?'ph':HLSET.has(c)?'hl':TAGSUBJ[tagOf(c)]||'me');
 const tagOf=c=>{const m=String(c).match(/^G-([a-z0-9]+)-/);return m&&m[1]};
 async function ensureTags(tags){let _i=0;for(const t of tags){_i++;if(tags.length>1)busyPct((_i-.5)/tags.length*100);if(!t||BLOADED[t]||!BIDXALL[t])continue;const sj=TAGSUBJ[t];
  try{const r=await fetch(DIRS[sj]+t+'.json');if(!r.ok)continue;const a=await r.json();a.forEach(q=>{if(ovHidden(q.code)||figLost(q))return;ovApply(q);if(!byCode[q.code]){byCode[q.code]=q;POOL[sj].push(q);if(sj===SUBJ)DATA.push(q);if(CSTAT[q.code])calibQ(q)}});BLOADED[t]=1}catch(e){}}}
@@ -3479,22 +3481,23 @@ const typesOf=sub=>[...new Set([...DATA.filter(q=>q.sub===sub&&q.type).map(q=>q.
 const CKIND={Q:['Q','5지선다'],T:['T','최상위'],O:['O','OX'],B:['B','빈칸'],E:['E','서술형'],N:['N','부교재 OX'],G:['G','문제 은행']};
 const CKCM={C:['C','5지선다'],H:['H','최상위'],X:['X','OX'],F:['F','빈칸'],W:['W','서술형'],G:['G','문제 은행']};
 const CKPH={P:['P','5지선다'],R:['R','최상위'],V:['V','OX'],L:['L','빈칸'],S:['S','서술형'],G:['G','문제 은행']};
-const ckind=()=>SUBJ==='cm'?CKCM:SUBJ==='ph'?CKPH:CKIND;
-const ckDef=()=>SUBJ==='cm'?'C':SUBJ==='ph'?'P':'Q';
+const CKHL={H:['H','5지선다'],Y:['Y','최상위'],V:['V','OX'],L:['L','빈칸'],S:['S','서술형'],G:['G','문제 은행']};
+const ckind=()=>SUBJ==='cm'?CKCM:SUBJ==='ph'?CKPH:SUBJ==='hl'?CKHL:CKIND;
+const ckDef=()=>SUBJ==='cm'?'C':SUBJ==='ph'?'P':SUBJ==='hl'?'H':'Q';
 let CK={k:'Q',a:'',b:'',g:''};
 function ckSet(k){CK.k=k;searchView()}
 function ckNum(el,f){el.value=el.value.replace(/\D/g,'');CK[f]=el.value;ckGo()}
 function ckGo(){let s='';const k=CK.k;
- if(k==='Q'||k==='C'||k==='P')s=k+CK.a+(CK.b?'-'+CK.b.padStart(CK.b.length<3?3:CK.b.length,'0'):'');
+ if(k==='Q'||k==='C'||k==='P'||k==='H')s=k+CK.a+(CK.b?'-'+CK.b.padStart(CK.b.length<3?3:CK.b.length,'0'):'');
  else if(k==='G')s='G-'+(CK.g||'')+(CK.b?'-'+CK.b.padStart(4,'0'):'');
  else s=k+(CK.b?'-'+CK.b.padStart(3,'0'):'-');
  const q=$('#sq');if(q){q.value=s;}doS(s)}
 function searchView(){
  const ty=SP.sub?typesOf(SP.sub):[];const k=CK.k;
- $('#main').innerHTML=`<div class="card sbar"><input id="sq" type="search" placeholder="자연어로 검색  예) ${SUBJ==='ph'?'빗면 어려운 계산 · #상 #OX · 도플러':'엔탈피 어려운 계산 · #상 #OX · 78쪽'}" oninput="doSD(this.value)" autocomplete="off">${srSugg()}<div class="row sbtn"><button class="s sm" onclick="myQForm()">＋ 내 문제 추가</button><button class="s sm" onclick="SP.src='fav';SP.sub='';searchView()">★ 즐겨찾기</button>${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length?`<button class="s sm" onclick="myQList()">내 문제 ${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length}개 관리</button>`:''}</div></div>
+ $('#main').innerHTML=`<div class="card sbar"><input id="sq" type="search" placeholder="자연어로 검색  예) ${SUBJ==='ph'?'빗면 어려운 계산 · #상 #OX · 도플러':SUBJ==='hl'?'사이시옷 어려운 문제 · #상 #OX · 높임':'엔탈피 어려운 계산 · #상 #OX · 78쪽'}" oninput="doSD(this.value)" autocomplete="off">${srSugg()}<div class="row sbtn"><button class="s sm" onclick="myQForm()">＋ 내 문제 추가</button><button class="s sm" onclick="SP.src='fav';SP.sub='';searchView()">★ 즐겨찾기</button>${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length?`<button class="s sm" onclick="myQList()">내 문제 ${jget('omr_my_v1',[]).filter(m=>m.subj===SUBJ).length}개 관리</button>`:''}</div></div>
  <div class="g2s"><div class="sidecol"><div class="card"><h3 style="margin-top:0">코드로 찾기</h3>
  <div class="ckb">${Object.entries(ckind()).map(([x,[l,n]])=>`<button class="ck ${k===x?'on':''}" onclick="ckSet('${x}')" title="${n}"><b>${l}</b><small>${n}</small></button>`).join('')}</div>
- <div class="ckn">${k==='Q'||k==='C'||k==='P'?`<label>묶음<input inputmode="numeric" maxlength="3" placeholder="${k==='C'?'21':k==='P'?'11':'31'}" value="${esc(CK.a)}" oninput="ckNum(this,'a')"></label><span>-</span>`:''}${k==='G'?`<label>유형<select onchange="CK.g=this.value;ckGo()"><option value="">전체</option>${(()=>{const m=new Map();Object.entries(BIDX).forEach(([t,b])=>{const k=SUBJ==='cm'?t.replace(/^(cm\d\d)[a-z]$/,'$1').replace(/^(cm[a-z]+)\d+$/,'$1'):t;if(!m.has(k))m.set(k,b.label)});return [...m].map(([t,l])=>`<option value="${t}" ${CK.g===t?'selected':''}>${esc(l)}</option>`).join('')})()}</select></label><span>-</span>`:''}<label>번호<input inputmode="numeric" maxlength="4" placeholder="001" value="${esc(CK.b)}" oninput="ckNum(this,'b')"></label></div>
+ <div class="ckn">${k==='Q'||k==='C'||k==='P'||k==='H'?`<label>묶음<input inputmode="numeric" maxlength="3" placeholder="${k==='C'?'21':k==='P'?'11':k==='H'?'26':'31'}" value="${esc(CK.a)}" oninput="ckNum(this,'a')"></label><span>-</span>`:''}${k==='G'?`<label>유형<select onchange="CK.g=this.value;ckGo()"><option value="">전체</option>${(()=>{const m=new Map();Object.entries(BIDX).forEach(([t,b])=>{const k=SUBJ==='cm'?t.replace(/^(cm\d\d)[a-z]$/,'$1').replace(/^(cm[a-z]+)\d+$/,'$1'):t;if(!m.has(k))m.set(k,b.label)});return [...m].map(([t,l])=>`<option value="${t}" ${CK.g===t?'selected':''}>${esc(l)}</option>`).join('')})()}</select></label><span>-</span>`:''}<label>번호<input inputmode="numeric" maxlength="4" placeholder="001" value="${esc(CK.b)}" oninput="ckNum(this,'b')"></label></div>
  <div class="m">종류 버튼을 고르고 숫자만 입력하면 바로 찾습니다.</div></div>
  <div class="card"><h3 style="margin-top:0">경로로 찾기</h3><div class="form1">
  <select onchange="SP.sub=this.value;SP.type='';SP.pg=0;searchView()"><option value="">소단원 선택</option>${subs.map(([a,b])=>`<option value="${a}" ${SP.sub===a?'selected':''}>${a} ${b}</option>`).join('')}</select>
@@ -3549,7 +3552,7 @@ const RS='omr_rs_v1';
 function srRecent(){return jget(RS,[]).slice(0,6)}
 function srUse(q){const i=$('#sq');if(i){i.value=q;doS(q)}}
 function srSugg(){const rec=srRecent();const lv=['하','중','상','최'].map(l=>['#'+l,l]),st=[['5지선다','5지선다'],['최상위','최상위'],['OX','OX'],['빈칸','빈칸'],['서술형','서술형'],['교재','교재'],['문제은행','문제은행']];
- return `${rec.length?`<div class="ssg"><span class="m">최근 검색</span>${rec.map(q=>`<button class="s sm" onclick="srUse(this.dataset.q)" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>`:''}<div class="ssg"><span class="m">해시태그</span>${[...lv,...st.map(([a,b])=>['#'+a,b])].map(([l,t])=>`<button class="s sm" onclick="srAddTag('${t}')">${l}</button>`).join('')}${subs.map(([a,b])=>`<button class="s sm" title="${esc(b)}" onclick="srAddTag('${a}')">#${a}</button>`).join('')}<span class="m">· 예) ${SUBJ==='ph'?'<b>빗면 어려운 계산</b> · <b>#상 #OX 도플러</b> · <b>#Ⅰ-B</b>':'<b>엔탈피 어려운 계산</b> · <b>#상 #OX 헤스</b> · <b>78쪽</b>'}</span></div>`}
+ return `${rec.length?`<div class="ssg"><span class="m">최근 검색</span>${rec.map(q=>`<button class="s sm" onclick="srUse(this.dataset.q)" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>`:''}<div class="ssg"><span class="m">해시태그</span>${[...lv,...st.map(([a,b])=>['#'+a,b])].map(([l,t])=>`<button class="s sm" onclick="srAddTag('${t}')">${l}</button>`).join('')}${subs.map(([a,b])=>`<button class="s sm" title="${esc(b)}" onclick="srAddTag('${a}')">#${a}</button>`).join('')}<span class="m">· 예) ${SUBJ==='ph'?'<b>빗면 어려운 계산</b> · <b>#상 #OX 도플러</b> · <b>#Ⅰ-B</b>':SUBJ==='hl'?'<b>사이시옷 어려운 문제</b> · <b>#상 #OX 높임</b> · <b>#Ⅲ-A</b>':'<b>엔탈피 어려운 계산</b> · <b>#상 #OX 헤스</b> · <b>78쪽</b>'}</span></div>`}
 let _sdt=null,_sq='',SRLIM={book:12,bank:12};
 function doSD(v){clearTimeout(_sdt);const b=$('#sr');if(v.trim()&&b)b.innerHTML=ldg('검색하는 중…');else if(b)b.innerHTML='';_sdt=setTimeout(()=>doS(v),320)}
 function srMore(k){SRLIM[k]+=20;const v=$('#sq');if(v)doS(v.value)}
@@ -4564,11 +4567,11 @@ function mockDel(id){if(!confirm('이 모의고사를 목록에서 지울까요?
 async function mockExam(wid){if(guardStu&&guardStu())return;await openByNumber(wid);if(cur&&cur.ws){cur.mark=false;cur.ans={};cur.done=false;cur.t=Date.now();cur.sel=null;render()}}
 
 /* =================== 과목 선택 =================== */
-const SUBJECTS=[{id:'ph',n:'역학과 에너지',ok:1,g:'sci',gr:[2,3]},{id:'me',n:'물질과 에너지',ok:1,g:'sci',gr:[2,3]},{id:'cm',n:'세포와 물질대사',ok:1,g:'sci',gr:[2,3]},{n:'지구시스템과학',ok:0,g:'sci',d:'준비 중',gr:[2,3]},{n:'통합과학 1',ok:0,g:'sci',d:'준비 중',gr:[1]},{n:'통합과학 2',ok:0,g:'sci',d:'준비 중',gr:[1]},
+const SUBJECTS=[{id:'ph',n:'역학과 에너지',ok:1,g:'sci',gr:[2,3]},{id:'me',n:'물질과 에너지',ok:1,g:'sci',gr:[2,3]},{id:'cm',n:'세포와 물질대사',ok:1,g:'sci',gr:[2,3]},{id:'hl',n:'화법과 언어',ok:1,g:'kor',gr:[2,3]},{n:'지구시스템과학',ok:0,g:'sci',d:'준비 중',gr:[2,3]},{n:'통합과학 1',ok:0,g:'sci',d:'준비 중',gr:[1]},{n:'통합과학 2',ok:0,g:'sci',d:'준비 중',gr:[1]},
 ...[['물리학',[2,3]],['화학',[2,3]],['생명과학',[2,3]],['지구과학',[2,3]],['전자기와 양자',[3]],['화학반응의 세계',[3]],['생물의 유전',[3]],['행성우주과학',[3]]].map(([n,gr])=>({n,ok:0,g:'sci',d:'준비 중',gr})),
 ...[['통합사회 1',[1]],['통합사회 2',[1]],['사회와 문화',[2,3]],['정치',[2,3]],['세계시민과 지리',[2,3]],['현대사회와 윤리',[2,3]],['도시의 미래탐구',[3]],['여행지리',[3]],['법과 사회',[3]],['사회문제 탐구',[3]]].map(([n,gr])=>({n,ok:0,g:'soc',d:'준비 중',gr})),
 ...['수능 맞춤형 통합과학','수능 맞춤형 통합사회'].map(n=>({n,ok:0,g:'csat',d:'준비 중',gr:[3]}))];
-const SJGRP=[['sci','과학'],['soc','사회'],['csat','수능 맞춤형']];
+const SJGRP=[['sci','과학'],['kor','국어'],['soc','사회'],['csat','수능 맞춤형']];
 let SJTAB='sci',SJGR=(()=>{try{return localStorage.getItem('omr_sjgr')||'all'}catch(e){return 'all'}})();
 function sjDesc(s){if(!s.ok)return s.d;const bk=(POOL[s.id]||[]).filter(q=>q.set!=='bank').length,db=Object.values(BIDXS[s.id]||{}).reduce((a,t)=>a+(t.n||0),0);return '교재 '+bk.toLocaleString()+'문제 · DB '+db.toLocaleString()+'문제'}
 const sjBtn=(s,ph)=>{s=snOff().includes(s.id)?{...s,ok:0,d:'점검 중'}:s;return `<button class="sj ${s.ok?'':'off'} ${s.id===SUBJ?'on':''} ${ph?'ph':''}" ${ph?'tabindex="-1" aria-hidden="true" disabled':s.ok?`onclick="setSubject('${s.id}')"`:'disabled'}><b>${s.n}</b><small>${sjDesc(s)}</small></button>`};
@@ -4705,7 +4708,7 @@ function palFill(v){v=v.trim().toLowerCase();const items=[];
   items.push({l:'설정 · 단축키 · 데이터 관리',run:openSettings},{l:'내 문제 추가',run:()=>{tab='search';render();myQForm()}},{l:'내 구성 불러오기·저장',run:openPresets});
   WSH.slice().sort((a,b)=>b.t-a.t).slice(0,60).forEach(w=>items.push({l:'학습지 · '+w.title+' · '+fmtNo(w.id),run:()=>openByNumber(w.id),x:w.id}));
   STU.forEach(x=>{items.push({l:'학생 · '+x.name,x:x.grade||'',run:()=>setStu(x.id)});items.push({l:'학생 · '+x.name+' · 출결·수납',x:x.grade||'',run:()=>attOpenStu(x.id,'month')})});
-  items.push({l:'과목 변경 · 역학과 에너지',run:()=>setSubject('ph')},{l:'과목 변경 · 물질과 에너지',run:()=>setSubject('me')},{l:'과목 변경 · 세포와 물질대사',run:()=>setSubject('cm')})}
+  items.push({l:'과목 변경 · 역학과 에너지',run:()=>setSubject('ph')},{l:'과목 변경 · 물질과 에너지',run:()=>setSubject('me')},{l:'과목 변경 · 세포와 물질대사',run:()=>setSubject('cm')},{l:'과목 변경 · 화법과 언어',run:()=>setSubject('hl')})}
  items.push({l:'설정 · 다크 ↔ 라이트 모드 전환',x:'화면 테마 어둡게 밝게',run:()=>{const d=document.documentElement.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('omr_theme',d)}catch(e){}themeApply()}});
  const code=v.replace(/[^a-z0-9]/g,'');
  let hit=items.filter(i=>!v||(i.l+' '+(i.x||'')).toLowerCase().includes(v)||palCho(i.l).includes(v.replace(/\s/g,'')));
