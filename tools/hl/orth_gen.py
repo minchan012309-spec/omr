@@ -184,12 +184,12 @@ def tpl_tf(r, bank, mode='ok', lv='중', fam='T', ref=None, ask=None, three=Fals
     if mode == 'ok':
         if len(T_) < 1 or len(F_) < 4: return None
         a = r.choice(T_); bs = r.sample(F_, 4)
-        steps = ['옳은 설명: %s %s' % (a[0], a[2])] + ['옳지 않은 설명: %s %s' % (b[0], b[2]) for b in bs]
+        steps = ['옳은 설명: 「%s」 — %s' % (a[0].rstrip('.'), a[2])] + ['옳지 않은 설명: 「%s」 — %s' % (b[0].rstrip('.'), b[2]) for b in bs]  # 진술과 풀이문을 구분해 잇는다
         return mc(P(intro) + P(ask or r.choice(['설명으로 옳은 것은?', '다음 중 옳은 것은?'])), a[0], [b[0] for b in bs], steps=steps, core=a[2], lv=lv, fam=fam, r=r, ref=ref, vertical=True)
     else:
         if len(F_) < 1 or len(T_) < 4: return None
         a = r.choice(F_); bs = r.sample(T_, 4)
-        steps = ['옳지 않은 설명: %s %s' % (a[0], a[2])] + ['옳은 설명: %s %s' % (b[0], b[2]) for b in bs]
+        steps = ['옳지 않은 설명: 「%s」 — %s' % (a[0].rstrip('.'), a[2])] + ['옳은 설명: 「%s」 — %s' % (b[0].rstrip('.'), b[2]) for b in bs]
         return mc(P(intro) + P(ask or r.choice(['설명으로 옳지 않은 것은?', '다음 중 옳지 않은 것은?'])), a[0], [b[0] for b in bs], steps=steps, core=a[2], lv=lv, fam=fam, r=r, ref=ref, vertical=True)
 
 

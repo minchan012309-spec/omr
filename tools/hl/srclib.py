@@ -65,11 +65,29 @@ def dlg(turns):
     return '<div class="bogi dl">' + ''.join('<p><b>%s</b> : %s</p>' % (sp, t) for sp, t in turns) + '</div>'
 
 
-def tbl(head, rows):
-    t = '<table class="tb"><thead><tr>' + ''.join('<th>%s</th>' % h for h in head) + '</tr></thead><tbody>'
+def tbl(head, rows, cap=None, fn=None, cls=None):
+    """표. 숫자 칸은 오른쪽 정렬(tabular-nums), 머리글에 %가 있는 열은 값 옆에 얇은 막대를 단다.
+    cap: 표 위 제목(예 '[자료 1]'), fn: 표 바로 아래 각주 — 둘 중 하나라도 있으면 표와 한 덩어리(.tbw)로 묶는다.
+    cls: 'cmp' = 열이 많은 표(고정 열 너비·머리글 한 줄)."""
+    num = lambda c: bool(re.fullmatch(r'\s*[-+]?[\d.,]+\s*%?\s*', str(c)))
+    pct = [('%' in str(h)) for h in (head or [])]
+    t = '<table class="tb%s">' % (' ' + cls if cls else '') + ('<thead><tr>' + ''.join(
+        '<th%s>%s</th>' % (' colspan="2"' if pct[i] and any(num(r[i]) for r in rows if i < len(r)) else '', h) for i, h in enumerate(head)) + '</tr></thead>' if head else '') + '<tbody>'
     for r in rows:
-        t += '<tr>' + ''.join('<td>%s</td>' % c for c in r) + '</tr>'
-    return t + '</tbody></table>'
+        t += '<tr>'
+        for i, c in enumerate(r):
+            if i < len(pct) and pct[i] and any(num(x[i]) for x in rows if i < len(x)):
+                v = float(re.sub(r'[^\d.]', '', c) or 0) if num(c) else None
+                t += '<td class="n">%s</td><td class="vbc">%s</td>' % (c, '<span class="vb" style="--v:%g"></span>' % min(100, v) if v is not None else '')
+            elif i == 0 and not head:
+                t += '<th>%s</th>' % c
+            else:
+                t += '<td%s>%s</td>' % (' class="n"' if num(c) else ' class="l"' if len(plain(str(c))) > 16 else '', c)
+        t += '</tr>'
+    t += '</tbody></table>'
+    if cap or fn:
+        t = '<div class="tbw">%s%s%s</div>' % ('<div class="tcap">%s</div>' % cap if cap else '', t, '<small class="fn">%s</small>' % fn if fn else '')
+    return t
 
 
 def u(t):

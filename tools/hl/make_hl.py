@@ -13,6 +13,7 @@ import hllib
 from hllib import render, pts_for, sig, plain, CIR, esc, REGISTRY, josa
 from outline import TYPES, BYTAG, BYLABEL, SUBS, BUNDLE, SUB_ORDER
 import srclib
+import fmt
 
 OUT = os.path.abspath(os.path.join(HERE, '..', '..', 'hl'))
 PAL = {'p': '#d9622b', 'pd': '#b84d1d', 'pl': '#fdf1ea', 'pl2': '#f6d9c8', 'line': '#eec4ab'}
@@ -21,6 +22,8 @@ LVI = build.LVI
 
 
 def dump(path, obj):
+    if isinstance(obj, list):  # 문항 HTML 마무리: 대화 발화 2열 · 지문 범위 표지 [A]
+        obj = [dict(d, q=fmt.finish(d['q'], d.get('code', ''))) if isinstance(d, dict) and d.get('q') else d for d in obj]
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(obj, f, ensure_ascii=False, separators=(',', ':'))
 
@@ -421,6 +424,8 @@ def main():
     dump(os.path.join(OUT, 'data.json'), data)
     print('교재 문항', dict(collections.Counter(d['set'] for d in data)))
     make_concept(pools, sec_ox, sec_bl)
+    rp = fmt.report()
+    print('범위 표지 [A]: 끝 표지 %d · 발화 묶음 %d · 문단 %d · 문단 끝 표지(확인 필요) %d %s' % (len(rp['explicit']), len(rp['utter']), len(rp['paragraph']), len(rp['end']), ' '.join(rp['end'] + rp['paragraph'])))
 
 
 if __name__ == '__main__':

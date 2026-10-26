@@ -63,6 +63,12 @@ def _batchim(c):
         return 8 if c == '㉣' else 1
     if c in _DIGIT_JONG:
         return _DIGIT_JONG[c]
+    if '①' <= c <= '⑨':           # 원문자 숫자는 '일 이 삼 …'으로 읽는다
+        return _DIGIT_JONG[str(ord(c) - 0x245F)]
+    if c == '⑩':                   # 십
+        return 17
+    if '㉮' <= c <= '㉻' or 'ⓐ' <= c <= 'ⓩ':   # ㉮(가)…㉻(하) · ⓐ(에이)… 는 모음으로 끝난다(ⓛ 엘 · ⓜ 엠 · ⓝ 엔 · ⓡ 알 은 받침)
+        return {'ⓛ': 8, 'ⓜ': 16, 'ⓝ': 4, 'ⓡ': 8}.get(c, 0)
     o = ord(c)
     if 0x11A8 <= o <= 0x11FF or 0xD7CB <= o <= 0xD7FB:   # 옛 한글 받침
         return 1
@@ -183,7 +189,8 @@ def bogi(intro, stmts, *, pre='', post='', lv='중', fam='a', r=None, core='', p
     opts = sorted([right] + ws, key=lambda c: (len(c), COMBOS.index(c)))
     ans = opts.index(right) + 1
     body = (P(intro) if intro else '') + pre + (P(ask) if ask else '') + BOGI([s[0] for s in stmts]) + post
-    steps = ['%s. %s %s' % ('ㄱㄴㄷ'[i], '옳다.' if stmts[i][1] else '옳지 않다.', stmts[i][2]) for i in range(3)]
+    # 풀이문이 이미 '옳다.'·'옳지 않다.'로 시작하면 판정을 두 번 쓰지 않는다
+    steps = ['%s. %s %s' % ('ㄱㄴㄷ'[i], '옳다.' if stmts[i][1] else '옳지 않다.', re.sub(r'^\s*(?:옳다|옳지 않다|적절하다|적절하지 않다)\.\s*', '', stmts[i][2])) for i in range(3)]
     return Item(body=body, opts=opts, ans=ans, steps=steps, core=core, point=point, lv=lv, fam=fam, vertical=False, ref=ref)
 
 
