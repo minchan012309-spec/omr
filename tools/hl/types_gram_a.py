@@ -52,7 +52,21 @@ def g023(r, k):
     def lf(code):
         rn = rname(code)
         return ('%s이다.' % rn if rn != '서술어' else '서술어이다.', ['%s이다.' % x for x in ROLES7 if x != rn])
-    return tf_stmts(r, a, idxs, lf, '㉠~㉤의 문장 성분에 대한 설명으로 옳지 않은 것은?', 'bad', '상', 'E', [1], core='문장 성분을 정확히 구분한다.')
+    return _tf5(r, a, idxs, lf, '㉠~㉤의 문장 성분에 대한 설명으로 옳지 않은 것은?', '상', 'E', [1], core='문장 성분을 정확히 구분한다.')
+
+def _tf5(r, a, idxs, label_fn, ask, lv, fam, ref, core=''):
+    """㉠~㉤ 진술 5개 중 옳지 않은 것 1개 (㉠은/㉡은… 받침 있는 기호 이름 기준으로 '은' 고정)"""
+    labels = {ix: CIRC[n] for n, ix in enumerate(idxs)}
+    body = P(ask) + '<div class="bogi"><p>%s</p></div>' % a.html(under=idxs, labels=labels)
+    k = r.randrange(len(idxs))
+    items, st = [], []
+    for n, ix in enumerate(idxs):
+        tru, fal = label_fn(a.toks[ix][2])
+        truth = n != k
+        txt = tru if truth else r.choice(fal)
+        items.append(('%s은 %s' % (CIRC[n], txt), n == k))
+        st.append("%s %s '%s'의 문장 성분은 %s" % (CIRC[n], '옳다.' if truth else '옳지 않다.', a.toks[ix][1].strip(',!'), tru))
+    return mcs(body, items, steps=st, core=core, lv=lv, fam=fam, r=r, ref=ref, vertical=True)
 
 def _t1role(r, lv, fam):
     pools = BYR
@@ -118,12 +132,12 @@ def g025(r, k):
     if c == 3:
         return _t1det(r, det, DD, ['부:사', '부:조', '부:어'], '부사어', '중', 'D')
     if c == 4:
-        return _t1det(r, det, DD, ['부:문', '부:사', '부:조', '부:접'], '부사어', '상', 'E')
+        return _t1fn(r, '상', 'E')
     if c == 5:
         return tpl_odd(r, P2)
     a = r.choice([x for x in SENT if any((c_ == '부:문' for _, _, c_ in x.segs))])
     i = [i for i, _, c_ in a.segs if c_ == '부:문'][0]
-    names = ['문장 전체를 꾸미는 문장 부사어', '용언만 꾸미는 성분 부사어', '체언을 꾸미는 관형어', '주어를 꾸미는 관형어', '서술어를 요구하는 필수적 부사어']
+    names = ['문장 전체를 꾸미는 문장 부사어', '용언만 꾸미는 성분 부사어', '체언을 꾸미는 관형어', '주어를 꾸미는 관형어', '서술어가 요구하는 필수적 부사어']
     return t_single(r, a, i, names, names[0], '밑줄 친 부분에 대한 설명으로 가장 적절한 것은?', ['문장 전체를 꾸미는 문장 부사어이다.'], '상', 'F', [1], '문장 부사어')
 
 def _t1det(r, det, DD, codes, role, lv, fam):
@@ -132,8 +146,25 @@ def _t1det(r, det, DD, codes, role, lv, fam):
         return None
     t = r.choice(avail)
     pools = {c: det[c] for c in avail}
-    names = {'관:사': '관형사', '관:의': "체언+'의'", '관:형': '용언의 관형사형', '부:사': '부사', '부:조': '체언+부사격 조사', '부:어': '용언의 부사형', '부:문': '문장 부사어', '부:접': '접속 부사어'}
-    return t1(r, pools, t, '밑줄 친 %s가 %s로 실현된 것은?' % (role, names[t]), DD, lv, fam, [1])
+    names = {'관:사': '관형사', '관:의': "체언+'의'", '관:형': '용언의 관형사형', '부:사': '부사', '부:조': '체언+부사격 조사', '부:어': '용언의 부사형'}
+    nm = names[t]
+    ro = '으로' if nm.endswith('형') else '로'
+    return t1(r, pools, t, '밑줄 친 %s이(가) %s%s 실현된 것은?' % (role, nm, ro), DD, lv, fam, [1])
+
+def _t1fn(r, lv, fam):
+    """부사어를 기능(문장 부사어·접속 부사어·성분 부사어)으로 가르는 문항"""
+    pl = {'문장 부사어': [], '접속 부사어': [], '성분 부사어': []}
+    for a in SENT:
+        for i, t, code in a.segs:
+            if code == '부:문':
+                pl['문장 부사어'].append((a, i))
+            elif code == '부:접':
+                pl['접속 부사어'].append((a, i))
+            elif code in ('부:사', '부:조', '부:어'):
+                pl['성분 부사어'].append((a, i))
+    D = {'문장 부사어': '문장 부사어: 문장 전체를 꾸미는 부사어이다.', '접속 부사어': '접속 부사어: 앞 문장과 뒤 문장을 이어 주는 부사어이다.', '성분 부사어': '성분 부사어: 문장의 특정 성분(주로 용언)을 꾸미는 부사어이다.'}
+    t = r.choice(['문장 부사어', '접속 부사어', '성분 부사어'])
+    return t1(r, pl, t, "밑줄 친 부사어가 '%s'인 것은?" % t, D, lv, fam, [1])
 
 @T('hl026')
 def g026(r, k):
@@ -156,7 +187,8 @@ def g026(r, k):
 
 def valency(a):
     return sum((1 for _, _, c in a.segs if c.split(':')[0] in ('주', '목', '보', '필')))
-PRED = [a for a in SENT if any((c.split(':')[0] == '서' for _, _, c in a.segs)) and any((c.split(':')[0] == '주' for _, _, c in a.segs))]
+_NOPRED = ('가자', '올 것이다', '왔구나', '와라', '돌아오셨다')  # 가다·오다류는 장소 부사어 요구 여부가 문법서마다 달라 자릿수 문항에서 제외
+PRED = [a for a in SENT if any((c.split(':')[0] == '서' for _, _, c in a.segs)) and any((c.split(':')[0] == '주' for _, _, c in a.segs)) and a.toks[[i for i, _, c in a.segs if c.split(':')[0] == '서'][0]][1] not in _NOPRED]
 VNAME = {1: '한 자리', 2: '두 자리', 3: '세 자리'}
 
 def pred_idx(a):
@@ -170,7 +202,7 @@ def g027(r, k):
         v = r.choice([1, 2, 3])
         pools = {x: byv[x] for x in (1, 2, 3)}
         names = {1: '한 자리 서술어', 2: '두 자리 서술어', 3: '세 자리 서술어'}
-        return t1(r, {names[x]: pools[x] for x in pools}, names[v], '밑줄 친 서술어가 %s인 것은?' % names[v].replace(' 서술어', '') + ' 서술어', {names[x]: '%s이다(요구하는 성분: 서술어를 제외한 필수 성분의 수 = %d).' % (names[x], x) for x in pools}, '중', 'A', [2])
+        return t1(r, {names[x]: pools[x] for x in pools}, names[v], '밑줄 친 서술어가 %s인 것은?' % names[v], {names[x]: '%s이다(요구하는 성분: 서술어를 제외한 필수 성분의 수 = %d).' % (names[x], x) for x in pools}, '중', 'A', [2])
     if c == 2:
         a = r.choice(PRED)
         v = valency(a)
@@ -224,15 +256,15 @@ def g028(r, k):
     if c == 2:
         need = [('닮다', '어머니와'), ('같다', '그것과'), ('다르다', '아버지와'), ('생기다', '예쁘게'), ('다니다', '병원에'), ('삼다', '사위로'), ('주다', '영희에게'), ('넣다', '가방에'), ('두다', '책상에'), ('보내다', '친구에게')]
         notn = ['먹다', '읽다', '자다', '울다', '웃다', '피다', '놀다', '달리다', '마시다']
-        right = r.choice(need)[0]
+        right = r.choice([x for x in need if x[0] != '생기다'])[0]
         ws = r.sample(notn, 4)
         return mc(P('다음 중 필수적 부사어를 요구하는 서술어는?'), right, ws, steps=["'%s'는 주어 외에 필수적 부사어를 요구하는 서술어이다." % right] + ["'%s'는 필수적 부사어가 없어도 문장이 성립한다." % w for w in ws], core='필수적 부사어를 요구하는 서술어', lv='중', fam='C', r=r, ref=[2])
     if c == 3:
-        need = ['닮다', '같다', '다르다', '생기다', '다니다', '삼다', '주다', '넣다', '두다', '보내다', '여기다', '일컫다']
+        need = ['닮다', '같다', '다르다', '다니다', '삼다', '주다', '넣다', '두다', '보내다', '여기다', '일컫다']
         notn = ['먹다', '읽다', '자다', '울다', '웃다', '피다', '놀다', '달리다', '마시다', '열다', '짓다', '보다']
         right = r.choice(notn)
         ws = r.sample(need, 4)
-        return mc(P('다음 중 필수적 부사어를 요구하지 않는 서술어는?'), right, ws, steps=["'%s'는 주어와 목적어만으로 문장이 성립한다." % right] + ["'%s'는 필수적 부사어를 요구한다." % w for w in ws], core='필수적 부사어를 요구하는 서술어', lv='중', fam='D', r=r, ref=[2])
+        return mc(P('다음 중 필수적 부사어를 요구하지 않는 서술어는?'), right, ws, steps=["'%s'는 필수적 부사어 없이 주어(와 목적어)만으로 문장이 성립한다." % right] + ["'%s'는 필수적 부사어를 요구한다." % w for w in ws], core='필수적 부사어를 요구하는 서술어', lv='중', fam='D', r=r, ref=[2])
     if c == 4:
         a = r.choice([x for x in SENT if any((c_.startswith('필') for _, _, c_ in x.segs))])
         i = [i for i, _, c_ in a.segs if c_.startswith('필')][0]
@@ -250,7 +282,7 @@ def clause_html(a, only_types=None):
 @T('hl029')
 def g029(r, k):
     simple = [a for a in SENT if len(a.plain()) > 6 and (not any((c_ in ('관:형', '부:어', '필:어') for _, _, c_ in a.segs)))]
-    inner = [a for a in SENT if any((c_ in ('관:형', '부:어', '필:어') for _, _, c_ in a.segs))]
+    inner = [a for a in SENT if any((c_ == '관:형' for _, _, c_ in a.segs))]  # 부사형(빠르게·세게·예쁘게)은 부사어로만 다루므로 홑·겹 어느 쪽에도 쓰지 않음
 
     def _inner_why(a):
         for _, t, c_ in a.segs:
@@ -318,7 +350,7 @@ def g030(r, k):
         code = a.toks[i][2]
         role = code.split(':')[1]
         return t_single(r, a, i, ['주어', '목적어', '부사어', '관형어', '서술어'], role, '밑줄 친 명사절이 문장에서 하는 역할은?', ['이 명사절은 %s로 쓰였다.' % role], '중', 'D', [3], CLD['명사절'])
-    mark = {'명사절': ['-(으)ㅁ, -기', '-(으)ㄴ, -는', '-게, -도록', '-고, -며', '-라고, -고'], '관형절': ['-(으)ㄴ, -는, -(으)ㄹ, -던', '-(으)ㅁ, -기', '-게, -도록', '-고, -며', '-라고, -고'], '부사절': ['-게, -도록', '-(으)ㅁ, -기', '-(으)ㄴ, -는', '-고, -며', '-라고, -고'], '인용절': ['-라고, -고', '-(으)ㅁ, -기', '-(으)ㄴ, -는', '-게, -도록', '-고, -며']}
+    mark = {'명사절': ['-(으)ㅁ, -기', '-(으)ㄴ, -는', '-게, -도록', '-아서, -(으)니까', '-라고, -고'], '관형절': ['-(으)ㄴ, -는, -(으)ㄹ, -던', '-(으)ㅁ, -기', '-게, -도록', '-아서, -(으)니까', '-라고, -고'], '부사절': ['-이, -게, -도록', '-(으)ㅁ, -기', '-(으)ㄴ, -는', '-아서, -(으)니까', '-라고, -고'], '인용절': ['-라고, -고', '-(으)ㅁ, -기', '-(으)ㄴ, -는', '-게, -도록', '-아서, -(으)니까']}
     tg = r.choice(list(mark))
     a, i = r.choice(pools[tg])
     right = mark[tg][0]
@@ -327,7 +359,7 @@ def g030(r, k):
 def _mark_item(r, a, i, tg, mark):
     right = mark[tg][0]
     ws = r.sample(mark[tg][1:], 4)
-    body = P('밑줄 친 절을 안긴절로 만든 것은 어떤 어미(조사)인가?') + '<div class="bogi"><p>%s</p></div>' % a.html(under=[i])
+    body = P('밑줄 친 절을 안긴절이 되게 하는 어미(조사)는?') + '<div class="bogi"><p>%s</p></div>' % a.html(under=[i])
     return mc(body, right, ws, steps=['%s: %s' % (tg, CLD[tg])], core=CLD[tg], lv='중', fam='E', r=r, ref=[3])
 
 def tpl_cl_odd(r, pools):

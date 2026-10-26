@@ -37,6 +37,7 @@ def render_src(d, no, pts=3):
     secs = SUBS[d['sub']]['secs']
     ty = BYLABEL.get(d['type'])
     rl = d.get('ref') or ([ty['sec']] if ty else [1])
+    if any(not 1 <= r <= len(secs) for r in rl): rl = [ty['sec']] if ty else [1]
     refs = '<div class="rv"><span class="lb">이 문제를 틀렸다면 다시 공부할 부분</span>' + ''.join(
         '<div class="st">→ %s <span class="sm">(개념 정리 %s %d)</span></div>' % (esc(secs[n - 1]), d['sub'], n) for n in rl) + '</div>'
     e = '<div class="sol" id="%s"><div class="sh"><span class="sn">%d</span><span class="sa">정답 %s</span><span class="sc2">%s</span></div><div class="ss">출처 : %s</div><p><span class="lb">풀이</span></p>' % (sid, no, CIR[d['ans'] - 1], code, esc(d['src']))
