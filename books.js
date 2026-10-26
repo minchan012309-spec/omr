@@ -482,8 +482,15 @@ function bkPlanMain(id){
    if(O.nb!=='none')for(let k=0;k<O.nbn;k++){left(s);pages.push(nt(s,'개념 노트 · '+sec.no,O.nb,sec.no+' '+sec.title));pages.push(nt(s,'개념 노트 · '+sec.no,O.nb,sec.no+' '+sec.title))}});
   /* ② 연습 */
   const all=DATA.filter(q=>q.sub===s.k&&!q.mock);
-  const src=all.filter(q=>q.src&&(q.set==='mc'||q.set==='top')).sort((a,b)=>(a.no||0)-(b.no||0)||String(a.code).localeCompare(String(b.code)));
   const bank=all.filter(q=>q.set==='bank');
+  /* 기초 5지선다 : 소단원마다(출판사 문항 포함, 난이도 하) */
+  const lows=all.filter(q=>q.set==='mc'&&bkLv(q)==='하'&&!q.grp);
+  let basic=(S.basic[s.k]||[]).filter(q=>!q.grp);
+  lows.forEach(q=>{if(basic.length<8&&!basic.includes(q))basic.push(q)});
+  if(basic.length<6){const rk=q=>LVI[bkLv(q)]??1;const bb=bank.slice().sort((x,y)=>rk(x)-rk(y));const lo=bb.length?rk(bb[0]):1;basic=basic.concat(pickVar(bb.filter(q=>rk(q)===lo),8-basic.length,['하','중']))}
+  basic.sort((x,y)=>(x.no||0)-(y.no||0)||String(x.code).localeCompare(String(y.code)));
+  const basicSet=new Set(basic.map(q=>q.code));
+  const src=all.filter(q=>q.src&&(q.set==='mc'||q.set==='top')&&!basicSet.has(q.code)).sort((a,b)=>(a.no||0)-(b.no||0)||String(a.code).localeCompare(String(b.code)));
   const sec_of=q=>(meta[q.type]||{}).sec,sty_of=q=>(meta[q.type]||{}).style;
   const addAns=q=>{no++;nums.set(q.code,no);ansL.push(q);return no};
   const qPages=(title,sub2,groups,label)=>{ // groups: [{t, qs}]  (t 가 있으면 유형 머리말)
@@ -492,6 +499,8 @@ function bkPlanMain(id){
    groups.forEach((g,gi)=>{if(g.t)us.push(bkU('th:'+s.k+':'+title+':'+gi,'<div class="th"><b>유형 '+String(gi+1).padStart(2,'0')+'</b><span>'+esc(g.t)+'</span></div>',{keep:true}));
     g.qs.forEach(q=>{const nn=addAns(q);us.push(bkU('q:'+q.code+':h',bkQHtml(bkStripPsg(q).q,nn,{lv:bkLv(q),code:1}),{code:q.code}))})});
    bkPack(us,2,BK_BODY).forEach(p=>{pages.push({k:'pr',kind:'h',sub:s,label,...bkCI(p),codes:p.cols.flat().map(u=>u.code).filter(Boolean)});if(O.qn)pages.push(nt(s,'필기 · NOTE',O.nt,title))})};
+  if(basic.length)row.items.push(['기초 5지선다',pages.length+1]);
+  qPages('기초 5지선다',s.k+' '+s.name,[{t:null,qs:basic}],'기초 5지선다');
   const ckPage=(title,secs2)=>{ // 개념 체크 : OX · 빈칸
    const has=(q)=>!secs2||!secs2.length||secs2.includes(sec_of(q));
    const oxP=all.filter(q=>q.set==='ox'&&has(q)).slice(0,60),blP=all.filter(q=>q.set==='blank'&&has(q)).slice(0,60);
