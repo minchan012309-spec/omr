@@ -24,7 +24,7 @@ def parse(q):
     return stem_html, opts
 
 
-NEG = re.compile(r'(않은|않는|아닌|틀린|어긋난|없는|못한|부적절|알 수 없|확인할 수 없)')
+NEG = re.compile(r'(않은|않는|아닌|틀린|어긋난|없는|못한|부적절|알 수 없|확인할 수 없|보기 어려운|볼 수 없)')
 POS_STEP = re.compile(r'(적절하다|옳다|맞다|알맞다|타당하다|일치한다)')
 NEG_STEP = re.compile(r'(적절하지 않|옳지 않|맞지 않|알맞지 않|타당하지 않|일치하지 않|어긋|아니다|않다\.|않는다\.|틀리다|잘못)')
 
@@ -71,7 +71,7 @@ def check_item(d, src):
     if not 1 <= ans <= 5: errs.append('정답 번호 %s' % d['ans'])
     if q.count('<u>') != q.count('</u>'): errs.append('u 태그 짝')
     if len(re.findall(r'<b[ >]', q)) != q.count('</b>'): errs.append('b 태그 짝')
-    txt = plain(q) + plain(d['exp'])
+    txt = re.sub(r'\{[^{}/]{1,40}/[^{}]{1,40}\}', '', plain(q) + plain(d['exp']))  # {옳다. / 옳지 않다.} 같은 고르기 표기는 원문 형식
     for w in ('None', 'nan', '{', '}', '%s', '%d', 'Traceback', '[object', 'undefined', '??', 'NaN'):
         if w in txt: errs.append('이상한 문자열 ' + w)
     for m in re.finditer(r'(이\(가\)|은\(는\)|을\(를\)|와\(과\)|\(으\)로|\(이\)란|\(이\)라|으로\(로\))', plain(q)):

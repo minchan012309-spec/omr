@@ -106,6 +106,8 @@ def _ranges_in(ps, code):
         while i < len(info):
             body = info[i][2]
             m = mk.search(body)
+            if m and 'class="hd"' in info[i][1]:  # 지시문 줄에는 범위를 두지 않는다
+                i += 1; continue
             if not m: i += 1; continue
             pre, post = TXT(body[:m.start()]).strip(), TXT(body[m.end():]).strip()
             if pre == '' and len(post) > 8 and not re.match(r'^(?:에|은|는|을|를|의|와|과|이|가|로|으로)\b', post):
