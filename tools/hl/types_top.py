@@ -2,7 +2,7 @@
 """기초 확인(하) 11종 + 장문 지문 최상위·융합 6종 (hl100~hl116)"""
 import re, itertools
 from hllib import *
-from speech_gen import ff, fill, IN_F, in_desc, IN_GENERIC, CX, cx_desc, cx_utter, ipron
+from speech_gen import ff, fill, IN_F, in_desc, IN_GENERIC, CX, CX_NEED, cx_desc, cx_utter, ipron
 from qlib import CIRC
 import kb_speech as S, kb_speech2 as S2
 import kb_gram_a, kb_tf_b, kb_tf, kb_word2
@@ -152,11 +152,20 @@ def long_speech_paras(r, tp, n_tech=8, extra_sents=None):
     ids = ids[:n_tech]
     def T_(i): return (fill(r.choice(S.TECH[i][3]), tp), i)
     fl = [(_f(t, tp), None) for t in FILL]
-    intro = [T_(ids[0]), fl[0], T_(ids[1])]
-    p2 = [fl[1], T_(ids[2]), fl[2], T_(ids[3])]
-    p3 = [fl[3], T_(ids[4]), fl[4], T_(ids[5])]
+    # 담화 순서를 자연스럽게: 도입은 질문·경험 → 반응 확인 → 화제·순서 안내, 전개는 통계 다음에 자료 제시, 정리는 요약 → 판단 → 고민 → 당부
+    rk = {'Q': 0, 'M': 0, 'A': 1, 'R': 2}   # 반응 확인은 화제를 꺼낸 뒤에
+    a0, a1 = sorted(ids[:2], key=lambda i: rk[i])
+    intro = [T_(a0), T_(a1), fl[0]] if a1 == 'R' else [T_(a0), fl[0], T_(a1)]
+    dv = ids[2:6]
+    if 'C' in dv: dv.remove('C'); dv.insert(0, 'C')   # 두 입장 비교는 쟁점을 처음 꺼낼 때
+    if 'S' in dv and 'V' in dv and dv.index('V') < dv.index('S'):
+        i, j = dv.index('V'), dv.index('S'); dv[i], dv[j] = dv[j], dv[i]
+    p2 = [fl[1], T_(dv[0])] + ([] if 'C' in dv[:2] else [fl[2]]) + [T_(dv[1])]   # 두 입장 비교 문장이 있으면 같은 말을 되풀이하지 않는다
+    p3 = [fl[3], T_(dv[2]), fl[4], T_(dv[3])]
     p4 = [fl[5], fl[6], fl[7], fl[8]]
-    p5 = [T_(ids[6]), fl[9], T_(ids[7]), fl[10]]
+    end = sorted(ids[6:8], key=lambda i: 'WH'.index(i))
+    p5 = [T_(end[0]), fl[9], fl[10], T_(end[1])] if len(end) == 2 else [T_(end[0]), fl[9], fl[10]]
+    ids = [a0, a1] + dv + end
     paras = [intro, p2, p3, p4, p5]
     if extra_sents:
         for sents, pi in extra_sents: paras[pi].extend(sents)
@@ -246,43 +255,46 @@ def g111(r, k):
 
 # ============================================================ hl112 장문 토론
 ANS = {
- 'prob': '그 문제는 {s1}을(를) 함께 시행하면 보완할 수 있습니다.',
- 'ev': '해당 조사는 전체 학생을 대상으로 한 것이어서 대표성이 충분합니다.',
+ 'prob': '그 문제는 시행 과정에서 학생 의견을 들어 세부 기준을 조정하면 보완할 수 있습니다.',   # 반대쪽 대안을 끌어오지 않는다
+ 'ev': '일부 학급을 대상으로 한 자료이지만 전체의 경향을 보여 주기에는 충분합니다.',
  'src': '{ex}이(가) 공개 강연에서 밝힌 내용이며 출처는 자료집에 실려 있습니다.',
  'case': '학교의 규모와 여건이 비슷해 우리 학교에도 적용할 수 있습니다.',
  'def': '여기서는 학생이 직접 참여하는 범위로 한정해서 말씀드린 것입니다.',
+ 'prob_con': '{s1}처럼 다른 방법으로도 그 문제를 해결할 수 있습니다.',
+ 'need': '사례를 따로 조사하지는 않았지만 충분히 예상할 수 있는 문제입니다.',
 }
+IN_ORD = ['def', 'eff', 'stat', 'exp', 'case', 'opp', 'urg']
 def _debate(r):
+    """찬성 입론 → 반대 신문 → 반대 입론 → 찬성의 반대 신문 → 반대 반박.
+    반대 신문은 상대가 입론에서 실제로 든 자료·견해·사례·정의만 묻고, 반박은 찬성 측이 낸 자료만 겨눈다."""
     tp = r.choice(S.TOPICS)
     descs = {}; paras = []; speakers = []
-    sides = [('pro', '찬성 측'), ('con', '반대 측')]
     def side_feats(sd, feats):
-        out = []
-        head = ipron(tp, sd, [])
-        out.append((head, None))
-        for f in feats:
+        out = [(ipron(tp, sd, []), None)]
+        for f in sorted(feats, key=IN_ORD.index):
             i = 'f:%s:%s' % (f, sd); descs[i] = in_desc(f, sd)
             out.append((josa(ff(IN_F[f][0 if sd == 'pro' else 1], tp)), i))
         return out
-    pf = r.sample(['def', 'eff', 'stat', 'case', 'urg'], 4); cf = r.sample(['def', 'eff', 'stat', 'case', 'opp'], 3)
+    pf = ['eff', 'stat'] + r.sample(['def', 'case', 'urg', 'exp'], 2)
+    cf = ['eff'] + r.sample(['opp', 'urg'], r.choice([1, 2]))   # 반대 측은 찬성 측의 통계·사례를 자기 근거로 끌어오지 않는다
     paras.append(side_feats('pro', pf)); speakers.append('찬성 측 입론')
-    keys = r.sample(list(CX), 3)
+    ok = ['prob'] + [k for k, f in CX_NEED.items() if f in pf]
     q = []
-    for key in keys:
-        u = cx_utter(tp, key, 'pro'); i = 'x:%s:con' % key; descs[i] = cx_desc(key, '찬성 측')
-        q.append((u if not q else u.split('말씀하셨는데, ', 1)[1], i)); q.append((josa(ff(ANS[key], tp)), None))
+    for key in r.sample(ok, 3):
+        i = 'x:%s:con' % key; descs[i] = cx_desc(key, '찬성 측')
+        q.append((cx_utter(tp, key, 'pro'), i)); q.append((josa(ff(ANS[key], tp)), None))
     paras.append(q); speakers.append('반대 측 반대 신문과 찬성 측 답변')
     paras.append(side_feats('con', cf)); speakers.append('반대 측 입론')
-    keys2 = r.sample(list(CX), 2); q2 = []
-    for key in keys2:
-        u = cx_utter(tp, key, 'con'); i = 'x:%s:pro' % key; descs[i] = cx_desc(key, '반대 측')
-        q2.append((u if not q2 else u.split('말씀하셨는데, ', 1)[1], i)); q2.append((josa(ff(ANS[key], tp)), None))
+    q2 = []
+    for key in r.sample(['prob', 'need'], 2):
+        i = 'x:%s:pro' % key; descs[i] = cx_desc(key, '반대 측')
+        q2.append((cx_utter(tp, key, 'con'), i)); q2.append((josa(ff(ANS['prob_con' if key == 'prob' else key], tp)), None))
     paras.append(q2); speakers.append('찬성 측 반대 신문과 반대 측 답변')
     rb = []
-    for j in r.sample(list(SB.REB), 2):
-        i = 'r:' + j; descs[i] = SB.REB[j][0]; rb.append((josa(ff(SB.REB[j][1], tp, inv=100 - tp['stat'][2])), i))
+    for j in r.sample(['rep', 'inv', 'rel', 'alt'] + (['cnt'] if 'exp' in pf else []), 2):
+        i = 'r:' + j; descs[i] = SB.REB[j][0]
+        rb.append((josa(ff(SB.REB[j][1], tp, inv=100 - tp['stat'][2])), i))
     paras.append(rb); speakers.append('반대 측 반박')
-    # 설명이 같은 기능이 서로 다른 측에서 겹치지 않도록 이미 측별 문구에 반영돼 있다
     ids = [i for p in paras for _, i in p if i]
     return tp, paras, ids, descs, speakers
 
@@ -295,9 +307,9 @@ def g112(r, k):
 # ============================================================ hl113 장문 협상
 FIL = {
  'ask': ['그다음에 저희 입장도 차례로 말씀드리겠습니다.'],
- 'demand': ['저희 {a}은(는) 이번 학기 내내 그렇게 사용해 왔습니다.'],
+ 'demand': ['저희 {ga}은(는) 이번 학기 내내 그렇게 사용해 왔습니다.'],   # {ga}: '1학년 대표' → '1학년'
  'reason': ['이 점을 꼭 헤아려 주셨으면 합니다.', '저희에게는 포기하기 어려운 사정입니다.'],
- 'understand': ['저희도 {a}이(가) 얼마나 애써 왔는지 알고 있습니다.'],
+ 'understand': ['저희도 {ga}이(가) 얼마나 애써 왔는지 알고 있습니다.'],
  'counter': ['이 부분은 저희도 쉽게 물러서기 어렵습니다.'],
  'compromise': ['이렇게 하면 양쪽 모두 큰 손해 없이 지낼 수 있을 것입니다.', '서로 한 걸음씩 물러서는 방법이라고 생각합니다.'],
  'cond': ['다만 이 약속은 반드시 지켜져야 합니다.'],
@@ -305,7 +317,7 @@ FIL = {
 }
 NEG_ASK = ('상대에게 원하는 바와 사정을 물어 협상의 방향을 잡고 있다.', 'B', '먼저 {a}은(는) {thing}을(를) 어떻게 쓰고 싶으신지 말씀해 주시겠습니까?')
 def _nego(r):
-    ng = r.choice(SC.NEG)
+    ng = dict(r.choice(SC.NEG)); ng['ga'] = ng['a'].replace(' 대표', '')
     descs = {i: SC.NF[i][0] for i in SC.NF}; descs['ask'] = NEG_ASK[0]
     paras = []; speakers = []
     order = ['ask'] + SC.ORDER

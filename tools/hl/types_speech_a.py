@@ -97,6 +97,11 @@ def g002(r, k):
                core='계획과 실제 발표의 대응', lv='중' if c < 3 else '상', fam='A', r=r, ref=[2], vertical=True)
 
 
+def _plain(prop):
+    q = prop['quote']
+    return q[:-3] + '이다' if q.endswith('이라고') else q[:-1]   # '…다고' → '…다'
+
+
 @T('hl003')
 def g003(r, k):
     aud = r.choice(list(S.AUD))
@@ -108,10 +113,11 @@ def g003(r, k):
     if c == 3:
         right = r.choice(good); ws = r.sample(bad, 4)
         return mc(P("'%s'을(를) 청중으로 하는 발표 전략으로 가장 적절한 것은?" % aud), right, ws, steps=['"%s"은(는) 청중의 특성을 고려한 적절한 전략이다.' % right] + ['"%s"은(는) 부적절하다.' % b for b in ws[:2]], core='청중 분석과 발표 전략', lv='하', fam='B', r=r, ref=[2], vertical=True)
-    other = r.choice([a for a in S.AUD if a != aud])
-    right = r.choice(S.AUD[other][0])
+    cand = [(o, g) for o in S.AUD if o != aud for g in S.AUD[o][0] if aud in S.AUD_CLASH.get(g, ())]
+    if not cand: return None   # 다른 청중의 전략이라도 이 청중에게 무난하면 오답 근거가 되지 않는다
+    other, right = r.choice(cand)
     ws = r.sample(S.AUD[aud][0], 4)
-    return mc(P("'%s'을(를) 청중으로 하는 발표 전략으로 적절하지 않은 것은?" % aud), right, ws, steps=["\"%s\"은(는) '%s'에게 알맞은 전략이어서 이 청중에게는 어울리지 않는다." % (right, other)], core='청중 분석과 발표 전략', lv='상', fam='C', r=r, ref=[2], vertical=True)
+    return mc(P("'%s'을(를) 청중으로 하는 발표 전략으로 적절하지 않은 것은?" % aud), right, ws, steps=["\"%s\"은(는) '%s'에게 알맞은 전략이지만, %s" % (right, other, S.AUD_CLASH[right][aud])], core='청중 분석과 발표 전략', lv='상', fam='C', r=r, ref=[2], vertical=True)
 
 
 LINES = ['이 점이 오늘 발표의 핵심입니다.', '{n}에 대해 함께 생각해 보면 좋겠습니다.', '방법은 모두 세 가지입니다.', '여기서 가장 중요한 것은 실천입니다.']
@@ -155,7 +161,7 @@ def g005(r, k):
     if c <= 1:
         a = r.choice(P_)
         ws = [x['bad'] for x in r.sample([y for y in P_ if y['bad'] != a['bad']], 4)]
-        return mc(P("다음 상황(%s)에서 쓰는 표현으로 가장 적절한 것은?" % a['ctx']), a['ok'], ws, steps=['"%s": %s' % (a['ok'], a['why'])] + ['"%s"은(는) 부적절하다.' % w for w in ws[:2]], core='언어의 공공성과 표현의 적절성', lv='하' if c == 0 else '중', fam='A', r=r, ref=[1], vertical=True)
+        return mc(P("다음 상황(%s)에서 쓰는 표현으로 가장 적절한 것은?" % a['ctx']), a['ok'], ws, steps=['"%s"은(는) \'%s\'에 맞는 격식 있고 정확한 표현이다.' % (a['ok'], a['ctx'])] + ['"%s"은(는) 부적절하다.' % w for w in ws[:2]], core='언어의 공공성과 표현의 적절성', lv='하' if c == 0 else '중', fam='A', r=r, ref=[1], vertical=True)
     if c == 2:
         a = r.choice(P_)
         ws = [x['ok'] for x in r.sample([y for y in P_ if y['ok'] != a['ok']], 4)]
@@ -218,7 +224,7 @@ def _conf_item(r, mode='bad', lv='상', fam='A'):
             return None
         items.append((txt, n == k)); st.append('%s %s' % ('옳다.' if truth else '옳지 않다.', why))
     ask = '위 문장들에 대한 설명으로 적절하지 않은 것은?' if mode == 'bad' else '위 문장들에 대한 설명으로 적절한 것은?'
-    body = P('다음은 "%s"라는 내용에 어휘와 문법 요소를 달리하여 확신의 정도에 변화를 준 문장들이다. %s' % (prop['hap'].replace('입니다', '이다').replace('합니다', '하다').replace('됩니다', '된다').replace('이롭습니다', '이롭다').replace('높입니다', '높인다').replace('있습니다', '있다').replace('시급합니다', '시급하다').replace('중요합니다', '중요하다').replace('공정합니다', '공정하다').replace('효과적입니다', '효과적이다'), ask)) + '<div class="bogi">' + ''.join('<p>%s</p>' % l for l in lines) + '</div>'
+    body = P('다음은 "%s"라는 내용에 어휘와 문법 요소를 달리하여 확신의 정도에 변화를 준 문장들이다. %s' % (_plain(prop), ask)) + '<div class="bogi">' + ''.join('<p>%s</p>' % l for l in lines) + '</div>'
     return mcs(body, items, steps=st, core='확신의 정도를 드러내는 표현', lv=lv, fam=fam, r=r, ref=[3], vertical=True)
 
 
