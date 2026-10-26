@@ -22,7 +22,7 @@ const BKCSS=`
 @font-face{font-family:Paperozi;src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2') format('woff2');font-weight:700;font-display:swap}
 @font-face{font-family:Paperozi;src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');font-weight:800;font-display:swap}
 @font-face{font-family:Paperozi;src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2') format('woff2');font-weight:900;font-display:swap}
-.bkdoc{font-family:YetHangul,Pretendard,PretendardLocal,'Noto Sans CJK KR','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111;font-weight:400;-webkit-print-color-adjust:exact;print-color-adjust:exact;word-break:keep-all;overflow-wrap:break-word}
+.bkdoc{--ink:#111;--ink2:#444;--rule:.25mm;--mx:12mm;--blank:.3mm solid #222;font-family:YetHangul,Pretendard,PretendardLocal,'Noto Sans CJK KR','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111;font-weight:400;-webkit-print-color-adjust:exact;print-color-adjust:exact;word-break:keep-all;overflow-wrap:break-word}
 .bkdoc *{box-sizing:border-box}
 .bkdoc i{font-family:'Times New Roman','Noto Serif CJK KR',serif;font-style:italic}.bkdoc sub,.bkdoc sup{font-size:70%;line-height:0}
 .bkdoc .bkblank .bklg{position:absolute;right:12mm;bottom:10mm;display:flex;align-items:center;gap:1.4mm;font:800 8.5pt/1 Pretendard,sans-serif;letter-spacing:-.02em;color:#8a96a6}.bkdoc .bkblank .bklg svg{height:12mm;width:auto;display:block}.bkdoc .bkblank .bklg img{height:12mm;width:auto;max-width:40mm;object-fit:contain;display:block}.bkdoc .bkblank .bklg .bld{width:.3mm;height:10mm;background:#9aa5b1;display:block}.bkdoc .bkblank .bklg .blt{font-weight:800;font-size:8.5pt;color:#8a96a6;white-space:nowrap}
@@ -58,7 +58,7 @@ const BKCSS=`
 .bkdoc .u.q .fg{text-align:center;margin:1.6mm 0}.bkdoc .u.q .fg img{max-width:100%;max-height:62mm;height:auto}
 .bkdoc .u.q .bogi,.bkdoc .u.q .bxx{border:.6px solid #111;padding:1.6mm 2.2mm;margin:2mm 0;font-size:11.8px;line-height:1.5}
 .bkdoc .u.q .bogi{position:relative;padding-top:3.4mm;margin-top:4.4mm}
-.bkdoc .u.q .bogi .bt{position:absolute;top:-2.9mm;left:50%;transform:translateX(-50%);background:#fff;padding:0 2mm;margin:0;font-weight:700;font-size:11.3px;white-space:nowrap}
+.bkdoc .u.q .bogi .bt{position:absolute;top:-2.4mm;left:50%;transform:translateX(-50%);background:#1f2933;color:#fff;border-radius:1mm;padding:0 2.6mm;margin:0;font-weight:700;font-size:10.4px;line-height:4.6mm;letter-spacing:.12em;white-space:nowrap} /* 보기 제목 칩 */
 .bkdoc .u.q .bogi p,.bkdoc .u.q .bxx p{margin:.5mm 0;padding-left:5mm;text-indent:-5mm;text-align:left}
 .bkdoc .u.q .bxx{border-style:solid}
 .bkdoc .u.q .eqn{text-align:center;margin:1.6mm 0;font-size:12.5px}
@@ -76,7 +76,7 @@ const BKCSS=`
 .bkdoc .u.q .chs.md{display:grid;grid-template-columns:repeat(2,1fr);row-gap:.4mm;column-gap:2mm}
 .bkdoc .u.q .chs div{display:grid;grid-template-columns:auto 1fr;column-gap:1.3mm;align-items:baseline}.bkdoc .u.q .chs div b{font-weight:500}
 .bkdoc .u.q .chs.lg div{margin:.5mm 0}
-.bkdoc .u.q .bk{display:inline-block;min-width:15mm;text-align:center;border-bottom:.6px solid #111;font-weight:700;color:#555;line-height:1.1;margin:0 .6mm}
+.bkdoc .u.q .bk{display:inline-block;min-width:15mm;text-align:center;border-bottom:var(--blank);font-weight:700;color:#555;line-height:1.1;margin:0 .6mm}
 .bkdoc .u.q .fr,.bkdoc .fr{text-indent:0;display:inline-block;vertical-align:middle;text-align:center;line-height:1.12;margin:0 .6mm}.bkdoc .fr>span{display:block;padding:0 .6mm}.bkdoc .fr>span:first-child{border-bottom:.6px solid #111}
 .bkdoc .u.q .ptn{text-align:right;font-size:10.5px;color:#444}
 .bkdoc .u.q .gi{border:.6px solid #111;padding:1.4mm 2mm;margin:1.6mm 0}
@@ -86,7 +86,7 @@ const BKCSS=`
 .bkdoc .hd2 b{color:#111;font-weight:600}.bkdoc .hd2 .lb2{color:var(--pd);font-weight:600}
 .bkdoc .hd2 .lb2:before{content:"";display:inline-block;width:1.6mm;height:1.6mm;border-radius:50%;background:var(--y);margin-right:1.6mm;vertical-align:.05mm}
 .bkdoc .fb{position:absolute;left:12mm;right:12mm;bottom:7mm;height:18mm;border-top:.25mm solid var(--line);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:9.5px;color:#555;line-height:1}
-.bkdoc .fb .pn{color:var(--p);font-weight:700;font-size:13.5px;min-width:12mm}.bkdoc .fb .pn.r{text-align:right}.bkdoc .fb>:first-child{justify-self:start}.bkdoc .fb>:last-child{justify-self:end}.bkdoc .bp[data-gut]>*{transform:translateX(var(--gx))}
+.bkdoc .fb .pn{color:var(--p);font-weight:700;font-size:13.5px;min-width:12mm;display:inline-flex;align-items:center;gap:2mm}.bkdoc .fb .pn.r{justify-content:flex-end}.bkdoc .fb .pn:before{content:"";width:1.5mm;height:1.5mm;border-radius:50%;background:var(--y)}.bkdoc .fb .pn.r:before{order:2}.bkdoc .fb .pn.r{text-align:right}.bkdoc .fb>:first-child{justify-self:start}.bkdoc .fb>:last-child{justify-self:end}.bkdoc .bp[data-gut]>*{transform:translateX(var(--gx))}
 .bkdoc .fq{position:absolute;bottom:25.6mm;width:9mm;height:9mm;z-index:2}.bkdoc .fq.o-l{left:12mm}.bkdoc .fq.o-r{right:12mm}.bkdoc .fq .qq{width:100%;height:100%;border:0;padding:0;background:none}.bkdoc .fq svg{width:100%;height:100%;display:block}
 .bkdoc .fb .qrb{display:flex;align-items:center;gap:2.8mm}
 .bkdoc .fb .qt{font-size:9.2px;line-height:1.45;color:#444}
@@ -118,8 +118,8 @@ const BKCSS=`
 .bkdoc .u.o .nc{flex:none;width:11.5mm}.bkdoc .u.o .nc b{display:block;font-size:13.5px;color:var(--pd);font-weight:800;line-height:1.3}
 .bkdoc .u.o .nc small{display:block;font-size:7.6px;color:#999;line-height:1.2;letter-spacing:.1px}
 .bkdoc .u.o .tx{flex:1;text-align:justify}
-.bkdoc .u.o .bx{flex:none;width:10mm;height:6.2mm;border:.3mm solid var(--p);border-radius:1mm;margin-left:1.2mm;align-self:center;text-align:center;line-height:5.6mm;font-size:9.5px;color:#aaa}
-.bkdoc .u.o .bk{display:inline-block;min-width:14mm;text-align:center;border-bottom:.3mm solid #333;font-weight:700;color:#777;line-height:1.1;margin:0 .6mm}
+.bkdoc .u.o .bx{flex:none;width:10mm;height:6.2mm;border:var(--blank);border-radius:1mm;margin-left:1.2mm;align-self:center;text-align:center;line-height:5.6mm;font-size:9.5px;color:#aaa}
+.bkdoc .u.o .bk{display:inline-block;min-width:15mm;text-align:center;border-bottom:var(--blank);font-weight:700;color:#777;line-height:1.1;margin:0 .6mm}
 .bkdoc .u.b .tx{line-height:1.8}
 .bkdoc .u.x{margin:0 0 5.4mm;font-size:10.9px;line-height:1.58}
 .bkdoc .u.x .xh{display:flex;gap:2.2mm;align-items:baseline;border-bottom:.3mm solid var(--line);padding-bottom:.9mm;margin-bottom:1.4mm}
@@ -156,7 +156,7 @@ const BKCSS=`
 .bkdoc .cbk .fg .cap{font-size:10.6px;color:#555;margin-top:1mm}
 .bkdoc .cbk .two-c{display:grid;grid-template-columns:1fr 1fr;gap:5mm;align-items:start}
 .bkdoc .cbk .ex{margin:2.2mm 0 3.2mm;padding:1.4mm 3.4mm 1.6mm;background:#fff;border:.25mm solid var(--line);border-radius:1.6mm;break-inside:avoid}
-.bkdoc .cbk .ex .elb{display:inline-block;font-size:9.4px;font-weight:700;color:var(--pd);margin-bottom:.4mm}
+.bkdoc .cbk .ex .elb{display:inline-block;font-size:9.2px;font-weight:700;color:var(--pd);background:var(--pl);border-radius:.8mm;padding:0 1.6mm;line-height:3.8mm;margin:.4mm 0 .6mm}
 .bkdoc .cbk .ex p.s{margin:0;line-height:2.55;letter-spacing:.05em}.bkdoc .cbk .ex p.n{margin:1mm 0 0;font-size:11.4px;color:#555;line-height:1.55;letter-spacing:0}
 .bkdoc .cbk .an{display:inline-block;text-align:center;line-height:1.1;vertical-align:bottom;margin:0 .3mm}.bkdoc .cbk .an u{display:block;text-decoration:none;border-bottom:.4mm solid var(--p);padding:0 .3mm}
 .bkdoc .cbk .an i{display:block;font-style:normal;font-size:8px;color:var(--pd);font-weight:700;line-height:1.35;letter-spacing:0;white-space:nowrap}
@@ -180,8 +180,8 @@ const BKCSS=`
 .bkdoc .psgu .psg.sp{letter-spacing:.06em;line-height:2.5;font-size:12.6px}.bkdoc .psgu .psg.sp p{margin:0 0 2.2mm}
 .bkdoc .psgu.wd .psg.sp{letter-spacing:.1em;line-height:2.75;font-size:13px;word-spacing:.1em}.bkdoc .psgu.wd .psg.sp p{margin:0 0 3.2mm}.bkdoc .psgu .psg.sp .hd{letter-spacing:0;line-height:1.7}
 .bkdoc .ntp{display:flex;flex-direction:column}.bkdoc .ntp .nth{display:flex;gap:2.4mm;align-items:baseline;border-bottom:.3mm solid var(--line);padding-bottom:1.2mm;margin-bottom:2.4mm;font-size:10px;color:#8a8f97}.bkdoc .ntp .nth b{letter-spacing:.16em;font-size:9px;color:var(--pd)}
-.bkdoc .ntp .ntb{flex:1;min-height:0}.bkdoc .ntp.lined .ntb{background-image:linear-gradient(to bottom,transparent calc(100% - .25mm),#c9d0d8 calc(100% - .25mm));background-size:100% 7.4mm}
-.bkdoc .ntp.grid .ntb{background-image:linear-gradient(#cfd5dc .22mm,transparent .22mm),linear-gradient(90deg,#cfd5dc .22mm,transparent .22mm);background-size:5mm 5mm}
+.bkdoc .ntp .ntb{flex:1;min-height:0}.bkdoc .ntp.lined .ntb{background-image:linear-gradient(to bottom,transparent calc(100% - .22mm),#dde2e8 calc(100% - .22mm));background-size:100% 7.4mm}
+.bkdoc .ntp.grid .ntb{background-image:linear-gradient(#e2e6eb .2mm,transparent .2mm),linear-gradient(90deg,#e2e6eb .2mm,transparent .2mm);background-size:5mm 5mm}
 
 .bkdoc .cbk .tag{display:inline-block;font-size:.9em;font-weight:700;color:#fff;background:var(--p);padding:0 1.2mm;margin-right:1mm}
 .bkdoc .cbk .tp{white-space:nowrap}.bkdoc .cbk .sm{font-size:.92em;color:#555}
@@ -231,6 +231,15 @@ const BKCSS=`
 .bkdoc .toc td.s{font-weight:700}
 .bkdoc .toc .how{border-radius:2.4mm;background:var(--pl);padding:4mm 5mm;font-size:12px;line-height:1.85}.bkdoc .toc .how b{font-weight:800;color:var(--pd)}
 .bkdoc .toc .how h4{margin:0 0 2mm;font-size:13.5px;font-weight:800;color:var(--pd)}
+.bkdoc .toc.tx h3{margin-bottom:4mm}.bkdoc .toc .tl{display:flex;flex-direction:column;gap:2.6mm;margin-bottom:5mm}
+.bkdoc .toc .tg{break-inside:avoid}.bkdoc .toc .ts{display:flex;align-items:baseline;gap:2mm;padding-bottom:1mm;margin-bottom:1mm;border-bottom:.25mm solid var(--line);font-size:12.6px;font-weight:800;color:var(--pd)}
+.bkdoc .toc .ts i{width:2mm;height:2mm;border-radius:50%;background:var(--p);align-self:center}.bkdoc .toc .ts span{color:#17251e}.bkdoc .toc .ts b{margin-left:auto;font-variant-numeric:tabular-nums}
+.bkdoc .toc .ti{display:grid;grid-template-columns:1fr 1fr;column-gap:9mm;row-gap:.2mm}.bkdoc .toc.tm .ti{grid-template-columns:1fr 1fr 1fr;column-gap:6mm}
+.bkdoc .toc .tr{display:flex;align-items:baseline;gap:1.4mm;font-size:11.2px;line-height:1.55;min-width:0}.bkdoc .toc.tm .tr{font-size:10.4px;line-height:1.45}.bkdoc .toc.tm .tg:not(.te){display:grid;grid-template-columns:40mm 1fr;column-gap:4mm;align-items:start;padding-bottom:1.2mm;border-bottom:.2mm solid var(--line)}.bkdoc .toc.tm .ts{border:0;margin:0;padding:0;font-size:11.2px;flex-wrap:wrap;line-height:1.4}.bkdoc .toc.tm .ts span{font-weight:700}.bkdoc .toc.tm .ts b{display:none}.bkdoc .toc.tm .tl{gap:1.2mm}
+.bkdoc .toc.th .ti{grid-template-columns:repeat(3,1fr);column-gap:4mm}.bkdoc .toc.th .tr{font-size:9.6px;line-height:1.38}.bkdoc .toc.th .tl{gap:1.6mm}.bkdoc .toc.th .ts{font-size:11.4px;margin-bottom:.6mm}
+.bkdoc .toc .tr em{font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:75%}.bkdoc .toc .tr u{flex:1;min-width:3mm;border-bottom:.35mm dotted #9aa3ae;transform:translateY(-.9mm)}
+.bkdoc .toc .tr b{font-weight:700;color:var(--pd);font-variant-numeric:tabular-nums;white-space:nowrap}
+.bkdoc .toc .te{display:grid;grid-template-columns:1fr 1fr;column-gap:9mm;padding-top:1.4mm;border-top:.25mm solid var(--line)}.bkdoc .toc .te .tr{font-weight:700;font-size:12px}
 /* 실전 모의고사(출제 파일 서식) */
 .bkdoc .mk .hd .t2 b{background:#111}
 .bkdoc .mk.cl .hd .t2 b{background:var(--pd)}.bkdoc .mk.cl *{border-color:var(--pd)!important}.bkdoc .mk.cl .cv2 .ttl .a,.bkdoc .mk.cl .info .r{color:var(--pd)}.bkdoc .mk .cv2 .cvqr{position:absolute;right:0;bottom:30mm;display:flex;align-items:center;gap:3mm;font-size:10px;color:#444;line-height:1.4;text-align:right}.bkdoc .mk .cv2 .cvqr .qq{width:16mm;height:16mm;order:2}.bkdoc .mk .cv2 .cvqr .qq svg{width:100%;height:100%;display:block}
@@ -1030,9 +1039,11 @@ function bkLogoHtml(src,cls){if(!src||src==='none')return '';
 function bkCoverLogo(plan){const z=plan.dz;if(!z||!z.lf||z.lf==='none')return '';const h=bkLogoHtml(z.lf,'lg');return h?'<div class="cvlogo '+(z.lfp==='bl'?'L':z.lfp==='bc'?'C':'R')+'">'+h+'</div>':''}
 function bkBackCover(plan){const z=plan.dz||{};if(z.cover===6)return bkBackNavy(plan);const h=bkLogoHtml(z.lb||'solvi','lg');
  return '<div class="cv cvb"><div class="cvbt"><b>'+esc(plan.title)+'</b>'+(plan.sub?'<span>'+esc(plan.sub)+'</span>':'')+'</div>'+(h?'<div class="cvlg '+(z.lbp==='tc'?'tc':'bc')+'">'+h+'</div>':'')+'</div>'}
-function bkTocX(plan){
- let h='<div class="toc"><h3>차 례</h3><table><tr><th>소단원</th><th>구성 · 쪽</th></tr>'+plan.toc.map(r=>'<tr><td class="s">'+esc(r.sub.k)+' '+esc(r.sub.name)+'</td><td>'+r.items.map(([n,p])=>esc(n)+' <b style="color:var(--pd)">p.'+p+'</b>').join(' · ')+'</td></tr>').join('')+(plan.toc.es?'<tr><td class="s">서술형</td><td>'+plan.toc.es.n+'문항 <b style="color:var(--pd)">p.'+plan.toc.es.p+'</b></td></tr>':'')+'<tr><td class="s">정답 · 해설</td><td>'+(plan.aStart?'<b style="color:var(--pd)">p.'+plan.aStart+'</b>':'없음')+'</td></tr></table>';
- h+='<div class="how"><h4>이 책의 활용법</h4>'+(plan.how||'① 소단원마다 구성 순서대로 풀어 나간다.<br>② 한 쪽을 풀 때마다 아래 <b>QR을 스캔</b>해 채점한다.<br>③ 틀린 문제는 맨 뒤 해설로 확인한다.')+'</div></div>';return h}
+/* 차례: 소단원 머리 아래 항목마다 점선 리더와 오른쪽 맞춤 쪽 번호. 항목이 많으면 두 단·세 단으로 */
+function bkTocX(plan){const ld=(n,p)=>'<span class="tr"><em>'+esc(n)+'</em><u></u><b>'+(p||'—')+'</b></span>';const N=plan.toc.reduce((a,r)=>a+r.items.length,0),many=N>36,huge=N>80;
+ let h='<div class="toc tx'+(many?' tm':'')+(huge?' th':'')+'"><h3>차 례</h3><div class="tl">'+plan.toc.map(r=>'<div class="tg"><div class="ts"><i></i>'+esc(r.sub.k)+' <span>'+esc(r.sub.name)+'</span><b>'+((r.items[0]||[])[1]||'')+'</b></div><div class="ti">'+r.items.map(([n,p])=>ld(n,p)).join('')+'</div></div>').join('')
+  +'<div class="tg te">'+(plan.toc.es?ld('서술형 · '+plan.toc.es.n+'문항',plan.toc.es.p):'')+ld('정답 · 해설',plan.aStart||'')+'</div></div>';
+ if(N<=60)h+='<div class="how"><h4>이 책의 활용법</h4>'+(plan.how||'① 소단원마다 구성 순서대로 풀어 나간다.<br>② 한 쪽을 풀 때마다 아래 <b>QR을 스캔</b>해 채점한다.<br>③ 틀린 문제는 맨 뒤 해설로 확인한다.')+'</div></div>';return h}
 function bkToc(plan){
  let h='<div class="toc"><h3>차 례</h3>';
  if(plan.kind==='x'||plan.kind==='h'){return bkTocX(plan)}
@@ -1059,7 +1070,7 @@ function bkPageHtml0(plan,i){
  if(p.k==='cover')return '<div class="bp bk"'+V+'>'+bkCover(plan)+'</div>';
  if(p.k==='back')return '<div class="bp bk"'+V+'>'+bkBackCover(plan)+'</div>';
  if(p.k==='toc')return '<div class="bp bk"'+V+'>'+bkHd2(plan,p)+'<div class="bd one">'+bkToc(plan)+'</div>'+bkFb(plan,p)+'</div>';
- if(p.k==='nt')return '<div class="bp bk"'+V+'>'+bkHd2(plan,p)+'<div class="bd one ntp '+p.st+'"><div class="nth"><b>NOTE</b><span>'+esc(p.hint||'자유롭게 정리해 보세요')+'</span></div><div class="ntb"></div></div>'+bkFb(plan,p)+'</div>';
+ if(p.k==='nt')return '<div class="bp bk"'+V+'>'+bkHd2(plan,p)+'<div class="bd one ntp '+p.st+'"><div class="nth"><b>NOTE</b></div><div class="ntb"></div></div>'+bkFb(plan,p)+'</div>';
  if(p.k==='cn')return '<div class="bp bk"'+V+'>'+bkHd2(plan,p)+'<div class="bd one">'+p.cols[0].join('')+'</div>'+bkFb(plan,p)+'</div>';
  if(p.k==='mcv')return '<div class="bp mk'+(BKO.design==='color'?' cl':'')+'"'+V+'>'+bkMockCover(plan)+'</div>';
  if(p.k==='mq'){const M=plan.M;
