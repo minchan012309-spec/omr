@@ -13,31 +13,105 @@ def _mode_lv(r):
 Q3 = {'one': '㉠', 'not5': '㉠~㉤', 'ok5': '㉠~㉤'}
 
 
+# ------------------------------------------------------------ 공통: 충돌 설명을 피하는 기호 문항 생성
+import qlib as _Q
+
+def _lab(r, turns, descs, *, intro, mode, extra=(), conf=None, ref=None, core='', lv='중', fam='a', title=None, subject='발화'):
+    """qlib.lab_item 과 같되, 같은 발화에 동시에 성립할 수 있는 설명(conf)을 오답으로 쓰지 않는다."""
+    conf = conf or {}
+    def okd(i, d):
+        return d != descs[i] and d not in {descs[c] for c in conf.get(i, ()) if c in descs}
+    cand = [k for k, t in enumerate(turns) if t[2] in descs]
+    ids = []
+    for k in cand:
+        if turns[k][2] not in ids: ids.append(turns[k][2])
+    if mode == 'one':
+        if not cand: return None
+        k = r.choice(cand); i = turns[k][2]
+        pool = list(dict.fromkeys([descs[x] for x in descs if x != i and okd(i, descs[x])] + list(extra)))
+        if len(pool) < 4: return None
+        ws = r.sample(pool, 4)
+        body = P(intro) + _Q.turns_box(turns, {k: '㉠'}, title)
+        steps = ['㉠은 「%s」이므로 %s' % (turns[k][1], descs[i])] + ['「%s」라는 설명은 ㉠에 해당하지 않는다.' % w.rstrip('.') for w in ws[:2]]
+        return mc(body, descs[i], ws, steps=steps, core=core, lv=lv, fam=fam, r=r, ref=ref, vertical=True)
+    if len(ids) < 5: return None
+    pick_ids = r.sample(ids, 5)
+    ks = sorted(next(k for k in cand if turns[k][2] == i) for i in pick_ids)
+    lab = {k: _Q.CIRC[n] for n, k in enumerate(ks)}
+    body_t = _Q.turns_box(turns, lab, title)
+    unused = list(dict.fromkeys([descs[x] for x in descs if x not in pick_ids] + list(extra)))
+    C = _Q.CIRC
+    if mode == 'not5':
+        bad = r.randrange(5)
+        opts, steps = [], []
+        for n, k in enumerate(ks):
+            i = turns[k][2]
+            if n == bad:
+                cs = [u for u in unused if okd(i, u)]
+                if not cs: return None
+                d = r.choice(cs)
+                opts.append('%s: %s' % (C[n], d)); steps.append('%s: 이 %s의 실제 기능은 「%s」이므로 제시된 설명은 옳지 않다.' % (C[n], subject, descs[i].rstrip('.')))
+            else:
+                opts.append('%s: %s' % (C[n], descs[i])); steps.append('%s: 옳은 설명이다.' % C[n])
+        right = opts[bad]; ws = [o for j, o in enumerate(opts) if j != bad]
+        return mc(P(intro) + body_t, right, ws, steps=[steps[bad]] + [x for j, x in enumerate(steps) if j != bad][:2], core=core, lv=lv, fam=fam, r=r, ref=ref, vertical=True)
+    if mode == 'ok5':
+        if len(unused) < 4: return None
+        good = r.randrange(5)
+        others = [n for n in range(5) if n != good]
+        for _ in range(40):
+            ws_d = r.sample(unused, 4)
+            if all(okd(turns[ks[n]][2], d) for n, d in zip(others, ws_d)): break
+        else:
+            return None
+        opts = []; wi = 0
+        for n, k in enumerate(ks):
+            if n == good: opts.append('%s: %s' % (C[n], descs[turns[k][2]]))
+            else: opts.append('%s: %s' % (C[n], ws_d[wi])); wi += 1
+        right = opts[good]; ws = [o for j, o in enumerate(opts) if j != good]
+        st = ['%s: 「%s」는 이 %s의 기능과 일치하므로 옳다.' % (C[good], descs[turns[ks[good]][2]].rstrip('.'), subject)] + ['%s: 이 %s의 실제 기능은 「%s」이므로 옳지 않다.' % (C[n], subject, descs[turns[k][2]].rstrip('.')) for n, k in enumerate(ks) if n != good][:2]
+        return mc(P(intro) + body_t, right, ws, steps=st, core=core, lv=lv, fam=fam, r=r, ref=ref, vertical=True)
+    return None
+
+
 # ------------------------------------------------------------ hl017 대화의 흐름과 발화 의도
+# (설명, 문장 틀, 화자: 'A'=처음 제안한 사람, 'B'=상대)
 UTT = {
- 'confirm': ('앞서 상대가 한 말을 다시 말하며 내용을 확인하고 있다.', '그러니까 {s0}을(를) 하자는 말이지?'),
- 'request': ('상대에게 구체적인 설명을 요청하고 있다.', '{s0}은(는) 구체적으로 어떻게 하는 거야? 좀 더 자세히 설명해 줄래?'),
- 'agree': ('상대의 의견에 동의하며 호응하고 있다.', '맞아, {s0}은(는) 좋은 생각이야.'),
- 'add': ('상대의 말에 관련된 정보를 덧붙이고 있다.', '내가 알기로는 {eg}도 있어.'),
- 'concern': ('상대 제안의 한계를 우려하고 있다.', '그런데 {l0}는 점이 걱정돼.'),
- 'suggest': ('상대의 우려를 반영하여 새로운 대안을 제안하고 있다.', '그럼 {s1}도 함께 하면 어떨까?'),
- 'thanks': ('상대의 말에 고마움을 표현하여 대화의 분위기를 부드럽게 하고 있다.', '네 덕분에 좋은 생각이 났어. 고마워.'),
+ 'confirm': ('앞서 상대가 한 말을 다시 말하며 내용을 확인하고 있다.', '그러니까 {s0}을(를) 추진하자는 말이지?', 'B'),
+ 'request': ('상대에게 구체적인 설명을 요청하고 있다.', '{s0}은(는) 구체적으로 어떻게 하는 거야? 좀 더 자세히 설명해 줄래?', 'B'),
+ 'agree': ('상대의 의견에 동의하며 호응하고 있다.', '맞아, {s0}은(는) 좋은 생각이야.', 'B'),
+ 'add': ('상대의 말에 관련된 정보를 덧붙이고 있다.', '내가 알기로는 {eg}도 있어.', 'B'),
+ 'thanks': ('상대의 말에 고마움을 표현하여 대화의 분위기를 부드럽게 하고 있다.', '네 덕분에 좋은 생각이 났어. 고마워.', 'A'),
+ 'concern': ('상대 제안의 한계를 우려하고 있다.', '그런데 {l0}는 점이 걱정돼.', 'B'),
+ 'suggest': ('상대의 우려를 반영하여 새로운 대안을 제안하고 있다.', '그럼 {s1}도 함께 추진하면 어떨까?', 'A'),
 }
+U_ORDER = ['confirm', 'request', 'agree', 'add', 'thanks', 'concern', 'suggest']
+U_FILL = {'confirm': '응, 맞아.', 'request': '응, 그렇게 하면 {e0}는 점이 좋은 거야.', 'agree': '응, 그렇지?', 'add': '', 'concern': ''}
+CONF17 = {'thanks': {'agree'}, 'agree': {'thanks'}, 'suggest': {'add'}, 'add': {'suggest'}}
 
 @T('hl017')
 def g017(r, k):
     tp = r.choice(S.TOPICS)
     mode, lv = _mode_lv(r)
-    ids = r.sample(list(UTT), 7 if mode != 'one' else r.choice([5, 6, 7]))
+    drop = r.sample(['confirm', 'request', 'agree'], r.choice([0, 1, 2]))
+    ids = [i for i in U_ORDER if i not in drop]
     A, B = r.choice([('민수', '지아'), ('서연', '준호'), ('하윤', '도현'), ('유진', '태민')])
-    turns = [(A, ff('요즘 {problem}이(가) 고민이야. 나는 {s0}을(를) 하면 좋겠어.', tp), None)]
-    for n, i in enumerate(ids):
-        turns.append(((B, A)[n % 2] if False else (B if n % 2 == 0 else A), ff(UTT[i][1], tp), i))
-    descs = {i: UTT[i][0] for i in UTT}
+    who = {'A': A, 'B': B}
+    turns = [(A, ff('요즘 {problem}이(가) 고민이야. 나는 {s0}을(를) 해결 방법으로 제안하고 싶어.', tp), None)]
+    for i in ids:
+        sp = UTT[i][2]
+        if turns[-1][0] == who[sp]:
+            prev = turns[-1][2]
+            fl = U_FILL.get(prev) if prev in U_FILL else ''
+            turns.append((who['B' if sp == 'A' else 'A'], ff(fl or '그래?', tp), None))
+        turns.append((who[sp], ff(UTT[i][1], tp), i))
+    descs = {i: UTT[i][0] for i in ids}
     q = {'one': '㉠에 담긴 말하기 의도로 가장 적절한 것은?', 'not5': '㉠~㉤에 대한 설명으로 적절하지 않은 것은?', 'ok5': '㉠~㉤에 대한 설명으로 적절한 것은?'}[mode]
-    return lab_item(r, turns, {i: descs[i] for i in ids}, intro='다음은 두 친구의 대화이다. ' + q, mode=mode,
-                    extra=['상대의 말을 부정하며 자신의 입장을 고집하고 있다.', '화제를 바꾸어 대화를 마무리하고 있다.'] + [descs[i] for i in UTT if i not in ids],
-                    ref=[1], core='대화에서 발화의 기능: 확인 · 요청 · 동의 · 덧붙임 · 우려 · 제안', lv=lv, fam='A' + mode, title='대화')
+    alld = {i: UTT[i][0] for i in UTT}
+    descs = {i: alld[i] for i in alld}  # 지문에 없는 기능도 오답 후보로 쓰기 위해 전체 사용
+    return _lab(r, turns, descs, intro='다음은 두 친구의 대화이다. ' + q, mode=mode, conf=CONF17,
+                extra=['상대의 말을 부정하며 자신의 입장을 고집하고 있다.', '화제를 바꾸어 대화를 마무리하고 있다.', '자신의 경험을 길게 이야기하며 상대의 말을 끊고 있다.', '상대와 관계없는 다른 주제로 이야기를 돌리고 있다.'],
+                ref=[1], core='대화에서 발화의 기능: 확인 · 요청 · 동의 · 덧붙임 · 우려 · 제안', lv=lv, fam='A' + mode, title='대화')
 
 
 # ------------------------------------------------------------ hl018 대화의 원리
@@ -63,19 +137,25 @@ PB = [
  ('우리 모둠 과제는 언제까지 내야 해?', '급식 메뉴가 바뀐다던데.', '관계의 격률', '위반', '묻는 내용과 관련 없는 대답이다.'),
  ('어디서 만날까?', '음… 글쎄, 거기 있잖아, 그 뭐냐, 어디쯤에서…', '태도의 격률', '위반', '모호하고 불분명하게 표현했다.'),
  ('발표 순서가 어떻게 돼?', '먼저 마지막 사람이 하고, 그다음에 처음 사람이 하고, 그리고 가운데…', '태도의 격률', '위반', '순서 없이 뒤섞어 말해 이해하기 어렵다.'),
- ('', '바쁘시겠지만, 시간이 되실 때 이 서류를 한번 봐 주시겠어요?', '요령의 격률', '준수', '상대의 부담을 덜어 주는 표현으로 요청했다.'),
- ('', '혹시 불편하지 않으시다면 창문을 조금만 닫아 주실 수 있을까요?', '요령의 격률', '준수', '요청의 부담을 줄이는 완곡한 표현이다.'),
- ('', '번거로우시면 제가 직접 가져다 드릴게요.', '관용의 격률', '준수', '자신의 부담을 늘리고 상대의 부담을 줄였다.'),
- ('', '제가 일찍 가서 자리를 맡아 둘 테니 천천히 오세요.', '관용의 격률', '준수', '자신이 수고를 더 하겠다고 말했다.'),
+ ('혹시 제게 부탁하실 일이 있으세요?', '바쁘시겠지만, 시간이 되실 때 이 서류를 한번 봐 주시겠어요?', '요령의 격률', '준수', '상대의 부담을 덜어 주는 표현으로 요청했다.'),
+ ('교실이 좀 춥네요.', '혹시 불편하지 않으시다면 창문을 조금만 닫아 주실 수 있을까요?', '요령의 격률', '준수', '요청의 부담을 줄이는 완곡한 표현이다.'),
+ ('그 책을 도서관에서 빌려 와야 하는데 거리가 멀어서 걱정이네요.', '번거로우시면 제가 직접 가져다 드릴게요.', '관용의 격률', '준수', '자신의 부담을 늘리고 상대의 부담을 줄였다.'),
+ ('내일 모임에 일찍 가기는 어려울 것 같은데 어쩌지?', '제가 일찍 가서 자리를 맡아 둘 테니 천천히 오세요.', '관용의 격률', '준수', '자신이 수고를 더 하겠다고 말했다.'),
  ('발표 자료 어때?', '자료를 정말 알기 쉽게 만들었구나. 특히 그래프가 인상적이야.', '칭찬의 격률', '준수', '상대를 칭찬하는 표현을 늘렸다.'),
- ('', '이번 대회 우승을 축하해요. 평소 노력한 보람이 있네요.', '칭찬의 격률', '준수', '상대의 성취를 칭찬했다.'),
+ ('저 이번 대회에서 우승했어요.', '이번 대회 우승을 축하해요. 평소 노력한 보람이 있네요.', '칭찬의 격률', '준수', '상대의 성취를 칭찬했다.'),
  ('정말 잘했다!', '아니에요, 제가 한 건 별로 없고 팀원들이 많이 애썼어요.', '겸양의 격률', '준수', '자신을 낮추고 공을 돌렸다.'),
- ('', '저는 아직 많이 부족한데 이렇게 칭찬해 주시니 부끄럽네요.', '겸양의 격률', '준수', '자신에 대한 칭찬을 줄이고 낮추어 말했다.'),
- ('', '네 말이 맞아. 다만 이 부분만 조금 더 생각해 보면 어떨까?', '동의의 격률', '준수', '먼저 일치하는 부분을 인정하여 의견 차이를 줄였다.'),
- ('', '좋은 생각이야. 거기에 시간 계획만 더하면 훨씬 좋겠다.', '동의의 격률', '준수', '상대 의견에 동의하며 보완했다.'),
+ ('발표를 정말 잘하던데요.', '저는 아직 많이 부족한데 이렇게 칭찬해 주시니 부끄럽네요.', '겸양의 격률', '준수', '자신에 대한 칭찬을 줄이고 낮추어 말했다.'),
+ ('내 생각엔 이번 모둠 활동은 역할부터 나누면 좋겠어.', '네 말이 맞아. 다만 이 부분만 조금 더 생각해 보면 어떨까?', '동의의 격률', '준수', '먼저 일치하는 부분을 인정하여 의견 차이를 줄였다.'),
+ ('우리 발표 연습을 주말에 모여서 하면 어때?', '좋은 생각이야. 거기에 시간 계획만 더하면 훨씬 좋겠다.', '동의의 격률', '준수', '상대 의견에 동의하며 보완했다.'),
  ('시험을 망쳤어.', '많이 속상했겠구나. 나라도 그랬을 거야.', '공감의 격률', '준수', '상대의 감정에 공감을 표현했다.'),
- ('', '그런 일이 있었다니 정말 힘들었겠다. 얼마나 걱정됐을까.', '공감의 격률', '준수', '상대와 감정을 함께하며 반감을 줄였다.'),
+ ('어제 갑자기 발표 순서가 바뀌어서 너무 당황했어.', '그런 일이 있었다니 정말 힘들었겠다. 얼마나 걱정됐을까.', '공감의 격률', '준수', '상대와 감정을 함께하며 반감을 줄였다.'),
 ]
+
+_pc = {'관용의 격률': {'요령의 격률'}, '동의의 격률': {'칭찬의 격률', '공감의 격률'}, '칭찬의 격률': {'겸양의 격률'}, '태도의 격률': {'양의 격률'}}
+PR_CONF = {}
+for _a, _bs in _pc.items():
+    for _b in _bs:
+        PR_CONF.setdefault(_a, set()).add(_b); PR_CONF.setdefault(_b, set()).add(_a)
 
 @T('hl018')
 def g018(r, k):
@@ -85,13 +165,13 @@ def g018(r, k):
         a, b, p, st, why = r.choice(PB)
         turns = ([('A', a)] if a else []) + [('B', U(b))]
         body = P('다음 대화에서 밑줄 친 B의 말이 %s 대화의 원리로 가장 적절한 것은?' % ('어기고 있는' if st == '위반' else '잘 지키고 있는')) + DLG(turns)
-        ws = r.sample([n for n in names if n != p], 4)
+        ws = r.sample([n for n in names if n != p and n not in PR_CONF.get(p, ())], 4)
         fmt = lambda n: '%s(%s)' % (n, KIND[n])
         return mc(body, fmt(p), [fmt(x) for x in ws], steps=['B의 말: %s' % why, '%s: %s' % (p, PR[p])], core='대화의 원리: 협력의 원리(양·질·관계·태도), 공손성의 원리(요령·관용·칭찬·겸양·동의·공감)', lv='중' if c < 3 else '상', fam='A', r=r, ref=[1], vertical=False)
     if c <= 5:
         p = r.choice(names); ws = r.sample([n for n in names if n != p], 4)
         return mc(P('다음 설명에 해당하는 대화의 원리는?') + BOX([PR[p]]), p, ws, steps=['"%s"은(는) %s에 속하는 %s이다.' % (PR[p].rstrip('.'), KIND[p], p)], core='대화의 원리', lv='하', fam='B', r=r, ref=[1], vertical=False)
-    return tpl_tf(r, S2.TF_CONV, three=True, lv='중', fam='C', ref=[1], intro='대화의 원리에 대한 학습 내용이다.')
+    return _three(r, [x for x in TFB if x[3] == 'T'], '대화의 원리에 대한 학습 내용이다.', 'C', [1])
 
 
 # ------------------------------------------------------------ hl019~020 협상
