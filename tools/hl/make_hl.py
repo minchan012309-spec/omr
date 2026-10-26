@@ -149,7 +149,7 @@ def source_items():
     out, seq = [], collections.Counter()
     import glob as _g
     ebs = sorted(os.path.basename(f)[:-3] for f in _g.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src_ebs_*.py')))
-    for name in ('src_mock', 'src_nn1', 'src_nn2', 'src_nn3', 'src_school', 'src_extra', 'src_set', *ebs):
+    for name in ('src_mock', 'src_var', 'src_nn1', 'src_nn2', 'src_nn3', 'src_school', 'src_extra', 'src_set', *ebs):
         m = optional(name)
         if not m: continue
         for d in m.ITEMS:
