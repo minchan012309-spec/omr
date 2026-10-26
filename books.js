@@ -371,7 +371,7 @@ async function bkPlan(id){
  if(BKP[id]&&BKP[id].subj===SUBJ&&BKP[id].sig===bkOsig())return BKP[id];
  await bkInit();await conceptLoad();
  const P=bkParts(id);if(!P)return null;
- if(P.kind==='h')await bkMainPrep();
+ if(P.kind==='h')await bkMainPrep(P.part);
  const mk0=()=>P.kind==='c'?bkPlanConcept(id):P.kind==='t'?bkPlanType(id):P.kind==='h'?bkPlanMain(id):P.def.kind==='free'?bkPlanFree(id,P.def):P.def.kind==='full'?(P.def.round?bkPlanFull(id,P.def,P.def.round):null):bkPlanCustom(id,P.def);
  const mk=()=>{const og=BKO.gap;BKO.gap=P.gap||0;try{return mk0()}finally{BKO.gap=og}};
  const plan=BKREC?mk():await bkSettle(mk);if(!plan)return null;
@@ -455,19 +455,20 @@ const BKNT=[['blank','빈 쪽'],['lined','줄 노트'],['grid','모눈 노트']]
 const bkMainOpt=()=>({nt:BKO.nt||'blank',nb:BKO.nb||'lined',nbn:BKO.nbn==null?1:Math.max(1,+BKO.nbn||1),qn:BKO.qn?1:0,vn:BKO.vn==null?2:Math.max(1,Math.min(4,+BKO.vn||2))});
 const BK_SPEECH=new Set(['Ⅰ-A','Ⅰ-B','Ⅰ-C']);
 function bkStripPsg(q){const r=bkDoc(q.q);const ps=r.querySelector('.psg');const pg=ps?ps.outerHTML:'';if(ps)ps.remove();return {psg:pg,q:{...q,q:r.innerHTML}}}
-async function bkMainPrep(){
- const S=bkSel(),sc=new Set(bkScope(S).map(s=>s.k));
+const bkMainSubs=(S,part)=>bkScope(S).filter(s=>part==='s'?s.k[0]==='Ⅰ':part==='g'?s.k[0]==='Ⅱ':part==='o'?(s.k[0]==='Ⅲ'||s.k==='종합'):true);
+async function bkMainPrep(part){
+ const S=bkSel(),sc=new Set(bkMainSubs(S,part).map(s=>s.k));
  const types=new Set(DATA.filter(q=>sc.has(q.sub)&&(q.set==='mc'||q.set==='top')).map(q=>q.type));
  const tags=Object.keys(BIDX).filter(t=>BIDX[t]&&sc.has(BIDX[t].sub)&&(types.has(BIDX[t].label)||BIDX[t].style==='내신'||BIDX[t].style==='최상위'||BIDX[t].style==='융합'));
  await ensureTags(tags)}
 function bkPlanMain(id){
- const S=bkSel(),C=CONC[SUBJ]||{secs:[]},O=bkMainOpt();
+ const S=bkSel(),C=CONC[SUBJ]||{secs:[]},O=bkMainOpt(),PART=(bkParts(id)||{}).part||'';
  const pages=[{k:'cover'},{k:'toc'}],toc=[],ansBy=new Map(),ckBy=new Map(),nums=new Map(),used=new Set();let no=0;
  const meta={};Object.values(BIDX).forEach(v=>meta[v.label]=v);
  const nt=(sub,label,st,hint)=>({k:'nt',kind:'n',sub,label:label||'필기 · NOTE',st:st||O.nt,hint:hint||''});
  const left=sub=>{if(pages.length%2===0)pages.push(nt(sub))};
  const pickVar=(pool,n,pat)=>{const a=pool.filter(q=>!used.has(q.code));const o=bkPickRound(a,Math.min(n,a.length),pat);o.forEach(q=>used.add(q.code));return o};
- bkScope(S).forEach(s=>{
+ bkMainSubs(S,PART).forEach(s=>{
   const row={sub:s,items:[]};toc.push(row);
   const ansL=[];ansBy.set(s.k,ansL);const ckL=[];ckBy.set(s.k,ckL);
   const secs=(C.secs||[]).filter(x=>x.sub===s.k);
@@ -551,7 +552,7 @@ function bkPlanMain(id){
   qPages('최상위 · 융합 도전',s.k+' '+s.name,[{t:null,qs:tops}],'최상위 도전')});
  /* 정답 · 해설 */
  const au=[];
- bkScope(S).forEach(s=>{const L=ansBy.get(s.k)||[],K=ckBy.get(s.k)||[];if(!L.length&&!K.length)return;
+ bkMainSubs(S,PART).forEach(s=>{const L=ansBy.get(s.k)||[],K=ckBy.get(s.k)||[];if(!L.length&&!K.length)return;
   au.push(bkU('as:'+s.k+':h','<div class="u ct"><span>'+esc(s.k)+' '+esc(s.name)+'</span></div>',{keep:true}));
   K.forEach((o,i)=>au.push(bkU('ak:'+o.kd+':'+s.k+':'+i,'<div class="u k"><div class="ct sm"><span>'+o.nm+' 정답 · '+esc(o.t)+'</span></div><div class="kg '+(o.kd==='ox'?'':'w2')+'">'+o.arr.map((q,j)=>'<div><b>'+(j+1)+'</b><span>'+(o.kd==='ox'?bkAnsOf(q):esc((q.blanks||[]).join(' / ')))+'</span></div>').join('')+'</div></div>',{})));
   if(L.length){au.push(bkU('akq:'+s.k+':h','<div class="u k"><div class="ct sm"><span>빠른 정답</span></div><div class="kg">'+L.map(q=>'<div><b>'+nums.get(q.code)+'</b><span>'+bkCir(q.ans)+'</span></div>').join('')+'</div></div>',{}));
@@ -559,7 +560,8 @@ function bkPlanMain(id){
  const aStart=pages.length+1;
  bkPack(au,2,BK_BODY).forEach(p=>pages.push({k:'ak',kind:'a',label:'정답 · 해설',...bkCI(p)}));
  const how='① <b>왼쪽 쪽은 본문, 오른쪽 쪽은 필기 공간</b>이다. 설명을 읽으며 오른쪽에 직접 정리한다.<br>② 개념마다 뒤에 <b>노트 쪽</b>(줄 노트·모눈 노트)이 있어 예시와 풀이를 스스로 적어 본다.<br>③ 지문은 필기하기 좋게 <b>자간과 줄 간격을 넓혔다.</b> 밑줄과 메모를 마음껏 한다.<br>④ 지문 뒤의 순서: <b>원본 문제 → 변형(평가원 난이도) → 변형(내신형) → 개념 체크</b>.<br>⑤ 문제 쪽 아래 <b>QR</b>을 스캔하면 그 쪽을 바로 채점한다.';
- return {kind:'h',title:SNAME[SUBJ]+' 주교재',short:'주교재',pages,toc,aStart,sel:S,total:no,how}}
+ const nm=PART==='s'?'주교재 화법편':PART==='g'?'주교재 문법편':PART==='o'?'주교재 맞춤법·종합편':'주교재';
+ return {kind:'h',title:SNAME[SUBJ]+' '+nm,short:nm,pages,toc,aStart,sel:S,total:no,how}}
 
 /* ---------- 내 교재 : 직접 만든 책 · 전범위 모의고사 ---------- */
 const BKXK='omr_books_v1',BKXF={concept:1,ox:2,bl:4,basic:8,type:16,essay:32,all:64,last:128};
@@ -597,8 +599,9 @@ function bkPid(id){const g=BKO.gap||0;return bkBare(id)+(g?'~g'+g:'')}
 function bkParts(id){const gap=bkGapOf(id);id=bkBare(id);
  const mf=String(id).match(/^(me|cm|ph|hl)-xf([0-9a-z._]+)$/);
  if(mf){const d=bkfParse(mf[2]);if(!d)return null;const rec=bkxAll().find(b=>b.id===id);d.name=rec?rec.name:'맞춤 교재';d.subt=rec?rec.sub:'';d.base=id;d.dz=rec?{color:rec.color||'',cover:rec.cover|0,noqr:rec.noqr?1:0,font:rec.font||'',lf:rec.lf||'solvi',lfp:rec.lfp||'br',lb:rec.lb||'solvi',lbp:rec.lbp||'bc',back:rec.back?1:0,cx:rec.cx||null}:{color:'',cover:0,noqr:0,font:'',lf:'solvi',lfp:'br',lb:'solvi',lbp:'bc',back:0,cx:null};return {subj:mf[1],kind:'x',def:d,gap}}
- const m=String(id).match(/^(me|cm|ph|hl)-(c|t|h|x(?:b([0-9a-z]+)(?:-([\d.]+))?(?:_(?:l([0-9a-f]))?(?:n(\d+))?)?|e(\d+)(?:l([0-9a-f]))?(?:s([\d.]+))?(?:r(\d+))?))$/);if(!m)return null;
- if(m[2]==='c'||m[2]==='t'||m[2]==='h')return {subj:m[1],kind:m[2],gap};
+ const m=String(id).match(/^(me|cm|ph|hl)-(c|t|h[sgo]?|x(?:b([0-9a-z]+)(?:-([\d.]+))?(?:_(?:l([0-9a-f]))?(?:n(\d+))?)?|e(\d+)(?:l([0-9a-f]))?(?:s([\d.]+))?(?:r(\d+))?))$/);if(!m)return null;
+ if(m[2]==='c'||m[2]==='t')return {subj:m[1],kind:m[2],gap};
+ if(m[2][0]==='h')return {subj:m[1],kind:'h',part:m[2][1]||'',gap};
  const d=bkxDefOf(m[7]!=null?[0,0,0,0,m[7],m[10],m[8],0,m[9]]:[0,0,m[3],m[4],undefined,0,m[5],m[6]]);
  const lvS=d.lv&&d.lv!==15?'l'+d.lv.toString(16):'';
  const baseId=m[1]+'-'+(d.kind==='full'?'xe'+d.count+lvS+((d.subs||[]).length?'s'+d.subs.join('.'):''):'xb'+m[3]+(m[4]?'-'+m[4]:'')+(lvS||d.cap>0?'_'+lvS+(d.cap>0?'n'+d.cap:''):''));
@@ -836,7 +839,7 @@ function bkDeco(){const c=bkPal();
  return '<svg class="deco" viewBox="0 0 200 200"><circle cx="100" cy="104" r="78" fill="'+c.pl+'" stroke="'+c.p+'" stroke-width="3"/><circle cx="92" cy="96" r="26" fill="'+c.p+'"/><ellipse cx="124" cy="128" rx="20" ry="11" transform="rotate(-28 124 128)" fill="none" stroke="'+c.p+'" stroke-width="3"/><circle cx="46" cy="38" r="22" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2.5"/><circle cx="46" cy="38" r="8" fill="'+c.p+'"/><circle cx="168" cy="40" r="9" fill="#ffca2c"/><circle cx="170" cy="168" r="15" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="2"/></svg>'}
 function bkCover(plan){
  if(plan.kind==='x')return bkCoverX(plan);
- const kd=plan.kind==='c'?'개념서':plan.kind==='h'?'주교재':'유형서';
+ const kd=plan.kind==='c'?'개념서':plan.kind==='h'?plan.short:'유형서';
  const sc=plan.sel?bkScope(plan.sel):[];const part=plan.sel&&sc.length<plan.sel.subs.length;const rg=part?['범위',sc[0].name+(sc.length>1?' ~ '+sc[sc.length-1].name:'')]:null;
  const rows=(rg?[rg]:[]).concat(plan.kind==='h'?[['본문','왼쪽 쪽 본문 · 오른쪽 쪽 필기'],['개념 노트','절마다 줄·모눈 노트 쪽'],['지문 세트','원본 → 변형 → 내신형 → 개념 체크'],['정답 · 해설','맨 뒤에 정리']]:plan.kind==='c'?[['개념','단원별 핵심 개념 정리'],['OX · 빈칸','개념을 바로 확인'],['기초 5지선다','기본 문항으로 마무리'],['정답 · 해설','맨 뒤에 정리']]
   :[['구성','소단원 → 유형 → 난이도 순'],['문항 수','총 '+(plan.total||0)+'문항 (서술형 포함)'],['채점','쪽마다 QR로 바로 채점'],['정답 · 해설','맨 뒤에 정리']]);
@@ -930,7 +933,7 @@ async function bkGradeAll(id){
  const key=id+':all',bk={page:key,bk:id,n:0,all:1,label:plan.short+' 전체',nums:Object.fromEntries(plan.M.codes.map((c,i)=>[c,i+1]))};
  {const lk=recLock('book',key);if(lk&&lk.items){showLockedRec(lk,{book:bk});return}}
  newCur(qs,{book:bk})}
-function bkRouteStr(s){const m=String(s).match(/^((?:me|cm|ph|hl)-(?:c|t|h|x[0-9a-z._\-]+)(?:~g[1-3])?):(\d+|all)$/);if(!m)return;return m[2]==='all'?bkGradeAll(m[1]):bkGradePage(m[1],+m[2])}
+function bkRouteStr(s){const m=String(s).match(/^((?:me|cm|ph|hl)-(?:c|t|h[sgo]?|x[0-9a-z._\-]+)(?:~g[1-3])?):(\d+|all)$/);if(!m)return;return m[2]==='all'?bkGradeAll(m[1]):bkGradePage(m[1],+m[2])}
 function bkNextHtml(){const b=cur&&cur.book;if(!b||!b.bk||b.all)return '';const plan=BKP[b.bk];if(!plan)return '';
  const nx=plan.pages.find(p=>p.n>b.n&&p.codes&&p.codes.length);
  return nx?'<div class="hint" style="margin:10px 0">'+esc(plan.short)+' p.'+b.n+' 채점을 마쳤습니다. 다음 문제 쪽(<b>p.'+nx.n+'</b>)도 이어서 채점할까요? <button class="p" style="margin-left:8px" onclick="bkGradePage(\''+b.bk+'\','+nx.n+')">p.'+nx.n+' 채점하기</button></div>':''}
@@ -944,7 +947,7 @@ function bkBookList(){const S=bkSel();const sk=bkScope(S).map(s=>s.k),inS=k=>sk.
  const L=nd?[]:[
  {id:SUBJ+'-c',name:'개념서',sub:'개념 정리 · OX · 빈칸 · 기초 5지선다'+rg,meta:'OX '+sm(S.ox)+' · 빈칸 '+sm(S.bl)+' · 기초 '+sm(S.basic)+'문항'},
  {id:SUBJ+'-t',name:'유형서',sub:'소단원 → 유형 → 난이도별 문제 (N제)'+rg,meta:'객관식·단답형 '+S.type.filter(q=>inS(q.sub)).length+' · 서술형 '+S.essay.filter(q=>inS(q.sub)).length+'문항'}];
-  if(SUBJ==='hl')L.unshift({id:'hl-h',name:'주교재 (필기용)',sub:'왼쪽 본문 · 오른쪽 필기 · 개념마다 노트 쪽',meta:'지문 뒤: 원본 → 변형(평가원 난이도) → 변형(내신형) → 개념 체크'});
+  if(SUBJ==='hl')L.unshift({id:'hl-hs',name:'주교재 화법편 (필기용)',sub:'발표 · 토의 · 토론 · 대화 · 협상 · 면담 · 매체',meta:'왼쪽 본문 · 오른쪽 필기 · 지문 뒤 원본 → 변형 → 내신형 → 개념 체크'},{id:'hl-hg',name:'주교재 문법편 (필기용)',sub:'문장 성분 · 문법 요소 · 단어의 관계 · 중세 국어',meta:'왼쪽 본문 · 오른쪽 필기 · 개념마다 노트 쪽 · 기초 5지선다 · 최상위 도전'},{id:'hl-ho',name:'주교재 맞춤법·종합편 (필기용)',sub:'한글 맞춤법 · 띄어쓰기 · 단원 종합',meta:'왼쪽 본문 · 오른쪽 필기 · 개념마다 노트 쪽 · 기초 5지선다 · 최상위 도전'});
  bkxAll().filter(b=>b.subj===SUBJ).forEach(b=>L.push({id:b.id,name:b.name,sub:b.sub||BKK[b.kind==='full'?'full':'std'][0],meta:b.asg?'선생님이 배포한 교재'+(b.due?' · 마감 '+b.due:''):b.kind==='full'?'전범위 · '+(b.rounds||20)+'회분':'내가 만든 교재',custom:1,asg:!!b.asg,full:b.kind==='full'}));
  return L}
 async function bkShow(){
@@ -1388,7 +1391,7 @@ async function bkMeasureAsync(html,w,cls){const p=bkProbe();p.innerHTML='<div cl
  await Promise.all([...p.querySelectorAll('img')].map(i=>i.complete&&i.naturalWidth?1:new Promise(r=>{i.onload=i.onerror=()=>r();setTimeout(r,30000)})));
  return Math.ceil(p.firstChild.getBoundingClientRect().height/BK_MM*10)/10}
 async function bkMeasureAll(){
- await bkInit();BKHT={};const subj=SUBJ;const ids=[subj+'-c',subj+'-t'].concat(subj==='hl'?['hl-h']:[]);
+ await bkInit();BKHT={};const subj=SUBJ;const ids=[subj+'-c',subj+'-t'].concat(subj==='hl'?['hl-hs','hl-hg','hl-ho']:[]);
  for(let pass=0;pass<8;pass++){
   delete BKSELC[subj];ids.forEach(id=>delete BKP[id]);
   BKREC=[];for(const id of ids)await bkPlan(id);
