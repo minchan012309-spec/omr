@@ -23,7 +23,7 @@ def g001(r, k):
         unused = [i for i in ALL_T if i not in used]
         if len(unused) < 4: return None
         right = r.choice(used)
-        body = P('다음은 발표문의 일부이다. 발표자의 말하기 방식으로 가장 적절한 것은?') + script_html(sents)
+        body = P('다음은 학생의 발표문이다. 발표자의 말하기 방식으로 가장 적절한 것은?') + script_html(sents)
         return mc(body, desc_of(right), [desc_of(i) for i in r.sample(unused, 4)],
                   steps=['발표문에서 "%s"은(는) "%s" 방식이다.' % (dict(sents)[right], desc_of(right).rstrip('.'))] + ['%s: 발표문에 나타나지 않는다.' % desc_of(i) for i in r.sample(unused, 2)],
                   core='발표의 말하기 방식', lv='중' if c < 2 else '상', fam='A', r=r, ref=[3], vertical=True)
@@ -33,7 +33,7 @@ def g001(r, k):
         used = [i for i, _ in sents]; unused = [i for i in ALL_T if i not in used]
         if len(used) < 5 or not unused: return None
         right = r.choice(unused)
-        body = P('다음은 발표문의 일부이다. 발표자의 말하기 방식으로 적절하지 않은 것은?') + script_html(sents)
+        body = P('다음은 학생의 발표문이다. 발표자의 말하기 방식으로 적절하지 않은 것은?') + script_html(sents)
         return mc(body, desc_of(right), [desc_of(i) for i in r.sample(used, 4)],
                   steps=['%s: 발표문에 나타나지 않는다.' % desc_of(right)] + ['%s: "%s"' % (desc_of(i), dict(sents)[i]) for i in r.sample(used, 2)],
                   core='발표의 말하기 방식', lv='상', fam='B', r=r, ref=[3], vertical=True)
@@ -90,7 +90,7 @@ def g002(r, k):
     plan = [(TECH[i][2], i) for i in plan_ids]
     plan = sorted(plan, key=lambda x: {'도입': 0, '전개': 1, '정리': 2}[x[0]])
     body = P('다음은 학생이 발표를 하기 위해 세운 계획이다. 발표에 반영되지 않은 것은?') + plan_html(plan) + P('〈발표문〉') + script_html(sents) if c >= 2 else \
-        P('다음은 학생이 발표를 하기 위해 세운 계획과 발표문의 일부이다. 발표에 반영되지 않은 것은?') + plan_html(plan) + script_html(sents)
+        P('다음은 학생이 발표를 하기 위해 세운 계획과 발표문이다. 발표에 반영되지 않은 것은?') + plan_html(plan) + script_html(sents)
     # 선택지: 계획 항목 5개
     opts = [(TECH[i][1] + '.', i == miss) for i in plan_ids]
     return mcs(body, opts, steps=['%s: 발표문에 반영되지 않았다.' % TECH[miss][1]] + ['%s: "%s"에 반영되었다.' % (TECH[i][1], dict(sents)[i]) for i in real[:3]],
