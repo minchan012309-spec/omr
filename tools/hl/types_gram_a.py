@@ -360,7 +360,7 @@ def _mark_item(r, a, i, tg, mark):
     right = mark[tg][0]
     ws = r.sample(mark[tg][1:], 4)
     body = P('밑줄 친 절을 안긴절이 되게 하는 어미(조사)는?') + '<div class="bogi"><p>%s</p></div>' % a.html(under=[i])
-    return mc(body, right, ws, steps=['%s: %s' % (tg, CLD[tg])], core=CLD[tg], lv='중', fam='E', r=r, ref=[3])
+    return mc(body, right, ws, steps=[CLD[tg]], core=CLD[tg], lv='중', fam='E', r=r, ref=[3])
 
 def tpl_cl_odd(r, pools):
     """밑줄 친 안긴절의 종류가 나머지와 다른 하나"""
@@ -436,6 +436,20 @@ def g032(r, k):
     return tpl_tf(r, kb_tf_ga(), 'ok' if r.random() < 0.5 else 'bad', lv='중', fam='T', ref=[3])
 CO = G.COORD
 
+def _jong(w):
+    """마지막 한글 글자에 받침이 있으면 True"""
+    for ch in reversed(w):
+        if '가' <= ch <= '힣':
+            return (ord(ch) - 0xAC00) % 28 != 0
+    return False
+
+def _ga(w):
+    return w + ('이' if _jong(w) else '가')
+
+def _eun(w):
+    return w + ('은' if _jong(w) else '는')
+_SIB = {'원인': '이유', '이유': '원인', '의도': '목적', '목적': '의도'}  # 뜻이 겹쳐 보이는 짝은 한 문항에 함께 내지 않는다
+
 def co_kind(a):
     return a.segs[0][2].split(':')[0]
 
@@ -463,10 +477,10 @@ def g033(r, k):
         a = r.choice(CO)
         means = ['나열', '대조', '선택', '원인', '이유', '조건', '양보', '의도', '목적', '배경', '전환', '정도의 심화']
         m = co_mean(a)
-        names = [x for x in means if x != m]
+        names = [x for x in means if x != m and x != _SIB.get(m)]
         ws = r.sample(names, 4)
-        body = P("밑줄 친 연결 어미 '%s'가 나타내는 의미는?" % co_end(a)) + '<div class="bogi"><p>%s</p></div>' % a.html(under=[a.segs[0][0]])
-        return mc(body, m, ws, steps=['연결 어미 %s는 %s의 의미를 나타낸다(%s).' % (co_end(a), m, co_kind(a))], core='연결 어미의 의미', lv='중', fam='D', r=r, ref=[4])
+        body = P("밑줄 친 연결 어미 '%s'이(가) 나타내는 의미는?" % co_end(a)).replace("'%s'이(가)" % co_end(a), "'%s'%s" % (co_end(a), '이' if _jong(co_end(a)) else '가')) + '<div class="bogi"><p>%s</p></div>' % a.html(under=[a.segs[0][0]])
+        return mc(body, m, ws, steps=['연결 어미 %s %s의 의미를 나타낸다(%s).' % (_eun(co_end(a)), m, co_kind(a) + '적 연결 어미')], core='연결 어미의 의미', lv='중', fam='D', r=r, ref=[4])
     if c == 5:
         d = pools['대등']
         e = pools['종속']
@@ -479,12 +493,12 @@ def g033(r, k):
         truth = r.random() < 0.5
         kd = co_kind(a)
         n = kd if truth else '종속' if kd == '대등' else '대등'
-        stm.append(('「%s」의 밑줄 친 부분은 %s 연결 어미로 이어진 절이다.' % (a.html(under=[a.segs[0][0]]), n), truth, '%s는 %s 연결 어미(%s)이다.' % (co_end(a), kd, co_mean(a))))
+        stm.append(('「%s」의 밑줄 친 부분은 %s 연결 어미로 이어진 절이다.' % (a.html(under=[a.segs[0][0]]), n), truth, '%s %s 연결 어미(%s)이다.' % (_eun(co_end(a)), kd, co_mean(a))))
     return bogi('이어진문장에 대한 설명으로 옳은 것만을 〈보기〉에서 있는 대로 고른 것은?', stm, lv='상', fam='F', r=r, ref=[4], ask='')
 
 def _co_t1(r, pools, D, lv, fam):
     t = r.choice(['대등', '종속'])
-    return t1(r, pools, t, '밑줄 친 부분이 %s적으로 이어진 문장의 앞 절인 것은?' % t, D, lv, fam, [4])
+    return t1(r, pools, t, '밑줄 친 부분이 %s 이어진 문장의 앞 절인 것은?' % ('대등하게' if t == '대등' else '종속적으로'), D, lv, fam, [4])
 
 def _co_end_item(r, a):
     names = ['대등적 연결 어미', '종속적 연결 어미', '종결 어미', '명사형 전성 어미', '선어말 어미']
