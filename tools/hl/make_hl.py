@@ -5,7 +5,7 @@
   - hl/data.json                  : 교재 문항(자료 문항 + 제작 5지선다·최상위 + OX·빈칸·서술형)
   - hl/concept.json               : 개념서(절·요약 노트·OX 풀)
 """
-import sys, os, json, re, collections, argparse, importlib
+import sys, os, json, re, collections, argparse, importlib, random
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import build
@@ -278,6 +278,65 @@ def blank_items(start=0, per_sub=14):
     return data, sec_bl
 
 
+def derived_tf(start_ox, start_bl, per_sub=240, per_sub_bl=70):
+    """문제 은행의 '옳은/옳지 않은 것' 5지선다에서 선지를 떼어 OX·빈칸 문항을 만든다 (선지마다 참·거짓이 정해져 있다)."""
+    import glob, html as H
+    sec_of = {t['label']: t['sec'] for t in TYPES}
+    seen, pool = set(), collections.defaultdict(list)
+    for f in sorted(glob.glob(os.path.join(OUT, 'hl[0-9][0-9][0-9].json'))):
+        j = json.load(open(f, encoding='utf-8'))
+        for x in (j if isinstance(j, list) else j.get('items', [])):
+            q = x['q']
+            if 'bogi' in q or '<table' in q or 'class="chs' not in q: continue
+            m = re.search(r'<div class="qs">(.*?)<div class="chs', q, re.S)
+            stem = re.sub(r'<[^>]+>', '', m.group(1)).strip() if m else ''
+            if not re.fullmatch(r'(다음 중 )?(.{0,12})?옳(지 않)?은 것은\?', stem): continue
+            ops = [H.unescape(o) for o in re.findall(r'<span>(.*?)</span></div>', q.split('class="chs')[1])]
+            if len(ops) != 5 or any(re.search(r'[㉠㉡㉢㉣㉤ⓐⓑ]|\(가\)|\(나\)|보기', o) or len(o) < 10 for o in ops): continue
+            neg = '옳지 않' in stem; ans = int(x['ans']) - 1
+            lines = [H.unescape(re.sub(r'<[^>]+>', '', l)) for l in re.findall(r'<p class="st">(.*?)</p>', x['exp'])]
+            for i, o in enumerate(ops):
+                if o in seen: continue
+                seen.add(o)
+                truth = (i != ans) if neg else (i == ans)
+                note = ''
+                for l in lines:
+                    k = l.find(o)
+                    if k >= 0: note = l[k + len(o):].strip(); break
+                pool[x['sub']].append((sec_of.get(x['type'], 1), x['type'], o, truth, note))
+    ox, bl = [], []
+    rnd = random.Random(7)
+    for sub in SUB_ORDER:
+        L = pool.get(sub, [])
+        rnd.shuffle(L)
+        T = [z for z in L if z[3]]; F = [z for z in L if not z[3]]
+        pick = []
+        for a, b in zip(T, F):
+            pick += [a, b]
+            if len(pick) >= per_sub: break
+        rnd.shuffle(pick)
+        for sec, label, stmt, truth, note in pick:
+            start_ox += 1
+            exp = ('<p><b>O</b> 옳은 설명이다. %s</p>' if truth else '<p><b>X</b> 옳지 않은 설명이다. %s</p>') % esc(note)
+            ox.append({'code': 'KV-%04d' % start_ox, 'no': start_ox, 'set': 'ox', 'sub': sub, 'subname': SUBS[sub]['name'], 'type': label, 'ans': 'O' if truth else 'X', 'lv': '',
+                       'q': '<div class="q"><div class="qs"><p>%s</p></div></div>' % esc(stmt), 'exp': exp})
+        nb = 0
+        for sec, label, stmt, truth, note in L:
+            if nb >= per_sub_bl: break
+            if not truth: continue
+            terms = re.findall(r'"([^"]{1,12})"', stmt)
+            if len(terms) != 1 or re.search(r'[?!]', terms[0]): continue
+            es = esc(stmt); key = esc(terms[0])
+            tgt = [k for k in ('&quot;%s&quot;' % key, '"%s"' % key) if k in es]
+            if not tgt: continue
+            nb += 1; start_bl += 1
+            s2 = es.replace(tgt[0], '<span class="bk">㉠</span>')
+            ans_t = es.replace(tgt[0], '&lt;&lt;%s&gt;&gt;' % key)
+            bl.append({'code': 'KL-%04d' % start_bl, 'no': start_bl, 'set': 'blank', 'sub': sub, 'subname': SUBS[sub]['name'], 'type': label, 'ans': terms[0], 'lv': '',
+                       'q': '<div class="q"><div class="qs"><p>%s</p></div></div>' % s2, 'exp': '<p>%s</p>' % ans_t, 'blanks': terms})
+    return ox, bl
+
+
 # ------------------------------------------------------------ 개념서
 def make_concept(pools, sec_ox, sec_bl):
     SECS = collections.defaultdict(list)
@@ -339,6 +398,8 @@ def main():
     src = source_items()
     ox, pools, sec_ox = ox_items()
     bl, sec_bl = blank_items()
+    dox, dbl = derived_tf(5000, 5000)
+    ox += dox; bl += dbl
     data = src + book_items(bank_sigs) + ox + bl + essay_items()
     ess = optional('src_essay')
     if ess: data += ess.items(render_src=srclib.render_src)
