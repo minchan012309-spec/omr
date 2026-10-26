@@ -155,6 +155,7 @@ const BKCSS=`
 .bkdoc .cbk .an i{display:block;font-style:normal;font-size:8px;color:var(--pd);font-weight:700;line-height:1.35;letter-spacing:0;white-space:nowrap}
 .bkdoc .cbk ol.n,.bkdoc .cbk ol.st{margin:.8mm 0 2.2mm;padding-left:5mm}.bkdoc .cbk ol.st>li{margin:.9mm 0}
 .bkdoc .u.q .psg.sp{letter-spacing:.06em;line-height:2.45;margin-bottom:2mm}.bkdoc .u.q .psg.sp p{margin:0 0 1.4mm}
+.bkdoc .u.q .bogi.lp p{line-height:2.05;letter-spacing:.03em;margin:0 0 1.6mm}.bkdoc .u.q .bogi.lp{padding-top:1.6mm}
 .bkdoc .psg .hd{position:static;height:auto;border-bottom:0;margin:0 0 2.4mm;letter-spacing:0;line-height:1.7}.bkdoc .psg .hd:after{display:none}
 .bkdoc .psgu .psg.sp{letter-spacing:.06em;line-height:2.5;font-size:12.6px}.bkdoc .psgu .psg.sp p{margin:0 0 2.2mm}
 .bkdoc .psgu.wd .psg.sp{letter-spacing:.1em;line-height:2.75;font-size:13px;word-spacing:.1em}.bkdoc .psgu.wd .psg.sp p{margin:0 0 3.2mm}.bkdoc .psgu .psg.sp .hd{letter-spacing:0;line-height:1.7}
@@ -457,7 +458,7 @@ function bkStripPsg(q){const r=bkDoc(q.q);const ps=r.querySelector('.psg');const
 async function bkMainPrep(){
  const S=bkSel(),sc=new Set(bkScope(S).map(s=>s.k));
  const types=new Set(DATA.filter(q=>sc.has(q.sub)&&(q.set==='mc'||q.set==='top')).map(q=>q.type));
- const tags=Object.keys(BIDX).filter(t=>BIDX[t]&&sc.has(BIDX[t].sub)&&(types.has(BIDX[t].label)||BIDX[t].style==='내신'));
+ const tags=Object.keys(BIDX).filter(t=>BIDX[t]&&sc.has(BIDX[t].sub)&&(types.has(BIDX[t].label)||BIDX[t].style==='내신'||BIDX[t].style==='최상위'||BIDX[t].style==='융합'));
  await ensureTags(tags)}
 function bkPlanMain(id){
  const S=bkSel(),C=CONC[SUBJ]||{secs:[]},O=bkMainOpt();
@@ -495,10 +496,11 @@ function bkPlanMain(id){
   const addAns=q=>{no++;nums.set(q.code,no);ansL.push(q);return no};
   const qPages=(title,sub2,groups,label)=>{ // groups: [{t, qs}]  (t 가 있으면 유형 머리말)
    const n=groups.reduce((a,g)=>a+g.qs.length,0);if(!n)return;
-   const us=[bkU('h:'+label+':'+s.k+':'+title,'<div class="u ct"><span>'+esc(title)+'</span><small>'+esc(sub2||s.k)+' · '+n+'문항</small></div>',{keep:true,brk:true})];
+   const lu=[];const us=[bkU('h:'+label+':'+s.k+':'+title,'<div class="u ct"><span>'+esc(title)+'</span><small>'+esc(sub2||s.k)+' · '+n+'문항</small></div>',{keep:true,brk:true})];
    groups.forEach((g,gi)=>{if(g.t)us.push(bkU('th:'+s.k+':'+title+':'+gi,'<div class="th"><b>유형 '+String(gi+1).padStart(2,'0')+'</b><span>'+esc(g.t)+'</span></div>',{keep:true}));
-    g.qs.forEach(q=>{const nn=addAns(q);us.push(bkU('q:'+q.code+':h',bkQHtml(bkStripPsg(q).q,nn,{lv:bkLv(q),code:1}),{code:q.code}))})});
-   bkPack(us,2,BK_BODY).forEach(p=>{pages.push({k:'pr',kind:'h',sub:s,label,...bkCI(p),codes:p.cols.flat().map(u=>u.code).filter(Boolean)});if(O.qn)pages.push(nt(s,'필기 · NOTE',O.nt,title))})};
+    g.qs.forEach(q=>{const nn=addAns(q);if(/class="bogi lp"/.test(q.q))lu.push(bkU('q:'+q.code+':hf',bkQHtml(bkStripPsg(q).q,nn,{lv:bkLv(q),code:1}),{code:q.code,w:BK_FULLW}));else us.push(bkU('q:'+q.code+':h',bkQHtml(bkStripPsg(q).q,nn,{lv:bkLv(q),code:1}),{code:q.code}))})});
+   if(us.length>1)bkPack(us,2,BK_BODY).forEach(p=>{pages.push({k:'pr',kind:'h',sub:s,label,...bkCI(p),codes:p.cols.flat().map(u=>u.code).filter(Boolean)});if(O.qn)pages.push(nt(s,'필기 · NOTE',O.nt,title))});
+   if(lu.length)bkPack([bkU('h:'+label+':'+s.k+':'+title+':L','<div class="u ct"><span>'+esc(title)+'</span><small>장문 지문 · '+lu.length+'문항</small></div>',{keep:true,w:BK_FULLW}),...lu],1,BK_BODY).forEach(p=>{pages.push({k:'cn',kind:'h',sub:s,label,cols:[p.cols[0].map(u=>u.html)],codes:p.cols[0].map(u=>u.code).filter(Boolean)});if(O.qn)pages.push(nt(s,'필기 · NOTE',O.nt,title))})};
   if(basic.length)row.items.push(['기초 5지선다',pages.length+1]);
   qPages('기초 5지선다',s.k+' '+s.name,[{t:null,qs:basic}],'기초 5지선다');
   const ckPage=(title,secs2)=>{ // 개념 체크 : OX · 빈칸
@@ -543,7 +545,10 @@ function bkPlanMain(id){
    const ng=secsAll.map(sc2=>({t:'절 '+sc2+' 내신형',qs:pickVar(bank.filter(q=>sty_of(q)==='내신'&&sec_of(q)===sc2),O.vn,['중','상'])})).filter(g=>g.qs.length);
    qPages('변형 문제 · 내신형',s.k+' '+s.name,ng,'변형 · 내신형');
    ckPage('핵심 개념 체크',secsAll)}
-  else ckPage('핵심 개념 체크',null)});
+  else ckPage('핵심 개념 체크',null);
+  /* 최상위 · 융합 도전 */
+  const tops=pickVar(bank.filter(q=>bkLv(q)==='최'),2+O.vn*2,['최']);
+  qPages('최상위 · 융합 도전',s.k+' '+s.name,[{t:null,qs:tops}],'최상위 도전')});
  /* 정답 · 해설 */
  const au=[];
  bkScope(S).forEach(s=>{const L=ansBy.get(s.k)||[],K=ckBy.get(s.k)||[];if(!L.length&&!K.length)return;

@@ -3714,7 +3714,7 @@ const CBCSS=`.cbk{--p:#2f9d66;--pd:#1f7d4e;--pl:#eefcf5;--pl2:#d9f8e8;--line:#b0
 .cbk .an{display:inline-block;text-align:center;line-height:1.1;vertical-align:bottom;margin:0 .08em}.cbk .an u{display:block;text-decoration:none;border-bottom:1.5px solid var(--p);padding:0 .1em}
 .cbk .an i{display:block;font-style:normal;font-size:.66em;color:var(--pd);font-weight:700;line-height:1.35;letter-spacing:0;white-space:nowrap}
 .cbk ol.n,.cbk ol.st{margin:.3em 0 .8em;padding-left:1.7em}.cbk ol.st>li{margin:.3em 0;padding-left:.2em}.cbk ol.st>li::marker{color:var(--pd);font-weight:700}
-.cbk .psg.sp,.q .psg.sp{letter-spacing:.06em;line-height:2.5}.q .psg.sp p{margin:0 0 .5em}
+.cbk .psg.sp,.q .psg.sp{letter-spacing:.06em;line-height:2.5}.q .bogi.lp p{line-height:2;letter-spacing:.03em;margin:0 0 .6em}.q .psg.sp p{margin:0 0 .5em}
 `;
 function cbTheme(css){const pl=(CONC[SUBJ]||{}).pal;if(!pl)return css;return css.replace(/#2f9d66/g,pl.p).replace(/#1f7d4e/g,pl.pd).replace(/#eefcf5/g,pl.pl).replace(/#d9f8e8/g,pl.pl2).replace(/#b0e3c9/g,pl.line)}
 async function cbLoad(){await conceptLoad();const C=CONC[SUBJ];if(C&&!CB.cur)CB.cur=C.secs[0].id;return C}
