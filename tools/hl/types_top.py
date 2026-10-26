@@ -33,9 +33,29 @@ def _basic_tf(r, bank, lv='하', fam='b'):
     cands = [(st, _quoted(st)) for st, tr, why in T_ if len(_quoted(st)) == 1]
     if len(cands) < 6 or len(pool) < 5: return None
     st, qs = r.choice(cands); ans = qs[0]
-    ws = r.sample([w for w in pool if w != ans], 4)
+    ws = _same_kind(r, ans, [w for w in pool if w != ans])
     body = P('다음 글의 빈칸에 들어갈 말로 알맞은 것은?') + BOX([st.replace("'%s'" % ans, '(   )')])
     return mc(body, ans, ws, steps=['빈칸에는 "%s"이(가) 들어간다.' % ans], core='기본 개념 확인', lv=lv, fam=fam + 'b', r=r, ref=[1], vertical=False)
+
+def _kind(w):
+    """빈칸 낱말의 갈래: 어미·접사(-로 시작) / 조사처럼 짧은 말 / 용언(…다) / 문장·구 / 그 밖의 낱말"""
+    if w.startswith('-') or re.search(r'/-', w): return 'end'
+    if ' ' in w.strip(): return 'phrase'
+    if len(w) <= 3 and not w.endswith('다'): return 'short'
+    if w.endswith('다'): return 'verb'
+    return 'word'
+
+
+def _same_kind(r, ans, others):
+    """오답 4개: 정답과 같은 갈래를 먼저, 모자라면 길이가 비슷한 것으로 채운다(갈래가 다른 선지만 있으면 정답이 바로 드러나므로)"""
+    k = _kind(ans)
+    same = [w for w in others if _kind(w) == k]
+    pick = r.sample(same, min(4, len(same)))
+    if len(pick) < 4:
+        rest = sorted([w for w in others if w not in pick], key=lambda w: (abs(len(w) - len(ans)), r.random()))
+        pick += rest[:4 - len(pick)]
+    return pick
+
 
 def _ban(*banks):
     out = []
@@ -99,7 +119,10 @@ def g109(r, k):
     e = r.choice(items)
     bads = list(e['bad'])
     others = [x for x in items if x is not e and x['ok'] != e['ok']]
-    extra = [r.choice(r.choice(others)['bad']) for _ in range(6)]
+    # 덧붙일 오답은 정답과 끝 음절이 같고 길이가 비슷한 틀린 표기부터(엉뚱한 낱말이 끼면 정답이 바로 드러난다)
+    cand = list(dict.fromkeys(b for x in others for b in x['bad'] if b not in bads and b != e['ok']))
+    cand.sort(key=lambda w: (w[-1:] != e['ok'][-1:], abs(len(w) - len(e['ok'])), r.random()))
+    extra = cand[:6]
     ws = list(dict.fromkeys(bads + extra))
     ws = [w for w in ws if w != e['ok']]
     if len(ws) < 4: return None
