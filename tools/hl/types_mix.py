@@ -28,7 +28,7 @@ def g083(r, k):
     turns = [('발표자', ff(GM[i][1], tp), i) for i in ids]
     descs = {i: GM[i][0] for i in GM}
     q = {'one': '㉠에 쓰인 문법 요소에 대한 설명으로 가장 적절한 것은?', 'not5': '발표자의 말 ㉠~㉤에 대한 설명으로 적절하지 않은 것은?', 'ok5': '발표자의 말 ㉠~㉤에 대한 설명으로 적절한 것은?'}[mode]
-    return lab_item(r, turns, descs, intro='다음은 학생의 발표 내용의 일부이다. ' + q, mode=mode, extra=GM_EXTRA, ref=[1],
+    return lab_item(r, turns, descs, intro='다음은 학생의 발표 내용이다. ' + q, mode=mode, extra=GM_EXTRA, ref=[1],
                     core='높임 · 피동 · 사동 · 안은문장 · 부정 · 시제 표현의 판별', lv='상' if mode != 'one' else '중', fam='A' + mode, title='발표')
 
 
