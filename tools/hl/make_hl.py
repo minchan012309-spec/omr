@@ -10,7 +10,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import build
 import hllib
-from hllib import render, pts_for, sig, plain, CIR, esc, REGISTRY, josa
+from hllib import render, pts_for, sig, plain, CIR, esc, REGISTRY, josa, _norm_choice
 from outline import TYPES, BYTAG, BYLABEL, SUBS, BUNDLE, SUB_ORDER
 import srclib
 import fmt
@@ -64,12 +64,15 @@ def make_bank(n_over=0):
 
 # ------------------------------------------------------------ 교재 문항 (제작 5지선다 · 최상위)
 def book_pool(bank_sigs, per=22):
-    pool = collections.defaultdict(list)
+    pool = collections.defaultdict(list); seen_q = set()
     for ty in TYPES:
         tag = ty['tag']
         if tag not in REGISTRY: continue
         items, _ = build.gen_tag(tag, per, seed_extra='|book', exclude=bank_sigs.get(tag, ()))
         for it in items:
+            key = (ty['sub'], _norm_choice(it.body), _norm_choice(it.opts[it.ans - 1]))   # 발문·정답이 같은 문항은 선택지만 달라도 한 번만
+            if key in seen_q: continue
+            seen_q.add(key)
             it._tag = tag
             pool[ty['sub']].append(it)
     return pool
@@ -236,7 +239,8 @@ def ox_items():
     m = optional('src_school')
     if m and hasattr(m, 'OX'):
         for sub, no, stmt, truth, expl in m.OX:
-            seq += 1
+            seq += 1   # 번호는 그대로 두고(이미 인쇄한 책의 채점 코드 유지) 같은 문장만 건너뛴다
+            if '<div class="q"><div class="qs"><p>%s</p></div></div>' % esc(stmt) in {x['q'] for x in data}: continue
             code = 'KV-%03d' % seq
             exp = ('<p><b>O</b> 옳은 설명이다. %s</p>' % esc(expl)) if truth else ('<p><b>X</b> 옳지 않은 설명이다. %s</p>' % esc(expl))
             label = (types_of(sub, no) or [BYTAG[[t['tag'] for t in TYPES if t['sub'] == sub][0]]])[0]['label']
@@ -296,11 +300,11 @@ def blank_items(start=0, per_sub=14):
     return data, sec_bl
 
 
-def derived_tf(start_ox, start_bl, per_sub=240, per_sub_bl=70):
+def derived_tf(start_ox, start_bl, per_sub=240, per_sub_bl=70, have=()):
     """문제 은행의 '옳은/옳지 않은 것' 5지선다에서 선지를 떼어 OX·빈칸 문항을 만든다 (선지마다 참·거짓이 정해져 있다)."""
     import glob, html as H
     sec_of = {t['label']: t['sec'] for t in TYPES}
-    seen, pool = set(), collections.defaultdict(list)
+    seen, pool = set(have), collections.defaultdict(list)   # 이미 있는 OX 문장은 다시 만들지 않는다
     for f in sorted(glob.glob(os.path.join(OUT, 'hl[0-9][0-9][0-9].json'))):
         j = json.load(open(f, encoding='utf-8'))
         for x in (j if isinstance(j, list) else j.get('items', [])):
@@ -416,7 +420,9 @@ def main():
     src = source_items()
     ox, pools, sec_ox = ox_items()
     bl, sec_bl = blank_items()
-    dox, dbl = derived_tf(5000, 5000)
+    import html as _H
+    have = {_H.unescape(re.sub(r'<[^>]+>', '', x['q'])).strip() for x in ox}
+    dox, dbl = derived_tf(5000, 5000, have=have)
     ox += dox; bl += dbl
     data = src + book_items(bank_sigs) + ox + bl + essay_items()
     ess = optional('src_essay')

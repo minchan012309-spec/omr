@@ -57,7 +57,7 @@ def ff(tmpl, tp, **kw):
 MC_F = {
  'F1': ('토의의 배경과 주제를 제시하며 토의를 시작한다.', '최근 {problem}이(가) 생기고 있습니다. 그래서 오늘은 \'{theme}\'라는 주제로 토의하겠습니다.'),
  'F2': ('토의자들의 발언 내용을 정리하며 토의를 이어 간다.', '지금까지 {s0}, {s1}, {s2} 이렇게 세 가지 의견이 제시되었습니다.'),
- 'F3': ('토의자들의 발언 순서를 조정하여 발언 기회를 분배한다.', '먼저 학생 1이 의견을 말씀해 주시고, 이어서 학생 3이 말씀해 주십시오.'),
+ 'F3': ('토의자들의 발언 순서를 조정하여 발언 기회를 분배한다.', '먼저 학생 1이 의견을 말씀해 주시고, 이어서 학생 2가 말씀해 주십시오.'),
  'F4': ('토의 결과를 활용할 계획을 밝히고 토의 참여를 독려한다.', '오늘 나온 의견은 정리하여 학교에 건의하려고 합니다. 적극적으로 의견을 말씀해 주십시오.'),
  'F5': ('토의자에게 질문하여 발언에 사용된 용어의 개념을 확인한다.', '{tn}(이)란 무엇인가요?'),
  'F6': ('토의 시간을 안내하여 토의가 효율적으로 진행되게 한다.', '오늘 토의는 20분 동안 진행하겠습니다.'),
@@ -75,21 +75,32 @@ P_ACT = {
 }
 
 def discussion(r, tp, mc_ids, p_ids):
-    """사회자 기능 id(MC_F)와 참여자 행위 id(P_ACT) 순서대로 대본(turns) 생성. 반환: turns=[(화자, 문장, 종류, id)]"""
+    """사회자 기능 id(MC_F)와 참여자 행위 id(P_ACT)로 대본(turns) 생성. 반환: turns=[(화자, 문장, 종류, id)]
+    참여자 발언은 담화 흐름대로 놓는다: 방안 1 제안 → (보강·한계) → 방안 2 제안 → (질문) → 방안 3 제안(공감 후 대안) → (평가).
+    행위로 제안되지 않은 방안은 짧은 제안 발언(표시 없음)으로 채워, 앞에서 나오지 않은 방안을 '앞서 말씀하신'으로 가리키는 일이 없게 한다."""
     turns = []
-    if 'F1' in mc_ids: turns.append(('사회자', ff(MC_F['F1'][1], tp), 'mc', 'F1'))
-    if 'F6' in mc_ids: turns.append(('사회자', ff(MC_F['F6'][1], tp), 'mc', 'F6'))
-    if 'F4' in mc_ids: turns.append(('사회자', ff(MC_F['F4'][1], tp), 'mc', 'F4'))
+    for f in ('F1', 'F6', 'F4', 'F3'):   # 발언 순서 안내(F3)도 참여자가 말하기 전에
+        if f in mc_ids: turns.append(('사회자', ff(MC_F[f][1], tp), 'mc', f))
+    eg = S.EG_FOR.get(tp['name'])   # 사례가 뒷받침하는 방안 번호
+    def prop(i): return (None, '저는 {s%d}을(를) 제안합니다. 그렇게 하면 {e%d}고 봅니다.' % (i, i))
+    plan = []
+    for i in range(3):
+        head = {0: 'PROP', 2: 'EMP'}.get(i)
+        aug = 'AUG' in p_ids and eg == i
+        plan.append((head, P_ACT[head][1]) if head in p_ids else ((None, '저는 {s%d}을(를) 제안합니다.' % i) if aug else prop(i)))   # 효과는 보강 발언이 말한다
+        follow = {0: ['LIMIT'], 1: ['ASK'], 2: ['EVAL']}[i]
+        if aug: follow = ['AUG'] + follow
+        for a in follow:
+            if a in p_ids: plan.append((a, P_ACT[a][1].replace('{s1}', '{s%d}' % i).replace('{e1}', '{e%d}' % i)))
+    if 'AUG' in p_ids and eg is None: return None
     names = ['학생 1', '학생 2', '학생 3', '학생 4']
-    for k, a in enumerate(p_ids):
+    for k, (a, t) in enumerate(plan):
         sp = names[k % 4]
-        turns.append((sp, ff(P_ACT[a][1], tp), 'p', a))
+        turns.append((sp, ff(t, tp), 'p' if a else 'x', a or 'prop'))
         if k == 0 and 'F5' in mc_ids:
-            turns[-1] = (sp, turns[-1][1] + ' 특히 ' + ff('{tn}이(가)', tp) + ' 중요하다고 봅니다.', 'p', a)
+            turns[-1] = (sp, turns[-1][1] + ' 특히 ' + ff('{tn}이(가)', tp) + ' 중요합니다.') + turns[-1][2:]
             turns.append(('사회자', ff(MC_F['F5'][1], tp), 'mc', 'F5'))
             turns.append((sp, ff('{td}입니다.', tp), 'x', 'ans'))
-        if k == 1 and 'F3' in mc_ids:
-            turns.append(('사회자', ff(MC_F['F3'][1], tp), 'mc', 'F3'))
     if 'F2' in mc_ids: turns.append(('사회자', ff(MC_F['F2'][1], tp), 'mc', 'F2'))
     return turns
 
@@ -113,6 +124,7 @@ IN_F = {  # 입론 특징: (찬성 문장 틀, 반대 문장 틀, 설명(-고 �
  'case': ('실제로 {eg}이(가) 있습니다.', '실제로 {eg}이(가) 있습니다.', '구체적인 사례를 근거로 제시하고 있다.'),
  'urg': ('{problem}은(는) 더 이상 미룰 수 없는 문제입니다.', '{problem}은(는) 신중하게 접근해야 하는 문제입니다.', None),
  'opp': ('반대 측에서는 {cc}고 하시겠지만, 이는 충분히 보완할 수 있습니다.', '찬성 측에서는 {pc}고 하시겠지만, 그 효과는 일시적일 수 있습니다.', '상대 측의 예상 반론을 언급하며 반박하고 있다.'),
+ 'exp': ('{ex}도 {pc}고 설명했습니다.', None, '전문가의 견해를 인용하여 주장을 뒷받침하고 있다.'),   # 찬성 측만
 }
 def in_desc(f, side):
     if f == 'eff': return '논제를 실현했을 때의 기대 효과를 근거로 주장하고 있다.' if side == 'pro' else '논제를 실현했을 때 생길 부정적인 측면을 근거로 반대하고 있다.'
@@ -129,20 +141,19 @@ def ipron(tp, side, feats):
         body.append(ff(IN_F[f][0 if side == 'pro' else 1], tp))
     return ' '.join(josa(x) for x in body)
 
-# 반대 신문
+# 반대 신문: 질문마다 상대가 입론에서 실제로 한 말(주장 · 자료 · 견해 · 사례 · 정의)을 먼저 확인한다
 CX = {
- 'prob': ('{cc}는 문제가 생길 수 있지 않을까요?', '해당 방식을 도입할 경우 생길 문제점을 제기하고 있다.'),
- 'ev': ('{st0}의 결과가 전체를 대표한다고 볼 수 있습니까?', '근거로 제시된 자료의 신뢰성(대표성)에 의문을 제기하고 있다.'),
- 'src': ('{ex}의 견해라고 하셨는데, 그 출처를 밝혀 주실 수 있습니까?', '근거로 제시된 견해의 출처를 제시할 것을 요구하고 있다.'),
- 'case': ('{eg}이(가) 우리 학교의 상황에도 그대로 적용될 수 있습니까?', '제시된 사례가 논제 상황에 적합한지에 대해 의문을 제기하고 있다.'),
- 'def': ('{tn}(이)란 {td}을(를) 뜻한다고 하셨는데, 그 범위는 어디까지입니까?', '용어의 범위를 구체적으로 밝힐 것을 요구하고 있다.'),
+ 'prob': ("'{pc}'고 말씀하셨는데, {cc}는 문제가 생길 수 있지 않을까요?", '해당 방식을 도입할 경우 생길 문제점을 제기하고 있다.'),
+ 'ev': ('{st0}을(를) 근거로 드셨는데, 그 결과를 전체로 일반화할 수 있습니까?', '근거로 제시된 자료의 신뢰성(대표성)에 의문을 제기하고 있다.'),
+ 'src': ('{ex}의 견해를 인용하셨는데, 그 출처를 밝혀 주실 수 있습니까?', '근거로 제시된 견해의 출처를 제시할 것을 요구하고 있다.'),
+ 'case': ('{eg}을(를) 사례로 드셨는데, 그 사례가 우리 학교의 상황에도 그대로 적용될 수 있습니까?', '제시된 사례가 논제 상황에 적합한지에 대해 의문을 제기하고 있다.'),
+ 'def': ("{tn}을(를) '{td}'(이)라고 정의하셨는데, 그 범위는 어디까지입니까?", '용어의 범위를 구체적으로 밝힐 것을 요구하고 있다.'),
+ 'need': ("'{cc}'고 하셨는데, 그런 문제가 실제로 생긴 사례가 있습니까?", '주장을 뒷받침하는 근거를 요구하고 있다.'),   # 반대 측 주장에 대한 질문
 }
+CX_NEED = {'ev': 'stat', 'src': 'exp', 'case': 'case', 'def': 'def'}   # 질문 → 상대 입론에 있어야 하는 요소
 def cx_utter(tp, key, opp_side='pro'):
-    claim = tp['pro_claim'] if opp_side == 'pro' else tp['con_claim']
-    conf = ff("'{c}'고 말씀하셨는데,".replace('{c}', claim), tp)
-    q = ff(CX[key][0], tp)
     if key == 'prob' and opp_side == 'con':
-        q = ff('그 방식을 도입하지 않으면 {problem}이(가) 계속되지 않을까요?', tp)
-    return conf + ' ' + q
+        return josa(ff("'{cc}'고 말씀하셨는데, 그 방식을 도입하지 않으면 {problem}이(가) 계속되지 않을까요?", tp))
+    return josa(ff(CX[key][0], tp))
 def cx_desc(key, opp='상대 측'):
     return '%s이(가) 앞서 진술한 내용의 일부를 확인하고, %s' % (opp, CX[key][1])
