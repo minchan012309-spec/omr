@@ -57,13 +57,17 @@ def _banks():
     if _BANKS is None: _BANKS = _lazy_banks()
     return _BANKS
 
-for _t in ('hl100', 'hl101', 'hl102', 'hl103', 'hl104', 'hl105', 'hl106', 'hl107', 'hl110'):
+for _t in ('hl100', 'hl101', 'hl103', 'hl104', 'hl105', 'hl106', 'hl107', 'hl110'):
     def _mk(tag):
         @T(tag)
         def g(r, k):
             return _basic_tf(r, _banks()[tag], fam=tag[-2:])
         return g
     _mk(_t)
+
+@T('hl102')
+def _g102(r, k):
+    return SC.g102(r, k)
 
 # 맞춤법 기초 : 올바른 표기 고르기
 def _spell(r, pool, tag):
@@ -171,13 +175,13 @@ def long_q(r, paras, ids, descs, extra, intro_txt, *, core, ref, fam, speakers=N
     if mode == 'one':
         k = r.choice(order); lab = {k: '㉠'}; box = render_long(paras, lab, speakers)
         ws = r.sample([descs[i] for i in descs if i != k] + list(extra), 4)
-        return mc(P(intro_txt + ' ㉠에서 나타난 방식으로 가장 적절한 것은?') + box, descs[k], ws, steps=['㉠은 %s' % descs[k]], core=core, lv='상', fam=fam + 'a', r=r, ref=ref, vertical=True)
+        return mc(P(intro_txt + ' ㉠에서 나타난 방식으로 가장 적절한 것은?') + box, descs[k], ws, steps=['㉠에는 %s' % descs[k]], core=core, lv='상', fam=fam + 'a', r=r, ref=ref, vertical=True)
     if mode == 'combo':
         st = []
         for n, i in enumerate(order[:3]):
             truth = r.random() < .5
             d = descs[i] if truth else r.choice(unusedD)
-            st.append(('%s은(는) %s' % (CIRC[n], d), truth, '%s: 실제로는 %s' % (CIRC[n], descs[i]) if not truth else descs[i]))
+            st.append(('%s에는 %s' % (CIRC[n], d), truth, '%s: 실제로는 %s' % (CIRC[n], descs[i]) if not truth else descs[i]))
         if all(x[1] for x in st) or not any(x[1] for x in st): st[0] = (st[0][0], not st[0][1], st[0][2])
         if not any(x[1] for x in st) or all(x[1] for x in st): return None
         # 첫 문장을 뒤집었으면 문장과 진위를 다시 맞춘다
@@ -185,7 +189,7 @@ def long_q(r, paras, ids, descs, extra, intro_txt, *, core, ref, fam, speakers=N
         for n, i in enumerate(order[:3]):
             truth = st[n][1]
             d = descs[i] if truth else r.choice(unusedD)
-            fixed.append(('%s은(는) %s' % (CIRC[n], d), truth, ('옳다. ' if truth else '옳지 않다. 실제로는 %s' % descs[i])))
+            fixed.append(('%s에는 %s' % (CIRC[n], d), truth, (descs[i] if truth else '실제로는 %s' % descs[i])))
         it = bogi(intro_txt, fixed, pre=box, lv='최', fam=fam + 'c', r=r, core=core, ref=ref, ask='㉠~㉢에 대한 설명으로 옳은 것만을 〈보기〉에서 있는 대로 고른 것은?')
         return it
     badi = r.randrange(5)
@@ -264,13 +268,13 @@ def g112(r, k):
 # ============================================================ hl113 장문 협상
 FIL = {
  'ask': ['그다음에 저희 입장도 차례로 말씀드리겠습니다.'],
- 'demand': ['저희 {a}은(는) 이번 학기 내내 그렇게 사용해 왔습니다.', '갑자기 바꾸면 준비해 온 일정에 차질이 생깁니다.'],
+ 'demand': ['저희 {a}은(는) 이번 학기 내내 그렇게 사용해 왔습니다.'],
  'reason': ['이 점을 꼭 헤아려 주셨으면 합니다.', '저희에게는 포기하기 어려운 사정입니다.'],
  'understand': ['저희도 {a}이(가) 얼마나 애써 왔는지 알고 있습니다.'],
- 'counter': ['이 부분은 저희도 쉽게 물러서기 어렵습니다.', '양쪽 모두 같은 처지라는 점을 생각해 주십시오.'],
+ 'counter': ['이 부분은 저희도 쉽게 물러서기 어렵습니다.'],
  'compromise': ['이렇게 하면 양쪽 모두 큰 손해 없이 지낼 수 있을 것입니다.', '서로 한 걸음씩 물러서는 방법이라고 생각합니다.'],
  'cond': ['다만 이 약속은 반드시 지켜져야 합니다.'],
- 'confirm': ['혹시 더 조정할 부분이 있으면 지금 말씀해 주십시오.'],
+ 'confirm': [],
 }
 NEG_ASK = ('상대에게 원하는 바와 사정을 물어 협상의 방향을 잡고 있다.', 'B', '먼저 {a}은(는) {thing}을(를) 어떻게 쓰고 싶으신지 말씀해 주시겠습니까?')
 @T('hl113')
@@ -290,8 +294,9 @@ def g113(r, k):
         else:
             paras.append(sents); speakers.append(who)
     ids = order
-    return long_q(r, paras, ids, descs, ['상대의 요구를 모두 거절하고 협상을 중단하겠다고 선언하고 있다.', '협상과 관계없는 다른 화제로 분위기를 전환하고 있다.'],
-                  '다음은 %s과(와) %s의 %s 사용에 관한 협상의 일부이다.' % (ng['a'], ng['b'], ng['thing']), core='협상 발화의 기능', ref=[2], fam='N', speakers=speakers)
+    return long_q(r, paras, ids, descs, SC.NEG_EXTRA,
+                  josa('다음은 %s과(와) %s의 %s 사용에 관한 협상의 일부이다.' % (ng['a'], ng['b'], ng['thing'])), core='협상 발화의 기능', ref=[2], fam='N', speakers=speakers,
+                  modes=('one', 'not5', 'ok5', 'ok5', 'not5'))
 
 
 # ============================================================ hl114 화법 지문 + 문법
@@ -304,7 +309,8 @@ def g114(r, k):
     # 기법 표지는 표시하지 않고 문법 표지만 문항에 쓴다
     paras = [[(t, i if i in MX.GM else None) for t, i in p] for p in paras]
     descs = {i: MX.GM[i][0] for i in MX.GM}
-    return long_q(r, paras, gid, descs, MX.GM_EXTRA, '다음은 학생의 발표문이다.', core='높임 · 피동 · 사동 · 안은문장 · 부정 · 시제 표현의 판별', ref=[1], fam='G')
+    return long_q(r, paras, gid, descs, MX.GM_EXTRA, '다음은 학생의 발표문이다.', core='높임 · 피동 · 사동 · 안은문장 · 부정 · 시제 표현의 판별', ref=[1], fam='G',
+                  modes=('one', 'not5', 'ok5', 'ok5', 'combo', 'not5'))
 
 
 # ============================================================ hl115 화법 지문 + 맞춤법
@@ -316,8 +322,7 @@ def g115(r, k):
     labs = '㉠㉡㉢㉣㉤'
     sents = []
     for i, e in enumerate(ent):
-        fr = r.choice(MX.FRAME_ADV if e[3] in MX.ADV_BANKS else MX.FRAME)
-        sents.append((josa(fr.format(w=e[1])), i))
+        sents.append((MX.frame_text(r, e), i))
     paras, _ = long_speech_paras(r, tp, extra_sents=[(sents[:2], 1), (sents[2:4], 2), (sents[4:], 3)])
     paras = [[(t, i if isinstance(i, int) else None) for t, i in p] for p in paras]
     five = r.sample(range(6), 5); five.sort()
@@ -338,17 +343,19 @@ def g115(r, k):
 
 
 # ============================================================ hl116 〈보기〉 복합 판단
+_TECH_AMBIG = {'G', 'V', 'R'}
 def _facts_all(r):
     F = []
     for kind, shown, true, falses, why in O.FACTS:
         F.append(('중세 국어', shown, true, falses, why))
     for ok, bad, why, nm in MX.SRC:
-        F.append(('맞춤법', '표기 "%s"' % bad, '"%s"은(는) "%s"로 고쳐 써야 한다.' % (bad, ok), ['"%s"은(는) 맞는 표기이다.' % bad, '"%s"은(는) 고치지 않아도 된다.' % bad], why))
+        F.append(('맞춤법', '표기 "%s"' % bad, josa('"%s"은(는) "%s"(으)로 고쳐 써야 한다.' % (bad, ok)), [josa('"%s"은(는) 맞는 표기이다.' % bad), josa('"%s"은(는) 고치지 않아도 된다.' % bad)], why))
     for sent, feats in MX.SENT:
         f = r.choice(sorted(feats)); others = [x for x in MX.FEATS if x not in feats]
         F.append(('문법', '"%s"' % sent, '%s에는 %s 표현이 나타난다.' % ('이 문장', f), ['이 문장에는 %s 표현이 나타난다.' % o for o in others], '이 문장에 나타나는 요소: ' + ', '.join(sorted(feats))))
     for i, v in S.TECH.items():
-        F.append(('화법', '발표 문장: "%s"' % fill(r.choice(v[3]), r.choice(S.TOPICS)), '이 문장은 %s.' % v[0], ['이 문장은 %s.' % w[0] for j, w in S.TECH.items() if j != i], v[0]))
+        if i in _TECH_AMBIG: continue   # G(몸짓)·V(자료 가리킴)·R(반응 확인)은 서로 겹쳐 해석될 수 있다
+        F.append(('화법', '발표 문장: "%s"' % fill(r.choice(v[3]), r.choice(S.TOPICS)), '이 문장은 %s.' % v[0], ['이 문장은 %s.' % w[0] for j, w in S.TECH.items() if j != i and j not in _TECH_AMBIG], v[0]))
     return F
 
 _FA = None
@@ -360,8 +367,9 @@ def g116(r, k):
     stmts = []
     for n, kd in enumerate(pick):
         f = r.choice([x for x in F if x[0] == kd]); truth = r.random() < .5
-        text = f[1] + ' → ' + (f[2] if truth else r.choice(f[3]))
-        stmts.append((text, truth, '%s: %s' % (kd, f[4]) + ('' if truth else ' 바른 설명: ' + f[2])))
+        text = josa(f[1] + ' ⇒ ' + (f[2] if truth else r.choice(f[3])))
+        why = f[4].rstrip('. ') + '.'
+        stmts.append((text, truth, '%s: %s' % (kd, why) + ('' if truth else ' 바른 설명: ' + f[2])))
     if all(x[1] for x in stmts) or not any(x[1] for x in stmts): return None
     return bogi('다음 〈보기〉는 화법과 언어의 여러 영역에서 가져온 자료와 그에 대한 설명이다.', stmts, lv='최', fam='K', r=r, core='화법 · 문법 · 맞춤법 · 중세 국어 종합', ref=[2],
                 ask='각 설명이 옳은지 판단하여, 옳은 것만을 〈보기〉에서 있는 대로 고른 것은?')
