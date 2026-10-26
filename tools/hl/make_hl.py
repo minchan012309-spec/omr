@@ -49,7 +49,7 @@ def make_bank(n_over=0):
         lv = collections.Counter(e['lv'] for e in ent)
         lvt.update(lv)
         dump(os.path.join(OUT, tag + '.json'), ent)
-        index[tag] = {'lv': dict(lv), 'label': ty['label'], 'sub': ty['sub'], 'subname': ty['subname'], 'n': len(ent)}
+        index[tag] = {'lv': dict(lv), 'label': ty['label'], 'sub': ty['sub'], 'subname': ty['subname'], 'sec': ty['sec'], 'style': ty['style'], 'n': len(ent)}
         tot += len(ent)
         print('%s %-34s %3d/%d  %s%s' % (tag, ty['base'][:32], len(ent), n, dict(lv), '  <<< 부족' if len(ent) < n else ''))
     order = {s: i for i, s in enumerate(SUB_ORDER)}
@@ -117,15 +117,15 @@ def book_items(bank_sigs, n_basic=8, n_std=14, n_top=14):
         sel = sorted(basic + std, key=lambda x: (tord[x._tag], LVI[x.lv]))
         for it in sel:
             seq[s] += 1
-            code = 'P%d-%03d' % (bundle, seq[s])
+            code = 'KP%d-%03d' % (bundle, seq[s])
             ty = BYTAG[it._tag]
-            q, e = render(it, it._tag, seq[s], code, pts_for(it.lv, it._r), qid='q-P%d%03d' % (bundle, seq[s]), sid='s-P%d%03d' % (bundle, seq[s]), src='제작 문항')
+            q, e = render(it, it._tag, seq[s], code, pts_for(it.lv, it._r), qid='q-KP%d%03d' % (bundle, seq[s]), sid='s-KP%d%03d' % (bundle, seq[s]), src='제작 문항')
             data.append({'code': code, 'no': seq[s], 'set': 'mc', 'sub': s, 'subname': SUBS[s]['name'], 'type': ty['label'], 'ans': str(it.ans), 'lv': it.lv, 'fam': 'b' + it._tag + it.fam, 'q': q, 'exp': e})
     for i, it in enumerate(chosen_top, 1):
         s = BYTAG[it._tag]['sub']
-        code = 'R-%03d' % i
+        code = 'KR-%03d' % i
         ty = BYTAG[it._tag]
-        q, e = render(it, it._tag, i, code, 4, qid='q-R%03d' % i, sid='s-R%03d' % i, src='제작 문항')
+        q, e = render(it, it._tag, i, code, 4, qid='q-KR%03d' % i, sid='s-KR%03d' % i, src='제작 문항')
         data.append({'code': code, 'no': i, 'set': 'top', 'sub': s, 'subname': SUBS[s]['name'], 'type': ty['label'], 'ans': str(it.ans), 'lv': '최', 'fam': 'b' + it._tag + it.fam, 'q': q, 'exp': e})
     return data
 
@@ -206,7 +206,7 @@ def ox_items():
         base = ts[0]['base'] if ts else None
         for stmt, truth, expl in L:
             seq += 1
-            code = 'V-%03d' % seq
+            code = 'KV-%03d' % seq
             exp = ('<p><b>O</b> 옳은 설명이다. %s</p>' % esc(expl)) if truth else ('<p><b>X</b> 옳지 않은 설명이다. %s</p>' % esc(expl))
             data.append({'code': code, 'no': seq, 'set': 'ox', 'sub': sub, 'subname': SUBS[sub]['name'], 'type': label, 'ans': 'O' if truth else 'X', 'lv': '',
                          'q': '<div class="q"><div class="qs"><p>%s</p></div></div>' % esc(stmt), 'exp': exp})
@@ -217,7 +217,7 @@ def ox_items():
     if m and hasattr(m, 'OX'):
         for sub, no, stmt, truth, expl in m.OX:
             seq += 1
-            code = 'V-%03d' % seq
+            code = 'KV-%03d' % seq
             exp = ('<p><b>O</b> 옳은 설명이다. %s</p>' % esc(expl)) if truth else ('<p><b>X</b> 옳지 않은 설명이다. %s</p>' % esc(expl))
             label = (types_of(sub, no) or [BYTAG[[t['tag'] for t in TYPES if t['sub'] == sub][0]]])[0]['label']
             data.append({'code': code, 'no': seq, 'set': 'ox', 'sub': sub, 'subname': SUBS[sub]['name'], 'type': label, 'ans': 'O' if truth else 'X', 'lv': '',
@@ -253,7 +253,7 @@ def blank_items(start=0, per_sub=14):
                 return '<span class="bk">%s</span>' % '㉠㉡㉢㉣'[i]
             s2 = re.sub(r"'([^']{1,14})'", sb, esc(stmt).replace('&#x27;', "'"))
             ans_t = re.sub(r"'([^']{1,14})'", lambda mm: '&lt;&lt;%s&gt;&gt;' % mm.group(1) if mm.group(1) in terms else mm.group(0), esc(stmt).replace('&#x27;', "'"))
-            code = 'L-%03d' % seq
+            code = 'KL-%03d' % seq
             no = secno(sub, stmt)
             label = (types_of(sub, no) or [BYTAG[[t['tag'] for t in TYPES if t['sub'] == sub][0]]])[0]['label']
             data.append({'code': code, 'no': seq, 'set': 'blank', 'sub': sub, 'subname': SUBS[sub]['name'], 'type': label, 'ans': ', '.join(terms), 'lv': '',
@@ -263,7 +263,7 @@ def blank_items(start=0, per_sub=14):
     if m:
         for sub, no, stem, answers, expl in m.BLANKS:
             seq += 1
-            code = 'L-%03d' % seq
+            code = 'KL-%03d' % seq
             parts = stem.split('___')
             if len(parts) - 1 != len(answers):
                 print('  (경고) 빈칸 수 불일치:', stem); continue
