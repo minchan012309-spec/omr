@@ -7,7 +7,7 @@ const {chromium}=require(process.env.PW||'/opt/node-tools/node_modules/playwrigh
  await pg.goto('http://localhost:8765/index.html');await pg.waitForTimeout(2000);
  await pg.evaluate("sess={access_token:'x',user:{}};STU=[{id:'s1',name:'테스트',grade:'고2'}];CUR_S='s1'");
  const only=process.argv.slice(2);const out=only.length&&fs.existsSync('books/heights.json')?JSON.parse(fs.readFileSync('books/heights.json','utf8')):{};
- for(const s of (only.length?only:['me','cm','ph'])){Object.keys(out).forEach(k=>{if(k.startsWith(s+'|'))delete out[k]});await pg.evaluate(`setSubject('${s}')`);await pg.waitForTimeout(600);
+ for(const s of (only.length?only:['me','cm','ph','hl'])){Object.keys(out).forEach(k=>{if(k.startsWith(s+'|'))delete out[k]});await pg.evaluate(`setSubject('${s}')`);await pg.waitForTimeout(600);
   await pg.evaluate("bkLoad()");await pg.waitForTimeout(300);await pg.evaluate("conceptLoad()");
   await pg.evaluate("BKHT=null;BKREADY=null");
   const r=await pg.evaluate("(async()=>{await bkInit();BKHT={};const o=await bkMeasureAll();return o})()");Object.assign(out,r);console.log(s,Object.keys(r).length)}
