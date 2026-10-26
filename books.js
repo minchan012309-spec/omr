@@ -35,6 +35,7 @@ const BKCSS=`
 .bkdoc .hd .t2 b{display:inline-block;background:#111;color:#fff;padding:1px 9px;border-radius:2px;margin-left:6px;font-weight:700}
 .bkdoc .bd{position:absolute;left:12mm;right:12mm;top:27mm;height:${BK_BODY}mm}
 .bkdoc .bd.one{overflow:hidden}
+.bkdoc .bd.tpx{display:flex;flex-direction:column}.bkdoc .bd.tpx .tp{flex:none;overflow:hidden;margin-bottom:2mm}.bkdoc .bd.tpx .cols{flex:1;height:auto;min-height:0}
 .bkdoc .cols{display:flex;gap:8mm;height:100%;position:relative}
 .bkdoc .cols:before{content:"";position:absolute;left:50%;top:0;bottom:0;border-left:.7px solid #777}
 .bkdoc .col{width:${BK_COLW}mm;flex:none;overflow:hidden}
@@ -148,15 +149,16 @@ const BKCSS=`
 .bkdoc .cbk .fg{margin:2mm 0 3mm;text-align:center;break-inside:avoid}.bkdoc .cbk .fg img,.bkdoc .cbk .fg svg{max-width:100%;height:auto;max-height:66mm}
 .bkdoc .cbk .fg .cap{font-size:10.6px;color:#555;margin-top:1mm}
 .bkdoc .cbk .two-c{display:grid;grid-template-columns:1fr 1fr;gap:5mm;align-items:start}
-.bkdoc .cbk .ex{margin:2.2mm 0 3.2mm;padding:1.4mm 3.4mm 1.6mm;background:#fff;border:.25mm solid var(--line);border-left:1mm solid var(--p);border-radius:1.6mm;break-inside:avoid}
+.bkdoc .cbk .ex{margin:2.2mm 0 3.2mm;padding:1.4mm 3.4mm 1.6mm;background:#fff;border:.25mm solid var(--line);border-radius:1.6mm;break-inside:avoid}
 .bkdoc .cbk .ex .elb{display:inline-block;font-size:9.4px;font-weight:700;color:var(--pd);margin-bottom:.4mm}
 .bkdoc .cbk .ex p.s{margin:0;line-height:2.55;letter-spacing:.05em}.bkdoc .cbk .ex p.n{margin:1mm 0 0;font-size:11.4px;color:#555;line-height:1.55;letter-spacing:0}
 .bkdoc .cbk .an{display:inline-block;text-align:center;line-height:1.1;vertical-align:bottom;margin:0 .3mm}.bkdoc .cbk .an u{display:block;text-decoration:none;border-bottom:.4mm solid var(--p);padding:0 .3mm}
 .bkdoc .cbk .an i{display:block;font-style:normal;font-size:8px;color:var(--pd);font-weight:700;line-height:1.35;letter-spacing:0;white-space:nowrap}
 .bkdoc .cbk ol.n,.bkdoc .cbk ol.st{margin:.8mm 0 2.2mm;padding-left:5mm}.bkdoc .cbk ol.st>li{margin:.9mm 0}
 .bkdoc .u.q .psg.sp{letter-spacing:.06em;line-height:2.45;margin-bottom:2mm}.bkdoc .u.q .psg.sp p{margin:0 0 1.4mm}
-.bkdoc .u.q .bogi.lp p{line-height:2.05;letter-spacing:.03em;margin:0 0 1.6mm}.bkdoc .u.q .bogi.lp{padding-top:1.6mm}
+.bkdoc .u.q .bogi.lp p{line-height:2.05;letter-spacing:.03em;margin:0 0 1.6mm}.bkdoc .u.q.lw .bogi.lp{column-count:2;column-gap:6mm;column-rule:.2mm solid var(--line)}.bkdoc .u.q.lw .bogi.lp p{break-inside:avoid-column}.bkdoc .u.q.lw .bogi.lp .bt{column-span:all}.bkdoc .u.q .bogi.lp{padding-top:1.6mm}
 .bkdoc .psg .hd{position:static;height:auto;border-bottom:0;margin:0 0 2.4mm;letter-spacing:0;line-height:1.7}.bkdoc .psg .hd:after{display:none}
+.bkdoc .psgu .psg:not(.sp){border:.3mm solid var(--line);border-radius:1.4mm;padding:1.6mm 2.4mm;font-size:12.2px;line-height:1.8;background:#fff}.bkdoc .psgu .psg:not(.sp) p{margin:0 0 1.2mm}
 .bkdoc .psgu .psg.sp{letter-spacing:.06em;line-height:2.5;font-size:12.6px}.bkdoc .psgu .psg.sp p{margin:0 0 2.2mm}
 .bkdoc .psgu.wd .psg.sp{letter-spacing:.1em;line-height:2.75;font-size:13px;word-spacing:.1em}.bkdoc .psgu.wd .psg.sp p{margin:0 0 3.2mm}.bkdoc .psgu .psg.sp .hd{letter-spacing:0;line-height:1.7}
 .bkdoc .ntp{display:flex;flex-direction:column}.bkdoc .ntp .nth{display:flex;gap:2.4mm;align-items:baseline;border-bottom:.3mm solid var(--line);padding-bottom:1.2mm;margin-bottom:2.4mm;font-size:10px;color:#8a8f97}.bkdoc .ntp .nth b{letter-spacing:.16em;font-size:9px;color:var(--pd)}
@@ -353,17 +355,22 @@ function bkPickType(pool,cap){
 
 /* ---------- 쪽 나누기 ---------- */
 function bkPack(units,ncol,cap,firstCap){
- const pages=[];let pg=null,ci=0,used=0;
- const capOf=()=>pages.length===1&&firstCap!=null?firstCap:cap;
- const np=()=>{pg={cols:Array.from({length:ncol},()=>[])};pages.push(pg);ci=0;used=0};
+ const pages=[];let pg=null,ci=0,used=0;const pend=[];
+ const capOf=()=>(pages.length===1&&firstCap!=null?firstCap:cap)-(pg&&pg.topH?pg.topH+2:0);
+ const np=()=>{pg={cols:Array.from({length:ncol},()=>[])};pages.push(pg);ci=0;used=0;if(pend.length){const t=pend.shift();pg.top=[t];pg.topH=t.h}};
  for(let i=0;i<units.length;i++){const u=units[i];
+  if(u.span){ // 가로로 넓은 단위(장문 지문) : 쪽 맨 위에 두고 아래 남는 자리는 2단 문제로 채운다
+   if(!pg)np();
+   if(pg.top||pg.cols.some(c=>c.length)){pend.push(u);continue}
+   pg.top=[u];pg.topH=u.h;continue}
   if(!pg||(u.brk&&pg.cols.some(c=>c.length)))np();
   let need=u.h+(u.pad||0);for(let j=i;units[j].keep&&units[j+1];){j++;need+=units[j].h+(units[j].pad||0)}
   if(used+need>capOf()&&used>0){ci++;used=0;if(ci>=ncol)np()}
   pg.cols[ci].push(u);used+=u.h+(u.pad||0)}
+ while(pend.length)np();
  return pages}
-function bkGap(c){const n=c.length;if(n<2)return 0;const pad=c.reduce((m,u)=>Math.max(m,u.pad||0),0);const used=c.reduce((a,u)=>a+u.h,0);if(used<BK_BODY*.55)return pad;return Math.max(pad,Math.min(14,Math.round((BK_BODY-used-8)/(n-1)*10)/10))}
-function bkCI(p){return {cols:p.cols.map(c=>c.map(u=>u.html)),gaps:p.cols.map(bkGap)}}
+function bkGap(c,th){const n=c.length;if(n<2)return 0;const B=BK_BODY-(th?th+2:0);const pad=c.reduce((m,u)=>Math.max(m,u.pad||0),0);const used=c.reduce((a,u)=>a+u.h,0);if(used<B*.55)return pad;return Math.max(pad,Math.min(14,Math.round((B-used-8)/(n-1)*10)/10))}
+function bkCI(p){return {cols:p.cols.map(c=>c.map(u=>u.html)),gaps:p.cols.map(c=>bkGap(c,p.topH)),top:(p.top||[]).map(u=>u.html)}}
 const bkU=(key,html,o)=>{const u={key:SUBJ+'|'+key,html,w:(o&&o.w)||BK_COLW,...(o||{})};u.h=bkH(u);u.pad=/^<div class="u q"/.test(html)?BKPADS[BKO.gap||0]:0;return u};
 
 /* ---------- 쪽 계획 ---------- */
@@ -452,10 +459,10 @@ function bkPlanType(id){
 
 /* ---------- 주교재(필기용): 왼쪽 쪽에 본문, 오른쪽 쪽은 필기 공간 ---------- */
 const BKNT=[['blank','빈 쪽'],['lined','줄 노트'],['grid','모눈 노트']],BKNB=[['none','넣지 않음'],['lined','줄 노트'],['grid','모눈 노트']];
-const bkMainOpt=()=>({nt:BKO.nt||'blank',nb:BKO.nb||'lined',nbn:BKO.nbn==null?1:Math.max(1,+BKO.nbn||1),qn:BKO.qn?1:0,vn:BKO.vn==null?2:Math.max(1,Math.min(4,+BKO.vn||2))});
+const bkMainOpt=()=>({nt:BKO.nt||'blank',nb:BKO.nb||'none',nbn:BKO.nbn==null?1:Math.max(1,+BKO.nbn||1),qn:BKO.qn?1:0,vn:BKO.vn==null?2:Math.max(1,Math.min(4,+BKO.vn||2))});
 const BK_SPEECH=new Set(['Ⅰ-A','Ⅰ-B','Ⅰ-C']);
 function bkStripPsg(q){const r=bkDoc(q.q);const ps=r.querySelector('.psg');const pg=ps?ps.outerHTML:'';if(ps)ps.remove();return {psg:pg,q:{...q,q:r.innerHTML}}}
-const bkMainSubs=(S,part)=>bkScope(S).filter(s=>part==='s'?s.k[0]==='Ⅰ':part==='g'?s.k[0]==='Ⅱ':part==='o'?(s.k[0]==='Ⅲ'||s.k==='종합'):true);
+const bkMainSubs=(S,part)=>bkScope(S).filter(s=>part==='s'?(s.k==='Ⅰ-A'||s.k==='Ⅰ-B'):part==='c'?s.k==='Ⅰ-C':part==='g'?s.k[0]==='Ⅱ':part==='o'?(s.k[0]==='Ⅲ'||s.k==='종합'):true);
 async function bkMainPrep(part){
  const S=bkSel(),sc=new Set(bkMainSubs(S,part).map(s=>s.k));
  const types=new Set(DATA.filter(q=>sc.has(q.sub)&&(q.set==='mc'||q.set==='top')).map(q=>q.type));
@@ -463,29 +470,70 @@ async function bkMainPrep(part){
  await ensureTags(tags)}
 function bkPlanMain(id){
  const S=bkSel(),C=CONC[SUBJ]||{secs:[]},O=bkMainOpt(),PART=(bkParts(id)||{}).part||'';
- const pages=[{k:'cover'},{k:'toc'}],toc=[],ansBy=new Map(),ckBy=new Map(),nums=new Map(),used=new Set();let no=0;
+ const pages=[{k:'cover'},{k:'toc'}],toc=[],ansBy=new Map(),nums=new Map(),used=new Set();let no=0,dseq=0;
  const meta={};Object.values(BIDX).forEach(v=>meta[v.label]=v);
  const nt=(sub,label,st,hint)=>({k:'nt',kind:'n',sub,label:label||'필기 · NOTE',st:st||O.nt,hint:hint||''});
- const left=sub=>{if(pages.length%2===0)pages.push(nt(sub))};
  const pickVar=(pool,n,pat)=>{const a=pool.filter(q=>!used.has(q.code));const o=bkPickRound(a,Math.min(n,a.length),pat);o.forEach(q=>used.add(q.code));return o};
+ const sec_of=q=>+((meta[q.type]||{}).sec)||0,sty_of=q=>(meta[q.type]||{}).style;
+ const isTF=q=>q.set==='ox'||q.set==='blank',isLP=q=>/class="bogi lp"/.test(q.q);
+ const codesOf=p=>[...(p.top||[]),...p.cols.flat()].map(u=>u.code).filter(Boolean);
+ /* 지문에 딸린 5지선다의 선지를 O/X 로 바꾼다 (선지마다 참·거짓이 정해져 있다) */
+ const derive=(qs,n)=>{const out=[];
+  for(const q of qs){if(out.length>=n)break;if(q.set!=='mc')continue;
+   const qs0=bkDoc(q.q).querySelector('.qs');if(!qs0)continue;
+   const stem=((qs0.querySelector('p')||{}).textContent||'').trim();
+   if(!/(적절|옳|알맞)/.test(stem)||/(㉠|ⓐ)\s*[~,]/.test(stem))continue;
+   const neg=/(않|아닌|틀린|어긋)/.test(stem),ops=[...qs0.querySelectorAll('.chs>div>span')].map(x=>x.textContent.trim());
+   if(ops.length!==5||ops.some(o=>o.length<8))continue;
+   const a=(+q.ans)-1,mk=(i)=>{const tr=(i===a)?!neg:neg;dseq++;
+    return {code:'KD-'+String(dseq).padStart(3,'0'),set:'ox',sub:q.sub,type:q.type,ans:tr?'O':'X',lv:'',q:'<div class="q"><div class="qs"><p>'+esc(ops[i])+'</p></div></div>',exp:'<p><b>'+(tr?'O':'X')+'</b> '+(tr?'옳은':'옳지 않은')+' 설명이다. (5지선다 문항의 선지를 O/X로 바꾼 것)</p>'}};
+   const ti=ops.map((o,i)=>i).filter(i=>((i===a)?!neg:neg)),fi=ops.map((o,i)=>i).filter(i=>!((i===a)?!neg:neg));
+   const t=ti[(dseq)%ti.length],f=fi[(dseq+1)%fi.length];
+   [mk(t),mk(f)].forEach(x=>{if(out.length<n)out.push(x)})}
+  return out};
  bkMainSubs(S,PART).forEach(s=>{
   const row={sub:s,items:[]};toc.push(row);
-  const ansL=[];ansBy.set(s.k,ansL);const ckL=[];ckBy.set(s.k,ckL);
+  const ansL=[];ansBy.set(s.k,ansL);
   const secs=(C.secs||[]).filter(x=>x.sub===s.k);
-  /* ① 개념 : 본문(왼쪽) + 필기(오른쪽), 절마다 노트 쪽 */
+  const all=DATA.filter(q=>q.sub===s.k&&!q.mock),bank=all.filter(q=>q.set==='bank');
+  const addAns=q=>{no++;nums.set(q.code,no);ansL.push(q);return no};
+  const speech=BK_SPEECH.has(s.k);
+  /* 문제 줄기 : 5지선다 · OX · 빈칸을 번호 하나로 이어 2단으로 쓴다. 장문은 가로로 넓게(지문 2단) */
+  const stream=(items,label,head)=>{
+   const us=[];let hasQ=false;
+   if(head)us.push(bkU('h:'+label+':'+s.k,'<div class="u ct"><span>'+esc(head)+'</span><small>'+esc(s.k)+' '+esc(s.name)+'</small></div>',{keep:true}));
+   const lps=items.filter(it=>it.q&&isLP(it.q)),rest=items.filter(it=>!(it.q&&isLP(it.q)));
+   const ord=rest.slice();lps.forEach((it,k)=>{ord.splice(Math.floor((k+.5)*rest.length/lps.length)+k,0,it)}); // 장문은 문제 사이사이에 흩어 아래 빈칸을 줄인다
+   ord.forEach(it=>{
+    if(it.psg){us.push(...it.psg);return}
+    const q=it.q;hasQ=true;
+    const mk=isTF(q)?(nn=>bkOxHtml(q,nn,q.set==='ox'?'ox':'bl')):isLP(q)?(nn=>bkQHtml(bkStripPsg(q).q,nn,{lv:bkLv(q),code:1}).replace('class="u q"','class="u q lw"')):(nn=>bkQHtml(bkStripPsg(q).q,nn,{lv:bkLv(q),code:1}));
+    const u=bkU('q:'+q.code+(isTF(q)?':o':isLP(q)?':hf':':h'),mk(100),{code:/^KD-/.test(q.code)?undefined:q.code,w:isLP(q)?BK_FULLW:BK_COLW,span:isLP(q)});
+    u.q=q;u.mk=mk;us.push(u)});
+   if(!hasQ)return;
+   bkPack(us,2,BK_BODY).forEach(p=>{ // 쪽에 놓인 차례대로 번호를 매긴다
+    [...(p.top||[]),...p.cols.flat()].forEach(u=>{if(u.mk){u.html=u.mk(addAns(u.q))}});
+    pages.push({k:'pr',kind:'h',sub:s,label,...bkCI(p),codes:codesOf(p)})})};
+  /* OX · 빈칸 : 본문(지문·절) 하나에 3~6문항 */
+  const ckFor=(secSet,n,fromQs)=>{
+   let pool=all.filter(q=>isTF(q)&&secSet.includes(sec_of(q))&&!used.has(q.code));
+   const ox=pool.filter(q=>q.set==='ox'),bl=pool.filter(q=>q.set==='blank');
+   const nb=Math.min(bl.length,n>4?2:1);
+   let out=[...ox.slice(0,n-nb),...bl.slice(0,nb)];
+   if(out.length<n&&fromQs)out=out.concat(derive(fromQs,n-out.length));
+   if(out.length<n){const more=all.filter(q=>isTF(q)&&!used.has(q.code)&&!out.includes(q));out=out.concat(more.slice(0,n-out.length))}
+   out.forEach(q=>used.add(q.code));return out.map(q=>({q}))};
+  /* ① 개념 : 필기 쪽 없이 본문만 */
   secs.forEach((sec,si)=>{
    const cu=[];
    if(si===0)cu.push(bkU('sb:'+s.k+':m',bkSbn(s,''),{w:BK_FULLW,keep:true}));
    cu.push(bkU('ch:'+sec.id,'<div class="u sh2"><i>'+esc(sec.no)+'</i><span>'+esc(sec.title)+'</span></div>',{w:BK_FULLW,keep:true}));
    const dd=bkDoc('<div class="cbk">'+sec.html+'</div>').firstElementChild;
    [...dd.children].forEach((el,i)=>cu.push(bkU('cb:'+sec.id+':'+i,'<div class="u cbk">'+el.outerHTML+'</div>',{w:BK_FULLW})));
-   left(s);row.items.push(['개념 '+sec.no,pages.length+1]);
-   bkPack(cu,1,BK_BODY).forEach(p=>{left(s);pages.push({k:'cn',kind:'c',sub:s,label:'개념 정리 · '+sec.title,cols:[p.cols[0].map(u=>u.html)]});pages.push(nt(s,'필기 · NOTE',O.nt,sec.title))});
-   if(O.nb!=='none')for(let k=0;k<O.nbn;k++){left(s);pages.push(nt(s,'개념 노트 · '+sec.no,O.nb,sec.no+' '+sec.title));pages.push(nt(s,'개념 노트 · '+sec.no,O.nb,sec.no+' '+sec.title))}});
-  /* ② 연습 */
-  const all=DATA.filter(q=>q.sub===s.k&&!q.mock);
-  const bank=all.filter(q=>q.set==='bank');
-  /* 기초 5지선다 : 소단원마다(출판사 문항 포함, 난이도 하) */
+   row.items.push(['개념 '+sec.no,pages.length+1]);
+   bkPack(cu,1,BK_BODY).forEach(p=>pages.push({k:'cn',kind:'c',sub:s,label:'개념 정리 · '+sec.title,cols:[p.cols[0].map(u=>u.html)]}));
+   if(O.nb!=='none')for(let k=0;k<O.nbn;k++){pages.push(nt(s,'개념 노트 · '+sec.no,O.nb,sec.no+' '+sec.title));pages.push(nt(s,'개념 노트 · '+sec.no,O.nb,sec.no+' '+sec.title))}});
+  /* ② 문제 재료 */
   const lows=all.filter(q=>q.set==='mc'&&bkLv(q)==='하'&&!q.grp);
   let basic=(S.basic[s.k]||[]).filter(q=>!q.grp);
   lows.forEach(q=>{if(basic.length<8&&!basic.includes(q))basic.push(q)});
@@ -493,74 +541,61 @@ function bkPlanMain(id){
   basic.sort((x,y)=>(x.no||0)-(y.no||0)||String(x.code).localeCompare(String(y.code)));
   const basicSet=new Set(basic.map(q=>q.code));
   const src=all.filter(q=>q.src&&(q.set==='mc'||q.set==='top')&&!basicSet.has(q.code)).sort((a,b)=>(a.no||0)-(b.no||0)||String(a.code).localeCompare(String(b.code)));
-  const sec_of=q=>(meta[q.type]||{}).sec,sty_of=q=>(meta[q.type]||{}).style;
-  const addAns=q=>{no++;nums.set(q.code,no);ansL.push(q);return no};
-  const qPages=(title,sub2,groups,label)=>{ // groups: [{t, qs}]  (t 가 있으면 유형 머리말)
-   const n=groups.reduce((a,g)=>a+g.qs.length,0);if(!n)return;
-   const lu=[];const us=[bkU('h:'+label+':'+s.k+':'+title,'<div class="u ct"><span>'+esc(title)+'</span><small>'+esc(sub2||s.k)+' · '+n+'문항</small></div>',{keep:true,brk:true})];
-   groups.forEach((g,gi)=>{if(g.t)us.push(bkU('th:'+s.k+':'+title+':'+gi,'<div class="th"><b>유형 '+String(gi+1).padStart(2,'0')+'</b><span>'+esc(g.t)+'</span></div>',{keep:true}));
-    g.qs.forEach(q=>{const nn=addAns(q);if(/class="bogi lp"/.test(q.q))lu.push(bkU('q:'+q.code+':hf',bkQHtml(bkStripPsg(q).q,nn,{lv:bkLv(q),code:1}),{code:q.code,w:BK_FULLW}));else us.push(bkU('q:'+q.code+':h',bkQHtml(bkStripPsg(q).q,nn,{lv:bkLv(q),code:1}),{code:q.code}))})});
-   if(us.length>1)bkPack(us,2,BK_BODY).forEach(p=>{pages.push({k:'pr',kind:'h',sub:s,label,...bkCI(p),codes:p.cols.flat().map(u=>u.code).filter(Boolean)});if(O.qn)pages.push(nt(s,'필기 · NOTE',O.nt,title))});
-   if(lu.length)bkPack([bkU('h:'+label+':'+s.k+':'+title+':L','<div class="u ct"><span>'+esc(title)+'</span><small>장문 지문 · '+lu.length+'문항</small></div>',{keep:true,w:BK_FULLW}),...lu],1,BK_BODY).forEach(p=>{pages.push({k:'cn',kind:'h',sub:s,label,cols:[p.cols[0].map(u=>u.html)],codes:p.cols[0].map(u=>u.code).filter(Boolean)});if(O.qn)pages.push(nt(s,'필기 · NOTE',O.nt,title))})};
-  if(basic.length)row.items.push(['기초 5지선다',pages.length+1]);
-  qPages('기초 5지선다',s.k+' '+s.name,[{t:null,qs:basic}],'기초 5지선다');
-  const ckPage=(title,secs2)=>{ // 개념 체크 : OX · 빈칸
-   const has=(q)=>!secs2||!secs2.length||secs2.includes(sec_of(q));
-   const oxP=all.filter(q=>q.set==='ox'&&has(q)).slice(0,60),blP=all.filter(q=>q.set==='blank'&&has(q)).slice(0,60);
-   const cols=[],codes=[];
-   [['ox','OX 확인',oxP,6],['bl','빈칸 채우기',blP,5]].forEach(([kd,nm,arr,cap])=>{
-    const sel=arr.filter(q=>!used.has('c'+q.code)).slice(0,cap),us=[];
-    if(sel.length){us.push(bkU('h:'+kd+':'+s.k+':'+title,'<div class="u ct"><span>'+nm+'</span><small>'+esc(title)+'</small></div>',{}));
-     let u2=us[0].h;const keep=[];
-     sel.forEach(q=>{const u=bkU('o:'+q.code+':'+kd,bkOxHtml(q,keep.length+1,kd),{code:q.code});if(u2+u.h>BK_BODY-6)return;u2+=u.h;keep.push(q);us.push(u);used.add('c'+q.code);codes.push(q.code)});
-     ckL.push({kd,nm,t:title,arr:keep})}
-    cols.push(us.map(u=>u.html))});
-   if(codes.length)pages.push({k:'pr',kind:'ox',sub:s,label:'개념 체크',cols,codes})};
-  const speech=BK_SPEECH.has(s.k);
-  /* 지문 세트 : 지문(왼쪽·필기 여백) → 원본 → 변형(평가원 난이도) → 변형(내신형) → 개념 체크 */
   const groups=new Map();src.filter(q=>q.grp).forEach(q=>{if(!groups.has(q.grp))groups.set(q.grp,[]);groups.get(q.grp).push(q)});
-  let gi=0;
-  groups.forEach((qs,g)=>{gi++;
-   const f=bkStripPsg(qs[0]);if(!f.psg)return;
-   const pu=[bkU('ps:'+g,'<div class="u ct"><span>지문 '+gi+'</span><small>'+esc(s.k)+' · '+esc(qs[0].src||'')+'</small></div>',{w:BK_FULLW,keep:true})];
-   [...bkDoc(f.psg).querySelector('.psg').children].forEach((el,i)=>pu.push(bkU('pp:'+g+':'+i,'<div class="u psgu'+(speech?' wd':'')+'"><div class="psg sp">'+el.outerHTML+'</div></div>',{w:BK_FULLW,keep:i===0})));
-   left(s);row.items.push(['지문 '+gi,pages.length+1]);
-   bkPack(pu,1,BK_BODY).forEach(p=>{left(s);pages.push({k:'cn',kind:'p',sub:s,label:'지문 '+gi,cols:[p.cols[0].map(u=>u.html)]});pages.push(nt(s,'필기 · NOTE',O.nt,'지문 '+gi))});
-   const types=[...new Set(qs.map(q=>q.type))],secs2=[...new Set(types.map(t=>(meta[t]||{}).sec).filter(Boolean))];
-   qPages('원본 문제 · 지문 '+gi,qs[0].src||'',[{t:null,qs}],'원본 문제');
-   const v1=pickVar(bank.filter(q=>types.includes(q.type)&&(bkLv(q)==='상'||bkLv(q)==='최')),O.vn+1,['상','최','상']);
-   qPages('변형 문제 · 평가원 난이도 · 지문 '+gi,'같은 유형 변형',[{t:null,qs:v1}],'변형 · 평가원');
-   const nsPool=bank.filter(q=>sty_of(q)==='내신'&&secs2.includes(sec_of(q)));
-   const v2=pickVar(nsPool.length?nsPool:bank.filter(q=>sty_of(q)==='내신'),O.vn,['중','상']);
-   qPages('변형 문제 · 내신형 · 지문 '+gi,'학교 시험 대비',[{t:null,qs:v2}],'변형 · 내신형');
-   ckPage('지문 '+gi+' 개념 체크',secs2)});
-  /* 지문 없는 원본 : 유형별로 원본 → 변형(평가원 난이도) → 변형(내신형) */
-  const loose=src.filter(q=>!q.grp||!groups.has(q.grp)||!bkStripPsg(groups.get(q.grp)[0]).psg);
-  const tmap=new Map();loose.forEach(q=>{if(!tmap.has(q.type))tmap.set(q.type,[]);tmap.get(q.type).push(q)});
-  const tl=[...tmap.keys()].sort((a,b)=>((meta[a]||{}).sec||0)-((meta[b]||{}).sec||0));
-  if(loose.length){left(s);row.items.push(['원본 문제',pages.length+1+(O.qn?0:0)]);
-   qPages('원본 문제',s.k+' '+s.name,tl.map(t=>({t,qs:tmap.get(t)})),'원본 문제');
-   const vg=tl.map(t=>({t,qs:pickVar(bank.filter(q=>q.type===t&&(bkLv(q)==='상'||bkLv(q)==='최')),O.vn,['상','최'])})).filter(g=>g.qs.length);
-   qPages('변형 문제 · 평가원 난이도',s.k+' '+s.name,vg,'변형 · 평가원');
-   const secsAll=[...new Set(tl.map(t=>(meta[t]||{}).sec).filter(Boolean))];
-   const ng=secsAll.map(sc2=>({t:'절 '+sc2+' 내신형',qs:pickVar(bank.filter(q=>sty_of(q)==='내신'&&sec_of(q)===sc2),O.vn,['중','상'])})).filter(g=>g.qs.length);
-   qPages('변형 문제 · 내신형',s.k+' '+s.name,ng,'변형 · 내신형');
-   ckPage('핵심 개념 체크',secsAll)}
-  else ckPage('핵심 개념 체크',null);
-  /* 최상위 · 융합 도전 */
-  const tops=pickVar(bank.filter(q=>bkLv(q)==='최'),2+O.vn*2,['최']);
-  qPages('최상위 · 융합 도전',s.k+' '+s.name,[{t:null,qs:tops}],'최상위 도전')});
+  const hasPsg=g=>!!bkStripPsg(groups.get(g)[0]).psg;
+  /* 화법편 : 지문(왼쪽) + 필기(오른쪽) → 이어지는 문제 */
+  if(speech){let gi=0;
+   groups.forEach((qs,g)=>{
+    const f=bkStripPsg(qs[0]);if(!f.psg)return;gi++;
+    const pu=[bkU('ps:'+g,'<div class="u ct"><span>지문 '+gi+'</span><small>'+esc(s.k)+' · '+esc(qs[0].src||'')+'</small></div>',{w:BK_FULLW,keep:true})];
+    [...bkDoc(f.psg).querySelector('.psg').children].forEach((el,i)=>pu.push(bkU('pp:'+g+':'+i,'<div class="u psgu wd"><div class="psg sp">'+el.outerHTML+'</div></div>',{w:BK_FULLW,keep:i===0})));
+    if(pages.length%2===0){ // 지문이 왼쪽 쪽에 오도록, 빈자리는 OX·빈칸 쪽으로 채운다
+     const fl=ckFor([],12).map(x=>x);const us=fl.map(it=>{const nn=addAns(it.q);return bkU('q:'+it.q.code+':o',bkOxHtml(it.q,nn,it.q.set==='ox'?'ox':'bl'),{code:/^KD-/.test(it.q.code)?undefined:it.q.code})});
+     if(us.length>=4)bkPack(us,2,BK_BODY).slice(0,1).forEach(p=>pages.push({k:'pr',kind:'h',sub:s,label:'OX · 빈칸',...bkCI(p),codes:codesOf(p)}));else pages.push(nt(s));
+     if(pages.length%2===0)pages.push(nt(s))}
+    row.items.push(['지문 '+gi,pages.length+1]);
+    bkPack(pu,1,BK_BODY).forEach(p=>{pages.push({k:'cn',kind:'p',sub:s,label:'지문 '+gi,cols:[p.cols[0].map(u=>u.html)]});pages.push(nt(s,'필기 · NOTE',O.nt,'지문 '+gi))});
+    const types=[...new Set(qs.map(q=>q.type))],secs2=[...new Set(types.map(t=>(meta[t]||{}).sec).filter(Boolean))].map(Number);
+    const v1=pickVar(bank.filter(q=>types.includes(q.type)&&(bkLv(q)==='상'||bkLv(q)==='최')),O.vn+1,['상','최','상']);
+    const nsPool=bank.filter(q=>sty_of(q)==='내신'&&secs2.includes(sec_of(q)));
+    const v2=pickVar(nsPool.length?nsPool:bank.filter(q=>sty_of(q)==='내신'),O.vn,['중','상']);
+    row.items.push(['지문 '+gi+' 문제',pages.length+1]);
+    stream([...ckFor(secs2,3+(gi%4),qs),...qs.map(q=>({q})),...v1.map(q=>({q})),...v2.map(q=>({q}))],'지문 '+gi+' 문제')})}
+  /* 절별 이어쓰기 : 개념 체크 → 기초 → 원본 → 변형 */
+  const restSrc=speech?src.filter(q=>!q.grp||!groups.has(q.grp)||!hasPsg(q.grp)):src;
+  const emitted=new Set(),items=[],secIds=secs.map(x=>+x.no);
+  secIds.forEach((n,si)=>{
+   const inSec=q=>(sec_of(q)||secIds[0])===n;
+   items.push(...ckFor([n],3+(si%4)));
+   basic.filter(inSec).forEach(q=>items.push({q}));
+   restSrc.filter(inSec).forEach(q=>{
+    if(q.grp&&groups.has(q.grp)&&!speech){
+     if(emitted.has(q.grp))return;emitted.add(q.grp);
+     const f=bkStripPsg(groups.get(q.grp)[0]);
+     if(f.psg)items.push({psg:[...bkDoc(f.psg).querySelector('.psg').children].map((el,i)=>bkU('pp:'+q.grp+':'+i,'<div class="u psgu"><div class="psg">'+el.outerHTML+'</div></div>',{keep:true}))});
+     groups.get(q.grp).forEach(x=>items.push({q:x}))}
+    else items.push({q})});
+   pickVar(bank.filter(q=>sec_of(q)===n&&(bkLv(q)==='상'||bkLv(q)==='최')&&sty_of(q)!=='내신'),O.vn,['상','최','상']).forEach(q=>items.push({q}));
+   pickVar(bank.filter(q=>sec_of(q)===n&&sty_of(q)==='내신'),O.vn,['중','상']).forEach(q=>items.push({q}))});
+  /* 앞 절에 못 들어간 기초 · 원본 */
+  basic.filter(q=>!items.some(i=>i.q===q)).forEach(q=>items.push({q}));
+  restSrc.filter(q=>!items.some(i=>i.q===q)&&!(q.grp&&emitted.has(q.grp))).forEach(q=>items.push({q}));
+  pickVar(bank.filter(q=>bkLv(q)==='최'),2+O.vn*2,['최']).forEach(q=>items.push({q}));
+  row.items.push(['문제',pages.length+1]);
+  stream(items,'문제 · '+s.k,'문제')});
  /* 정답 · 해설 */
  const au=[];
- bkMainSubs(S,PART).forEach(s=>{const L=ansBy.get(s.k)||[],K=ckBy.get(s.k)||[];if(!L.length&&!K.length)return;
+ bkMainSubs(S,PART).forEach(s=>{const L=ansBy.get(s.k)||[];if(!L.length)return;
   au.push(bkU('as:'+s.k+':h','<div class="u ct"><span>'+esc(s.k)+' '+esc(s.name)+'</span></div>',{keep:true}));
-  K.forEach((o,i)=>au.push(bkU('ak:'+o.kd+':'+s.k+':'+i,'<div class="u k"><div class="ct sm"><span>'+o.nm+' 정답 · '+esc(o.t)+'</span></div><div class="kg '+(o.kd==='ox'?'':'w2')+'">'+o.arr.map((q,j)=>'<div><b>'+(j+1)+'</b><span>'+(o.kd==='ox'?bkAnsOf(q):esc((q.blanks||[]).join(' / ')))+'</span></div>').join('')+'</div></div>',{})));
-  if(L.length){au.push(bkU('akq:'+s.k+':h','<div class="u k"><div class="ct sm"><span>빠른 정답</span></div><div class="kg">'+L.map(q=>'<div><b>'+nums.get(q.code)+'</b><span>'+bkCir(q.ans)+'</span></div>').join('')+'</div></div>',{}));
-   L.forEach(q=>au.push(bkU('x:'+q.code,bkXHtml(q,nums.get(q.code)),{})))}});
+  const M=L.filter(q=>!isTF(q)),T=L.filter(isTF);
+  if(M.length)au.push(bkU('akq:'+s.k+':h','<div class="u k"><div class="ct sm"><span>빠른 정답 · 5지선다</span></div><div class="kg">'+M.map(q=>'<div><b>'+nums.get(q.code)+'</b><span>'+bkCir(q.ans)+'</span></div>').join('')+'</div></div>',{}));
+  if(T.length)au.push(bkU('akt:'+s.k+':h','<div class="u k"><div class="ct sm"><span>빠른 정답 · OX · 빈칸</span></div><div class="kg w2">'+T.map(q=>'<div><b>'+nums.get(q.code)+'</b><span>'+(q.set==='ox'?bkAnsOf(q):esc((q.blanks||[]).join(' / ')))+'</span></div>').join('')+'</div></div>',{}));
+  L.forEach(q=>au.push(bkU('x:'+q.code,bkXHtml(q,nums.get(q.code)),{})))});
  const aStart=pages.length+1;
  bkPack(au,2,BK_BODY).forEach(p=>pages.push({k:'ak',kind:'a',label:'정답 · 해설',...bkCI(p)}));
- const how='① <b>왼쪽 쪽은 본문, 오른쪽 쪽은 필기 공간</b>이다. 설명을 읽으며 오른쪽에 직접 정리한다.<br>② 개념마다 뒤에 <b>노트 쪽</b>(줄 노트·모눈 노트)이 있어 예시와 풀이를 스스로 적어 본다.<br>③ 지문은 필기하기 좋게 <b>자간과 줄 간격을 넓혔다.</b> 밑줄과 메모를 마음껏 한다.<br>④ 지문 뒤의 순서: <b>원본 문제 → 변형(평가원 난이도) → 변형(내신형) → 개념 체크</b>.<br>⑤ 문제 쪽 아래 <b>QR</b>을 스캔하면 그 쪽을 바로 채점한다.';
- const nm=PART==='s'?'주교재 화법편':PART==='g'?'주교재 문법편':PART==='o'?'주교재 맞춤법·종합편':'주교재';
+ const sp=PART==='s'||PART==='c'||!PART;
+ const how=(sp?'① <b>화법 지문은 왼쪽 쪽에, 오른쪽 쪽은 필기 공간</b>이다. 지문은 자간과 줄 간격을 넓혀 밑줄과 메모를 마음껏 할 수 있다.<br>':'')+'② 개념 정리 쪽에는 필기 쪽을 두지 않았다.<br>③ 문제는 5지선다·OX·빈칸을 <b>구분 없이 번호 하나로 이어서</b> 2단으로 실었다. 지문이나 절마다 OX·빈칸이 3~6문항씩 딸려 있다.<br>④ 문제 쪽 아래 <b>QR</b>을 스캔하면 그 쪽을 바로 채점한다.';
+ const nm=PART==='s'?'주교재 화법편 ①':PART==='c'?'주교재 화법편 ②':PART==='g'?'주교재 문법편':PART==='o'?'주교재 맞춤법·종합편':'주교재';
  return {kind:'h',title:SNAME[SUBJ]+' '+nm,short:nm,pages,toc,aStart,sel:S,total:no,how}}
 
 /* ---------- 내 교재 : 직접 만든 책 · 전범위 모의고사 ---------- */
@@ -599,7 +634,7 @@ function bkPid(id){const g=BKO.gap||0;return bkBare(id)+(g?'~g'+g:'')}
 function bkParts(id){const gap=bkGapOf(id);id=bkBare(id);
  const mf=String(id).match(/^(me|cm|ph|hl)-xf([0-9a-z._]+)$/);
  if(mf){const d=bkfParse(mf[2]);if(!d)return null;const rec=bkxAll().find(b=>b.id===id);d.name=rec?rec.name:'맞춤 교재';d.subt=rec?rec.sub:'';d.base=id;d.dz=rec?{color:rec.color||'',cover:rec.cover|0,noqr:rec.noqr?1:0,font:rec.font||'',lf:rec.lf||'solvi',lfp:rec.lfp||'br',lb:rec.lb||'solvi',lbp:rec.lbp||'bc',back:rec.back?1:0,cx:rec.cx||null}:{color:'',cover:0,noqr:0,font:'',lf:'solvi',lfp:'br',lb:'solvi',lbp:'bc',back:0,cx:null};return {subj:mf[1],kind:'x',def:d,gap}}
- const m=String(id).match(/^(me|cm|ph|hl)-(c|t|h[sgo]?|x(?:b([0-9a-z]+)(?:-([\d.]+))?(?:_(?:l([0-9a-f]))?(?:n(\d+))?)?|e(\d+)(?:l([0-9a-f]))?(?:s([\d.]+))?(?:r(\d+))?))$/);if(!m)return null;
+ const m=String(id).match(/^(me|cm|ph|hl)-(c|t|h[sgoc]?|x(?:b([0-9a-z]+)(?:-([\d.]+))?(?:_(?:l([0-9a-f]))?(?:n(\d+))?)?|e(\d+)(?:l([0-9a-f]))?(?:s([\d.]+))?(?:r(\d+))?))$/);if(!m)return null;
  if(m[2]==='c'||m[2]==='t')return {subj:m[1],kind:m[2],gap};
  if(m[2][0]==='h')return {subj:m[1],kind:'h',part:m[2][1]||'',gap};
  const d=bkxDefOf(m[7]!=null?[0,0,0,0,m[7],m[10],m[8],0,m[9]]:[0,0,m[3],m[4],undefined,0,m[5],m[6]]);
@@ -906,10 +941,11 @@ function bkPageHtml0(plan,i){
   return '<div class="bp mk'+(BKO.design==='color'?' cl':'')+'"'+V+'>'+h2+info+'<div class="'+(p.first?'bd wi':'bd')+'"><div class="cols">'+p.cols.map((c,ci)=>'<div class="col"'+(p.gaps&&p.gaps[ci]?' style="--g:'+p.gaps[ci]+'mm"':'')+'>'+c.join('')+'</div>').join('')+'</div></div>'+
    bkFt(plan,p,{left:'Solvi · '+plan.title,pn:p.idx,right:'※ 제시된 시간 안에 풀고 답을 점검하시오.'})+'</div>'}
  // pr, es, ak
- return '<div class="bp bk"'+V+'>'+bkHd2(plan,p)+'<div class="bd"><div class="cols">'+p.cols.map((c,ci)=>'<div class="col"'+(p.gaps&&p.gaps[ci]?' style="--g:'+p.gaps[ci]+'mm"':'')+'>'+c.join('')+'</div>').join('')+'</div></div>'+bkFb(plan,p)+'</div>'}
+ const tp=p.top&&p.top.length?'<div class="tp">'+p.top.join('')+'</div>':'';
+ return '<div class="bp bk"'+V+'>'+bkHd2(plan,p)+'<div class="bd'+(tp?' tpx':'')+'">'+tp+'<div class="cols">'+p.cols.map((c,ci)=>'<div class="col"'+(p.gaps&&p.gaps[ci]?' style="--g:'+p.gaps[ci]+'mm"':'')+'>'+c.join('')+'</div>').join('')+'</div></div>'+bkFb(plan,p)+'</div>'}
 
 /* ---------- 채점 · 경로 ---------- */
-function bkPageNums(p){const o={};(p.cols||[]).forEach(c=>c.forEach(h=>{const m=String(h).match(/data-c="([^"]+)"/);if(!m)return;const n=String(h).match(/class="no">(\d+)</)||String(h).match(/class="nc"><b>(\d+)<\/b>/);if(n)o[m[1]]=+n[1]}));return o}
+function bkPageNums(p){const o={};((p.cols||[]).concat(p.top&&p.top.length?[p.top]:[])).forEach(c=>c.forEach(h=>{const m=String(h).match(/data-c="([^"]+)"/);if(!m)return;const n=String(h).match(/class="no">(\d+)</)||String(h).match(/class="nc"><b>(\d+)<\/b>/);if(n)o[m[1]]=+n[1]}));return o}
 async function bkSolve(id,n){await bkInit();const P=bkParts(id);if(!P)return;if(P.subj!==SUBJ)await setSubject(P.subj);await conceptLoad();const plan=await bkPlan(id);if(!plan)return;
  let codes=[];if(!n){codes=plan.M?plan.M.codes.slice():[]}else{const p=plan.pages.find(x=>x.n===+n);codes=(p&&p.codes)||[]}
  if(!codes.length){toast('p.'+n+'에는 풀 문제가 없어요');return}
@@ -933,7 +969,7 @@ async function bkGradeAll(id){
  const key=id+':all',bk={page:key,bk:id,n:0,all:1,label:plan.short+' 전체',nums:Object.fromEntries(plan.M.codes.map((c,i)=>[c,i+1]))};
  {const lk=recLock('book',key);if(lk&&lk.items){showLockedRec(lk,{book:bk});return}}
  newCur(qs,{book:bk})}
-function bkRouteStr(s){const m=String(s).match(/^((?:me|cm|ph|hl)-(?:c|t|h[sgo]?|x[0-9a-z._\-]+)(?:~g[1-3])?):(\d+|all)$/);if(!m)return;return m[2]==='all'?bkGradeAll(m[1]):bkGradePage(m[1],+m[2])}
+function bkRouteStr(s){const m=String(s).match(/^((?:me|cm|ph|hl)-(?:c|t|h[sgoc]?|x[0-9a-z._\-]+)(?:~g[1-3])?):(\d+|all)$/);if(!m)return;return m[2]==='all'?bkGradeAll(m[1]):bkGradePage(m[1],+m[2])}
 function bkNextHtml(){const b=cur&&cur.book;if(!b||!b.bk||b.all)return '';const plan=BKP[b.bk];if(!plan)return '';
  const nx=plan.pages.find(p=>p.n>b.n&&p.codes&&p.codes.length);
  return nx?'<div class="hint" style="margin:10px 0">'+esc(plan.short)+' p.'+b.n+' 채점을 마쳤습니다. 다음 문제 쪽(<b>p.'+nx.n+'</b>)도 이어서 채점할까요? <button class="p" style="margin-left:8px" onclick="bkGradePage(\''+b.bk+'\','+nx.n+')">p.'+nx.n+' 채점하기</button></div>':''}
@@ -947,7 +983,7 @@ function bkBookList(){const S=bkSel();const sk=bkScope(S).map(s=>s.k),inS=k=>sk.
  const L=nd?[]:[
  {id:SUBJ+'-c',name:'개념서',sub:'개념 정리 · OX · 빈칸 · 기초 5지선다'+rg,meta:'OX '+sm(S.ox)+' · 빈칸 '+sm(S.bl)+' · 기초 '+sm(S.basic)+'문항'},
  {id:SUBJ+'-t',name:'유형서',sub:'소단원 → 유형 → 난이도별 문제 (N제)'+rg,meta:'객관식·단답형 '+S.type.filter(q=>inS(q.sub)).length+' · 서술형 '+S.essay.filter(q=>inS(q.sub)).length+'문항'}];
-  if(SUBJ==='hl')L.unshift({id:'hl-hs',name:'주교재 화법편 (필기용)',sub:'발표 · 토의 · 토론 · 대화 · 협상 · 면담 · 매체',meta:'왼쪽 본문 · 오른쪽 필기 · 지문 뒤 원본 → 변형 → 내신형 → 개념 체크'},{id:'hl-hg',name:'주교재 문법편 (필기용)',sub:'문장 성분 · 문법 요소 · 단어의 관계 · 중세 국어',meta:'왼쪽 본문 · 오른쪽 필기 · 개념마다 노트 쪽 · 기초 5지선다 · 최상위 도전'},{id:'hl-ho',name:'주교재 맞춤법·종합편 (필기용)',sub:'한글 맞춤법 · 띄어쓰기 · 단원 종합',meta:'왼쪽 본문 · 오른쪽 필기 · 개념마다 노트 쪽 · 기초 5지선다 · 최상위 도전'});
+  if(SUBJ==='hl')L.unshift({id:'hl-hs',name:'주교재 화법편 ① (필기용)',sub:'발표 · 토의 · 토론',meta:'지문 왼쪽 · 필기 오른쪽 · 문제는 이어서 2단 · OX·빈칸 3~6문항'},{id:'hl-hc',name:'주교재 화법편 ② (필기용)',sub:'대화 · 협상 · 면담 · 매체',meta:'지문 왼쪽 · 필기 오른쪽 · 문제는 이어서 2단 · OX·빈칸 3~6문항'},{id:'hl-hg',name:'주교재 문법편',sub:'문장 성분 · 문법 요소 · 단어의 관계 · 중세 국어',meta:'개념 정리 · 문제만 2단으로 이어서 · OX·빈칸 포함'},{id:'hl-ho',name:'주교재 맞춤법·종합편',sub:'한글 맞춤법 · 띄어쓰기 · 단원 종합',meta:'개념 정리 · 문제만 2단으로 이어서 · OX·빈칸 포함'});
  bkxAll().filter(b=>b.subj===SUBJ).forEach(b=>L.push({id:b.id,name:b.name,sub:b.sub||BKK[b.kind==='full'?'full':'std'][0],meta:b.asg?'선생님이 배포한 교재'+(b.due?' · 마감 '+b.due:''):b.kind==='full'?'전범위 · '+(b.rounds||20)+'회분':'내가 만든 교재',custom:1,asg:!!b.asg,full:b.kind==='full'}));
  return L}
 async function bkShow(){
@@ -1391,7 +1427,7 @@ async function bkMeasureAsync(html,w,cls){const p=bkProbe();p.innerHTML='<div cl
  await Promise.all([...p.querySelectorAll('img')].map(i=>i.complete&&i.naturalWidth?1:new Promise(r=>{i.onload=i.onerror=()=>r();setTimeout(r,30000)})));
  return Math.ceil(p.firstChild.getBoundingClientRect().height/BK_MM*10)/10}
 async function bkMeasureAll(){
- await bkInit();BKHT={};const subj=SUBJ;const ids=[subj+'-c',subj+'-t'].concat(subj==='hl'?['hl-hs','hl-hg','hl-ho']:[]);
+ await bkInit();BKHT={};const subj=SUBJ;const ids=[subj+'-c',subj+'-t'].concat(subj==='hl'?['hl-hs','hl-hc','hl-hg','hl-ho']:[]);
  for(let pass=0;pass<8;pass++){
   delete BKSELC[subj];ids.forEach(id=>delete BKP[id]);
   BKREC=[];for(const id of ids)await bkPlan(id);
