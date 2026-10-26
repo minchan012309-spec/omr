@@ -212,7 +212,7 @@ def g019(r, k):
     turns = neg_turns(ng)
     descs = {i: NF[i][0] for i in NF}
     q = {'one': '㉠에서 협상 참여자가 한 말하기로 가장 적절한 것은?', 'not5': '협상 참여자의 발화 ㉠~㉤에 대한 설명으로 적절하지 않은 것은?', 'ok5': '협상 참여자의 발화 ㉠~㉤에 대한 설명으로 적절한 것은?'}[mode]
-    return _lab(r, turns, descs, intro='다음은 %s과(와) %s의 %s 사용에 관한 협상의 일부이다. %s' % (ng['a'], ng['b'], ng['thing'], q), mode=mode, conf=CONF19,
+    return _lab(r, turns, descs, intro='다음은 %s과(와) %s의 %s 사용에 관한 협상이다. %s' % (ng['a'], ng['b'], ng['thing'], q), mode=mode, conf=CONF19,
                 extra=NEG_EXTRA, ref=[2],
                 core='협상 발화의 기능: 요구 · 이유 제시 · 이해 · 맞섬 · 절충안 · 조건부 수용 · 합의 확인', lv=lv, fam='A' + mode, title='협상')
 
@@ -251,7 +251,7 @@ def g020(r, k):
             i = r.choice(list(STAGE_OF)); st = STAGE_OF[i]
             who = ng['a'] if NF[i][1] == 'A' else ng['b']
             line = josa(NF[i][2].format(**ng))
-        body = P('다음은 협상 장면의 일부이다. 밑줄 친 발화가 해당하는 협상의 단계로 가장 적절한 것은?') + DLG([(who, U(line))], title='%s과(와) %s의 협상' % (ng['a'], ng['b']))
+        body = P('다음은 협상 장면이다. 밑줄 친 발화가 해당하는 협상의 단계로 가장 적절한 것은?') + DLG([(who, U(line))], title='%s과(와) %s의 협상' % (ng['a'], ng['b']))
         return mc(josa(body), st, [s for s, _ in STG if s != st], steps=['"%s"은(는) %s 단계의 발화이다.' % (line, st), '협상의 단계: 준비 → 입장 제시 → 쟁점 조정 → 합의 확인 → 이행 점검'], core='협상의 단계', lv='중', fam='A', r=r, ref=[2], vertical=False)
     if c == 3:
         right = r.choice(STRAT_OK); ws = r.sample(STRAT_BAD, 4)
@@ -374,7 +374,7 @@ def g021(r, k):
             turns.append((it_['job'], josa(IANS[i].format(**it_)), None))
     q = {'one': '㉠에 나타난 면담 전략으로 가장 적절한 것은?', 'not5': '학생의 말 ㉠~㉤에 대한 설명으로 적절하지 않은 것은?', 'ok5': '학생의 말 ㉠~㉤에 대한 설명으로 적절한 것은?'}[mode]
     descs = {i: IQ[i][0] for i in IQ}
-    return _lab(r, turns, descs, intro='다음은 학생이 %s을(를) 면담한 내용의 일부이다. %s' % (it_['job'], q), mode=mode, conf=CONF21, subject='말',
+    return _lab(r, turns, descs, intro='다음은 학생이 %s을(를) 면담한 내용이다. %s' % (it_['job'], q), mode=mode, conf=CONF21, subject='말',
                 extra=['면담 대상자의 답변을 반박하며 자신의 의견을 길게 주장하고 있다.', '면담 주제와 관련 없는 개인적인 화제로 분위기를 바꾸고 있다.', '면담 대상자의 답변을 듣지 않고 준비한 질문만 이어 가고 있다.', '면담 대상자의 개인적인 사정을 캐묻고 있다.'],
                 ref=[3], core='면담의 질문 전략: 개방형 · 폐쇄형 · 꼬리 질문 · 내용 확인 · 마무리', lv=lv, fam='A' + mode, title='면담')
 
@@ -421,7 +421,7 @@ def g022(r, k):
             turns.append((None, ff(ART[i][1], tp, sj=sj, ej=ej), i))
         q = {'one': '㉠에 반영된 기사 작성의 고려 내용으로 가장 적절한 것은?', 'not5': '기사 작성 시 고려한 내용으로 ㉠~㉤에 대한 설명 중 적절하지 않은 것은?', 'ok5': '기사 작성 시 고려한 내용으로 ㉠~㉤에 대한 설명 중 적절한 것은?'}[mode]
         descs = {i: ART[i][0] for i in ART}
-        return _lab(r, turns, descs, intro='다음은 학교 신문 기사의 일부이다. ' + q, mode=mode, conf=CONF22, subject='문장',
+        return _lab(r, turns, descs, intro='다음은 학교 신문 기사이다. ' + q, mode=mode, conf=CONF22, subject='문장',
                     extra=['필자의 개인적인 감정을 드러내어 독자의 공감을 유도하고 있다.', '출처를 밝히지 않고 소문을 사실처럼 전달하고 있다.', '독자의 질문에 답하는 형식으로 내용을 전개하고 있다.', '비유적인 표현으로 독자에게 행동을 직접 요구하고 있다.'],
                     ref=[3], core='기사문: 제목 · 핵심 내용 앞세우기 · 조사 결과 · 인용 · 사례 · 후속 계획', lv=lv, fam='A' + mode, title='기사')
     m, d = r.choice(MEDIA)

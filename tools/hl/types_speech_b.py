@@ -32,7 +32,7 @@ def g008(r, k):
     p_ids = r.sample(list(P_ACT), r.choice([3, 4]))
     turns = _disc_turns(r, tp, mc_ids, p_ids, 'mc')
     descs = {i: MC_F[i][0] for i in MC_F}
-    it = lab_item(r, turns, {i: d for i, d in descs.items() if i in mc_ids}, intro='다음은 토의의 일부이다. %s' % {'one': '㉠에서 사회자의 말하기 방식으로 가장 적절한 것은?', 'not5': '사회자의 발화 ㉠~㉤에 대한 설명으로 적절하지 않은 것은?', 'ok5': '사회자의 발화 ㉠~㉤에 대한 설명으로 적절한 것은?'}[mode],
+    it = lab_item(r, turns, {i: d for i, d in descs.items() if i in mc_ids}, intro='다음은 학생 토의이다. %s' % {'one': '㉠에서 사회자의 말하기 방식으로 가장 적절한 것은?', 'not5': '사회자의 발화 ㉠~㉤에 대한 설명으로 적절하지 않은 것은?', 'ok5': '사회자의 발화 ㉠~㉤에 대한 설명으로 적절한 것은?'}[mode],
                   mode=mode, extra=[MC_NEVER] + [descs[i] for i in descs if i not in mc_ids], ref=[1], core='토의 사회자의 역할: 주제 제시 · 의견 정리 · 발언 기회 분배 · 개념 확인 · 시간 안내', lv=lv, fam='A' + mode, title='토의')
     if it is None: return None
     return it
@@ -55,7 +55,7 @@ def g009(r, k):
     descs = {i: P_ACT[i][0] for i in P_ACT}
     # 참여자 발화 가운데 같은 기능이 거듭되지 않도록 5개를 고르므로 id 별 첫 발화만 표시된다
     q = {'one': '㉠에 나타난 참여자의 말하기 방식으로 가장 적절한 것은?', 'not5': '토의 참여자의 발화 ㉠~㉤에 대한 설명으로 적절하지 않은 것은?', 'ok5': '토의 참여자의 발화 ㉠~㉤에 대한 설명으로 적절한 것은?'}[mode]
-    return lab_item(r, turns, {i: descs[i] for i in p_ids}, intro='다음은 토의의 일부이다. ' + q, mode=mode,
+    return lab_item(r, turns, {i: descs[i] for i in p_ids}, intro='다음은 학생 토의이다. ' + q, mode=mode,
                     extra=['앞선 발언자의 의견을 그대로 반복하며 지지하고 있다.', '토의 주제와 무관한 사례를 들어 화제를 전환하고 있다.'] + [descs[i] for i in descs if i not in p_ids],
                     ref=[1], core='토의 참여자의 발언 방식: 제안 · 보완 · 한계 지적 · 공감 · 평가 · 질문', lv=lv, fam='B' + mode, title='토의')
 
@@ -77,7 +77,7 @@ def g010(r, k):
         i = r.randrange(5)
         line = ff(STAGES[i][1], tp)
         pre = r.choice([ff('오늘의 주제는 \'{theme}\'입니다.', tp), ff('{n}에 대해 이야기하겠습니다.', tp)])
-        body = P('다음은 토의의 일부이다. 밑줄 친 발화가 속하는 토의 단계로 가장 적절한 것은?') + DLG([('사회자', pre), ('사회자', U(line))])
+        body = P('다음은 학생 토의이다. 밑줄 친 발화가 속하는 토의 단계로 가장 적절한 것은?') + DLG([('사회자', pre), ('사회자', U(line))])
         return mc(body, STAGES[i][0], [s[0] for j, s in enumerate(STAGES) if j != i],
                   steps=['"%s"은(는) %s 단계의 발화이다.' % (line, STAGES[i][0])] + ['토의 절차: 문제 확인 → 원인 분석 → 해결 방안 모색 → 해결 방안 평가·선택 → 실행 계획 수립'], core='토의의 절차', lv=r.choice(['하', '중']), fam='A', r=r, ref=[1], vertical=False)
     if c == 3:
@@ -148,7 +148,7 @@ def g012(r, k):
     descs = {key: cx_desc(key, opp) for key in keys}
     mode, lv = _mode_lv(r)
     q = {'one': '㉠에 나타난 질문의 의도로 가장 적절한 것은?', 'not5': '반대 신문 ㉠~㉤에 대한 설명으로 적절하지 않은 것은?', 'ok5': '반대 신문 ㉠~㉤에 대한 설명으로 적절한 것은?'}[mode]
-    return lab_item(r, turns, descs, intro='다음은 토론의 입론과 반대 신문의 일부이다. ' + q, mode=mode, extra=[
+    return lab_item(r, turns, descs, intro='다음은 토론의 입론과 반대 신문이다. ' + q, mode=mode, extra=[
         '%s이(가) 앞서 진술한 내용을 철회하도록 요구하고 있다.' % opp, '자신의 주장을 새로운 근거로 입증하고 있다.', '토론의 논제를 다른 논제로 바꾸자고 제안하고 있다.'], ref=[3], core='반대 신문: 상대 발언을 확인한 뒤 근거의 신뢰성 · 적용 가능성 · 문제점을 질문으로 드러낸다', lv=lv, fam='D' + mode, title='토론')
 
 
@@ -169,9 +169,9 @@ def g013(r, k):
     if c <= 4:
         claim, reason = tp['pro_claim'], tp['pro_reason']
         cr = tp['con_reason']
-        body = P('다음은 토론의 일부이다. 반대 측의 반박으로 가장 적절한 것은?') + DLG([('찬성 측', josa(ff('{pc}. {pr}입니다.', tp))), ('반대 측', '(반박)')])
+        body = P('다음은 학생 토론이다. 반대 측의 반박으로 가장 적절한 것은?') + DLG([('찬성 측', josa(ff('{pc}. {pr}입니다.', tp))), ('반대 측', '(반박)')])
         assert tp['con_reason'].endswith('때문')
-        right = josa('찬성 측은 \'%s\'고 하셨지만, %s에 \'%s\'는 점도 함께 살펴보아야 합니다.' % (claim, tp['con_reason'] + '에', tp['con_claim']))
+        right = josa('찬성 측은 \'%s\'고 하셨지만, %s에 \'%s\'는 점도 함께 살펴보아야 합니다.' % (claim, tp['con_reason'], tp['con_claim']))
         ws = ['찬성 측 토론자는 평소 약속을 잘 지키지 않으므로 그 주장을 신뢰할 수 없습니다.', '많은 사람이 찬성 측과 같이 생각하므로 그 주장은 옳다고 보아야 합니다.', '지금까지 말씀하신 내용을 모두 인정하며, 우리 측 입장을 철회하겠습니다.', '그 문제와 관계없이, 다른 학교에서도 논란이 있었다는 점을 말씀드립니다.']
         return mc(body.replace('(반박)', '(    )'), right, ws, steps=['반박은 상대 주장의 문제점을 논거로 지적해야 한다.', '인신공격 · 대중 호소 · 입장 철회 · 화제 전환은 반박이 아니다.'], core='반박: 상대 주장의 근거나 결과를 논리적으로 따진다', lv='중', fam='B', r=r, ref=[3], vertical=True)
     xs = r.sample(S2.TF_DISC, 3)
@@ -250,4 +250,4 @@ def g016(r, k):
         turns.append(('반대 측', josa(t), i))
     descs = {i: REB[i][0] for i in ids}
     q = {'one': '㉠에서 반대 측이 자료를 활용한 방식으로 가장 적절한 것은?', 'not5': '반대 측의 반박 ㉠~㉤에 대한 설명으로 적절하지 않은 것은?', 'ok5': '반대 측의 반박 ㉠~㉤에 대한 설명으로 적절한 것은?'}[mode]
-    return lab_item(r, turns, descs, intro='다음은 토론의 일부이다. ' + q, mode=mode, extra=['상대가 제시한 자료의 출처를 밝히지 않았다고 비판하고 있다.', '자신의 입장을 철회하고 상대의 자료를 수용하고 있다.', '자료를 인용하지 않고 자신의 경험만으로 주장을 펴고 있다.'], ref=[3], core='자료 활용과 반박: 대표성 · 해석 · 관련성 · 다른 자료 · 재반박', lv=lv, fam='E' + mode, title='토론')
+    return lab_item(r, turns, descs, intro='다음은 학생 토론이다. ' + q, mode=mode, extra=['상대가 제시한 자료의 출처를 밝히지 않았다고 비판하고 있다.', '자신의 입장을 철회하고 상대의 자료를 수용하고 있다.', '자료를 인용하지 않고 자신의 경험만으로 주장을 펴고 있다.'], ref=[3], core='자료 활용과 반박: 대표성 · 해석 · 관련성 · 다른 자료 · 재반박', lv=lv, fam='E' + mode, title='토론')

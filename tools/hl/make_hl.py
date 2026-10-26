@@ -131,11 +131,25 @@ def book_items(bank_sigs, n_basic=8, n_std=14, n_top=14):
 
 
 # ------------------------------------------------------------ 자료(src_*.py) 문항
+SOUND = re.compile(r'발음|음운|반모음|경음화|비음화|구개음화|자음군|끝소리|음절|된소리|모음 조화|동화')
+
+
+def fix_ref(d):
+    """수능특강(EL) 문항은 만든 쪽이 쓴 '다시 공부할 절' 번호가 개념서 절 번호와 어긋나 있어, 유형이 가리키는 절로 되돌린다.
+    음운 변동·발음 문항은 개념서에 전용 절이 없어 '소리에 관한 것(Ⅲ-A 2)'로 잇는다."""
+    if not d['code'].startswith('EL'): return d
+    d = dict(d)
+    d.pop('ref', None)
+    if d['sub'] == 'Ⅲ-A' and d['type'] in ('한글 맞춤법 조항의 적용',) and SOUND.search(plain(d['body']) + ' ' + (d.get('core') or '')):
+        d['ref'] = [2]
+    return d
+
+
 def source_items():
     out, seq = [], collections.Counter()
     import glob as _g
     ebs = sorted(os.path.basename(f)[:-3] for f in _g.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src_ebs_*.py')))
-    for name in ('src_mock', 'src_nn1', 'src_nn2', 'src_nn3', 'src_school', 'src_extra', *ebs):
+    for name in ('src_mock', 'src_nn1', 'src_nn2', 'src_nn3', 'src_school', 'src_extra', 'src_set', *ebs):
         m = optional(name)
         if not m: continue
         for d in m.ITEMS:
@@ -144,6 +158,7 @@ def source_items():
                 print('  (경고) 유형 없음:', d['code'], d['type']); continue
             seq[d['code'][:3]] += 1
             no = d.get('no') or int(re.sub(r'\D', '', d['code'].split('-')[-1]) or 0)
+            d = fix_ref(d)
             q, e = srclib.render_src(d, no, d.get('pts', {'하': 2, '중': 3, '상': 4, '최': 4}.get(d['lv'], 3)))
             out.append({'code': d['code'], 'no': no, 'set': d.get('set', 'mc'), 'sub': d['sub'], 'subname': SUBS[d['sub']]['name'], 'type': ty['label'], 'ans': str(d['ans']), 'lv': d['lv'],
                         'fam': 'src' + d['code'], 'q': q, 'exp': e, 'src': d['src'], **({'grp': d['grp']} if d.get('grp') else {})})

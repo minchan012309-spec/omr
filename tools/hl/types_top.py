@@ -229,8 +229,7 @@ ANS = {
  'case': '학교의 규모와 여건이 비슷해 우리 학교에도 적용할 수 있습니다.',
  'def': '여기서는 학생이 직접 참여하는 범위로 한정해서 말씀드린 것입니다.',
 }
-@T('hl112')
-def g112(r, k):
+def _debate(r):
     tp = r.choice(S.TOPICS)
     descs = {}; paras = []; speakers = []
     sides = [('pro', '찬성 측'), ('con', '반대 측')]
@@ -262,7 +261,12 @@ def g112(r, k):
     paras.append(rb); speakers.append('반대 측 반박')
     # 설명이 같은 기능이 서로 다른 측에서 겹치지 않도록 이미 측별 문구에 반영돼 있다
     ids = [i for p in paras for _, i in p if i]
-    return long_q(r, paras, ids, descs, IN_GENERIC, '다음은 토론의 일부이다.', core='입론 · 반대 신문 · 반박의 기능', ref=[3], fam='D', speakers=speakers)
+    return tp, paras, ids, descs, speakers
+
+@T('hl112')
+def g112(r, k):
+    tp, paras, ids, descs, speakers = _debate(r)
+    return long_q(r, paras, ids, descs, IN_GENERIC, '다음은 토론이다.', core='입론 · 반대 신문 · 반박의 기능', ref=[3], fam='D', speakers=speakers)
 
 
 # ============================================================ hl113 장문 협상
@@ -277,8 +281,7 @@ FIL = {
  'confirm': [],
 }
 NEG_ASK = ('상대에게 원하는 바와 사정을 물어 협상의 방향을 잡고 있다.', 'B', '먼저 {a}은(는) {thing}을(를) 어떻게 쓰고 싶으신지 말씀해 주시겠습니까?')
-@T('hl113')
-def g113(r, k):
+def _nego(r):
     ng = r.choice(SC.NEG)
     descs = {i: SC.NF[i][0] for i in SC.NF}; descs['ask'] = NEG_ASK[0]
     paras = []; speakers = []
@@ -293,9 +296,13 @@ def g113(r, k):
             paras[-1].extend(sents)
         else:
             paras.append(sents); speakers.append(who)
-    ids = order
+    return ng, paras, order, descs, speakers
+
+@T('hl113')
+def g113(r, k):
+    ng, paras, ids, descs, speakers = _nego(r)
     return long_q(r, paras, ids, descs, SC.NEG_EXTRA,
-                  josa('다음은 %s과(와) %s의 %s 사용에 관한 협상의 일부이다.' % (ng['a'], ng['b'], ng['thing'])), core='협상 발화의 기능', ref=[2], fam='N', speakers=speakers,
+                  josa('다음은 %s과(와) %s의 %s 사용에 관한 협상이다.' % (ng['a'], ng['b'], ng['thing'])), core='협상 발화의 기능', ref=[2], fam='N', speakers=speakers,
                   modes=('one', 'not5', 'ok5', 'ok5', 'not5'))
 
 

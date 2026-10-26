@@ -15,7 +15,83 @@ def esc(s):
     return _h.escape(s, quote=False)
 
 
-def inline(s):
+# ---------------------------------------------------------------- 개념서 문체: 합니다체 → 평서형(~다 / ~임)
+_JONG = 'ᴥㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ'
+_ADJ = ('많', '같', '높', '낮', '좋', '적', '넓', '좁', '굵', '다르', '크', '바쁘', '쉽', '어렵', '가깝', '필요하', '중요하', '있', '없', '아니', '달라', '비슷하', '다양하', '명확하', '분명하', '불가능하', '가능하', '유용하', '적절하', '부자연스럽', '자연스럽', '강하', '약하', '정확하', '빠르', '느리', '길', '짧', '어색하', '동일하', '구체적이', '일반적이', '쉬우', '어려우')
+
+
+def _add_n(syl):
+    """받침 없는 글자에 ㄴ 받침을 붙인다 (하 → 한)"""
+    c = ord(syl) - 0xAC00
+    return chr(0xAC00 + c + 4) if 0 <= c < 11172 and c % 28 == 0 else None
+
+
+def _add_l(syl):
+    c = ord(syl) - 0xAC00
+    return chr(0xAC00 + c + 8) if 0 <= c < 11172 and c % 28 == 0 else None
+
+
+def _strip_b(syl):
+    """ㅂ 받침을 뗀 글자 (합 → 하)"""
+    c = ord(syl) - 0xAC00
+    return chr(0xAC00 + c - 17) if 0 <= c < 11172 and c % 28 == 17 else None
+
+
+def _hamnida(m):
+    pre, syl = m.group(1), m.group(2)       # 앞말 전체, ㅂ 받침 글자
+    if syl == '입':
+        return pre + '이다'
+    base = _strip_b(syl)
+    if base is None:
+        return m.group(0)
+    if pre.endswith(_ADJ) or (pre + base).endswith(_ADJ):
+        return pre + base + '다'
+    return pre + _add_n(base) + '다' if _add_n(base) else m.group(0)
+
+
+def _seumnida(m):
+    pre = m.group(1)
+    last = pre[-1:] if pre else ''
+    c = ord(last) - 0xAC00 if last else -1
+    if last in ('있', '없') or (0 <= c < 11172 and c % 28 == 20):   # 았 었 였 겠 했 (ㅆ 받침)
+        return pre + '다'
+    if pre.endswith(_ADJ) or (0 <= c < 11172 and c % 28 == 17):
+        return pre + '다'
+    return pre + '는다'
+
+
+_TONE = [
+    (re.compile(r'([가-힣]*)(입)니까\?'), lambda m: m.group(1) + '인가?'),
+    (re.compile(r'([가-힣]*[가-힣])습니까\?'), lambda m: m.group(1) + ('는가?' if not m.group(1).endswith(('있', '없')) else '는가?')),
+    (re.compile(r'([가-힣]*)([가-힣])니까\?'), lambda m: (m.group(1) + (_strip_b(m.group(2)) or m.group(2)) + '는가?')),
+    (re.compile(r'([가-힣]*[가-힣])습니다'), _seumnida),
+    (re.compile(r'([가-힣]*)([가-힣])니다'), lambda m: _hamnida(m) if _strip_b(m.group(2)) or m.group(2) == '입' else m.group(0)),
+    (re.compile(r'([가-힣])세요'), lambda m: (_add_l(m.group(1)) or m.group(1)) + ' 것'),
+    (re.compile(r'([가-힣]*[가-힣])읍시다'), lambda m: m.group(1) + '자'),
+    (re.compile(r'([가-힣])시다(?=[ .,)<]|$)'), lambda m: (_strip_b(m.group(1)) or m.group(1)[0]) + '자' if _strip_b(m.group(1)) else m.group(0)),
+    (re.compile(r'이에요'), lambda m: '이다'),
+    (re.compile(r'예요'), lambda m: '이다'),
+    (re.compile(r'해요(?=[ .,)<?]|$)'), lambda m: '한다'),
+    (re.compile(r'돼요(?=[ .,)<?]|$)'), lambda m: '된다'),
+    (re.compile(r'있어요'), lambda m: '있다'),
+    (re.compile(r'없어요'), lambda m: '없다'),
+]
+_PROT = re.compile(r'("[^"]*"|“[^”]*”|\{[^{}|]+\|[^{}]*\}|<[^>]+>)')
+
+
+def tone(s):
+    out = []
+    for i, part in enumerate(_PROT.split(s)):
+        if i % 2 == 0:
+            for rx, fn in _TONE:
+                part = rx.sub(fn, part)
+        out.append(part)
+    return ''.join(out)
+
+
+def inline(s, raw=False):
+    if not raw:
+        s = tone(s)
     # 이미 태그가 들어 있는 부분은 그대로 두고, 표시만 바꾼다
     s = re.sub(r'\{([^{}|]+)\|([^{}]*)\}', lambda m: '<span class="an"><u>%s</u>%s</span>' % (m.group(1), ('<i>%s</i>' % m.group(2)) if m.group(2) else ''), s)
     s = re.sub(r'\*\*(.+?)\*\*', r'<span class="hl">\1</span>', s)
@@ -53,7 +129,7 @@ def EX(*sentences, note=None, label=None):
     if label:
         out += '<span class="elb">%s</span>' % inline(label)
     for s in sentences:
-        out += '<p class="s">%s</p>' % inline(s)
+        out += '<p class="s">%s</p>' % inline(s, raw=True)
     if note:
         out += '<p class="n">%s</p>' % inline(note)
     return out + '</div>'
@@ -98,7 +174,7 @@ def PT(*body):
 
 
 def WHY(*body):
-    return NT('왜 배울까요?', *body, kind='es')
+    return NT('왜 배울까?', *body, kind='es')
 
 
 def STEP(*steps):
