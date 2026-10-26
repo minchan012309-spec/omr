@@ -220,7 +220,12 @@ def g039(r, k):
             right = why_names[2]
         else:
             right = why_names[1]
-        return mc(P('다음 문장이 어색한 이유로 가장 적절한 것은?') + '<div class="bogi"><p>%s</p></div>' % a[0], right, [w for w in why_names if w != right], steps=[a[2]], core=a[2], lv='상', fam='D', r=r, ref=[1], vertical=True)
+        # '높일 대상이 아닌 대상을 높였다'와 '간접 높임에서 특수 어휘를 잘못 썼다'는 같은 오류를 달리 말한 것이 될 수 있어 서로의 오답으로 쓰지 않는다
+        clash = {why_names[0]: why_names[2], why_names[2]: why_names[0]}
+        extra = ['높임의 선어말 어미 \'-시-\'를 두 번 썼다.', '주격 조사 \'께서\' 대신 \'이/가\'를 써서 높이지 않았다.']
+        ws = [w for w in why_names if w != right and w != clash.get(right)]
+        ws += [x for x in extra if x not in ws][:4 - len(ws)]
+        return mc(P('다음 문장이 어색한 이유로 가장 적절한 것은?') + '<div class="bogi"><p>%s</p></div>' % a[0], right, ws, steps=[a[2]], core=a[2], lv='상', fam='D', r=r, ref=[1], vertical=True)
     return tpl_tf(r, TFB.TF_HON, 'bad', lv='상', fam='E', ref=[1])
 
 def _fix_item(r, a):
