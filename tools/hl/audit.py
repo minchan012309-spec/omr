@@ -29,10 +29,27 @@ POS_STEP = re.compile(r'(적절하다|옳다|맞다|알맞다|타당하다|일�
 NEG_STEP = re.compile(r'(적절하지 않|옳지 않|맞지 않|알맞지 않|타당하지 않|일치하지 않|어긋|아니다|않다\.|않는다\.|틀리다|잘못)')
 
 
+def _drop_divs(h, classes):
+    """class 가 classes 로 시작하는 div 를 안쪽 div 까지 짝을 맞춰 지운다"""
+    out, i = [], 0
+    pat = re.compile(r'<div class="(?:%s)' % '|'.join(classes))
+    while True:
+        m = pat.search(h, i)
+        if not m:
+            out.append(h[i:]); return ' '.join(out)
+        out.append(h[i:m.start()]); depth, j = 0, m.start()
+        for t in re.finditer(r'<div\b|</div>', h[m.start():]):
+            depth += 1 if t.group(0) != '</div>' else -1
+            if depth == 0:
+                j = m.start() + t.end(); break
+        else:
+            j = len(h)
+        i = j
+
+
 def stem_text(stem_html):
     """발문: 지문(psg)·보기(bogi)를 뺀 첫 문단"""
-    t = re.sub(r'<div class="psg.*?</div>', ' ', stem_html, flags=re.S)
-    t = re.sub(r'<div class="bogi.*?</div>', ' ', t, flags=re.S)
+    t = _drop_divs(stem_html, ('psg', 'bogi'))  # 지문·보기 안의 중첩 div(표 묶음 · 발화 줄)까지 통째로 뺀다
     t = re.sub(r'<table.*?</table>', ' ', t, flags=re.S)
     ps = re.findall(r'<p>(.*?)</p>', t, re.S)
     ps = [plain(x) for x in ps if plain(x)]

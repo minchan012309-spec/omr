@@ -175,13 +175,13 @@ def long_q(r, paras, ids, descs, extra, intro_txt, *, core, ref, fam, speakers=N
     if mode == 'one':
         k = r.choice(order); lab = {k: '㉠'}; box = render_long(paras, lab, speakers)
         ws = r.sample([descs[i] for i in descs if i != k] + list(extra), 4)
-        return mc(P(intro_txt + ' ㉠에서 나타난 방식으로 가장 적절한 것은?') + box, descs[k], ws, steps=['㉠에는 %s' % descs[k]], core=core, lv='상', fam=fam + 'a', r=r, ref=ref, vertical=True)
+        return mc(P(intro_txt + ' ㉠에서 나타난 방식으로 가장 적절한 것은?') + box, descs[k], ws, steps=['㉠에서는 %s' % descs[k]], core=core, lv='상', fam=fam + 'a', r=r, ref=ref, vertical=True)
     if mode == 'combo':
         st = []
         for n, i in enumerate(order[:3]):
             truth = r.random() < .5
             d = descs[i] if truth else r.choice(unusedD)
-            st.append(('%s에는 %s' % (CIRC[n], d), truth, '%s: 실제로는 %s' % (CIRC[n], descs[i]) if not truth else descs[i]))
+            st.append(('%s에서는 %s' % (CIRC[n], d), truth, '%s: 실제로는 %s' % (CIRC[n], descs[i]) if not truth else descs[i]))
         if all(x[1] for x in st) or not any(x[1] for x in st): st[0] = (st[0][0], not st[0][1], st[0][2])
         if not any(x[1] for x in st) or all(x[1] for x in st): return None
         # 첫 문장을 뒤집었으면 문장과 진위를 다시 맞춘다
@@ -189,7 +189,7 @@ def long_q(r, paras, ids, descs, extra, intro_txt, *, core, ref, fam, speakers=N
         for n, i in enumerate(order[:3]):
             truth = st[n][1]
             d = descs[i] if truth else r.choice(unusedD)
-            fixed.append(('%s에는 %s' % (CIRC[n], d), truth, (descs[i] if truth else '실제로는 %s' % descs[i])))
+            fixed.append(('%s에서는 %s' % (CIRC[n], d), truth, (descs[i] if truth else '실제로는 %s' % descs[i])))
         it = bogi(intro_txt, fixed, pre=box, lv='최', fam=fam + 'c', r=r, core=core, ref=ref, ask='㉠~㉢에 대한 설명으로 옳은 것만을 〈보기〉에서 있는 대로 고른 것은?')
         return it
     badi = r.randrange(5)

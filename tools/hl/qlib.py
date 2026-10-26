@@ -15,8 +15,10 @@ def turns_box(turns, lab, title=None):
     return '<div class="bogi">' + bt + ''.join(out) + '</div>'
 
 
-def lab_item(r, turns, descs, *, intro, mode, extra=(), ref=None, core='', lv='중', fam='a', title=None, subject='발화'):
-    """descs: {id: 설명}. mode: one(기호 하나의 기능 고르기) / not5(5개 중 적절하지 않은 것) / ok5(5개 중 적절한 것)."""
+def lab_item(r, turns, descs, *, intro, mode, extra=(), ref=None, core='', lv='중', fam='a', title=None, subject='발화', clash=None):
+    """descs: {id: 설명}. mode: one(기호 하나의 기능 고르기) / not5(5개 중 적절하지 않은 것) / ok5(5개 중 적절한 것).
+    clash: {id: [다른 id …]} — 그 발화에도 맞는 설명(충돌 사전). 'one'의 오답 후보에서 뺀다."""
+    clash = clash or {}
     cand = [k for k, t in enumerate(turns) if t[2] in descs]
     ids = []
     for k in cand:
@@ -24,7 +26,7 @@ def lab_item(r, turns, descs, *, intro, mode, extra=(), ref=None, core='', lv='�
     if mode == 'one':
         if len(cand) < 1: return None
         k = r.choice(cand); i = turns[k][2]
-        pool = [descs[x] for x in descs if x != i] + list(extra)
+        pool = [descs[x] for x in descs if x != i and x not in clash.get(i, ())] + list(extra)
         pool = list(dict.fromkeys(pool))
         if len(pool) < 4: return None
         ws = r.sample(pool, 4)
