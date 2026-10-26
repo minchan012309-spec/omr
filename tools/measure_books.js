@@ -4,7 +4,7 @@
 const {chromium}=require(process.env.PW||'/opt/node-tools/node_modules/playwright');const fs=require('fs');
 (async()=>{const b=await chromium.launch();const pg=await b.newPage({viewport:{width:1300,height:950}});
  pg.on('pageerror',e=>console.log('PAGEERR',String(e)));
- await pg.goto('http://localhost:8765/index.html');await pg.waitForTimeout(2000);
+ await pg.goto('http://localhost:8765/index.html?app=1');await pg.waitForTimeout(2000);
  await pg.evaluate("sess={access_token:'x',user:{}};STU=[{id:'s1',name:'테스트',grade:'고2'}];CUR_S='s1'");
  const only=process.argv.slice(2);const out=only.length&&fs.existsSync('books/heights.json')?JSON.parse(fs.readFileSync('books/heights.json','utf8')):{};
  for(const s of (only.length?only:['me','cm','ph','hl'])){Object.keys(out).forEach(k=>{if(k.startsWith(s+'|'))delete out[k]});await pg.evaluate(`setSubject('${s}')`);await pg.waitForTimeout(600);
