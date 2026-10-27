@@ -1241,6 +1241,15 @@ html.noauth nav#nav,html.noauth .sbft,html.noauth #sbr,html.noauth #sbh,html.noa
 @media(min-width:721px){html body main#main,html body main{margin-top:36px!important}html.noauth body main{margin-top:40px!important}}
 @media(max-width:720px){html body main{margin-top:18px!important}}
 @media(min-width:721px){html body #scopeBar:not([hidden])~main{margin-top:22px!important}html body #scopeBar:not([hidden]){margin-top:20px}} /* 보는 범위 막대가 있으면 그 막대가 위 여백을 맡는다 */
+/* 탭 묶음의 미끄러지는 선택 표시(segPill): 고른 단추 대신 아래 깔린 표시가 옮겨 간다 */
+.segbox{position:relative}
+.segbox>.segpill{position:absolute;left:0;top:0;z-index:0;border-radius:11px;background:var(--on-bg);pointer-events:none;transition:transform .36s cubic-bezier(.2,.8,.2,1),width .36s cubic-bezier(.2,.8,.2,1),height .36s cubic-bezier(.2,.8,.2,1),opacity .2s}
+.segbox>button,.segbox>.scs,.segbox>.scl{position:relative;z-index:1}
+.segbox>button.on,html body .segbox>.scb.on{background:transparent!important;transition:color .25s}
+.segbox .scs select.on{background-color:transparent!important}
+@media(prefers-reduced-motion:reduce){.segbox>.segpill{transition:none}}
+/* 사이드바를 펼쳤을 때 로고와 과목 이름을 가운데로 */
+@media(min-width:721px){html:not([data-sb=mini]):not(.noauth) body header h1{justify-content:center!important}html:not([data-sb=mini]):not(.noauth) body header h1 .slg{margin-left:0!important;margin-right:8px!important}}
 /* 기본 입력 부품: 글꼴 · 모서리 · 색을 사이트에 맞춘다 */
 button,input,select,textarea{font-family:inherit}
 button.p,button.s{border-radius:10px;font-weight:600;letter-spacing:-.01em}
@@ -1454,13 +1463,30 @@ let SCOPE=(()=>{try{return localStorage.getItem('omr_scope')||'*'}catch(e){retur
 const scopeStu=()=>SCOPE.startsWith('c:')?STU.filter(s=>clsName(s)===SCOPE.slice(2)):STU;
 const scopeLabel=()=>SCOPE.startsWith('c:')?SCOPE.slice(2)+' '+scopeStu().length+'명':'전체 학생 '+STU.length+'명';
 const H=()=>STUD?hist:CUR_S?hist.filter(h=>h.sid===CUR_S):(teacher()?(()=>{const ids=new Set(scopeStu().map(s=>s.id));return hist.filter(h=>ids.has(h.sid))})():hist);
-function setScope(v){SCOPE=v;try{localStorage.setItem('omr_scope',v)}catch(e){}CUR_S='';try{localStorage.setItem(LCS,'')}catch(e){}syncLabel();render()}
+function setScope(v){const a=scopeIdx();SCOPE=v;try{localStorage.setItem('omr_scope',v)}catch(e){}CUR_S='';try{localStorage.setItem(LCS,'')}catch(e){}syncLabel();render();scopeSlide(a)}
+function setStuScope(v){const a=scopeIdx();setStu(v);scopeSlide(a)}
+/* 탭 묶음의 선택 표시가 스르륵 미끄러진다: 화면을 다시 그려도 이전 자리에서 새 자리로(#wrhub 오답노트 · 오답 진단, #scopeBar 보는 범위) */
+const SEGP={},RMQ=matchMedia('(prefers-reduced-motion: reduce)');
+function segPill(id){const box=document.getElementById(id);if(!box)return;box.classList.add('segbox');
+ const sc=box.querySelector('.scs select.on'),on=box.querySelector(':scope>button.on')||(sc&&sc.closest('.scs'));
+ let p=box.querySelector(':scope>.segpill');if(!p){p=document.createElement('i');p.className='segpill';p.setAttribute('aria-hidden','true');box.prepend(p)}
+ if(!on){p.style.opacity='0';SEGP[id]=null;return}
+ const rc=()=>({x:on.offsetLeft,y:on.offsetTop,w:on.offsetWidth,h:on.offsetHeight}),same=(a,b)=>a&&b&&a.x===b.x&&a.y===b.y&&a.w===b.w&&a.h===b.h,set=v=>{p.style.width=v.w+'px';p.style.height=v.h+'px';p.style.transform=`translate(${v.x}px,${v.y}px)`};
+ const r=rc(),o=SEGP[id];SEGP[id]=r;p.style.opacity='1';
+ if(o&&!same(o,r)&&!RMQ.matches){p.style.transition='none';set(o);void p.offsetWidth;p.style.transition=''}
+ set(r);
+ // 그린 뒤 폭이 바뀌면(스크롤 막대 · 창 크기) 움직임 없이 자리만 다시 맞춘다
+ if(window.ResizeObserver&&!box._ro){box._ro=new ResizeObserver(()=>{if(!on.isConnected)return;const v=rc();if(same(v,SEGP[id]))return;SEGP[id]=v;p.style.transition='none';set(v);void p.offsetWidth;p.style.transition=''});box._ro.observe(box)}}
+// 내용도 고른 쪽으로 밀려 들어온다(dir 1 = 오른쪽에서, -1 = 왼쪽에서). skip 은 그대로 두는 탭 묶음
+function segSlide(dir,skip){const m=document.getElementById('main');if(!m||!dir||RMQ.matches)return;[...m.children].forEach(c=>{if(skip&&c.id===skip)return;try{c.animate([{opacity:0,transform:`translateX(${dir*28}px)`},{opacity:1,transform:'none'}],{duration:360,easing:'cubic-bezier(.2,.8,.2,1)'})}catch(e){}})}
+function scopeIdx(){const el=document.getElementById('scopeBar');if(!el||el.hidden)return -1;return [...el.querySelectorAll(':scope>.scb,:scope>.scs')].findIndex(b=>b.classList.contains('on')||!!b.querySelector('select.on'))}
+function scopeSlide(a){if(tab==='wrong')return;const b=scopeIdx();if(a>=0&&b>=0&&a!==b)segSlide(b>a?1:-1)}
 const SCOPETABS=['weak','stat','wrong','sim','chal','build'];
 function scopeRender(){const el=$('#scopeBar');if(!el)return;
  if(!teacher()||STUD||!STU.length||!SCOPETABS.includes(tab)){el.innerHTML='';el.hidden=true;return}
  const cl=clsList();if(SCOPE.startsWith('c:')&&!cl.some(c=>c[0]===SCOPE.slice(2)))SCOPE='*';
  const one=!!CUR_S,chip=(on,v,t)=>`<button class="scb${on?' on':''}" aria-pressed="${on}" data-v="${esc(v)}" onclick="setScope(this.dataset.v)">${t}</button>`;
- el.hidden=false;el.innerHTML=`<span class="scl">보는 범위</span>${chip(!one&&SCOPE==='*','*','전체 학생 <b>'+STU.length+'</b>')}${cl.map(([c,n])=>chip(!one&&SCOPE==='c:'+c,'c:'+c,esc(c)+' <b>'+n+'</b>')).join('')}<label class="scs"><span class="sr-only">학생 한 명만 보기</span><select class="${one?'on':''}" onchange="setStu(this.value)">${stuOptsHtml(CUR_S,'학생 한 명만…')}</select></label>`}
+ el.hidden=false;el.innerHTML=`<span class="scl">보는 범위</span>${chip(!one&&SCOPE==='*','*','전체 학생 <b>'+STU.length+'</b>')}${cl.map(([c,n])=>chip(!one&&SCOPE==='c:'+c,'c:'+c,esc(c)+' <b>'+n+'</b>')).join('')}<label class="scs"><span class="sr-only">학생 한 명만 보기</span><select class="${one?'on':''}" onchange="setStuScope(this.value)">${stuOptsHtml(CUR_S,'학생 한 명만…')}</select></label>`;segPill('scopeBar')}
 function needStu(){const n=STU.length;return `<div class="card needstu"><h2>${n?'학생을 먼저 선택하세요':'아직 등록된 학생이 없어요'}</h2><div class="m" style="margin-bottom:12px">${n?'채점 기록과 취약 유형은 학생별로 쌓여요. 학생을 고르면 이 화면이 열려요.':'이 화면은 학생별 기록을 보여줘요. 학생을 한 명 등록하면 바로 열려요.'}</div><div class="row">${n?`<select onchange="setStu(this.value)">${stuOptsHtml('','학생 선택')}</select>`:''}<button class="${n?'s':'p'}" onclick="tab='stu';render()">${n?'학생 탭으로':'학생 등록하러 가기'}</button></div></div>`}
 async function save(rec){rec.sid=rec.sid!==undefined?rec.sid:CUR_S;hist.push(rec);jset(LS,hist);
  if(srv==='cloud'){try{const r=await sb('/rest/v1/attempts',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({t:rec.t,set:rec.set,sub:rec.sub,items:rec.items,student_id:rec.sid||null})});if(!r.ok)throw 0}catch(e){alert('온라인 저장에 실패했습니다. 이 기기에는 저장되었고, 다음에 접속하면 다시 올립니다.')}}
@@ -2311,11 +2337,13 @@ async function wnPull(){if(!wnCan())return;try{const q=jget(WNQ,{}),a=wnAll();fo
   if(ch)wnPut(loc)}catch(e){}}
 async function wnTeacherLoad(){WNT={};if(!(teacher()&&CUR_S&&cloud()&&sess))return;try{const r=await sb('/rest/v1/wrong_notes?select=code,memo,photo,t&student_id=eq.'+CUR_S);if(r.ok)(await r.json()).forEach(x=>WNT[x.code]={m:x.memo,p:wnSafe(x.photo),t:+x.t})}catch(e){}}
 /* 오답노트 + 오답 진단을 한 페이지에: 위쪽 탭으로 전환 */
-let WRM='note';
+let WRM='note',WRSL=0;
+function wrSet(m){if(m===WRM)return;WRSL=m==='diag'?1:-1;WRM=m;render()}
 async function wrongHub(){const canD=!STUD||permOn('diag');if(!canD)WRM='note';
  if(WRM==='diag')await diagView();else await wrongView();
  const m=document.getElementById('main');if(!m||tab!=='wrong')return;
- m.insertAdjacentHTML('afterbegin',`<div class="rtabs" id="wrhub" style="margin:0 0 12px"><button class="${WRM==='note'?'on':''}" onclick="WRM='note';render()">오답노트</button>${canD?`<button class="${WRM==='diag'?'on':''}" onclick="WRM='diag';render()">오답 진단</button>`:''}</div>`)}
+ m.insertAdjacentHTML('afterbegin',`<div class="rtabs" id="wrhub" role="tablist" style="margin:0 0 12px"><button role="tab" aria-selected="${WRM==='note'}" class="${WRM==='note'?'on':''}" onclick="wrSet('note')">오답노트</button>${canD?`<button role="tab" aria-selected="${WRM==='diag'}" class="${WRM==='diag'?'on':''}" onclick="wrSet('diag')">오답 진단</button>`:''}</div>`);
+ segPill('wrhub');if(WRSL){segSlide(WRSL,'wrhub');WRSL=0}}
 
 function wnTog(code){const el=document.getElementById('wn_'+code);if(!el)return;const o=el.querySelector('.wnb');if(o){o.remove();el.querySelector('.wnx').textContent='보기 ▾';return}
  const q=byCode[code];const d=document.createElement('div');d.className='wnb';d.innerHTML='<div class="wq"></div><div class="wa"><b>정답 '+esc(q.ans)+'</b></div><div class="wdg"></div><div class="we"></div>'+wnBlockHtml(code);el.appendChild(d);{let mine=null;H().forEach(h=>h.items.forEach(x=>{if(x.c===code)mine=x.a}));if(mine){const go=()=>{const e=d.querySelector('.wdg');if(e)e.innerHTML=diagHtml(q,mine)};CONC[SUBJ]?go():conceptLoad().then(go,go)}}
@@ -3911,8 +3939,8 @@ Object.entries({setSubject:'과목을 바꾸는 중…',bdesignView:'미리보�
 /* ---------- 시작 ---------- */
 setInterval(()=>{if(typeof basketBar==='function')basketBar()},1500);
 const _v=location.hash.match(/^#\/([a-z]+)\/([a-z]+)(?:\/([A-Za-z0-9.~_-]+)\/(\d+))?/),_p=location.hash.match(/^#ws=([A-Za-z0-9-]+)/),_b=location.hash.match(/^#bk=((?:me|cm|ph|hl)-(?:c|t|h(?:[sgoc]|mg?)?|x[0-9a-z._\-]+)(?:~g[1-3])?:(?:\d+|all))/);
-const _lg=/^#(login|start)$/.test(location.hash); // 소개 페이지의 「로그인」 · 「무료로 시작하기」
-load().then(async()=>{calibAll();if(_lg){if(!sess&&!STUD)setTimeout(()=>{try{openCfg();const e=document.getElementById('ce');if(e)e.focus()}catch(e){}},300)}if(_b)await bkRoute(_b[1]);else if(_p)await openByNumber(_p[1]);
+const _lg=/^#(login|start)$/.test(location.hash),_sl=location.hash==='#student'; // 소개 페이지의 「선생님 로그인」 · 「학생 로그인」
+load().then(async()=>{calibAll();if(_lg){if(!sess&&!STUD)setTimeout(()=>{try{openCfg();const e=document.getElementById('ce');if(e)e.focus()}catch(e){}},300)}if(_sl&&!sess&&!STUD){PRL=0;setTimeout(()=>{const e=document.getElementById('stid');if(e){e.scrollIntoView({block:'center'});e.focus()}},400)}if(_b)await bkRoute(_b[1]);else if(_p)await openByNumber(_p[1]);
  else if(_v&&SNAME[_v[1]]){try{if(_v[1]!==SUBJ)await setSubject(_v[1]);tab=_v[2];render();if(_v[3]&&/^(me|cm|ph|hl)-/.test(_v[3])){await bkLoad();tab='books';render();await bkEbook(_v[3]);if(_v[4])ebkGo(+_v[4],1)}}catch(e){console.warn(e)}}
  else if(!teacher()){tab='enter';render()}});
 
