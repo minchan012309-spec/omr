@@ -46,8 +46,15 @@
  var top=document.getElementById('top'),ly=scrollY;addEventListener('scroll',function(){var y=scrollY;if(top)top.classList.toggle('hide',y>ly&&y>200);ly=y},{passive:true});
 
  // 섹션마다 부분 등장(제목 → 글 → 그림). 스크립트가 없으면 처음부터 보인다
- var rv=[];document.querySelectorAll('.loop,.hz,.two,.price,.cta,.faq,.foot').forEach(function(sec){var k=0;sec.querySelectorAll('h2,h3,.say,.sheet,.res,.note,.shot,.sq,.half img,.half .phone,.plan,.btn.big,.cards details,.mark,.fcols').forEach(function(el){if(el.closest('.track')&&!el.classList.contains('shot'))return;el.classList.add('rv');el.style.setProperty('--i',k++%6);rv.push(el)})});
+ var rv=[];document.querySelectorAll('.gap,.ways,.kinds,.ana,.subj,.loop,.hz,.two,.par,.acad,.env,.price,.cta,.faq,.foot').forEach(function(sec){var k=0;sec.querySelectorAll('h2,.say,.sheet,.res,.note,.shot,.sq,.half h3,.half img,.half .phone,.plan,.btn.big,.cards details,.mark,.fcols,.gp,.wy article,.also,.kpg,.qcard,.callouts li,.sj article,.tiles li,.bento article,.env li').forEach(function(el){if(el.closest('.track')&&!el.classList.contains('shot'))return;el.classList.add('rv');el.style.setProperty('--i',k++%6);rv.push(el)})});
  if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{rootMargin:'0px 0px -8% 0px'});rv.forEach(function(el){io.observe(el)})}else rv.forEach(function(el){el.classList.add('in')});
+
+ // 네 과목 숫자: 화면에 들어오면 0부터 센다(효과 줄이기면 처음부터 끝 숫자)
+ var ups=[].slice.call(document.querySelectorAll('[data-up]'));
+ if(ups.length&&!lite()&&'IntersectionObserver' in window){ups.forEach(function(el){el.textContent='0'});
+  var uo=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;uo.unobserve(e.target);var el=e.target,n=+el.dataset.up,t0=performance.now();
+   (function st(t){var p=Math.min(1,(t-t0)/1300);el.textContent=Math.round(n*E(p)).toLocaleString('ko-KR');if(p<1)requestAnimationFrame(st)})(t0)})},{rootMargin:'0px 0px -10% 0px'});
+  ups.forEach(function(el){uo.observe(el)})}
 
  // 카드 기울이기 · 자석 단추 (마우스일 때만)
  if(matchMedia('(hover:hover) and (pointer:fine)').matches){
