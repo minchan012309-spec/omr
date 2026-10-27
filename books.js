@@ -58,7 +58,7 @@ const BKCSS=`
 .bkdoc .u.q .fg{text-align:center;margin:1.6mm 0}.bkdoc .u.q .fg img{max-width:100%;max-height:62mm;height:auto}
 .bkdoc .u.q .bogi,.bkdoc .u.q .bxx{border:.6px solid #111;padding:1.6mm 2.2mm;margin:2mm 0;font-size:11.8px;line-height:1.5}
 .bkdoc .u.q .bogi{position:relative;padding-top:3.4mm;margin-top:4.4mm}
-.bkdoc .u.q .bogi .bt{position:absolute;top:-2.5mm;left:50%;transform:translateX(-50%);background:#fff;color:#111;border-radius:0;padding:0 1.6mm;margin:0;font-weight:500;font-size:11.6px;line-height:4.6mm;letter-spacing:.06em;white-space:nowrap} /* 〈보 기〉 글자만 윗줄에 걸침 */
+.bkdoc .u.q .bogi .bt{position:absolute;top:-2.5mm;left:50%;transform:translateX(-50%);background:#fff;color:#111;border-radius:0;padding:0 1.6mm;margin:0;font-weight:500;font-size:11.6px;line-height:4.6mm;letter-spacing:0;white-space:nowrap} /* 〈보기〉 글자만 윗줄에 걸침 */
 .bkdoc .u.q .bogi p,.bkdoc .u.q .bxx p{margin:.5mm 0;padding-left:5mm;text-indent:-5mm;text-align:left}
 .bkdoc .u.q .bxx{border-style:solid}
 .bkdoc .u.q .eqn{text-align:center;margin:1.6mm 0;font-size:12.5px}
@@ -308,7 +308,7 @@ function bkQHtml(q,no,o){o=o||{};
  const r=bkDoc(q.q);const qs=r.querySelector('.qs');if(!qs)return '<div class="u q">'+q.q+'</div>';
  const pt=o.pt!=null?'['+o.pt+'점]':'';
  bkChoices(qs);
- qs.querySelectorAll('.bogi>.bt').forEach(b=>{if(/^[<〈]?\s*보\s*기\s*[>〉]?$/.test(b.textContent.trim()))b.textContent='〈보 기〉'});
+ qs.querySelectorAll('.bogi>.bt').forEach(b=>{if(/^[<〈]?\s*보\s*기\s*[>〉]?$/.test(b.textContent.trim()))b.textContent='〈보기〉'});
  qs.querySelectorAll('.psg.sp').forEach(e=>e.classList.remove('sp')); // 필기용 넓은 글자 간격은 주교재 필기 쪽에서만(문항 안 지문은 시험지처럼 촘촘히)
  const first=qs.firstElementChild;const numH='<b class="no">'+no+'</b>';
  if(o.code)qs.insertAdjacentHTML('afterbegin','<div class="qh2">'+numH+'<span class="cd">'+(o.lv?'난이도 '+o.lv+' · ':'')+q.code+'</span></div>');
