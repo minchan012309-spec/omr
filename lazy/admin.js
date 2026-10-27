@@ -2,7 +2,7 @@
    학생·학부모: 시간표(반 · 보강 · 공유된 상담). index.html 의 전역(sb, rpc, esc, $, toast, ldg, STU, STUD, sess, cloud, tsRaw …)을 그대로 씁니다.
    서버 표는 supabase/sql_23_admin.sql (원생 열 · classes · class_members · counsels · makeups) 이고, 수납은 sql_20 의 fees 를 같이 씁니다. */
 const AD={sec:'dash',ld:0,err:'',stu:[],cls:[],mem:[],cns:[],mku:[],fees:[],att:[],matt:[],q:'',st:'재원',cf:'',edit:null,bm:'',cnsF:'all',mkuF:'예정'};
-const ADSEC=[['dash','대시보드'],['stu','원생'],['cls','반 · 시간표'],['cns','상담 일지'],['mku','보강'],['bill','월 청구 · 영수증']];
+const ADSEC=[['dash','대시보드'],['stu','원생'],['cls','반 · 시간표'],['cns','상담 일지'],['mku','보강']]; // 월 청구 · 영수증은 왼쪽 메뉴 「수납」(acad.js attView)에서 adBillHtml 을 그대로 부른다
 const ADST=['재원','휴원','상담','퇴원'],ADSTC={재원:'#1f9d55',휴원:'#e09a00',상담:'#2f7fd0',퇴원:'#8a94a3'};
 const ADDAY=['','월','화','수','목','금','토','일'];
 const ADCNS=['학생','학부모','입학','진로','기타'];
@@ -57,11 +57,13 @@ function adCss(){if(document.getElementById('adcss'))return;const s=document.cre
 `;document.head.appendChild(s)}
 
 async function adminView(){
+ if(tab==='fee')return attView(); // 수납 화면에서 청구를 만들거나 바꾼 뒤 다시 그릴 때
+ if(AD.sec==='bill')AD.sec='dash';
  const m=$('#main');adCss();if(!(typeof cloud==='function'&&cloud()&&sess)){m.innerHTML=adNeed;return}
  if(!AD.ld){m.innerHTML='<div class="card">'+ldg('학원 운영 자료를 불러오는 중…')+'</div>';await adLoad()}
  const seg=`<div class="bkseg axseg" role="tablist">${ADSEC.map(([k,l])=>`<button role="tab" aria-selected="${AD.sec===k}" class="${AD.sec===k?'on':''}" onclick="adSec('${k}')">${l}</button>`).join('')}</div>`;
  const body=AD.err==='sql'?adSql:AD.err?`<div class="card"><div class="hint">${esc(AD.err)}</div><button class="s sm" style="margin-top:10px" onclick="AD.ld=0;adminView()">다시 불러오기</button></div>`:({dash:adDash,stu:adStuHtml,cls:adClsHtml,cns:adCnsHtml,mku:adMkuHtml,bill:adBillHtml}[AD.sec]||adDash)();
- m.innerHTML=`<div class="tsh"><div><h1>학원 운영</h1><p>원생 · 반과 시간표 · 상담 · 보강 · 수납을 한곳에서 봐요. 다른 선생님 계정과 함께 쓰고, 학부모 앱에도 필요한 것만 보여요.</p></div><div class="tsb"><button class="s" onclick="tab='att';render()">출결 · 수납</button><button class="s" onclick="tab='diary';render()">알림장</button></div></div>${seg}${body}`}
+ m.innerHTML=`<div class="tsh"><div><h1>학원 운영</h1><p>원생 · 반과 시간표 · 상담 · 보강을 한곳에서 봐요. 다른 선생님 계정과 함께 쓰고, 학부모 앱에도 필요한 것만 보여요.</p></div><div class="tsb"><button class="s" onclick="navGo('att')">출결</button><button class="s" onclick="navGo('fee')">수납</button><button class="s" onclick="tab='diary';render()">알림장</button></div></div>${seg}${body}`}
 function adSec(k){AD.sec=k;adminView();try{scrollTo(0,0)}catch(e){}}
 function adReload(){AD.ld=0;adminView()}
 

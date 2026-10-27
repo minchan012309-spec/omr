@@ -46,7 +46,7 @@
  var top=document.getElementById('top'),ly=scrollY;addEventListener('scroll',function(){var y=scrollY;if(top)top.classList.toggle('hide',y>ly&&y>200);ly=y},{passive:true});
 
  // 섹션마다 부분 등장(제목 → 글 → 그림). 스크립트가 없으면 처음부터 보인다
- var rv=[];document.querySelectorAll('.gap,.ways,.kinds,.ana,.subj,.loop,.hz,.two,.par,.acad,.env,.price,.cta,.faq,.foot').forEach(function(sec){var k=0;sec.querySelectorAll('h2,.say,.sheet,.res,.note,.shot,.sq,.half h3,.half img,.half .phone,.plan,.btn.big,.cards details,.mark,.fcols,.gp,.wy article,.also,.kpg,.qcard,.callouts li,.sj article,.tiles li,.bento article,.env li').forEach(function(el){if(el.closest('.track')&&!el.classList.contains('shot'))return;el.classList.add('rv');el.style.setProperty('--i',k++%6);rv.push(el)})});
+ var rv=[];document.querySelectorAll('.gap,.ways,.kinds,.ana,.subj,.loop,.hz,.two,.par,.acad,.env,.price,.cta,.faq,.foot').forEach(function(sec){var k=0;sec.querySelectorAll('h2,.say,.sheet,.res,.note,.shot,.sq,.half h3,.half img,.half .phone,.plan,.btn.big,.fl details,.fbrand,.fcols,.gp,.wy article,.also,.kpg,.qcard,.callouts li,.sj article,.tiles li,.bento article,.env li,.plan').forEach(function(el){if(el.closest('.track')&&!el.classList.contains('shot'))return;el.classList.add('rv');el.style.setProperty('--i',k++%6);rv.push(el)})});
  if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{rootMargin:'0px 0px -8% 0px'});rv.forEach(function(el){io.observe(el)})}else rv.forEach(function(el){el.classList.add('in')});
 
  // 네 과목 숫자: 화면에 들어오면 0부터 센다(효과 줄이기면 처음부터 끝 숫자)
@@ -60,6 +60,21 @@
  if(matchMedia('(hover:hover) and (pointer:fine)').matches){
   document.querySelectorAll('.tilt').forEach(function(c){c.addEventListener('pointermove',function(e){if(lite())return;var r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transform='perspective(1000px) rotateX('+(-y*5).toFixed(2)+'deg) rotateY('+(x*6).toFixed(2)+'deg)'+(c.classList.contains('mid')?' translateY(-18px)':'')});c.addEventListener('pointerleave',function(){c.style.transform=''})});
   document.querySelectorAll('.mag').forEach(function(b){b.addEventListener('pointermove',function(e){if(lite())return;var r=b.getBoundingClientRect();b.style.transform='translate('+((e.clientX-r.left-r.width/2)*.18).toFixed(1)+'px,'+((e.clientY-r.top-r.height/2)*.28).toFixed(1)+'px)'});b.addEventListener('pointerleave',function(){b.style.transform=''})})}
+
+ // 가격: 개발자 탭 「서비스 가격」(site_config 의 pricing). 못 읽으면 HTML 기본값 그대로
+ (function(){var box=document.getElementById('plans');if(!box||!window.fetch)return;
+  var U='https://airejqudbqfsfhadvwqp.supabase.co',K='sb_publishable_YPbHe6NNnV5eQT0u1SZiCg_JLvrM7IV';
+  var esc=function(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+  fetch(U+'/rest/v1/site_config?key=eq.pricing&select=value',{headers:{apikey:K}}).then(function(r){return r.ok?r.json():null}).then(function(j){
+   var v=j&&j[0]&&j[0].value;if(!v||!v.plans||!v.plans.length)return;
+   var ct=(v.contact||'').trim(),ctHref=ct?(/^https?:/.test(ct)?ct:'mailto:'+ct):'';
+   box.innerHTML=v.plans.map(function(x){var p=(x.price||'').trim(),num=/^[\d,]+$/.test(p),ask=/문의/.test(x.cta||'')&&ctHref;
+    var n0=num?+p.replace(/,/g,''):-1,price=p?(n0===0?'무료':num?n0.toLocaleString('ko-KR')+'원':esc(p)):'';num=num&&n0>0;
+    return '<article class="plan'+(x.hl?' mid':'')+' rv in"><h3>'+esc(x.name)+'</h3><p class="pr">'+(price?'<b>'+price+'</b>'+(num&&x.unit?'<small>'+esc(x.unit)+'</small>':''):'<b class="tbd">가격 준비 중</b>')+'</p>'+(x.desc?'<p>'+esc(x.desc)+'</p>':'')+
+     ((x.items||[]).length?'<ul>'+x.items.map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ul>':'')+
+     '<a class="btn'+(x.hl?'':' ghost')+'" href="'+(ask?esc(ctHref):'index.html?app=1#start')+'"'+(ask?'':' data-app')+'><span>'+esc(x.cta||'무료로 시작하기')+'</span></a></article>'}).join('');
+   var n=document.getElementById('pnote');if(n){if(v.note)n.textContent=v.note;else n.remove()}
+  }).catch(function(){})})();
 
  // 직접 해 보기: 미니 OMR
  var omr=document.getElementById('omr');if(omr){var bs=[].slice.call(omr.querySelectorAll('.sheet button'));

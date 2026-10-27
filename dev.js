@@ -4,14 +4,14 @@ const DEVNAV=[
  ['개요',[['home','대시보드'],['daily','사용량 분석']]],
  ['콘텐츠',[['notice','사이트 공지'],['qrep','문항 신고함'],['db','문항 관리'],['ovr','수정·숨김 목록'],['types','과목·유형 현황'],['scan','DB 점검'],['qstat','문항 통계']]],
  ['사용자',[['users','계정·개발자'],['students','학생 목록'],['signups','가입 신청'],['attempts','최근 채점'],['bugs','버그 신고'],['qrep','문항 신고함']]],
- ['사이트',[['site','배너·과목·기능'],['maint','점검 모드'],['deploy','업데이트 배포']]],
+ ['사이트',[['site','배너·과목·기능'],['price','서비스 가격'],['maint','점검 모드'],['deploy','업데이트 배포']]],
  ['시스템',[['pk','패스키 진단'],['curl','eBook 효과 진단'],['srv','서버 설정 점검'],['health','연결·성능'],['store','브라우저 저장소'],['tools','정리·도구'],['about','버전 정보']]],
  ['기록',[['log','활동 기록'],['export','내보내기']]]
 ];
 const DEVSEC=()=>DEVNAV.flatMap(g=>g[1]);
 const DVP=()=>document.getElementById('devb');
 const DVS={home:()=>devHome(),daily:()=>devDaily(),notice:()=>devNotice(),db:()=>devDb(),ovr:()=>devOvr(),types:()=>devTypes(),scan:()=>devScanView(),qstat:()=>devQstat(),
- users:()=>devUsers(),students:()=>devStudents(),signups:()=>devSignups(),attempts:()=>devAttempts(),bugs:()=>devBugs(),qrep:()=>devQrep(),site:()=>devSite(),maint:()=>devMaint(),deploy:()=>devDeploy(),
+ users:()=>devUsers(),students:()=>devStudents(),signups:()=>devSignups(),attempts:()=>devAttempts(),bugs:()=>devBugs(),qrep:()=>devQrep(),site:()=>devSite(),price:()=>devPrice(),maint:()=>devMaint(),deploy:()=>devDeploy(),
  pk:()=>devPk(),curl:()=>devCurl(),srv:()=>devSrv(),health:()=>devHealth(),store:()=>devStore(),tools:()=>devTools(),about:()=>devAbout(),log:()=>devLogView(),export:()=>devExport()};
 function devMain(){
  if(!DEV.ok){$('#main').innerHTML='<div class="card empty">개발자 계정으로 로그인해야 볼 수 있어요.</div>';return}
@@ -164,6 +164,23 @@ async function devCfgSave(key,value){const r=await sb('/rest/v1/site_config?on_c
 async function devSiteSave(){const banner={on:$('#ds_on').checked,text:$('#ds_t').value.trim(),level:$('#ds_l').value},off=[...document.querySelectorAll('.ds_off:checked')].map(e=>e.value),foff=[...document.querySelectorAll('.ds_ft')].filter(e=>!e.checked).map(e=>e.value);
  try{await devCfgSave('banner',banner);await devCfgSave('subjects',{off});await devCfgSave('features',{off:foff})}catch(e){toast(e.message);return}
  devLog('사이트 설정 저장','배너 '+(banner.on?'켬':'끔')+' · 잠긴 과목 '+off.length+' · 끈 기능 '+foff.length);toast('저장했어요');await siteFetch();nav();devRender()}
+/* --- 서비스 가격: site_config 의 pricing 키. 소개 페이지(intro.js)가 로그인 없이 읽어 가격 카드를 그린다 --- */
+const PRICE0={plans:[{name:'체험',price:'무료',unit:'',desc:'지금은 모든 기능을 무료로 써요. 로그인 없이도 학습지 번호나 QR로 채점할 수 있어요.',items:[],cta:'무료로 시작하기',hl:false},
+ {name:'선생님',price:'',unit:'/ 월',desc:'학생 관리, 학습지·교재 배포, 학생별 취약 유형 분석.',items:[],cta:'무료로 시작하기',hl:true},
+ {name:'학원',price:'',unit:'/ 월',desc:'여러 선생님·반, 학원 로고 교재, 출결·수납.',items:[],cta:'문의하기',hl:false}],note:'',contact:''};
+function devPrice(){const P=Object.assign({},PRICE0,SITE.cfg.pricing||{}),pl=(P.plans&&P.plans.length?P.plans:PRICE0.plans).slice(0,4);
+ const row=(x,i)=>`<div class="card dvpr" data-i="${i}"><div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">요금제 ${i+1}</h3><span class="row" style="gap:6px"><label class="chk"><input type="checkbox" class="pr_hl" ${x.hl?'checked':''}> 가운데 강조</label><button class="s sm" onclick="devPriceDel(${i})" ${pl.length<2?'disabled':''}>빼기</button></span></div>
+  <div class="dvpf" style="margin-top:10px"><label>이름<input class="pr_n" maxlength="20" value="${esc(x.name||'')}" placeholder="예) 선생님"></label><label>가격 <small class="m">숫자만 쓰면 「원」이 붙어요(0은 「무료」) · 비우면 「가격 준비 중」</small><input class="pr_p" maxlength="20" value="${esc(x.price||'')}" placeholder="예) 19900 또는 무료"></label><label>단위<input class="pr_u" maxlength="12" value="${esc(x.unit||'')}" placeholder="예) / 월"></label><label>단추 문구<input class="pr_c" maxlength="16" value="${esc(x.cta||'')}" placeholder="예) 무료로 시작하기"></label>
+  <label class="w">설명<input class="pr_d" maxlength="120" value="${esc(x.desc||'')}"></label><label class="w">포함 기능 <small class="m">한 줄에 하나</small><textarea class="pr_i" rows="4">${esc((x.items||[]).join('\n'))}</textarea></label></div></div>`;
+ document.getElementById('devb').innerHTML=`<style>.dvpf{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.dvpf label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--m)}.dvpf .w{grid-column:1/-1}.dvpf input,.dvpf textarea{font:inherit;font-size:14.5px;color:var(--t);padding:9px 12px;border:1px solid var(--l2);border-radius:10px;background:var(--surface)}</style><div class="card"><h3 style="margin-top:0">서비스 가격</h3><div class="m">소개 페이지 「가격」 칸에 그대로 나와요. 저장하면 바로 반영돼요(소개 페이지를 새로 열 때). 결제 연동은 없어요.</div>
+  <div class="dvpf" style="margin-top:10px"><label class="w">가격 아래 안내 <small class="m">예) 부가세 포함 · 첫 달 무료</small><input id="pr_note" maxlength="140" value="${esc(P.note||'')}"></label><label class="w">학원 문의 주소 <small class="m">메일 주소나 링크 · 비우면 문의 단추가 앱 가입으로 가요</small><input id="pr_ct" maxlength="200" value="${esc(P.contact||'')}" placeholder="예) hello@solvi.kr"></label></div></div>
+  <div id="prrows">${pl.map(row).join('')}</div>
+  <div class="row" style="gap:8px"><button class="s" onclick="devPriceAdd()" ${pl.length>=4?'disabled':''}>요금제 더하기</button><span style="flex:1"></span><button class="s" onclick="window.open('intro.html#price','_blank')">소개 페이지에서 보기</button><button class="p" onclick="devPriceSave()">저장</button></div>`}
+function devPriceRead(){return {note:$('#pr_note').value.trim(),contact:$('#pr_ct').value.trim(),plans:[...document.querySelectorAll('.dvpr')].map(c=>({name:c.querySelector('.pr_n').value.trim(),price:c.querySelector('.pr_p').value.trim(),unit:c.querySelector('.pr_u').value.trim(),cta:c.querySelector('.pr_c').value.trim(),desc:c.querySelector('.pr_d').value.trim(),items:c.querySelector('.pr_i').value.split('\n').map(t=>t.trim()).filter(Boolean).slice(0,8),hl:c.querySelector('.pr_hl').checked})).filter(x=>x.name)}}
+function devPriceAdd(){const v=devPriceRead();v.plans.push({name:'새 요금제',price:'',unit:'/ 월',desc:'',items:[],cta:'무료로 시작하기',hl:false});SITE.cfg.pricing=v;devPrice()}
+function devPriceDel(i){const v=devPriceRead();v.plans.splice(i,1);SITE.cfg.pricing=v;devPrice()}
+async function devPriceSave(){const v=devPriceRead();if(!v.plans.length){toast('요금제를 하나 이상 넣어 주세요');return}
+ try{await devCfgSave('pricing',v)}catch(e){toast(e.message);return}devLog('서비스 가격 저장',v.plans.map(x=>x.name+' '+(x.price||'미정')).join(' · '));toast('저장했어요 · 소개 페이지에 반영돼요');await siteFetch();devRender()}
 function devMaint(){const m=SITE.cfg.maintenance||{on:false,msg:''};
  document.getElementById('devb').innerHTML=`<div class="card"><h3 style="margin-top:0">점검 모드</h3><div class="m">켜면 개발자를 뺀 모든 사용자에게 「점검 중」 안내 화면이 덮여요. 큰 작업(DB 변경 등)을 할 때 쓰세요. 끄면 바로 풀려요(최대 1분).</div>
  <div class="form" style="margin-top:8px"><label>안내 문구<input id="dm_t" maxlength="160" value="${esc(m.msg||'잠시 점검 중이에요. 곧 다시 열게요!')}"></label><label class="chk"><input type="checkbox" id="dm_on" ${m.on?'checked':''}> 점검 모드 켜기</label></div>
