@@ -376,8 +376,17 @@ def g055(r, k):
         names = [WFK[x] for x in WFK]
         return mc(P("'%s'의 짜임으로 가장 적절한 것은?" % a['w']), WFK[a['kind']], [n for n in names if n != WFK[a['kind']]], steps=[st(a)], core='단어의 짜임', lv='중', fam='G', r=r, ref=[3], vertical=False)
     # 어근 + 접사 분석
+    # 선택지는 모두 같은 단어를 달리 분석한 것(합성어로 봄 · 어근과 접사를 바꿈 · 단일어로 봄 · 접사 갈래를 잘못 봄)
     a = r.choice(der)
-    right = a['parts'].replace('-+', '- + ').replace('+-', ' + -')
-    cand = [x['parts'] for x in r.sample(W.WF, 12) if x['parts'] != a['parts']][:4]
-    if len(cand) < 4: return None
-    return mc(P("'%s'을(를) 어근과 접사로 분석한 것으로 알맞은 것은?" % a['w']), a['parts'], cand, steps=[st(a)], core='파생어의 분석', lv='중', fam='H', r=r, ref=[3], vertical=False)
+    ps = [x for x in a['parts'].split('+') if x != '-다']
+    if len(ps) != 2: return None
+    q = lambda t: "'%s'" % t
+    if a['kind'] == '파생(접두)':
+        pre, rt = ps; p0 = pre.rstrip('-'); r0 = rt.rstrip('-')
+        right = '접두사 %s + 어근 %s' % (q(pre), q(rt))
+        ws = ['어근 %s + 어근 %s' % (q(p0), q(rt)), '어근 %s + 접미사 %s' % (q(p0 + ('-' if rt.endswith('-') else '')), q('-' + r0)), '어근 %s 하나(접사 없음)' % q(p0 + r0 + ('-' if rt.endswith('-') else '')), '접미사 %s + 어근 %s' % (q('-' + p0), q(rt))]
+    else:
+        rt, suf = ps; r0 = rt.rstrip('-'); core = suf.strip('-'); tr = '-' if suf.endswith('-') else ''
+        right = '어근 %s + 접미사 %s' % (q(rt), q(suf))
+        ws = ['어근 %s + 어근 %s' % (q(rt), q(core + tr)), '접두사 %s + 어근 %s' % (q(r0 + '-'), q(core + tr)), '어근 %s 하나(접사 없음)' % q(r0 + core + tr), '어근 %s + 접두사 %s' % (q(rt), q(core + '-'))]
+    return mc(P("'%s'을(를) 어근과 접사로 분석한 것으로 알맞은 것은?" % a['w']), right, ws, steps=[st(a)], core='파생어의 분석', lv='중', fam='H', r=r, ref=[3], vertical=True)

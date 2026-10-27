@@ -304,7 +304,7 @@ def g041(r, k):
         pools.setdefault(m, []).append((a, a.segs[0][0]))
     if c <= 1:
         t = r.choice(list(pools))
-        grp = r.choice([['추측', '주체의 의지', '가능성·능력', '단순한 미래'], ['상황의 지속(현재 상태)', '미래에 대한 확신', '과거와 단절된 상황', '지난 일의 회상'], ['보편적 사실(현재 시제)', '확정된 미래(현재 시제)', '단순한 미래', '추측']])
+        grp = r.choice([['추측', '주체의 의지', '가능성·능력'], ['상황의 지속(현재 상태)', '미래에 대한 확신', '과거와 단절된 상황', '지난 일의 회상'], ['보편적 사실(현재 시제)', '확정된 미래(현재 시제)', '단순한 미래']])   # '추측'과 '단순한 미래'(일기 예보 등)는 겹쳐 읽히므로 한 문항에 함께 두지 않는다
         if t not in grp:
             t = grp[0]
         P2 = {g: pools[g] for g in grp}
@@ -312,7 +312,7 @@ def g041(r, k):
     if c == 2:
         m = r.choice(list(pools))
         a, i = r.choice(pools[m])
-        return t_single(r, a, i, list(pools), m, '밑줄 친 부분이 나타내는 의미로 알맞은 것은?', [SUBU_NAME[m]], '중', 'B', [2], SUBU_NAME[m])
+        return t_single(r, a, i, [x for x in pools if {x, m} != {'추측', '단순한 미래'}], m, '밑줄 친 부분이 나타내는 의미로 알맞은 것은?', [SUBU_NAME[m]], '중', 'B', [2], SUBU_NAME[m])
     if c == 3:
         pairs = [('나는 오늘 집에 일찍 왔다.', '나는 오늘 집에 일찍 왔었다.', '왔다'), ('그는 서울에 살았다.', '그는 서울에 살았었다.', '살았다'), ('나는 어제 이 옷을 입었다.', '나는 어제 이 옷을 입었었다.', '입었다')]
         a = r.choice(pairs)
@@ -402,7 +402,9 @@ def g043(r, k):
         i, t, code = a.segs[0]
         kd = code.split(':')[0]
         truth = r.random() < 0.5
-        alts = [x for x in VPL if x != kd]
+        # '피동'·'사동'처럼 넓은 이름은 그 아래 갈래(파생적·통사적)에도 맞는 말이므로 거짓 선택지로 쓰지 않는다
+        fits = lambda n: n == kd or (VPL[n] == '피동' and kd in VG['피동']) or (VPL[n] == '사동' and kd in VG['사동']) or (n == 'PP' and kd == 'PN') or {n, kd} == {'AC', 'JD'}
+        alts = [x for x in VPL if not fits(x)]
         n = kd if truth else r.choice(alts)
         stm.append(('「%s」의 밑줄 친 부분은 %s 표현이다.' % (a.html(under=[i]), VPL[n]), truth, "'%s'은(는) %s이다. %s" % (t, VPL[kd], '')))
     return bogi('다음 문장에 대한 설명으로 옳은 것만을 〈보기〉에서 있는 대로 고른 것은?', stm, lv='상', fam='G', r=r, ref=[3], ask='')
