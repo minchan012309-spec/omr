@@ -83,8 +83,11 @@ def g010(r, k):
     if c == 3:
         i, j = r.sample(range(3), 2)
         s = tp['solutions']
-        right = josa('\'%s\'은(는) %s는 점에서 효과성이 있지만 %s는 점에서 실현 가능성이 낮아 보완이 필요하다.' % (s[i][0], s[i][1], s[i][2]))
-        ws = [josa('\'%s\'은(는) %s는 점에서 효과성이 있지만 %s는 점에서 실현 가능성이 낮아 보완이 필요하다.' % (s[a][0], s[b][1], s[b][2])) for a, b in ((i, j), (j, i), (j, j))]
+        k_ = 3 - i - j
+        fr = '\'%s\'은(는) %s는 점에서 기대 효과가 있지만 %s는 점이 한계여서 보완이 필요하다.'
+        right = josa(fr % (s[i][0], s[i][1], s[i][2]))
+        # 오답은 방안과 효과·한계를 어긋나게 짝지은 것만(다른 방안을 제 효과·한계와 짝지으면 그것도 정답이 된다)
+        ws = [josa(fr % (s[a][0], s[b][1], s[b][2])) for a, b in ((i, j), (i, k_), (j, i))]
         ws += [josa('\'%s\'은(는) 어떤 문제도 없으므로 평가 기준을 따로 세울 필요 없이 바로 채택해야 한다.' % s[i][0])]
         body = P('다음은 해결 방안 평가표이다. 평가 내용으로 가장 적절한 것은?') + table(['해결 방안', '기대 효과', '한계'], [[s[x][0], s[x][1], s[x][2]] for x in range(3)])
         return mc(body, right, ws, steps=['표에서 "%s"의 기대 효과는 "%s", 한계는 "%s"이다.' % (s[i][0], s[i][1], s[i][2]), '다른 방안의 효과나 한계를 가져다 쓴 선택지는 표와 맞지 않는다.'], core='해결 방안 평가 기준: 효과성 · 실현 가능성 · 효율성', lv='상', fam='B', r=r, ref=[1], vertical=True)
@@ -118,11 +121,12 @@ def g011(r, k):
         right = r.choice(THESES[o]); ws = r.sample(THESES[typ], 4)
         return mc(P('다음 중 논제의 유형이 나머지와 다른 하나는?'), right, ws, steps=['"%s"만 %s 논제이고 나머지는 %s 논제이다.' % (right, o, typ)], core='논제의 유형: 정책 · 사실 · 가치', lv='중', fam='B', r=r, ref=[2], vertical=True)
     tp = r.choice(S.TOPICS); side = r.choice(['pro', 'con'])
-    feats = r.sample(['def', 'eff', 'stat', 'case', 'urg', 'opp'], 5)
+    # 반대 측은 찬성 측 통계·사례(문제를 드러내는 자료)를 근거로 삼지 않으므로 반대 측 입론은 네 요소에서 고른다
+    feats = r.sample(['def', 'eff', 'stat', 'case', 'urg', 'opp'], 5) if side == 'pro' else r.sample(['def', 'eff', 'urg', 'opp'], 4)
     sents = []
     head = ipron(tp, side, [])
     turns = [(('찬성 측 입론' if side == 'pro' else '반대 측 입론'), head, None)]
-    for f in feats:
+    for f in sorted(feats, key=['def', 'eff', 'stat', 'exp', 'case', 'opp', 'urg'].index):   # 정의 → 주장 → 근거 → 예상 반론 → 강조
         turns.append((None, josa(ff(IN_F[f][0 if side == 'pro' else 1], tp)), f))
     descs = {f: in_desc(f, side) for f in feats}
     mode, lv = _mode_lv(r)
@@ -134,17 +138,13 @@ def g011(r, k):
 
 @T('hl012')
 def g012(r, k):
-    tp = r.choice(S.TOPICS); asked = r.choice(['pro', 'con'])
-    opp = '찬성 측' if asked == 'pro' else '반대 측'
-    me = '반대 측' if asked == 'pro' else '찬성 측'
+    tp = r.choice(S.TOPICS); asked = 'pro'   # 다섯 질문이 모두 상대 입론에 근거하도록 찬성 측 입론(정의·주장·통계·전문가·사례)을 묻는다
+    opp, me = '찬성 측', '반대 측'
     keys = ['prob', 'ev', 'src', 'case', 'def']
-    turns = [('%s 입론' % opp, ipron(tp, asked, ['def', 'stat', 'case']), None)]
+    turns = [('%s 입론' % opp, ipron(tp, asked, ['def', 'eff', 'stat', 'exp', 'case']), None)]
     qs = r.sample(keys, 5)
     for n, key in enumerate(qs):
-        u = cx_utter(tp, key, asked)
-        if n:
-            u = u.split('말씀하셨는데, ', 1)[1]
-        turns.append(('%s 반대 신문' % me, u, key))
+        turns.append(('%s 반대 신문' % me, cx_utter(tp, key, asked), key))
     descs = {key: cx_desc(key, opp) for key in keys}
     mode, lv = _mode_lv(r)
     q = {'one': '㉠에 나타난 질문의 의도로 가장 적절한 것은?', 'not5': '반대 신문 ㉠~㉤에 대한 설명으로 적절하지 않은 것은?', 'ok5': '반대 신문 ㉠~㉤에 대한 설명으로 적절한 것은?'}[mode]
@@ -160,8 +160,7 @@ def g013(r, k):
         side = r.choice(['pro', 'con'])
         claim = tp['pro_claim'] if side == 'pro' else tp['con_claim']; reason = tp['pro_reason'] if side == 'pro' else tp['con_reason']
         nm = '찬성' if side == 'pro' else '반대'
-        sent = '<u>㉠%s</u>. 왜냐하면 <u>㉡%s</u>이다.' % (claim, reason.replace(' 때문', '') + ' 때문' if reason.endswith('때문') else reason)
-        sent = '<u>㉠%s</u>. 왜냐하면 <u>㉡%s</u>입니다.' % (claim, reason)
+        sent = '<u>㉠%s</u>고 생각합니다. 왜냐하면 <u>㉡%s</u>입니다.' % (claim, reason)
         body = P('다음은 %s 측 토론자의 발언이다. ㉠, ㉡의 논증상 역할로 알맞은 것은?' % nm) + '<div class="bogi"><p>%s</p></div>' % sent
         right = '㉠: 주장, ㉡: 근거'
         ws = ['㉠: 근거, ㉡: 주장', '㉠: 논제, ㉡: 주장', '㉠: 쟁점, ㉡: 근거', '㉠: 반박, ㉡: 논제']
@@ -169,7 +168,7 @@ def g013(r, k):
     if c <= 4:
         claim, reason = tp['pro_claim'], tp['pro_reason']
         cr = tp['con_reason']
-        body = P('다음은 학생 토론이다. 반대 측의 반박으로 가장 적절한 것은?') + DLG([('찬성 측', josa(ff('{pc}. {pr}입니다.', tp))), ('반대 측', '(반박)')])
+        body = P('다음은 학생 토론이다. 반대 측의 반박으로 가장 적절한 것은?') + DLG([('찬성 측', josa(ff('{pc}고 봅니다. {pr}입니다.', tp))), ('반대 측', '(반박)')])
         assert tp['con_reason'].endswith('때문')
         right = josa('찬성 측은 \'%s\'고 하셨지만, %s에 \'%s\'는 점도 함께 살펴보아야 합니다.' % (claim, tp['con_reason'], tp['con_claim']))
         ws = ['찬성 측 토론자는 평소 약속을 잘 지키지 않으므로 그 주장을 신뢰할 수 없습니다.', '많은 사람이 찬성 측과 같이 생각하므로 그 주장은 옳다고 보아야 합니다.', '지금까지 말씀하신 내용을 모두 인정하며, 우리 측 입장을 철회하겠습니다.', '그 문제와 관계없이, 다른 학교에서도 논란이 있었다는 점을 말씀드립니다.']
@@ -203,8 +202,8 @@ def g014(r, k):
         body = P('다음 중 \'%s\'에 해당하는 것은?' % typ)
         return mc(body, right, ws, steps=['%s: %s' % (typ, S2.FALLACY_DESC[typ]), '"%s"이(가) 이에 해당한다.' % right], core=S2.FALLACY_DESC[typ], lv='중', fam='B', r=r, ref=[4], vertical=True)
     if c == 5:
-        tp = r.choice(S.TOPICS); s, typ = r.choice(pool)
-        body = P('다음 토론에서 밑줄 친 발언에 나타난 논증상의 문제로 가장 적절한 것은?') + DLG([('찬성 측', josa(ff('{pc}고 생각합니다. {pr}입니다.', tp))), ('반대 측', U(s))])
+        s, typ = r.choice(pool)   # 오류 예문은 토론 주제와 무관하므로 다른 주제의 찬성 측 발언과 엮지 않는다
+        body = P('다음 토론 발언에서 밑줄 친 부분에 나타난 논증상의 문제로 가장 적절한 것은?') + DLG([('토론자', U(s))])
         ws = r.sample([n for n in names if n != typ], 4)
         return mc(body, typ, ws, steps=['밑줄 친 발언은 %s이다. %s' % (typ, S2.FALLACY_DESC[typ])], core='논증의 오류 유형', lv='상', fam='C', r=r, ref=[4], vertical=False)
     s, typ = r.choice(pool)
@@ -231,11 +230,11 @@ def g015(r, k):
 
 
 REB = {
- 'rep': ('자료의 조사 대상이 한정되어 있어 결과를 일반화하기 어렵다고 지적하고 있다.', '{st0}은(는) 일부 학생만을 대상으로 한 것이어서 전체의 의견으로 보기 어렵습니다.'),
+ 'rep': ('자료의 조사 대상이 한정되어 있어 결과를 일반화하기 어렵다고 지적하고 있다.', '{st0}은(는) 일부만을 대상으로 한 것이어서 전체로 일반화하기 어렵습니다.'),
  'inv': ('상대가 제시한 수치를 다른 관점에서 해석하여 반박하고 있다.', '{st1}이(가) {sv}%라는 것은 거꾸로 {inv}%는 그렇지 않다는 뜻이기도 합니다.'),
  'rel': ('자료가 상대의 주장을 직접 뒷받침하지 못한다고 지적하고 있다.', '그 수치만으로는 \'{pc}\'는 주장이 입증된다고 보기 어렵습니다.'),
- 'cnt': ('상대와 다른 전문가의 견해를 제시하여 반박하고 있다.', '그러나 {ex}은(는) 이와 다르게 보고 있습니다.'),
- 'cmp': ('상대 우려를 인정하면서 보완책을 제시하여 재반박하고 있다.', '그 우려는 타당하지만, {s1}을(를) 함께 시행하면 보완할 수 있습니다.'),
+ 'cnt': ('상대와 다른 전문가의 견해를 제시하여 반박하고 있다.', '그러나 이 분야의 전문가 가운데에는 이와 다르게 보는 사람도 많습니다.'),   # 주제의 전문가({ex})는 찬성 측 주장을 지지하는 사람이다
+ 'alt': ('자료에 나타난 결과가 다른 원인 때문일 수 있다고 지적하고 있다.', '{st1}이(가) {sv}%인 것은 다른 원인 때문일 수도 있습니다.'),   # 반대 측 반박이므로 상대 우려를 인정하는 재반박은 두지 않는다
 }
 
 @T('hl016')

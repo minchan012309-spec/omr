@@ -5,6 +5,16 @@ import re
 from hllib import esc
 
 _RE = re.compile(r'\{([^{}|]+)\|([^{}]+)\}')
+_JONG = {'ㄴ': 4, 'ㄹ': 8, 'ㅁ': 16, 'ㅂ': 17}
+_JM = re.compile(r'([가-힣])((?:</?u>)*)([ㄴㄹㅁㅂ])(?=[가-힣])')
+
+def jamo_join(s):
+    """'{주무시|SL}ㄴ다'처럼 어미의 첫 자음을 따로 적은 것을 앞 음절 받침으로 합친다: 주무시ㄴ다 → 주무신다 (밑줄 태그를 사이에 두어도)"""
+    def f(m):
+        c = m.group(1)
+        if (ord(c) - 0xAC00) % 28: return m.group(0)
+        return chr(ord(c) + _JONG[m.group(3)]) + m.group(2)
+    return _JM.sub(f, s)
 
 class Ann:
     def __init__(self, s, **meta):
@@ -25,7 +35,7 @@ class Ann:
     def role(self, code): return code.split(':')[0]
     def detail(self, code): return code.split(':')[1] if ':' in code else ''
     def plain(self):
-        return ''.join(t[1] for t in self.toks)
+        return jamo_join(''.join(t[1] for t in self.toks))
     def html(self, under=None, labels=None):
         """under: 밑줄 칠 분절 인덱스(toks 내 위치)들, labels: {인덱스: '㉠'}"""
         under = set(under or []); labels = labels or {}
@@ -37,7 +47,7 @@ class Ann:
                 out.append('%s<u>%s</u>' % (lab, txt))
             else:
                 out.append(txt)
-        return ''.join(out)
+        return jamo_join(''.join(out))
     def seg_by_role(self, roles):
         return [(i, t, c) for i, t, c in self.segs if self.role(c) in roles]
 
