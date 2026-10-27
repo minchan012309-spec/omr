@@ -58,7 +58,7 @@ const BKCSS=`
 .bkdoc .u.q .fg{text-align:center;margin:1.6mm 0}.bkdoc .u.q .fg img{max-width:100%;max-height:62mm;height:auto}
 .bkdoc .u.q .bogi,.bkdoc .u.q .bxx{border:.6px solid #111;padding:1.6mm 2.2mm;margin:2mm 0;font-size:11.8px;line-height:1.5}
 .bkdoc .u.q .bogi{position:relative;padding-top:3.4mm;margin-top:4.4mm}
-.bkdoc .u.q .bogi .bt{position:absolute;top:-2.4mm;left:50%;transform:translateX(-50%);background:#1f2933;color:#fff;border-radius:1mm;padding:0 2.6mm;margin:0;font-weight:700;font-size:10.4px;line-height:4.6mm;letter-spacing:.12em;white-space:nowrap} /* 보기 제목 칩 */
+.bkdoc .u.q .bogi .bt{position:absolute;top:-2.5mm;left:50%;transform:translateX(-50%);background:#fff;color:#111;border-radius:0;padding:0 1.6mm;margin:0;font-weight:500;font-size:11.6px;line-height:4.6mm;letter-spacing:.06em;white-space:nowrap} /* 〈보 기〉 글자만 윗줄에 걸침 */
 .bkdoc .u.q .bogi p,.bkdoc .u.q .bxx p{margin:.5mm 0;padding-left:5mm;text-indent:-5mm;text-align:left}
 .bkdoc .u.q .bxx{border-style:solid}
 .bkdoc .u.q .eqn{text-align:center;margin:1.6mm 0;font-size:12.5px}
@@ -145,6 +145,7 @@ const BKCSS=`
 .bkdoc .cbk table.tb{width:100%;border-collapse:collapse;margin:2mm 0 3.4mm;font-size:11.5px;line-height:1.5;background:#fff}
 .bkdoc .cbk table.tb th{background:var(--pl);color:#1b2430;border:.25mm solid var(--line);padding:1.2mm 1.8mm;font-weight:700;text-align:center}
 .bkdoc .cbk table.tb td{border:.25mm solid var(--line);padding:1.2mm 1.8mm;text-align:center;vertical-align:middle}
+.bkdoc .cbk table.tb tr:last-child>td,.bkdoc .cbk table.tb tr:last-child>th{border-bottom:.25mm solid var(--line)}.bkdoc .cbk table.tb tr>:last-child{border-right:.25mm solid var(--line)}
 .bkdoc .cbk table.tb td.l,.bkdoc .cbk table.tb th.l{text-align:left}.bkdoc .cbk table.tb td.b{font-weight:700;white-space:nowrap}
 .bkdoc .cbk .nt{margin:5mm 0 3.4mm;padding:3.6mm 3.6mm 1.6mm;border:.3mm solid var(--pl2);border-radius:2mm;background:var(--pl);position:relative;break-inside:avoid}
 .bkdoc .cbk .nt>.lb{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:var(--p);border-radius:1.2mm;padding:0 2.2mm;margin:-6.8mm 0 1.4mm;line-height:4.4mm}
@@ -307,6 +308,7 @@ function bkQHtml(q,no,o){o=o||{};
  const r=bkDoc(q.q);const qs=r.querySelector('.qs');if(!qs)return '<div class="u q">'+q.q+'</div>';
  const pt=o.pt!=null?'['+o.pt+'점]':'';
  bkChoices(qs);
+ qs.querySelectorAll('.bogi>.bt').forEach(b=>{if(/^[<〈]?\s*보\s*기\s*[>〉]?$/.test(b.textContent.trim()))b.textContent='〈보 기〉'});
  qs.querySelectorAll('.psg.sp').forEach(e=>e.classList.remove('sp')); // 필기용 넓은 글자 간격은 주교재 필기 쪽에서만(문항 안 지문은 시험지처럼 촘촘히)
  const first=qs.firstElementChild;const numH='<b class="no">'+no+'</b>';
  if(o.code)qs.insertAdjacentHTML('afterbegin','<div class="qh2">'+numH+'<span class="cd">'+(o.lv?'난이도 '+o.lv+' · ':'')+q.code+'</span></div>');
