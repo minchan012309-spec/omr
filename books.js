@@ -74,7 +74,7 @@ const BKCSS=`
 .bkdoc .u.q .chs{margin-top:1mm;font-size:11.8px;line-height:1.5}
 .bkdoc .u.q .chs.sh{display:grid;grid-template-columns:repeat(3,1fr);row-gap:.4mm}
 .bkdoc .u.q .chs.md{display:grid;grid-template-columns:repeat(2,1fr);row-gap:.4mm;column-gap:2mm}
-.bkdoc .u.q .chs div{display:grid;grid-template-columns:auto 1fr;column-gap:1.3mm;align-items:baseline}.bkdoc .u.q .chs div b{font-weight:500}
+.bkdoc .u.q .chs div{display:grid;grid-template-columns:auto 1fr;column-gap:1.4mm;align-items:baseline}.bkdoc .u.q .chs div b{font-family:SolviCn,Pretendard,PretendardLocal,sans-serif;font-weight:300;font-size:1.24em;line-height:1;letter-spacing:0}
 .bkdoc .u.q .chs.lg div{margin:.5mm 0}
 .bkdoc .u.q .bk{display:inline-block;min-width:15mm;text-align:center;border-bottom:var(--blank);font-weight:700;color:#555;line-height:1.1;margin:0 .6mm}
 .bkdoc .u.q .fr,.bkdoc .fr{text-indent:0;display:inline-block;vertical-align:middle;text-align:center;line-height:1.12;margin:0 .6mm}.bkdoc .fr>span{display:block;padding:0 .6mm}.bkdoc .fr>span:first-child{border-bottom:.6px solid #111}
@@ -175,8 +175,6 @@ const BKCSS=`
 .bkdoc .rng .rk{display:inline-block;min-width:3.4mm;padding:0 .7mm;margin-right:1mm;border:.25mm solid var(--pd);border-radius:.6mm;background:#fff;color:var(--pd);font-size:.76em;font-weight:800;line-height:1.3;text-align:center;text-indent:0;vertical-align:.08em;letter-spacing:0}
 .bkdoc .rng .re{display:inline-block;width:1.5mm;height:1.5mm;margin:0 .3mm 0 .8mm;border-right:.3mm solid var(--pd);border-bottom:.3mm solid var(--pd);vertical-align:.02em}
 /* 원문자 배지 */
-.bkdoc .cn{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:1.47em;height:1.47em;border:.7px solid currentColor;border-radius:50%;font-size:.78em;font-weight:500;line-height:1;font-style:normal;font-family:Pretendard,PretendardLocal,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:0;text-indent:0;vertical-align:.12em;padding-top:.06em}.bkdoc .cn.kj,.bkdoc .cn.kh{font-size:.7em;width:1.64em;height:1.64em;padding-top:0}
-.bkdoc .u.k .kg .cn,.bkdoc .u.x .cn{vertical-align:.1em}
 .bkdoc .psgu .psg.sp{letter-spacing:.06em;line-height:2.5;font-size:12.6px}.bkdoc .psgu .psg.sp p{margin:0 0 2.2mm}
 .bkdoc .psgu.wd .psg.sp{letter-spacing:.1em;line-height:2.75;font-size:13px;word-spacing:.1em}.bkdoc .psgu.wd .psg.sp p{margin:0 0 3.2mm}.bkdoc .psgu .psg.sp .hd{letter-spacing:0;line-height:1.7}
 .bkdoc .ntp{display:flex;flex-direction:column}.bkdoc .ntp .nth{display:flex;gap:2.4mm;align-items:baseline;border-bottom:.3mm solid var(--line);padding-bottom:1.2mm;margin-bottom:2.4mm;font-size:10px;color:#8a8f97}.bkdoc .ntp .nth b{letter-spacing:.16em;font-size:9px;color:var(--pd)}
@@ -284,7 +282,7 @@ const BKSCR=`
 
 /* ---------- 준비: 글꼴 · 높이표 · 개념 · 모의고사 ---------- */
 const BKCDN='https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css';
-function bkFontCss(abs){const b=abs||'';return [[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold']].map(([w,n])=>`@font-face{font-family:PretendardLocal;font-weight:${w};font-display:swap;src:url(${b}fonts/Pretendard-${n}.woff2) format('woff2')}`).join('')+`@font-face{font-family:YetHangul;font-weight:100 600;font-display:swap;src:url(${b}fonts/KoPubDotum-Medium.subset.woff2) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}@font-face{font-family:YetHangul;font-weight:700 900;font-display:swap;src:url(${b}fonts/KoPubDotum-Bold.subset.woff2) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}`}
+function bkFontCss(abs){const b=abs||'';return [[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold']].map(([w,n])=>`@font-face{font-family:PretendardLocal;font-weight:${w};font-display:swap;src:url(${b}fonts/Pretendard-${n}.woff2) format('woff2')}`).join('')+`@font-face{font-family:YetHangul;font-weight:100 600;font-display:swap;src:url(${b}fonts/KoPubDotum-Medium.subset.woff2) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}@font-face{font-family:YetHangul;font-weight:700 900;font-display:swap;src:url(${b}fonts/KoPubDotum-Bold.subset.woff2) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}@font-face{font-family:SolviCn;font-weight:100 900;font-display:block;src:url(${b}fonts/Pretendard-Light.cn.woff2) format('woff2');unicode-range:U+2460-2473}`}
 function bkInit(){
  if(BKREADY)return BKREADY;
  BKREADY=(async()=>{
@@ -448,13 +446,9 @@ function bkCbUnits(sec,w){const us=[bkU('ch:'+sec.id,'<div class="u sh2"><i>'+es
   const keep=isH(el)||(i===0&&isIntro(el))||(txt&&(/[:：]\s*$/.test(el.textContent.trim())||isBox(nx)));
   us.push(bkU('cb:'+sec.id+':'+i,'<div class="u cbk">'+el.outerHTML+'</div>',{w,keep,hdg:isH(el)}))});
  return us}
-/* 원문자(①, ㉠, ⓐ, ㉮ …)를 글꼴 글리프 대신 CSS 원 배지로 그린다(글꼴마다 굵기·크기가 달라 보이는 문제) */
-const BKCN=(()=>{const m={};for(let i=0;i<20;i++)m[String.fromCharCode(0x2460+i)]=String(i+1);for(let i=0;i<26;i++){m[String.fromCharCode(0x24D0+i)]=String.fromCharCode(97+i);m[String.fromCharCode(0x24B6+i)]=String.fromCharCode(65+i)}
- [...'ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ'].forEach((c,i)=>m[String.fromCharCode(0x3260+i)]=c);[...'가나다라마바사아자차카타파하'].forEach((c,i)=>m[String.fromCharCode(0x326E+i)]=c);return m})();
-const BKCNR=/(<[^>]*>)|([①-⑳Ⓐ-ⓩ㉠-㉻])/g;
+/* 원문자(①, ㉠ …)는 글꼴의 특수문자 그대로 쓴다. 선지 번호만 .chs b 에서 크게 · 가늘게(SolviCn: Pretendard Light ①~⑳) */
 const BKPH=(()=>{const m={};[...'ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ'].forEach((c,i)=>m[String.fromCharCode(0x3200+i)]='('+c+')');[...'가나다라마바사아자차카타파하'].forEach((c,i)=>m[String.fromCharCode(0x320E+i)]='('+c+')');return m})(); // ㈎ → (가): 글꼴에 없는 괄호 문자
-const bkGlyph=h=>String(h).replace(BKCNR,(m0,tag,ch)=>tag||'<span class="cn'+(/[가-힣]/.test(BKCN[ch])?' kh':/[ㄱ-ㅎ]/.test(BKCN[ch])?' kj':'')+'">'+BKCN[ch]+'</span>')
- .replace(/[\u3200-\u321B]/g,c=>BKPH[c]||c)
+const bkGlyph=h=>String(h).replace(/[\u3200-\u321B]/g,c=>BKPH[c]||c)
  .replace(/<th(\s[^>]*)?>([^<]{1,8})<\/th>/g,(m0,a,t)=>/\bclass=/.test(a||'')?m0:'<th'+(a||'')+' class="nw">'+t+'</th>'); // 짧은 머리글은 한 줄로
 
 /* ---------- 쪽 계획 ---------- */
@@ -1112,7 +1106,7 @@ function bkBackCover(plan){const z=plan.dz||{};if(z.cover===6)return bkBackNavy(
 function bkTocX(plan){const ld=(n,p)=>'<span class="tr"><em>'+esc(n)+'</em><u></u><b>'+(p||'—')+'</b></span>';const N=plan.toc.reduce((a,r)=>a+r.items.length,0)+plan.toc.length,many=N>36,huge=N>80; // 줄 수 = 항목 + 소단원 머리 줄
  let h='<div class="toc tx'+(many?' tm':'')+(huge?' th':'')+'"><h3>차 례</h3><div class="tl">'+plan.toc.map(r=>'<div class="tg"><div class="ts"><i></i>'+esc(r.sub.k)+' <span>'+esc(r.sub.name)+'</span><b>'+((r.items[0]||[])[1]||'')+'</b></div><div class="ti">'+r.items.map(([n,p])=>ld(n,p)).join('')+'</div></div>').join('')
   +'<div class="tg te">'+(plan.toc.es?ld('서술형 · '+plan.toc.es.n+'문항',plan.toc.es.p):'')+ld('정답 · 해설',plan.aStart||'')+'</div></div>';
- if(N<=(many?60:36))h+='<div class="how"><h4>이 책의 활용법</h4>'+(plan.how||'① 소단원마다 구성 순서대로 풀어 나간다.<br>② 한 쪽을 풀 때마다 아래 <b>QR을 스캔</b>해 채점한다.<br>③ 틀린 문제는 맨 뒤 해설로 확인한다.')+'</div></div>';return h}
+ if(N<=(many?60:36))h+='<div class="how"><h4>이 책의 활용법</h4>'+(plan.how||'① 소단원마다 구성 순서대로 풀어 나간다.<br>② 한 쪽을 풀 때마다 아래 <b>QR을 스캔</b>해 채점한다.<br>③ 틀린 문제는 맨 뒤 해설로 확인한다.')+'</div>';return h+'</div>'} // 활용법이 빠져도 .toc 는 닫는다(안 닫으면 인쇄 문서에서 뒤쪽이 모두 차례 쪽 안에 들어감)
 function bkToc(plan){
  let h='<div class="toc"><h3>차 례</h3>';
  if(plan.kind==='x'||plan.kind==='h'){return bkTocX(plan)}
@@ -1562,7 +1556,7 @@ function ebkScrubBind(s){let st=null;
  s.addEventListener('pointerup',end,true);s.addEventListener('pointercancel',end,true)}
 
 /* ---------- 인쇄 ---------- */
-function bkFontCssRule(){const f=BKO.font&&typeof FONTS!=='undefined'&&FONTS[BKO.font];return f&&BKO.font!=='paper'?'.bkdoc,.bkdoc *{font-family:'+f[1]+'!important}':''}
+function bkFontCssRule(){const f=BKO.font&&typeof FONTS!=='undefined'&&FONTS[BKO.font];return f&&BKO.font!=='paper'?'.bkdoc,.bkdoc *{font-family:'+f[1]+'!important}.bkdoc .u.q .chs div b{font-family:SolviCn,'+f[1]+'!important}':''}
 /* 양면 인쇄: 답안이 뒷면에서 시작하지 않게 빈 쪽을 끼우고, 총 쪽수가 홀수면 마지막에 빈 쪽을 붙임(-1 = 빈 쪽) */
 function bkSheets(plan,all){const last=plan.pages[plan.pages.length-1],back=!!(all&&last&&last.k==='back');
  const n=all?plan.pages.length-(back?1:0):Math.max(1,(plan.aStart||plan.pages.length+1)-1);const a=[];for(let i=0;i<n;i++)a.push(i);
