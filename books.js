@@ -1106,7 +1106,7 @@ function bkBackCover(plan){const z=plan.dz||{};if(z.cover===6)return bkBackNavy(
 function bkTocX(plan){const ld=(n,p)=>'<span class="tr"><em>'+esc(n)+'</em><u></u><b>'+(p||'—')+'</b></span>';const N=plan.toc.reduce((a,r)=>a+r.items.length,0)+plan.toc.length,many=N>36,huge=N>80; // 줄 수 = 항목 + 소단원 머리 줄
  let h='<div class="toc tx'+(many?' tm':'')+(huge?' th':'')+'"><h3>차 례</h3><div class="tl">'+plan.toc.map(r=>'<div class="tg"><div class="ts"><i></i>'+esc(r.sub.k)+' <span>'+esc(r.sub.name)+'</span><b>'+((r.items[0]||[])[1]||'')+'</b></div><div class="ti">'+r.items.map(([n,p])=>ld(n,p)).join('')+'</div></div>').join('')
   +'<div class="tg te">'+(plan.toc.es?ld('서술형 · '+plan.toc.es.n+'문항',plan.toc.es.p):'')+ld('정답 · 해설',plan.aStart||'')+'</div></div>';
- if(N<=(many?60:36))h+='<div class="how"><h4>이 책의 활용법</h4>'+(plan.how||'① 소단원마다 구성 순서대로 풀어 나간다.<br>② 한 쪽을 풀 때마다 아래 <b>QR을 스캔</b>해 채점한다.<br>③ 틀린 문제는 맨 뒤 해설로 확인한다.')+'</div></div>';return h}
+ if(N<=(many?60:36))h+='<div class="how"><h4>이 책의 활용법</h4>'+(plan.how||'① 소단원마다 구성 순서대로 풀어 나간다.<br>② 한 쪽을 풀 때마다 아래 <b>QR을 스캔</b>해 채점한다.<br>③ 틀린 문제는 맨 뒤 해설로 확인한다.')+'</div>';return h+'</div>'} // 활용법이 빠져도 .toc 는 닫는다(안 닫으면 인쇄 문서에서 뒤쪽이 모두 차례 쪽 안에 들어감)
 function bkToc(plan){
  let h='<div class="toc"><h3>차 례</h3>';
  if(plan.kind==='x'||plan.kind==='h'){return bkTocX(plan)}

@@ -1,6 +1,6 @@
 /* Solvi 서비스 워커: 앱 껍데기와 한 번 불러온 데이터를 저장해 두어 오프라인에서도 열리게 합니다. */
-const VER = 'solvi-v150';
-const SHELL = ['./', 'index.html', 'books.js', 'lazy/omr-report.js', 'lazy/tset.js', 'lazy/acad.js', 'lazy/admin.js', 'bank/data.js?v=1', 'manifest.webmanifest?v=2', 'icons/icon-192.png?v=2', 'icons/icon-512.png?v=2', 'fonts/KoPubDotum-Medium.subset.woff2', 'fonts/KoPubDotum-Bold.subset.woff2', 'intro.html', 'intro.css?v=2', 'intro.js?v=2', 'intro/phone-result.webp'];
+const VER = 'solvi-v151';
+const SHELL = ['./', 'index.html', 'books.js', 'lazy/omr-report.js', 'lazy/tset.js', 'lazy/acad.js', 'lazy/admin.js', 'bank/data.js?v=1', 'manifest.webmanifest?v=2', 'icons/icon-192.png?v=2', 'icons/icon-512.png?v=2', 'fonts/KoPubDotum-Medium.subset.woff2', 'fonts/KoPubDotum-Bold.subset.woff2', 'intro.html', 'intro.css?v=3', 'intro.js?v=3', 'intro/phone-result.webp'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VER).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
@@ -16,6 +16,10 @@ self.addEventListener('fetch', e => {
   if (r.mode === 'navigate') { // 페이지는 네트워크 우선(새 버전을 바로 받음), 실패하면 저장본
     e.respondWith(fetch(r).then(res => { if (res && res.ok && (u.pathname === '/' || /\/index\.html$/.test(u.pathname))) caches.open(VER).then(c => c.put('index.html', res.clone())); return res; })
       .catch(() => caches.match('index.html').then(h => h || caches.match('./'))));
+    return;
+  }
+  if (/\.(js|css)$/.test(u.pathname)) { // 코드(JS·CSS)는 네트워크 우선: HTML 과 버전이 어긋나 화면이 깨지지 않게(예전 저장본이 새 HTML 에 붙던 문제), 오프라인이면 저장본
+    e.respondWith(caches.open(VER).then(c => fetch(r).then(res => { if (res && res.ok) c.put(r, res.clone()); return res; }).catch(() => c.match(r).then(h => h || c.match(r, { ignoreSearch: true })))));
     return;
   }
   // 그 밖의 정적 파일(데이터·이미지·글꼴)은 저장본을 먼저 보여주고 뒤에서 갱신
