@@ -204,43 +204,73 @@ function acItem(i,k,v){const it=AC.pay.items[i];if(!it)return;it[k]=k==='amount'
 function acItemAdd(){AC.pay.items=(AC.pay.items||[]).concat([{name:'',amount:0,kind:'tuition'}]);attView()}
 function acItemDel(i){AC.pay.items.splice(i,1);acPaySave();attView()}
 
-/* ---------- 출결 단말(키오스크) ---------- */
+/* ---------- 출결 단말(키오스크) ----------
+   학원 입구 태블릿(가로)용: 왼쪽 남색 면에 학원 이름 · 큰 시계 · 안내, 오른쪽에 번호 칸과 큰 숫자판.
+   기록되면 화면 전체에 인사(등원 초록 · 하원 남색)가 3초 동안 뜨고, 틀린 번호는 번호 칸이 흔들리며 아래에 이유가 나온다. 세로 화면은 위아래로 쌓는다 */
 const KLK='omr_kiosk';
+const KIOCSS=`#kiosk{--kn:#0d387e;--ky:#fdc62d;--kg:#15804c;--kt:#14213d;--km:#5b6678;--kl:#dde3ec;position:fixed;inset:0;z-index:99990;display:grid;grid-template-columns:minmax(0,44fr) minmax(0,56fr);background:#f3f5f9;color:var(--kt);font-family:Pretendard,PretendardLocal,sans-serif;user-select:none;-webkit-user-select:none;touch-action:manipulation;font-variant-numeric:tabular-nums;word-break:keep-all}
+#kiosk .kl{background:var(--kn);color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:clamp(28px,5vh,56px) clamp(28px,4.4vw,64px);min-width:0}
+#kiosk .kbr{display:flex;align-items:center;gap:14px;min-height:48px}#kiosk .kbr svg{height:58px;width:auto}#kiosk .kbr img{max-height:48px;max-width:70%;object-fit:contain}#kiosk .kbr b{font-size:clamp(20px,2.2vw,26px);font-weight:700;letter-spacing:-.02em}
+#kiosk .ktm{font-size:clamp(76px,10.5vw,148px);font-weight:700;line-height:1;letter-spacing:-.04em}#kiosk .kdt{margin-top:14px;font-size:clamp(17px,1.8vw,22px);color:#c9d6ee;font-weight:500}
+#kiosk .kgd h1{margin:0;font-size:clamp(24px,2.7vw,34px);font-weight:700;letter-spacing:-.03em;line-height:1.25}#kiosk .kgd p{margin:12px 0 0;font-size:clamp(15px,1.5vw,18px);line-height:1.6;color:#c9d6ee}#kiosk .kgd p b{color:var(--ky);font-weight:700}
+#kiosk .klb{margin:0 0 -8px;font-size:clamp(15px,1.4vw,17px);font-weight:600;color:var(--km)}#kiosk .kr{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(18px,3vh,28px);padding:clamp(24px,4vh,48px);min-width:0}
+#kiosk .kdg{display:flex;gap:12px}#kiosk .kdg i{width:clamp(48px,5.2vw,60px);height:clamp(60px,8vh,72px);border-radius:14px;background:#fff;border:1.5px solid var(--kl);display:grid;place-items:center;transition:border-color .15s,background .15s}
+#kiosk .kdg i.f:after{content:"";width:16px;height:16px;border-radius:50%;background:var(--kn)}#kiosk .kdg i.c{border-color:var(--kn);box-shadow:0 0 0 3px #0d387e1f}
+#kiosk .kdg.sh{animation:ksh .42s cubic-bezier(.36,.07,.19,.97)}@keyframes ksh{20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
+#kiosk .kms{min-height:48px;text-align:center;font-size:clamp(16px,1.6vw,19px);font-weight:600;color:#c2362f;line-height:1.4}#kiosk .kms small{display:block;font-size:.85em;font-weight:500;color:var(--km)}
+#kiosk .kp{display:grid;grid-template-columns:repeat(3,clamp(88px,10.5vw,124px));gap:clamp(10px,1.4vw,14px)}
+#kiosk .kp button{height:clamp(72px,10.4vh,92px);border-radius:18px;border:1.5px solid var(--kl);background:#fff;color:var(--kt);font:inherit;font-size:clamp(28px,3vw,36px);font-weight:600;cursor:pointer;transition:transform .08s,background .12s,border-color .12s;display:grid;place-items:center}
+#kiosk .kp button:active{transform:scale(.96);background:#e8eef7}#kiosk .kp button svg{width:34px;height:34px}
+#kiosk .kp .go{background:var(--kn);border-color:var(--kn);color:#fff;font-size:clamp(20px,2vw,24px);font-weight:700}#kiosk .kp .go:active{background:#0a2c64}#kiosk .kp .go:disabled{background:#c9d2df;border-color:#c9d2df;cursor:default}
+#kiosk .khi{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,2.4vh,22px);text-align:center;color:#fff;background:var(--kg);padding:32px;z-index:2}
+#kiosk .khi.on{display:flex;animation:khi .26s cubic-bezier(.2,.8,.2,1)}@keyframes khi{from{opacity:0;transform:scale(.985)}}
+#kiosk .khi.out{background:var(--kn)}#kiosk .khi.dup{background:#3d4a5e}#kiosk .khi.who{background:#f3f5f9;color:var(--kt)}
+#kiosk .khi .ck{width:clamp(84px,11vh,112px);height:clamp(84px,11vh,112px);border-radius:50%;background:#ffffff26;display:grid;place-items:center}#kiosk .khi .ck svg{width:56%;height:56%}
+#kiosk .khi h2{margin:0;font-size:clamp(40px,6vw,76px);font-weight:800;letter-spacing:-.035em;line-height:1.1}#kiosk .khi p{margin:0;font-size:clamp(20px,2.4vw,30px);font-weight:600;opacity:.92}
+#kiosk .khi .tm{display:inline-flex;align-items:center;gap:10px;padding:10px 22px;border-radius:999px;background:#ffffff26;font-size:clamp(18px,2vw,24px);font-weight:700}
+#kiosk .kch{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;max-width:760px}#kiosk .kch button{min-width:180px;padding:22px 28px;border-radius:18px;border:1.5px solid var(--kl);background:#fff;font:inherit;font-size:26px;font-weight:700;color:var(--kt);cursor:pointer}#kiosk .kch button small{display:block;margin-top:4px;font-size:15px;font-weight:500;color:var(--km)}#kiosk .kch button:active{background:#e8eef7}
+#kiosk .kx{position:absolute;right:0;top:0;width:72px;height:72px;background:none;border:0;opacity:0;z-index:3}
+@media(max-aspect-ratio:1/1){#kiosk{grid-template-columns:1fr;grid-template-rows:auto 1fr}#kiosk .kl{flex-direction:row;flex-wrap:wrap;align-items:flex-end;gap:12px 28px}#kiosk .kbr{flex-basis:100%}#kiosk .ktm{font-size:clamp(56px,13vw,96px)}#kiosk .kgd{flex:1 1 260px}#kiosk .kgd h1{font-size:clamp(20px,4.4vw,28px)}}
+@media(prefers-reduced-motion:reduce){#kiosk .kdg.sh,#kiosk .khi.on{animation:none}}`;
+const KIOIC={ok:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',del:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5h10a2 2 0 012 2v10a2 2 0 01-2 2H9l-6-7z"/><path d="M12.5 9.5l5 5M17.5 9.5l-5 5"/></svg>'};
+function kioskBrand(){try{const c=acCfg(),u=c.logoDark||c.logo;if(c.mode==='logo'&&u)return `<img src="${u}" alt="${esc(c.name||'학원 로고')}">`;if(c.mode==='text'&&c.name)return `<b>${esc(c.name)}</b>`}catch(e){}return lgStack('#fff')}
 function kioskOpen(){
  if(needCloud()){toast('온라인 저장에 로그인해야 해요');return}
  if(!localStorage.getItem(KLK+'_pw')){const p=prompt('단말을 닫을 때 쓸 해제 번호를 정해 주세요 (숫자 4자리 이상)','');if(!p||!/^\d{4,}$/.test(p)){toast('숫자 4자리 이상으로 정해 주세요');return}localStorage.setItem(KLK+'_pw',p)}
  try{localStorage.setItem(KLK,'1')}catch(e){}
  let k=document.getElementById('kiosk');if(k)k.remove();
- k=document.createElement('div');k.id='kiosk';k.innerHTML=`<style>#kiosk{position:fixed;inset:0;z-index:99990;background:linear-gradient(160deg,#eaf3fd,#fff7dc);color:#1f2933;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;font-family:Pretendard,PretendardLocal,sans-serif;user-select:none;-webkit-user-select:none;touch-action:manipulation}
-#kiosk .kt{font-size:clamp(20px,3.4vw,34px);font-weight:800;letter-spacing:-.02em;text-align:center}#kiosk .kc{font-size:clamp(15px,2vw,20px);color:#5f6c7b;margin-top:-10px}
-#kiosk .kd{display:flex;gap:12px;min-height:58px}#kiosk .kd i{width:46px;height:58px;border-radius:14px;background:#fff;border:2px solid #cfe0f3;display:grid;place-items:center;font-style:normal;font-size:30px;font-weight:800;color:#1d5ca6}
-#kiosk .kp{display:grid;grid-template-columns:repeat(3,clamp(76px,12vmin,110px));gap:12px}#kiosk .kp button{height:clamp(66px,10.5vmin,96px);border-radius:22px;border:0;background:#fffc;box-shadow:0 2px 10px #1d5ca62a;font:inherit;font-size:clamp(26px,4vmin,38px);font-weight:700;color:#1f2933;cursor:pointer}#kiosk .kp button:active{background:#d9e8f8}#kiosk .kp .go{background:#2a72bf;color:#fff;font-size:clamp(18px,2.6vmin,24px)}
-#kiosk .kh{background:#fff9;border-radius:14px;padding:9px 16px;font-size:clamp(14px,1.9vw,18px);color:#394553}#kiosk .kh b{color:#1d5ca6}#kiosk .kr{min-height:90px;text-align:center;font-size:clamp(20px,3vw,30px);font-weight:800}#kiosk .kr.ok{color:#1f9d55}#kiosk .kr.no{color:#d9534f}#kiosk .kr small{display:block;font-size:.55em;font-weight:500;color:#5f6c7b;margin-top:4px}
-#kiosk .kch{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}#kiosk .kch button{padding:12px 20px;border-radius:14px;border:0;background:#fff;box-shadow:0 2px 8px #0002;font:inherit;font-size:18px;font-weight:700;cursor:pointer}
-#kiosk .kx{position:absolute;right:0;top:0;width:70px;height:70px;background:none;border:0;opacity:0}</style>
+ k=document.createElement('div');k.id='kiosk';k.innerHTML=`<style>${KIOCSS}</style>
 <button class="kx" aria-label="해제" onclick="kioskTap()"></button>
-${lgStack('#0D387E').replace('<svg ','<svg width="120" ')}
-<div class="kt">출결 번호를 눌러 주세요</div><div class="kc" id="kclk"></div><div class="kh">예) 전화번호가 010-<b>12345</b>678 이면 <b>12345</b> 를 누르고 「확인」</div><div class="kd" id="kdg"></div>
-<div class="kp">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="kioskKey('${n}')">${n}</button>`).join('')}<button onclick="kioskKey('c')" aria-label="지우기">⌫</button><button onclick="kioskKey('0')">0</button><button class="go" onclick="kioskGo()">확인</button></div>
-<div class="kr" id="krs"></div>`;
+<section class="kl"><div class="kbr">${kioskBrand()}</div><div><div class="ktm" id="ktm"></div><div class="kdt" id="kclk"></div></div><div class="kgd"><h1>출결 번호를 누르면<br>등원 · 하원이 기록돼요</h1><p>전화번호가 010-<b>12345</b>678 이면 <b>12345</b>를 누르세요. 같은 날 한 번 더 누르면 하원이에요.</p></div></section>
+<section class="kr"><p class="klb">출결 번호</p><div class="kdg" id="kdg" aria-live="polite"></div><div class="kms" id="kms" role="status"></div>
+<div class="kp">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="kioskKey('${n}')">${n}</button>`).join('')}<button onclick="kioskKey('c')" aria-label="지우기">${KIOIC.del}</button><button onclick="kioskKey('0')">0</button><button class="go" id="kgo" onclick="kioskGo()">확인</button></div></section>
+<div class="khi" id="khi" onclick="kioskHiEnd()"></div>`;
  document.body.appendChild(k);KIO.pin='';KIO.n=0;kioskDraw();clearInterval(KIO.ck);KIO.ck=setInterval(kioskClock,15000);kioskClock();
  try{(document.documentElement.requestFullscreen||function(){}).call(document.documentElement)}catch(e){}
  document.addEventListener('keydown',kioskKd)}
 const KIO={pin:'',n:0,ck:0,rt:0,busy:0};
-function kioskClock(){const e=document.getElementById('kclk');if(e)e.textContent=new Date().toLocaleString('ko-KR',{month:'long',day:'numeric',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Seoul'})}
-function kioskDraw(){const e=document.getElementById('kdg');if(!e)return;const n=Math.max(5,KIO.pin.length);e.innerHTML=Array.from({length:n},(_,i)=>`<i>${KIO.pin[i]?'●':''}</i>`).join('')}
-function kioskKd(e){if(!document.getElementById('kiosk'))return;if(/^\d$/.test(e.key))kioskKey(e.key);else if(e.key==='Backspace')kioskKey('c');else if(e.key==='Enter')kioskGo()}
-function kioskKey(k){if(KIO.busy)return;if(k==='c')KIO.pin=KIO.pin.slice(0,-1);else if(KIO.pin.length<8)KIO.pin+=k;kioskDraw();const r=document.getElementById('krs');if(r&&!KIO.rt)r.textContent='';if(KIO.pin.length>=5&&!KIO.auto){clearTimeout(KIO.at);KIO.at=setTimeout(()=>{if(KIO.pin.length>=5)kioskGo()},900)}}
-function kioskShow(cls,html){const r=document.getElementById('krs');if(!r)return;r.className='kr '+cls;r.innerHTML=html;clearTimeout(KIO.rt);KIO.rt=setTimeout(()=>{KIO.rt=0;const x=document.getElementById('krs');if(x){x.textContent='';x.className='kr'}},4200)}
+function kioskClock(){const d=new Date(),o={timeZone:'Asia/Seoul'},t=document.getElementById('ktm'),e=document.getElementById('kclk');
+ if(t)t.textContent=d.toLocaleTimeString('ko-KR',{...o,hour:'2-digit',minute:'2-digit',hour12:false});if(e)e.textContent=d.toLocaleDateString('ko-KR',{...o,month:'long',day:'numeric',weekday:'long'})}
+function kioskDraw(){const e=document.getElementById('kdg');if(!e)return;const n=Math.max(5,KIO.pin.length);e.innerHTML=Array.from({length:n},(_,i)=>`<i class="${KIO.pin[i]?'f':i===KIO.pin.length?'c':''}"></i>`).join('');e.setAttribute('aria-label','입력한 숫자 '+KIO.pin.length+'개');const g=document.getElementById('kgo');if(g)g.disabled=KIO.pin.length<3}
+function kioskKd(e){if(!document.getElementById('kiosk'))return;if(/^\d$/.test(e.key))kioskKey(e.key);else if(e.key==='Backspace')kioskKey('c');else if(e.key==='Enter')kioskGo();else if(e.key==='Escape')kioskHiEnd()}
+function kioskKey(k){if(KIO.busy)return;if(KIO.rt)kioskHiEnd();if(k==='c')KIO.pin=KIO.pin.slice(0,-1);else if(KIO.pin.length<8)KIO.pin+=k;kioskDraw();kioskMsg('');if(KIO.pin.length>=5&&!KIO.auto){clearTimeout(KIO.at);KIO.at=setTimeout(()=>{if(KIO.pin.length>=5)kioskGo()},900)}}
+// 번호 칸 아래 안내(틀린 번호 · 연결 실패). 틀리면 번호 칸이 흔들린다
+function kioskMsg(t,sub,shake){const m=document.getElementById('kms');if(m)m.innerHTML=t?esc(t)+(sub?'<small>'+esc(sub)+'</small>':''):'';if(shake){const d=document.getElementById('kdg');if(d){d.classList.remove('sh');void d.offsetWidth;d.classList.add('sh')}}}
+// 기록되면 화면 전체 인사: kind = in(등원) · out(하원) · dup(이미 기록)
+function kioskHi(kind,name,t){const h=document.getElementById('khi');if(!h)return;
+ const msg={in:['어서 와요!',t+' 등원'],out:['잘 가요!',t+' 하원'],dup:['이미 기록됐어요','잠시 뒤 다시 눌러 주세요']}[kind]||['','']; 
+ h.className='khi on '+kind;h.innerHTML=`<div class="ck">${KIOIC.ok}</div><h2>${esc(name)} 학생</h2><p>${msg[0]}</p>${kind==='dup'?`<p style="font-size:.7em;font-weight:500">${msg[1]}</p>`:`<span class="tm">${esc(msg[1])}</span>`}`;
+ clearTimeout(KIO.rt);KIO.rt=setTimeout(kioskHiEnd,3200)}
+function kioskHiEnd(){clearTimeout(KIO.rt);KIO.rt=0;const h=document.getElementById('khi');if(h){h.className='khi';h.innerHTML=''}}
 async function kioskGo(sid){clearTimeout(KIO.at);if(KIO.busy||KIO.pin.length<3)return;KIO.busy=1;const pin=KIO.pin;
  try{const r=await rpc('att_checkin',{p_pin:pin,p_student:sid||null});const j=r.ok?await r.json():null;
-  if(!j){kioskShow('no','연결에 실패했어요<small>잠시 뒤 다시 눌러 주세요</small>')}
-  else if(j.ok){KIO.pin='';kioskDraw();const t=kstTime(j.t);kioskShow('ok',j.kind==='in'?esc(j.name)+' 학생, 어서 와요!<small>'+t+' 등원했어요</small>':j.kind==='out'?esc(j.name)+' 학생, 잘 가요!<small>'+t+' 하원했어요</small>':esc(j.name)+' 학생은 이미 기록됐어요<small>잠시 뒤 다시 눌러 주세요</small>')}
-  else if(j.err==='choose'){const r2=document.getElementById('krs');r2.className='kr';r2.innerHTML='누구세요?<div class="kch">'+j.choose.map(c=>`<button onclick="kioskPick('${c.id}')">${esc(c.name)}<small style="font-size:12px;font-weight:500"> ${esc(c.grade||'')}</small></button>`).join('')+'</div>';clearTimeout(KIO.rt);KIO.rt=1}
-  else{KIO.pin='';kioskDraw();kioskShow('no','번호를 찾을 수 없어요<small>선생님께 출결 번호를 물어보세요</small>')}
- }catch(e){kioskShow('no','연결에 실패했어요')}
+  if(!j){kioskHiEnd();kioskMsg('연결에 실패했어요','잠시 뒤 다시 눌러 주세요',1)}
+  else if(j.ok){KIO.pin='';kioskDraw();kioskMsg('');kioskHi(j.kind==='in'||j.kind==='out'?j.kind:'dup',j.name,kstTime(j.t))}
+  else if(j.err==='choose'){const h=document.getElementById('khi');h.className='khi on who';h.onclick=null;h.innerHTML='<h2 style="font-size:clamp(32px,4vw,48px)">누구세요?</h2><p style="color:#5b6678;font-size:20px;font-weight:500">같은 번호를 쓰는 학생이 있어요. 이름을 눌러 주세요.</p><div class="kch">'+j.choose.map(c=>`<button onclick="event.stopPropagation();kioskPick('${c.id}')">${esc(c.name)}${c.grade?'<small>'+esc(c.grade)+'</small>':''}</button>`).join('')+'</div>';clearTimeout(KIO.rt);KIO.rt=setTimeout(()=>{const x=document.getElementById('khi');if(x)x.onclick=kioskHiEnd;KIO.pin='';kioskDraw();kioskHiEnd()},20000)}
+  else{KIO.pin='';kioskDraw();kioskMsg('번호를 찾을 수 없어요','선생님께 출결 번호를 물어보세요',1)}
+ }catch(e){kioskMsg('연결에 실패했어요','잠시 뒤 다시 눌러 주세요',1)}
  KIO.busy=0}
-function kioskPick(id){KIO.rt=0;kioskGo(id)}
+function kioskPick(id){const h=document.getElementById('khi');if(h)h.onclick=kioskHiEnd;kioskGo(id)}
 let _kt=0,_ktm=0;
 function kioskTap(){_kt++;clearTimeout(_ktm);_ktm=setTimeout(()=>_kt=0,2500);if(_kt>=5){_kt=0;const p=prompt('해제 번호');if(p===localStorage.getItem(KLK+'_pw'))kioskClose();else if(p!==null)toast('번호가 달라요')}}
 function kioskClose(){try{localStorage.removeItem(KLK)}catch(e){}clearInterval(KIO.ck);document.removeEventListener('keydown',kioskKd);const k=document.getElementById('kiosk');if(k)k.remove();try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}}
