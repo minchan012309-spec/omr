@@ -5,12 +5,12 @@
   - hl/data.json                  : 교재 문항(자료 문항 + 제작 5지선다·최상위 + OX·빈칸·서술형)
   - hl/concept.json               : 개념서(절·요약 노트·OX 풀)
 """
-import sys, os, json, re, collections, argparse, importlib, random
+import sys, os, json, re, collections, argparse, importlib, random, html
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import build
 import hllib
-from hllib import render, pts_for, sig, plain, CIR, esc, REGISTRY, josa
+from hllib import render, pts_for, sig, plain, CIR, esc, REGISTRY, josa, _norm_choice
 from outline import TYPES, BYTAG, BYLABEL, SUBS, BUNDLE, SUB_ORDER
 import srclib
 import fmt
@@ -64,12 +64,15 @@ def make_bank(n_over=0):
 
 # ------------------------------------------------------------ 교재 문항 (제작 5지선다 · 최상위)
 def book_pool(bank_sigs, per=22):
-    pool = collections.defaultdict(list)
+    pool = collections.defaultdict(list); seen_q = set()
     for ty in TYPES:
         tag = ty['tag']
         if tag not in REGISTRY: continue
         items, _ = build.gen_tag(tag, per, seed_extra='|book', exclude=bank_sigs.get(tag, ()))
         for it in items:
+            key = (ty['sub'], _norm_choice(it.body), _norm_choice(it.opts[it.ans - 1]))   # 발문·정답이 같은 문항은 선택지만 달라도 한 번만
+            if key in seen_q: continue
+            seen_q.add(key)
             it._tag = tag
             pool[ty['sub']].append(it)
     return pool
@@ -210,6 +213,15 @@ def types_of(sub, sec):
     return [t for t in TYPES if t['sub'] == sub and t['sec'] == sec]
 
 
+def near_same(a, b, th=.72):
+    """두 OX 문장이 거의 같은지: 띄어쓰기·문장 부호를 뺀 두 글자 묶음이 th 이상 겹치면 같은 문장으로 본다"""
+    f = lambda s: re.sub(r"[\s'\"「」.,·~-]", '', s)
+    A, B = f(a), f(b)
+    g = lambda s: {s[i:i + 2] for i in range(len(s) - 1)}
+    x, y = g(A), g(B)
+    return bool(x and y) and len(x & y) / len(x | y) >= th
+
+
 def ox_items():
     data, pools = [], {}
     by_sec = collections.defaultdict(list)
@@ -234,9 +246,12 @@ def ox_items():
             (trues if truth else falses)[sub].append(stmt)
     # 자료의 OX
     m = optional('src_school')
+    have_ox = [html.unescape(re.sub(r'<[^>]+>', '', x['q'])) for x in data]
     if m and hasattr(m, 'OX'):
         for sub, no, stmt, truth, expl in m.OX:
-            seq += 1
+            seq += 1   # 번호는 그대로 두고(이미 인쇄한 책의 채점 코드 유지) 같은 문장·거의 같은 문장(표현만 조금 다른 것)은 건너뛴다
+            if any(near_same(stmt, x) for x in have_ox): continue
+            have_ox.append(stmt)
             code = 'KV-%03d' % seq
             exp = ('<p><b>O</b> 옳은 설명이다. %s</p>' % esc(expl)) if truth else ('<p><b>X</b> 옳지 않은 설명이다. %s</p>' % esc(expl))
             label = (types_of(sub, no) or [BYTAG[[t['tag'] for t in TYPES if t['sub'] == sub][0]]])[0]['label']
@@ -251,6 +266,27 @@ def ox_items():
     return data, pools, sec_ox
 
 
+PARTICLES = {'이', '가', '을', '를', '은', '는', '의', '에', '에서', '에게', '께', '께서', '고', '라고', '와', '과', '도', '만', '안', '못', 'ㅅ', '하'}
+
+def blank_terms(q, stmt=''):
+    """빈칸으로 비울 따옴표 말: 문장만 보고 하나로 떠올릴 수 있는 것만.
+    - 예문(띄어쓰기가 있거나 마침표로 끝나는 말)은 비우지 않는다. 예문 속 일부를 가리키는 말이 함께 있으면 그것만 비운다.
+    - '주다'·'되다'처럼 용언 하나는 '세 자리 서술어'·'두 자리 서술어'에 맞는 다른 말이 많으므로 비우지 않는다.
+    - 어미·조사(-로 시작하거나 /가 든 말, 두 글자 이하 조사)는 비운다."""
+    q = [t for t in q if not re.search(r'[?!]', t)]
+    if not 1 <= len(q) <= 2: return []
+    ex = [t for t in q if ' ' in t or t.endswith('.') or len(t) > 8]
+    if ex:
+        part = [t for t in q if t not in ex and any(t in e for e in ex)]
+        return part
+    form = lambda t: t.startswith('-') or '/' in t or t in PARTICLES
+    if len(q) == 2:   # 둘 다 비울 때는 어미·조사처럼 설명만으로 하나로 정해지는 말일 때만('과일'·'사과' 같은 예시 짝은 다른 답도 맞는다)
+        return q if all(form(t) for t in q) else []
+    t = q[0]
+    if form(t): return q
+    return q if len(t) <= 2 and not t.endswith('다') and "'%s'처럼" % t not in stmt else []
+
+
 def blank_items(start=0, per_sub=14):
     """TF 은행의 참인 문장 중 따옴표 낱말이 있는 것을 빈칸 문제로 만든다."""
     data, seq = [], start
@@ -260,9 +296,7 @@ def blank_items(start=0, per_sub=14):
         m = importlib.import_module(modname)
         for stmt, truth, expl in getattr(m, var):
             if not truth or cnt[sub] >= per_sub: continue
-            terms = re.findall(r"'([^']{1,14})'", stmt)
-            if not 1 <= len(terms) <= 2: continue
-            terms = [t for t in terms if not re.search(r'[?!]', t)]
+            terms = blank_terms(re.findall(r"'([^']{1,14})'", stmt), stmt)
             if not terms: continue
             cnt[sub] += 1
             seq += 1
@@ -296,11 +330,11 @@ def blank_items(start=0, per_sub=14):
     return data, sec_bl
 
 
-def derived_tf(start_ox, start_bl, per_sub=240, per_sub_bl=70):
+def derived_tf(start_ox, start_bl, per_sub=240, per_sub_bl=70, have=()):
     """문제 은행의 '옳은/옳지 않은 것' 5지선다에서 선지를 떼어 OX·빈칸 문항을 만든다 (선지마다 참·거짓이 정해져 있다)."""
     import glob, html as H
     sec_of = {t['label']: t['sec'] for t in TYPES}
-    seen, pool = set(), collections.defaultdict(list)
+    seen, pool = set(have), collections.defaultdict(list)   # 이미 있는 OX 문장은 다시 만들지 않는다
     for f in sorted(glob.glob(os.path.join(OUT, 'hl[0-9][0-9][0-9].json'))):
         j = json.load(open(f, encoding='utf-8'))
         for x in (j if isinstance(j, list) else j.get('items', [])):
@@ -338,12 +372,15 @@ def derived_tf(start_ox, start_bl, per_sub=240, per_sub_bl=70):
             exp = ('<p><b>O</b> 옳은 설명이다. %s</p>' if truth else '<p><b>X</b> 옳지 않은 설명이다. %s</p>') % esc(note)
             ox.append({'code': 'KV-%04d' % start_ox, 'no': start_ox, 'set': 'ox', 'sub': sub, 'subname': SUBS[sub]['name'], 'type': label, 'ans': 'O' if truth else 'X', 'lv': '',
                        'q': '<div class="q"><div class="qs"><p>%s</p></div></div>' % esc(stmt), 'exp': exp})
-        nb = 0
+        nb = 0; bl_seen = set()
         for sec, label, stmt, truth, note in L:
             if nb >= per_sub_bl: break
             if not truth: continue
             terms = re.findall(r'"([^"]{1,12})"', stmt)
             if len(terms) != 1 or re.search(r'[?!]', terms[0]): continue
+            # 예시를 비우는 문장(예를 여럿 든 말, '…의 예이다', '…에서 들어온 말이다', 'ㅎ 종성 체언이다')은 다른 예도 답이 되므로 빼고, 같은 문장은 한 번만
+            if ', ' in terms[0] or re.search(r'예이다|들어온 말이다|체언이다|흔적이 남아 있다|바뀌었다\.$', stmt) or '"%s"처럼' % terms[0] in stmt or terms[0] in bl_seen: continue
+            bl_seen.add(terms[0])   # 같은 답의 빈칸은 한 번만
             es = esc(stmt); key = esc(terms[0])
             tgt = [k for k in ('&quot;%s&quot;' % key, '"%s"' % key) if k in es]
             if not tgt: continue
@@ -416,7 +453,9 @@ def main():
     src = source_items()
     ox, pools, sec_ox = ox_items()
     bl, sec_bl = blank_items()
-    dox, dbl = derived_tf(5000, 5000)
+    import html as _H
+    have = {_H.unescape(re.sub(r'<[^>]+>', '', x['q'])).strip() for x in ox}
+    dox, dbl = derived_tf(5000, 5000, have=have)
     ox += dox; bl += dbl
     data = src + book_items(bank_sigs) + ox + bl + essay_items()
     ess = optional('src_essay')

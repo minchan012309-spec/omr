@@ -214,7 +214,7 @@ def g027(r, k):
             truth = r.random() < 0.5
             v = valency(a)
             vv = v if truth else r.choice([x for x in (1, 2, 3) if x != v])
-            stm.append(("'%s'는 %s 서술어이다." % (a.plain() and a.toks[pred_idx(a)][1], VNAME[vv]), truth, '문장 「%s」에서 필수 성분은 %d개이다.' % (a.plain(), v)))
+            stm.append((josa("「%s」의 '%s'은(는) %s 서술어이다." % (a.plain(), a.toks[pred_idx(a)][1], VNAME[vv])), truth, '문장 「%s」에서 필수 성분은 %d개이다.' % (a.plain(), v)))   # 문장을 함께 보여 준다(같은 용언도 문장에 따라 자릿수가 다를 수 있다)
         return bogi('서술어의 자릿수에 대한 설명으로 옳은 것만을 〈보기〉에서 있는 대로 고른 것은?', stm, lv='상', fam='C', r=r, ref=[2], ask='')
     if c == 4:
         for _ in range(30):

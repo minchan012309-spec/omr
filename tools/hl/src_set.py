@@ -67,7 +67,7 @@ def _spec_nego(r):
 
 
 def _spec_talk(r):
-    tp = r.choice(S.TOPICS)
+    tp = S.eg_first(r.choice(S.TOPICS))
     drop = r.sample(['confirm', 'request', 'agree'], r.choice([0, 1]))
     ids = [i for i in SC.U_ORDER if i not in drop]
     A, B = r.choice([('민수', '지아'), ('서연', '준호'), ('하윤', '도현'), ('유진', '태민')])
@@ -104,7 +104,7 @@ def _spec_interview(r):
 def _spec_article(r):
     tp = r.choice([t for t in S.TOPICS if t['name'] in SC.ART_TOPIC])
     j = SC.ART_TOPIC[tp['name']]; sj, ej = tp['solutions'][j][0], tp['solutions'][j][1]
-    sents = {i: (G.ff(SC.ART[i][1], tp, sj=sj, ej=ej), i) for i in SC.AORDER}
+    sents = {i: (G.ff(SC.ART[i][1], tp, sj=sj, ej=ej, sjm=SC.cond_form(sj)), i) for i in SC.AORDER}
     paras = [(None, [sents['head']]), (None, [sents['lead'], sents['problem']]), (None, [sents['quote'], sents['case']]), (None, [sents['plan']])]
     descs = {i: SC.ART[i][0] for i in SC.ART}
     return dict(key=tp['name'], noun='기사', head='다음은 학교 신문 기사이다.', paras=paras, descs=descs, conf=SC.CONF22, sub='Ⅰ-C', base='매체 자료의 작성과 활용', ref=[3],
