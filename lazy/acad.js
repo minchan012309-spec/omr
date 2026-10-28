@@ -1,7 +1,7 @@
 /* Solvi 늦게 불러오는 코드: acad — 출결 · 학부모 안내문 · 수납 · 출결 단말. index.html 의 전역(sb, rpc, esc, $, toast, STUD …)을 그대로 씁니다. */
 const TOSS_KEY='test_ck_ALnQvDd2VJml6AZbKqDw3Mj7X41m';
 const AC={sec:'day',day:'',mon:'',sid:'',stu:[],recs:[],mrecs:[],fees:[],notes:[],pay:{items:[],demo:false,clientKey:'',bank:''},ld:0,err:'',q:''};
-const AST={in:['출석','#1f9d55'],late:['지각','#e09a00'],absent:['결석','#d9534f'],excused:['사유','#7a8aa0']};
+const AST={in:['출석','#1f9d55'],late:['지각','#e09a00'],absent:['결석','#d9534f'],excused:['사유','#7a8aa0'],early:['조퇴','#9570c7']};
 const kstDay=(d)=>new Date((d||new Date()).getTime()+9*36e5).toISOString().slice(0,10);
 const kstTime=t=>t?new Date(t).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Seoul'}):'';
 const won=n=>(+n||0).toLocaleString('ko-KR')+'원';
@@ -16,7 +16,7 @@ const acMissing=e=>e&&(e.status===404||e.status===400||/does not exist|schema ca
 
 async function attView(){
  const m=$('#main');if(needCloud()){m.innerHTML=atNeed;return}
- const isFee=tab==='fee',S=isFee?FSEGS:SEGS;
+ await acAccess();const isFee=tab==='fee',S=isFee?FSEGS:SEGS;if(isFee&&!acCanBill()){m.innerHTML='<div class="hint">수납 권한이 없어요.</div>';return}
  if(!S.some(x=>x[0]===AC.sec)){AC.sec=S[0][0];AC.ld=0}if(!AC.day)AC.day=kstDay();if(!AC.mon)AC.mon=AC.day.slice(0,7);
  if(!AC.ld){m.innerHTML='<div class="card">'+ldg('불러오는 중…')+'</div>';await acLoad()}
  if(AC.sec==='bill'){await lazyLoad('admin');adCss();if(!AD.ld)await adLoad()} // 월 청구는 학원 운영 코드(admin.js)의 것을 그대로 쓴다
@@ -33,11 +33,11 @@ async function diaryView(){
  m.innerHTML=`<div class="tsh"><div><h1>알림장</h1><p>오늘 나간 진도와 숙제를 학생·학부모에게 보내요.</p></div></div>${AC.err==='sql'?SQLMSG:AC.err?`<div class="hint">${esc(AC.err)}</div><button class="s sm" style="margin-top:10px" onclick="AC.ld=0;AC.sec==='diary'?diaryView():attView()">다시 불러오기</button>`:acNoteHtml()}`;if(!AC.err)acDraftLoad()}
 function acSec(k){AC.sec=k;AC.ld=0;if(k==='bill'&&typeof AD!=='undefined')AD.ld=0;attView()}
 async function acLoad(){
- AC.err='';
+ AC.err='';await acAccess();if(['fee','rate','bill'].includes(AC.sec)&&!acCanBill()){AC.err='수납 권한이 없어요.';AC.ld=1;return}
  try{
   AC.stu=await acJ('/rest/v1/students?select=id,name,grade,phone,att_pin&order=name.asc&limit=2000');
   if(AC.sec==='day')AC.recs=await acJ('/rest/v1/attendance?select=*&day=eq.'+AC.day);
-  if(AC.sec==='month'&&AC.sid)AC.mrecs=await acJ('/rest/v1/attendance?select=*&student_id=eq.'+AC.sid+'&day=gte.'+AC.mon+'-01&day=lte.'+AC.mon+'-31');
+  if(AC.sec==='month'&&AC.sid)AC.mrecs=await acJ('/rest/v1/attendance?select=*&student_id=eq.'+AC.sid+'&day=gte.'+AcademyCore.monthRange(AC.mon).from+'&day=lte.'+AcademyCore.monthRange(AC.mon).to);
   if(AC.sec==='fee')AC.fees=await acJ('/rest/v1/fees?select=*&order=created_at.desc&limit=600');
   if(AC.sec==='fee'||AC.sec==='rate'){const d=(await tsRaw())||{};AC.pay=Object.assign({items:[],bank:''},d.pay||{})}
  }catch(e){AC.err=acMissing(e)?'sql':'불러오지 못했어요 ('+(e.status||'연결')+')'}
@@ -48,7 +48,7 @@ const acStuName=id=>{const s=AC.stu.find(x=>x.id===id);return s?s.name:'(삭제�
 function acDayHtml(){
  const by={};AC.recs.forEach(r=>by[r.student_id]=r);
  const q=AC.q.trim();const list=AC.stu.filter(s=>!q||(s.name+' '+(s.grade||'')).includes(q));
- const cnt={in:0,late:0,absent:0,excused:0,none:0};AC.stu.forEach(s=>{const r=by[s.id];cnt[r?r.status:'none']++});
+ const cnt={in:0,late:0,absent:0,excused:0,early:0,none:0};AC.stu.forEach(s=>{const r=by[s.id];cnt[r?r.status:'none']++});
  const rows=list.map(s=>{const r=by[s.id],st=r?r.status:'';
   return `<div class="axr"><div class="axn"><b class="axlk" role="button" tabindex="0" title="이 학생 출결 달력" onclick="AC.sid='${s.id}';acSec('month')">${esc(s.name)}</b><small>${esc(s.grade||'')}</small></div>
   <div class="axt">${r&&r.t_in?'<span title="등원">▶ '+kstTime(r.t_in)+'</span>':''}${r&&r.t_out?'<span title="하원">■ '+kstTime(r.t_out)+'</span>':''}</div>
@@ -56,7 +56,7 @@ function acDayHtml(){
  return `<div class="card"><div class="row" style="gap:8px;flex-wrap:wrap"><button class="s sm" onclick="acDay(-1)">‹</button><input type="date" aria-label="출결 날짜" value="${AC.day}" onchange="AC.day=this.value||AC.day;AC.ld=0;attView()"><button class="s sm" onclick="acDay(1)">›</button><button class="s sm" onclick="AC.day=kstDay();AC.ld=0;attView()">오늘</button><button class="s sm" onclick="acAllIn()" title="아직 기록이 없는 학생을 모두 출석으로 기록해요">미기록 전원 출석</button>
  <input type="search" placeholder="이름·학년 검색" value="${esc(AC.q)}" oninput="AC.q=this.value;clearTimeout(window._acq);window._acq=setTimeout(()=>{const k=$('#acrows');if(k)k.innerHTML=acRowsOnly()},180)" style="margin-left:auto;width:190px"></div>
  ${AC.undo&&AC.undo.day===AC.day?`<div class="axundo" role="status"><span>${AC.undo.ids.length}명을 출석으로 기록했어요</span><button class="s sm" onclick="acUndo()">되돌리기</button></div>`:''}
- <div class="axsum"><span style="--c:#1f9d55"><b>${cnt.in}</b>출석</span><span style="--c:#e09a00"><b>${cnt.late}</b>지각</span><span style="--c:#d9534f"><b>${cnt.absent}</b>결석</span><span style="--c:#7a8aa0"><b>${cnt.excused}</b>사유</span><span style="--c:#9aa6b4"><b>${cnt.none}</b>미기록</span></div>
+ <div class="axsum"><span style="--c:#1f9d55"><b>${cnt.in}</b>출석</span><span style="--c:#e09a00"><b>${cnt.late}</b>지각</span><span style="--c:#d9534f"><b>${cnt.absent}</b>결석</span><span style="--c:#7a8aa0"><b>${cnt.excused}</b>사유</span><span style="--c:#9570c7"><b>${cnt.early}</b>조퇴</span><span style="--c:#9aa6b4"><b>${cnt.none}</b>미기록</span></div>
  <div id="acrows">${rows||'<div class="empty">등록한 학생이 없어요.</div>'}</div>
  <p class="tsn2">출결 단말(태블릿)에서 번호를 입력하면 등원이 기록되고, 같은 날 한 번 더 입력하면 하원이 기록돼요. 여기서 직접 고칠 수도 있어요.</p></div>`}
 async function acAllIn(){
@@ -83,8 +83,8 @@ function acCal(recs,ym,o){o=o||{};
  for(let d=1;d<=n;d++){const k=ym+'-'+String(d).padStart(2,'0'),r=by[k],st=r?AST[r.status]:null;
   h+=`<b class="${k===td?'td':''}${st?' has':''}" ${st?`style="--c:${st[1]}" title="${st[0]}${!o.noTime&&r.t_in?' · 등원 '+kstTime(r.t_in):''}${!o.noTime&&r.t_out?' · 하원 '+kstTime(r.t_out):''}"`:''}><em>${d}</em>${st?`<span>${st[0]}</span>${!o.noTime&&r.t_in?`<small>${kstTime(r.t_in)}${r.t_out?'–'+kstTime(r.t_out):''}</small>`:''}`:''}</b>`}
  h+='</div>';
- const c={in:0,late:0,absent:0,excused:0};recs.forEach(r=>{if(c[r.status]!=null)c[r.status]++});
- return h+`<div class="axsum" style="margin-top:12px"><span style="--c:#1f9d55"><b>${c.in}</b>출석</span><span style="--c:#e09a00"><b>${c.late}</b>지각</span><span style="--c:#d9534f"><b>${c.absent}</b>결석</span><span style="--c:#7a8aa0"><b>${c.excused}</b>사유</span></div>`}
+ const c={in:0,late:0,absent:0,excused:0,early:0};recs.forEach(r=>{if(c[r.status]!=null)c[r.status]++});
+ return h+`<div class="axsum" style="margin-top:12px"><span style="--c:#1f9d55"><b>${c.in}</b>출석</span><span style="--c:#e09a00"><b>${c.late}</b>지각</span><span style="--c:#d9534f"><b>${c.absent}</b>결석</span><span style="--c:#7a8aa0"><b>${c.excused}</b>사유</span><span style="--c:#9570c7"><b>${c.early}</b>조퇴</span></div>`}
 const ymAdd=(ym,n)=>{const [Y,M]=ym.split('-').map(Number);const d=new Date(Date.UTC(Y,M-1+n,1));return d.toISOString().slice(0,7)};
 function acMonthHtml(){
  const opts=AC.stu.map(s=>`<option value="${s.id}" ${s.id===AC.sid?'selected':''}>${esc(s.name)} ${esc(s.grade||'')}</option>`).join('');
@@ -174,7 +174,7 @@ function acFeeHtml(){
  <button class="p" style="margin-top:10px" onclick="acFeeAdd()">청구하기</button>${items.length?'':'<p class="tsn2">자주 쓰는 학원비·교재비는 「요금·결제 설정」에서 미리 등록해 두면 고르기만 하면 돼요.</p>'}</div>
  <div class="card"><div class="row"><h2 style="margin:0">청구 내역</h2><input type="search" placeholder="이름·항목 검색" value="${esc(AC.q)}" oninput="AC.q=this.value;clearTimeout(window._acq);window._acq=setTimeout(attView,200)" style="margin-left:auto;width:190px"></div>${rows||'<div class="empty">청구 내역이 없어요.</div>'}</div>`}
 function acFiPick(i){const it=(AC.pay.items||[])[+i];if(!it)return;$('#fiT').value=it.name;$('#fiA').value=it.amount}
-async function acFeeRemind(onlyLate){
+async function acFeeRemind(onlyLate){if(!acCanBill()){toast('수납 권한이 없어요');return}
  const today=kstDay(),by={};
  AC.fees.filter(f=>f.paid_amount<f.amount&&(!onlyLate||(f.due&&f.due<today))).forEach(f=>{(by[f.student_id]=by[f.student_id]||[]).push(f)});
  const ids=Object.keys(by);if(!ids.length){toast('보낼 대상이 없어요');return}
@@ -183,14 +183,15 @@ async function acFeeRemind(onlyLate){
  const rows=ids.map(id=>({student_id:id,audience:'parent',title:'납부 안내',body:by[id].map(f=>f.title+' '+won(f.amount-f.paid_amount)+(f.due?' (기한 '+f.due.slice(5).replace('-','/')+')':'')).join('\n')+'\n납부 방법은 「납부」 탭에서 확인할 수 있어요.'}));
  try{await acJ('/rest/v1/notices',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows)});toast('납부 안내를 보냈어요 · '+ids.length+'명')}
  catch(e){toast(e.status===400?'서버 SQL(setup.sql)을 먼저 실행해 주세요':'보내지 못했어요. 연결을 확인해 주세요')}}
-async function acFeeAdd(){const title=$('#fiT').value.trim(),amount=Math.round(+$('#fiA').value||0),due=$('#fiD').value||null,ids=[...document.querySelectorAll('.acfs:checked')].map(c=>c.value);
+async function acFeeAdd(){if(!acCanBill()){toast('수납 권한이 없어요');return}const title=$('#fiT').value.trim(),amount=Number($('#fiA').value),due=$('#fiD').value||null,ids=[...document.querySelectorAll('.acfs:checked')].map(c=>c.value);
+ try{AcademyCore.money($('#fiA').value)}catch(e){toast(e.message);return}
  if(!title||!amount||!ids.length){toast('이름·금액·대상 학생을 확인해 주세요');return}
  const it=(AC.pay.items||[]).find(x=>x.name===title);const kind=it&&it.kind||'tuition';
  try{await acJ('/rest/v1/fees',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(ids.map(id=>({student_id:id,title,amount,due,kind})))});toast(ids.length+'명에게 청구했어요');AC.ld=0;attView()}catch(e){toast(acMissing(e)?'서버에 sql_20 을 먼저 실행해 주세요':'청구하지 못했어요')}}
-async function acFeePay(id){const f=AC.fees.find(x=>x.id===id);if(!f)return;const m=prompt('납부 방법 (현금 · 계좌이체 · 카드)','계좌이체');if(m===null)return;
+async function acFeePay(id){if(!acCanBill()){toast('수납 권한이 없어요');return}const f=AC.fees.find(x=>x.id===id);if(!f)return;const m=prompt('납부 방법 (현금 · 계좌이체 · 카드)','계좌이체');if(m===null)return;
  try{await acJ('/rest/v1/fees?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({paid_amount:f.amount,paid_at:new Date().toISOString(),method:m.trim()||'직접 확인'})});AC.ld=0;attView()}catch(e){toast('처리하지 못했어요')}}
-async function acFeeUndo(id){if(!confirm('납부 완료를 취소할까요?'))return;try{await acJ('/rest/v1/fees?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({paid_amount:0,paid_at:null,method:null,pay_key:null})});AC.ld=0;attView()}catch(e){toast('취소하지 못했어요')}}
-async function acFeeDel(id){if(!confirm('이 청구를 삭제할까요?'))return;try{await acJ('/rest/v1/fees?id=eq.'+id,{method:'DELETE'});AC.ld=0;attView()}catch(e){toast('삭제하지 못했어요')}}
+async function acFeeUndo(id){if(!acCanBill()){toast('수납 권한이 없어요');return}if(!confirm('납부 완료를 취소할까요?'))return;try{await acJ('/rest/v1/fees?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({paid_amount:0,paid_at:null,method:null,pay_key:null})});AC.ld=0;attView()}catch(e){toast('취소하지 못했어요')}}
+async function acFeeDel(id){if(!acCanBill()){toast('수납 권한이 없어요');return}if(!confirm('이 청구를 삭제할까요?'))return;try{await acJ('/rest/v1/fees?id=eq.'+id,{method:'DELETE'});AC.ld=0;attView()}catch(e){toast('삭제하지 못했어요')}}
 
 /* ---------- 요금표 · 결제 설정 ---------- */
 function acRateHtml(){
@@ -198,7 +199,7 @@ function acRateHtml(){
  return `<div class="card"><h2 style="margin-top:0">요금표</h2><p class="m">자주 쓰는 학원비·교재비를 등록해 두면 「수납」에서 고르기만 하면 돼요.</p>${items||'<div class="empty">등록한 항목이 없어요.</div>'}<div class="row" style="margin-top:8px"><button class="s" onclick="acItemAdd()">항목 추가</button></div></div>
  <div class="card"><h2 style="margin-top:0">계좌 이체 안내</h2><p class="m">학부모 앱의 「납부」 화면에 그대로 보여요. 입금을 확인하면 「수납」에서 납부 처리를 눌러 주세요.</p><div class="fld" style="max-width:460px"><input value="${esc(P.bank||'')}" placeholder="예) 국민 000-00-000000 홍길동" maxlength="80" onchange="acPaySet('bank',this.value.trim())"></div>
  <label class="swr" style="margin-top:12px"><span><b>결제 완료 자동 처리 (시연용)</b><small>카드 결제가 끝나면 서버 승인 없이도 납부 완료로 바꿔요. 실제 결제를 받을 땐 꺼 주세요.</small></span><input class="swi" type="checkbox" ${P.demo?'checked':''} onchange="acPaySet('demo',this.checked)"></label></div>`}
-async function acPaySave(){const d=(await tsRaw())||{};d.pay=AC.pay;const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:d,updated_at:new Date().toISOString()})});if(!r.ok)toast('저장하지 못했어요');else toast('저장했어요')}
+async function acPaySave(){if(!acCanBill()){toast('수납 권한이 없어요');return}const d=(await tsRaw())||{};d.pay=AC.pay;const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:d,updated_at:new Date().toISOString()})});if(!r.ok)toast('저장하지 못했어요');else toast('저장했어요')}
 function acPaySet(k,v){AC.pay[k]=v;acPaySave()}
 function acItem(i,k,v){const it=AC.pay.items[i];if(!it)return;it[k]=k==='amount'?Math.max(0,Math.round(+v||0)):v;acPaySave()}
 function acItemAdd(){AC.pay.items=(AC.pay.items||[]).concat([{name:'',amount:0,kind:'tuition'}]);attView()}
@@ -360,3 +361,7 @@ async function sAttView(){
   try{const[y,mo]=SA.mon.split('-').map(Number);const to=SA.mon+'-'+String(new Date(Date.UTC(y,mo,0)).getUTCDate()).padStart(2,'0');const r=await rpc('st_attendance',{p_login:STUD.login,p_pw:STUD.pw,p_from:SA.mon+'-01',p_to:to});
    if(r.status===404)SA.err='아직 출결 달력을 쓸 수 없어요. 선생님께 문의해 주세요.';else{const j=r.ok?await r.json():null;SA.recs=j||[]}}catch(e){SA.err='불러오지 못했어요. 연결을 확인해 주세요.'}SA.ld=1}
  m.innerHTML=`<div class="tsh"><div><h1>내 출결</h1><p>이번 달 출석 현황이에요.</p></div></div>${SA.err?`<div class="card"><div class="hint">${esc(SA.err)}</div><button class="s sm" style="margin-top:10px" onclick="SA.ld=0;sAttView()">다시 불러오기</button></div>`:`<div class="card"><div class="row" style="gap:8px"><button class="s sm" onclick="SA.mon=ymAdd(SA.mon,-1);SA.ld=0;sAttView()">‹</button><b style="flex:1;text-align:center">${SA.mon.replace('-','년 ')}월</b><button class="s sm" onclick="SA.mon=ymAdd(SA.mon,1);SA.ld=0;sAttView()">›</button>${SA.mon!==kstDay().slice(0,7)?`<button class="s sm" onclick="SA.mon=kstDay().slice(0,7);SA.ld=0;sAttView()">이번 달</button>`:''}</div>${acCal(SA.recs,SA.mon,{noTime:true})}</div>`}`}
+
+const acActor=()=>sess&&sess.user&&sess.user.id||'';
+async function acAccess(){const actor=acActor();AC.accessUser=actor;if(typeof adAccess==='function'){await adAccess();AC.access=AD.access;return}try{const r=await rpc('ops_access',{});if(r.ok){const access=await r.json();AC.access=actor===acActor()?access:{};AC.accessError=''}else if(r.status===404){AC.access=null;AC.accessError='새 운영 기능은 sql_24_operations.sql 적용이 필요해요.'}else{AC.access={};AC.accessError='운영 권한을 확인하지 못했어요.'}}catch(e){AC.access={};AC.accessError='운영 권한을 확인하지 못했어요.'}}
+function acCanBill(){return (AC.accessUser===undefined||AC.accessUser===acActor())&&(!AC.access||!!AC.access.billing)}
