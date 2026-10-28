@@ -1,0 +1,15 @@
+{
+  "name": "solvi-verification",
+  "private": true,
+  "description": "Static deployment; development dependencies are only for isolated verification.",
+  "scripts": {
+    "test": "node tests/run.cjs",
+    "check": "node scripts/verify-static.cjs",
+    "test:unit": "node --test tests/academy-core.test.cjs tests/korean-editor.test.cjs",
+    "test:db": "node tests/operations-db.cjs && node tests/full-schema-db.cjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.13",
+    "playwright": "1.62.1"
+  }
+}
