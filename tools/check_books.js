@@ -6,10 +6,10 @@
 // 책 번호를 안 적으면 화법과 언어 주교재(화법·언어·혼합)와 다른 과목 개념서·유형서를 모두 검사한다.
 const {chromium}=require(process.env.PW||'/opt/node-tools/node_modules/playwright');const fs=require('fs');const {execFileSync}=require('child_process');
 const MM=96/25.4;
-function cmapOf(){try{return new Set(JSON.parse(execFileSync('python3',['-c',"import json,sys\nfrom fontTools.ttLib import TTFont\ns=set()\nfor f in sys.argv[1:]:\n s|=set(TTFont(f).getBestCmap())\nprint(json.dumps(sorted(s)))",'fonts/KoPubDotum-Medium.subset.woff2','fonts/Pretendard-Regular.woff2'],{maxBuffer:1<<26}).toString()))}catch(e){console.log('(fontTools 없음: 글꼴 결손 검사는 건너뜀)');return null}}
+function cmapOf(){try{return new Set(JSON.parse(execFileSync('python3',['-c',"import json,sys\nfrom fontTools.ttLib import TTFont\ns=set()\nfor f in sys.argv[1:]:\n s|=set(TTFont(f).getBestCmap())\nprint(json.dumps(sorted(s)))",'fonts/KoPubDotum-Medium.subset.woff2','fonts/Pretendard-Regular.woff2','fonts/Pretendard-Light.cn.woff2','fonts/SolviSymbols.woff2','fonts/KoPubDotum-Bold.subset.woff2'],{maxBuffer:1<<26}).toString()))}catch(e){console.log('(fontTools 없음: 글꼴 결손 검사는 건너뜀)');return null}}
 (async()=>{const arg=process.argv.slice(2);const ids=arg.length?arg:['hl-hs','hl-hg','hl-hm','me-c','me-t','cm-c','cm-t'];
  const cmap=cmapOf();
- const b=await chromium.launch();const app=await b.newPage({viewport:{width:1300,height:950}});
+ const b=await chromium.launch(process.env.CHROME?{executablePath:process.env.CHROME}:{});const app=await b.newPage({viewport:{width:1300,height:950}});
  app.on('pageerror',e=>console.log('PAGEERR',String(e)));
  await app.goto((process.env.BASE||'http://localhost:8765/')+'index.html?app=1');await app.waitForTimeout(1500);
  await app.evaluate("sess={access_token:'x',user:{}};STU=[{id:'s1',name:'테스트',grade:'고2'}];CUR_S='s1'");
@@ -69,8 +69,7 @@ function cmapOf(){try{return new Set(JSON.parse(execFileSync('python3',['-c',"im
    // 글꼴: 옛한글·원문자
    const chars=new Map();bps.forEach((bp,si)=>{const pi=sheets[si];const P=pi>=0?pages[pi]:null;if(!P)return;for(const ch of bp.textContent){const c=ch.codePointAt(0);if((c>=0x1100&&c<=0x11FF)||(c>=0xA960&&c<=0xA97F)||(c>=0xD7B0&&c<=0xD7FF)||(c>=0x3131&&c<=0x318E)||(c>=0x2460&&c<=0x24FF)||(c>=0x3200&&c<=0x32FF)||(c>=0x2300&&c<=0x23FF)||c===0x302E||c===0x302F){const k=c+'|'+P.n;if(!chars.has(k))chars.set(k,{c,n:P.n})}}});
    return {V,chars:[...chars.values()]}},{sheets:r.sheets,pages:r.pages,MM});
-  const circ=c=>(c>=0x2460&&c<=0x2473)||(c>=0x24D0&&c<=0x24E9)||(c>=0x3260&&c<=0x327B);
-  const gl={};v.chars.forEach(({c,n})=>{const bad=circ(c)?'원문자 글리프':(cmap&&!cmap.has(c)?'글꼴 없음':'');if(!bad)return;const k=bad+' U+'+c.toString(16).toUpperCase()+' '+String.fromCodePoint(c);(gl[k]=gl[k]||[]).push(n)});
+  const gl={};v.chars.forEach(({c,n})=>{const bad=cmap&&!cmap.has(c)?'번들 글꼴 없음':'';if(!bad)return;const k=bad+' U+'+c.toString(16).toUpperCase()+' '+String.fromCodePoint(c);(gl[k]=gl[k]||[]).push(n)});
   Object.entries(gl).forEach(([k,ns])=>v.V.push({t:'glyph',what:k,pages:ns.slice(0,12).join(',')+(ns.length>12?' 외 '+(ns.length-12)+'쪽':''),cnt:ns.length}));
   const cnt={};v.V.forEach(x=>cnt[x.t]=(cnt[x.t]||0)+1);
   out.books[id]={pages:r.pages.length,count:cnt,v:v.V};Object.entries(cnt).forEach(([k,n])=>out.count[k]=(out.count[k]||0)+n);
