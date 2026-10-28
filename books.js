@@ -22,7 +22,7 @@ const BKCSS=`
 @font-face{font-family:Paperozi;src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2') format('woff2');font-weight:700;font-display:swap}
 @font-face{font-family:Paperozi;src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');font-weight:800;font-display:swap}
 @font-face{font-family:Paperozi;src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2') format('woff2');font-weight:900;font-display:swap}
-.bkdoc{--ink:#111;--ink2:#444;--rule:.25mm;--mx:12mm;--blank:.3mm solid #222;font-family:YetHangul,Pretendard,PretendardLocal,'Noto Sans CJK KR','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111;font-weight:400;-webkit-print-color-adjust:exact;print-color-adjust:exact;word-break:keep-all;overflow-wrap:break-word}
+.bkdoc{color-scheme:light;--qf:none;--qfi:none;--ink:#111;--ink2:#444;--rule:.25mm;--mx:12mm;--blank:.3mm solid #222;font-family:YetHangul,SolviSymbols,Pretendard,PretendardLocal,'Noto Sans CJK KR','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111;font-weight:400;-webkit-print-color-adjust:exact;print-color-adjust:exact;word-break:keep-all;overflow-wrap:break-word}
 .bkdoc *{box-sizing:border-box}
 .bkdoc i{font-family:'Times New Roman','Noto Serif CJK KR',serif;font-style:italic}.bkdoc sub,.bkdoc sup{font-size:70%;line-height:0}
 .bkdoc .bkblank .bklg{position:absolute;right:12mm;bottom:10mm;display:flex;align-items:center;gap:1.4mm;font:800 8.5pt/1 Pretendard,sans-serif;letter-spacing:-.02em;color:#8a96a6}.bkdoc .bkblank .bklg svg{height:12mm;width:auto;display:block}.bkdoc .bkblank .bklg img{height:12mm;width:auto;max-width:40mm;object-fit:contain;display:block}.bkdoc .bkblank .bklg .bld{width:.3mm;height:10mm;background:#9aa5b1;display:block}.bkdoc .bkblank .bklg .blt{font-weight:800;font-size:8.5pt;color:#8a96a6;white-space:nowrap}
@@ -200,7 +200,7 @@ const BKCSS=`
 .bkdoc .cv .deco{position:absolute;right:8mm;bottom:50mm;width:96mm;height:96mm}
 .bkdoc .cv .c3{position:absolute;left:16mm;right:16mm;bottom:22mm;border-collapse:collapse;width:calc(100% - 32mm);font-size:13px}
 .bkdoc .cv .c3 td{border:.3mm solid var(--line);height:13mm;text-align:center}.bkdoc .cv .c3 td.k{width:21mm;font-weight:800;letter-spacing:3px;background:var(--pl);color:var(--pd)}
-.bkdoc .cv.nv{position:absolute;inset:0;overflow:hidden;color:#f4f6f3;background:radial-gradient(120% 90% at 85% 55%,var(--c3,#1a3d7c) 0%,rgba(0,0,0,0) 60%),linear-gradient(160deg,var(--c1,#081a3d) 0%,var(--c2,#0e2a5c) 100%);font-family:Paperozi,YetHangul,Pretendard,PretendardLocal,'Noto Sans KR',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.bkdoc .cv.nv{position:absolute;inset:0;overflow:hidden;color:#f4f6f3;background:radial-gradient(120% 90% at 85% 55%,var(--c3,#1a3d7c) 0%,rgba(0,0,0,0) 60%),linear-gradient(160deg,var(--c1,#081a3d) 0%,var(--c2,#0e2a5c) 100%);font-family:Paperozi,YetHangul,SolviSymbols,Pretendard,PretendardLocal,'Noto Sans KR',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .bkdoc .cv.nv::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.018) 0 2px,rgba(255,255,255,0) 2px 7px);pointer-events:none}
 .bkdoc .cv.nv .wm{position:absolute;left:72mm;top:46mm;font-size:250mm;font-weight:900;line-height:1;color:rgba(255,255,255,.07)}
 .bkdoc .cv.nv .tl{position:absolute;top:26mm;left:24mm}.bkdoc .cv.nv .sr{font-size:4.2mm;font-weight:800;letter-spacing:.34em}.bkdoc .cv.nv .bk{margin-top:1.6mm;font-size:3.4mm;font-weight:400;opacity:.8}
@@ -283,7 +283,7 @@ const BKSCR=`
 
 /* ---------- 준비: 글꼴 · 높이표 · 개념 · 모의고사 ---------- */
 const BKCDN='https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css';
-function bkFontCss(abs){const b=abs||'';return [[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold']].map(([w,n])=>`@font-face{font-family:PretendardLocal;font-weight:${w};font-display:swap;src:url(${b}fonts/Pretendard-${n}.woff2) format('woff2')}`).join('')+`@font-face{font-family:YetHangul;font-weight:100 600;font-display:swap;src:url(${b}fonts/KoPubDotum-Medium.subset.woff2) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}@font-face{font-family:YetHangul;font-weight:700 900;font-display:swap;src:url(${b}fonts/KoPubDotum-Bold.subset.woff2) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}@font-face{font-family:SolviCn;font-weight:100 900;font-display:block;src:url(${b}fonts/Pretendard-Light.cn.woff2) format('woff2');unicode-range:U+2460-2473}`}
+function bkFontCss(abs){const b=abs||'';return `@font-face{font-family:SolviSymbols;font-weight:100 900;font-display:block;src:url(${b}fonts/SolviSymbols.woff2) format('woff2');unicode-range:U+2300-24FF,U+3200-32FF}`+ [[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold']].map(([w,n])=>`@font-face{font-family:PretendardLocal;font-weight:${w};font-display:swap;src:url(${b}fonts/Pretendard-${n}.woff2) format('woff2')}`).join('')+`@font-face{font-family:YetHangul;font-weight:100 600;font-display:swap;src:url(${b}fonts/KoPubDotum-Medium.subset.woff2) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}@font-face{font-family:YetHangul;font-weight:700 900;font-display:swap;src:url(${b}fonts/KoPubDotum-Bold.subset.woff2) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}@font-face{font-family:SolviCn;font-weight:100 900;font-display:block;src:url(${b}fonts/Pretendard-Light.cn.woff2) format('woff2');unicode-range:U+2460-2473}`}
 function bkInit(){
  if(BKREADY)return BKREADY;
  BKREADY=(async()=>{
@@ -442,7 +442,11 @@ const bkU=(key,html,o)=>{const u={key:SUBJ+'|'+key,html,w:(o&&o.w)||BK_COLW,...(
 /* 개념 절 하나 → 단위들. 제목은 뒤 내용과 떨어지지 않게(keep): 절 제목 → (도입 상자) → 첫 소제목 → 첫 본문 블록, 소제목 → 첫 본문 블록,
    설명 문단이 ':'로 끝나거나 바로 뒤에 예시 상자·표가 오면 설명과 상자를 한 덩어리로 */
 function bkCbUnits(sec,w){const us=[bkU('ch:'+sec.id,'<div class="u sh2"><i>'+esc(sec.no)+'</i><span>'+esc(sec.title)+'</span></div>',{w,keep:true,hdg:true})];
- const kids=[...bkDoc('<div class="cbk">'+sec.html+'</div>').firstElementChild.children];
+ const root=bkDoc('<div class="cbk">'+sec.html+'</div>').firstElementChild;
+ // Preserve plain text and inline runs as well as block elements. DOMParser decodes entities once.
+ const block=/^(H[1-6]|P|DIV|TABLE|UL|OL|BLOCKQUOTE|PRE|FIGURE|HR)$/;let run=null;
+ [...root.childNodes].forEach(node=>{if(node.nodeType===1&&block.test(node.tagName)){run=null;return}if(node.nodeType===8)return;if(!run&&node.nodeType===3&&!node.textContent.trim())return;if(!run){run=document.createElement('p');root.insertBefore(run,node)}run.appendChild(node)});
+ const kids=[...root.children];
  const isH=el=>/^H[1-6]$/.test(el.tagName),isBox=el=>!!el&&(el.tagName==='TABLE'||['ex','nt','eqn','fg','two-c'].some(c=>el.classList.contains(c))),isIntro=el=>!!el&&el.classList.contains('nt')&&el.classList.contains('es');
  kids.forEach((el,i)=>{const nx=kids[i+1];const txt=!isH(el)&&!isBox(el);
   const keep=isH(el)||(i===0&&isIntro(el))||(txt&&(/[:：]\s*$/.test(el.textContent.trim())||isBox(nx)));
@@ -1198,6 +1202,7 @@ async function bkShow(){
  if(BKV.id&&bkParts(BKV.id)&&bkParts(BKV.id).subj!==SUBJ){BKV={v:'shelf',id:null}}
  if(BKV.v==='new'&&(bkIsStud()||(BKV.d&&BKV.d.subj&&BKV.d.subj!==SUBJ)))BKV={v:'shelf',id:null}
  if(BKV.v==='read'&&BKV.id)return bkReader(BKV.id);
+ if(BKV.v==='korean'&&SUBJ==='hl'&&!bkIsStud()){await bkLoadJs('lib/korean-editor.js?v=1',()=>!!window.KoreanEditor);KoreanEditor.open();return}
  if(BKV.v==='new'){$('#main').innerHTML=bkBuilder();bkxEst();return}
  if(BKV.v==='rounds'){$('#main').innerHTML=bkRounds(BKV.id);return}
  const L=bkBookList(),m=$('#main');
@@ -1205,7 +1210,7 @@ async function bkShow(){
  m.innerHTML=`<div class="card"><h2>교재 <small style="font-weight:400;color:var(--m);font-size:13px">${esc(SNAME[SUBJ])}</small></h2>
  <p style="margin:-4px 0 14px;font-size:13px;color:var(--m);line-height:1.6">문제 쪽 아래 <b>QR</b>을 스캔하면 그 쪽이 바로 채점돼요.</p>
  ${L.some(b=>!b.custom&&!b.main)?`<div class="bkshelf">${L.filter(b=>!b.custom&&!b.main).map(card).join('')}</div>`:(bkIsStud()?`<div class="m" style="font-size:13px">이 과목은 기본 교재 없이, 선생님이 배포한 교재를 아래에서 열어 볼 수 있어요.</div>`:`<div class="m" style="font-size:13px">이 과목은 기본 교재 없이, 아래 <b>교재 만들기</b>로 필요한 범위·유형만 골라 처음부터 만들어요.</div>`)}</div>
- <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2 style="margin:0">${bkIsStud()?'배포받은 교재':'내 교재'}</h2>${bkIsStud()?'':`<button class="p" onclick="bkNew('std')">＋ 교재 만들기</button>`}</div>
+ <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2 style="margin:0">${bkIsStud()?'배포받은 교재':'내 교재'}</h2>${bkIsStud()?'':`<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="p" onclick="bkNew('std')">＋ 교재 만들기</button>${SUBJ==='hl'?'<button class="s" onclick="BKV={v:&#39;korean&#39;,id:null};bkShow()">국어 원고 편집</button>':''}</div>`}</div>
  <p style="margin:6px 0 12px;font-size:13px;color:var(--m);line-height:1.6">${bkIsStud()?'선생님이 배포한 교재가 여기에 나와요. 교재는 선생님이 만들어 배포해요.':(SUBJ==='hl'?'국어의 원리 기출·파생, 화법.pdf 원본·변형, 수능특강을 소단원마다 몇 문항씩 넣을지 정하거나, 총 문항 수만 정하고 소단원 비중 · 난이도 · 출처 초점대로 나눠 만들어요.':'종합, 직전 대비, 양치기, 전범위 모의고사 중에서 골라 만들어요.')+' 만든 교재는 「학생에게 배포」로 학생 화면에 올릴 수 있어요.'}</p>
  ${L.some(b=>b.custom)?`<div class="bkshelf">${L.filter(b=>b.custom).map(card).join('')}</div>`:bkIsStud()?`<div class="m" style="font-size:13px">아직 배포받은 교재가 없어요.</div>`:`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">${(SUBJ==='hl'?['std','full']:['std','last','drill','part','full']).map(k=>`<button class="s" onclick="bkNew('${k}')" style="text-align:left;padding:12px;border-radius:10px"><b style="display:block">${SUBJ==='hl'&&k==='std'?'직접 구성 교재':BKK[k][0]}</b><small style="font-weight:400;color:var(--m)">${SUBJ==='hl'&&k==='std'?'출처(국어의 원리·화법.pdf·수특)별 문항 수를 직접 정해 만들기':BKK[k][1]}</small></button>`).join('')}</div>`}</div>`}
 function bkGroups(plan){const g=new Map();plan.pages.forEach(p=>{if(!p.codes||!p.codes.length)return;const k=plan.kind==='m'?'문제지':((p.sub?p.sub.k+' ':'')+(p.label||''));if(!g.has(k))g.set(k,[]);g.get(k).push(p)});return g}
@@ -1268,7 +1273,7 @@ async function bkEbook(id){
  el=document.createElement('div');el.id='ebk';
  const J=[['표지',1]];if(plan.kind==='c')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.c]));else if(plan.kind==='t')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.p]));else if(plan.kind==='x'||plan.kind==='h')plan.toc.forEach(r=>r.items.forEach(([n,p])=>J.push([r.sub.k+' '+n,p])));if(plan.aStart)J.push(['정답 · 해설',plan.aStart]);
  const seen=new Set();EBK.J=J.filter(j=>j[1]&&!seen.has(j[1])&&seen.add(j[1]));
- el.innerHTML=`<style>#ebk{position:fixed;inset:0;z-index:50;background:#1b1f27;color:#e8ecf2;display:flex;flex-direction:column;font:14px YetHangul,Pretendard,PretendardLocal,sans-serif;user-select:none;-webkit-user-select:none}#ebk.wh{background:#f1f3f6}
+ el.innerHTML=`<style>#ebk{position:fixed;inset:0;z-index:50;background:#1b1f27;color:#e8ecf2;display:flex;flex-direction:column;font:14px YetHangul,SolviSymbols,Pretendard,PretendardLocal,sans-serif;user-select:none;-webkit-user-select:none}#ebk.wh{background:#f1f3f6}
 #ebk .ebw{background:#12151b;flex:none}#ebk .eb,#ebk .et{display:flex;gap:6px;align-items:center;padding:6px 10px;flex-wrap:wrap}#ebk .et{padding-top:0}#ebk .eb>b{flex:1;min-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#ebk .sp1{flex:1}
 #ebk button,#ebk select{font:inherit;background:#2a303b;color:#e8ecf2;border:1px solid #3a4250;border-radius:8px;padding:6px 10px;cursor:pointer;max-width:44vw;display:inline-flex;align-items:center;gap:4px}#ebk button.on{background:#f7b928;color:#222;border-color:#f7b928}#ebk .eb button,#ebk .et button{flex:none;white-space:nowrap}#ebk button.ebi{padding:6px 11px;justify-content:center}#ebk button.ebi svg{width:18px!important;height:18px!important;flex:none;display:block}#ebk button.pr{background:#2f9d66;border-color:#2f9d66;color:#fff;font-weight:700}
 #ebk{--t:#d6dce6;--m:#97a3b4;--sf2:#262c37;--l:#2e3541;--b:#2f9d66;--y:#f7b928}
@@ -1572,7 +1577,7 @@ const bkSheetHtml=(plan,i)=>i<0?bkBlankHtml():bkPageHtml(plan,i);
 function bkDocHtml(plan,all){
  const abs=location.origin+location.pathname.replace(/[^/]*$/,'');
  let pg='';bkSheets(plan,all).forEach(i=>pg+=bkSheetHtml(plan,i));
- return '<!doctype html><html><head><meta charset="utf-8"><title>'+esc(plan.title)+'</title><link rel="stylesheet" href="'+BKCDN+'"><style>'+bkFontCss(abs)+'@page{size:A4;margin:0}html,body{margin:0;padding:0;background:#d9dde3}'+BKCSS+'.bkdoc .bp{margin:8mm auto;box-shadow:0 1px 8px rgba(0,0,0,.25);page-break-after:always;break-after:page}.bkdoc .bp:last-child{page-break-after:auto;break-after:auto}@media print{html,body{background:#fff}.bkdoc .bp{margin:0;box-shadow:none}}'+bkFontCssRule()+'</style></head><body class="bkdoc">'+pg+'</body></html>'}
+ return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>'+esc(plan.title)+'</title><link rel="stylesheet" href="'+BKCDN+'"><style>'+bkFontCss(abs)+'@page{size:A4;margin:0}html,body{margin:0;padding:0;background:#d9dde3}'+BKCSS+'.bkdoc .bp{margin:8mm auto;box-shadow:0 1px 8px rgba(0,0,0,.25);page-break-after:always;break-after:page}.bkdoc .bp:last-child{page-break-after:auto;break-after:auto}@media print{html,body{background:#fff}.bkdoc .bp{margin:0;box-shadow:none}}'+bkFontCssRule()+'</style></head><body class="bkdoc">'+pg+'</body></html>'}
 let BKPOP=null;
 function bkBarHtml(plan){
  const o=(a,sel)=>a.map(([v,t])=>`<option value="${v}" ${String(sel)===String(v)?'selected':''}>${t}</option>`).join('');
@@ -1620,7 +1625,7 @@ async function bkPdf(id,all){
   finally{if(host)host.remove();if(st)st.remove()}})}
 /* ---------- 단독 HTML 파일(내려받아 열어보는 교재) ---------- */
 function bkStandalone(plan){
- const cdn='';
+ const cdn=bkFontCss(location.origin+location.pathname.replace(/[^/]*$/,''))+bkFontCssRule();
  let pg='';for(let i=0;i<plan.pages.length;i++)pg+=bkPageHtml(plan,i);
  return '<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(plan.title)+'</title><link rel="stylesheet" href="'+BKCDN+'"><style>'+cdn+'@page{size:A4;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#d9dde3}'+BKCSS+'.bkdoc .bp{margin:8mm auto;box-shadow:0 1px 8px rgba(0,0,0,.25)}@media print{html,body{background:#fff}.bkdoc .bp{margin:0;box-shadow:none;page-break-after:always;break-after:page}.bkdoc .bp:last-child{page-break-after:auto;break-after:auto}}</style></head><body class="bkdoc">'+pg+'<script>(function(){function f(){var s=Math.min(1,innerWidth/(210*96/25.4+16));document.body.style.zoom=s<1?s:""}f();addEventListener("resize",f);addEventListener("beforeprint",function(){document.body.style.zoom=""});addEventListener("afterprint",f)})()</script></body></html>'}
 /* ---------- 높이표 만들기(개발용) : 콘솔/자동화에서 await bkMeasureAll() ---------- */
