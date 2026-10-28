@@ -1348,6 +1348,21 @@ function mount(el,html,css){if(el.id==='wsPaper'){const t=document.querySelector
 /* ---------- 문제 은행(지연 로딩) ---------- */
 /* 과목별 자료: me=물질과 에너지(bank/), cm=세포와 물질대사(cm/), ph=역학과 에너지(ph/), hl=화법과 언어(hl/) */
 const SNAME={me:'물질과 에너지',cm:'세포와 물질대사',ph:'역학과 에너지',hl:'화법과 언어'},CMSET=new Set(),PHSET=new Set(),HLSET=new Set(),DIRS={me:'bank/',cm:'cm/',ph:'ph/',hl:'hl/'},POOL={me:DATA.slice(),cm:[],ph:[],hl:[]},BIDXS={me:{},cm:{},ph:{},hl:{}},TAGSUBJ={};
+/* ---------- 문제 데이터 서버(라즈베리파이 등) ----------
+   DATA_ORIGIN 이 비어 있으면 지금처럼 사이트 안 폴더(bank/ cm/ ph/ hl/)에서 받는다.
+   주소를 넣으면 거기서 먼저 받고, 두 번 연달아 실패하면 사이트 안 파일로 돌아간다. 받은 파일은 기기에도 저장해 오프라인에서 연다.
+   주소는 아래 상수에 직접 적는다. (테스트용: localhost 에서만 localStorage 'omr_data_origin' 으로 바꿀 수 있다. 낯선 주소의 문제 HTML 을 그대로 화면에 넣게 되므로 URL 로는 받지 않는다.) */
+const DATA_ORIGIN_DEFAULT='';
+const DATA_ORIGIN=(()=>{let o=DATA_ORIGIN_DEFAULT;try{if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){const t=localStorage.getItem('omr_data_origin');if(t!==null)o=t}}catch(e){}o=String(o||'').trim().replace(/\/+$/,'');return /^https:\/\/[^\s/]+$/.test(o)||/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o)?o:''})();
+let _dFail=0;
+async function dfetch(path){
+ const key=DATA_ORIGIN+'/'+path;
+ if(DATA_ORIGIN&&_dFail<2){
+  try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),8000);const r=await fetch(key,{signal:ac.signal});clearTimeout(tm);
+   if(r.ok){_dFail=0;try{caches.open('solvi-data-v1').then(c=>c.put(key,r.clone())).catch(()=>{})}catch(e){}return r}_dFail++}catch(e){_dFail++}}
+ let lr=null,le=null;try{lr=await fetch(path);if(lr.ok)return lr}catch(e){le=e}
+ if(DATA_ORIGIN){try{const c=await caches.open('solvi-data-v1');const h=await c.match(key);if(h)return h}catch(e){}}
+ if(lr)return lr;throw le||new Error('data fetch failed')}
 let SUBJ='me',BIDXALL={};
 const SITE={notices:[],cfg:{},ok:false};
 const DEV={ok:null,who:'',sec:'notice',stats:null,users:null,bugs:null,err:''};
@@ -1359,8 +1374,8 @@ const figLost=q=>q.set==='bank'&&/그림/.test(String(q.q||'').split('<div class
 try{const v=localStorage.getItem('omr_subj_v1');if(v&&SNAME[v])SUBJ=v}catch(e){}
 function applySubject(){document.body.dataset.subj=SUBJ;document.title=SNAME[SUBJ]+' · Solvi';if(typeof CK!=='undefined'&&!ckind()[CK.k])CK.k=ckDef();DATA.length=0;POOL[SUBJ].forEach(q=>DATA.push(q));BIDX=BIDXS[SUBJ]||{};calcSubs();const e=$('#subj');if(e){e.textContent=SNAME[SUBJ];e.dataset.s=SNAME[SUBJ].slice(0,2)}}
 async function loadBankIndex(){
- for(const k of Object.keys(DIRS)){try{const r=await fetch(DIRS[k]+'index.json');if(r.ok){BIDXS[k]=await r.json();for(const t in BIDXS[k])TAGSUBJ[t]=k;Object.assign(BIDXALL,BIDXS[k])}}catch(e){}}
- for(const [k,S] of [['cm',CMSET],['ph',PHSET],['hl',HLSET]]){try{const r=await fetch(DIRS[k]+'data.json');if(r.ok){const a=await r.json();a.forEach(q=>{if(ovHidden(q.code))return;ovApply(q);if(!byCode[q.code]){byCode[q.code]=q;POOL[k].push(q)}S.add(q.code)})}}catch(e){}}
+ for(const k of Object.keys(DIRS)){try{const r=await dfetch(DIRS[k]+'index.json');if(r.ok){BIDXS[k]=await r.json();for(const t in BIDXS[k])TAGSUBJ[t]=k;Object.assign(BIDXALL,BIDXS[k])}}catch(e){}}
+ for(const [k,S] of [['cm',CMSET],['ph',PHSET],['hl',HLSET]]){try{const r=await dfetch(DIRS[k]+'data.json');if(r.ok){const a=await r.json();a.forEach(q=>{if(ovHidden(q.code))return;ovApply(q);if(!byCode[q.code]){byCode[q.code]=q;POOL[k].push(q)}S.add(q.code)})}}catch(e){}}
  loadMyQ();applySubject()}
 async function setSubject(k){if(!SNAME[k]||k===SUBJ){closeCfg();return}
  SUBJ=k;try{localStorage.setItem('omr_subj_v1',k)}catch(e){}
@@ -1374,7 +1389,7 @@ function calibAll(){CSTAT={};hist.forEach(h=>h.items.forEach(x=>{const o=CSTAT[x
 const subjOf=c=>MYSUBJ[c]||(CMSET.has(c)?'cm':PHSET.has(c)?'ph':HLSET.has(c)?'hl':TAGSUBJ[tagOf(c)]||'me');
 const tagOf=c=>{const m=String(c).match(/^G-([a-z0-9]+)-/);return m&&m[1]};
 async function ensureTags(tags){let _i=0;for(const t of tags){_i++;if(tags.length>1)busyPct((_i-.5)/tags.length*100);if(!t||BLOADED[t]||!BIDXALL[t])continue;const sj=TAGSUBJ[t];
- try{const r=await fetch(DIRS[sj]+t+'.json');if(!r.ok)continue;const a=await r.json();a.forEach(q=>{if(ovHidden(q.code)||figLost(q))return;ovApply(q);if(!byCode[q.code]){byCode[q.code]=q;POOL[sj].push(q);if(sj===SUBJ)DATA.push(q);if(CSTAT[q.code])calibQ(q)}});BLOADED[t]=1}catch(e){}}}
+ try{const r=await dfetch(DIRS[sj]+t+'.json');if(!r.ok)continue;const a=await r.json();a.forEach(q=>{if(ovHidden(q.code)||figLost(q))return;ovApply(q);if(!byCode[q.code]){byCode[q.code]=q;POOL[sj].push(q);if(sj===SUBJ)DATA.push(q);if(CSTAT[q.code])calibQ(q)}});BLOADED[t]=1}catch(e){}}}
 const ensureCodes=codes=>ensureTags([...new Set(codes.map(tagOf).filter(Boolean))]);
 function qMeta(c){const q=byCode[c];if(q)return q;const t=tagOf(c);if(t&&BIDXALL[t])return{code:c,set:'bank',sub:BIDXALL[t].sub,subname:BIDXALL[t].subname,type:BIDXALL[t].label};return null}
 /* ---------- 저장소 · 클라우드 ---------- */
@@ -3949,7 +3964,7 @@ load().then(async()=>{calibAll();if(_lg){if(!sess&&!STUD)setTimeout(()=>{try{ope
 let CONC={},CC={sel:new Set(),n:10,qs:null,pick:{}};
 const cfmt=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/_\{([^}]*)\}/g,'<sub>$1</sub>').replace(/\^\{([^}]*)\}/g,'<sup>$1</sup>');
 const cplain=h=>String(h||'').replace(/<[^>]+>/g,' ').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
-async function conceptLoad(){if(CONC[SUBJ])return;try{const r=await fetch(DIRS[SUBJ]+'concept.json');CONC[SUBJ]=r.ok?await r.json():{}}catch(e){CONC[SUBJ]={}}}
+async function conceptLoad(){if(CONC[SUBJ])return;try{const r=await dfetch(DIRS[SUBJ]+'concept.json');CONC[SUBJ]=r.ok?await r.json():{}}catch(e){CONC[SUBJ]={}}}
 function cPairs(o){let c=CONC[SUBJ]||{};if(c.pools)c=c.pools;return c[o.type]||c['__'+o.sub]||[]}
 function cOwn(o){let c=CONC[SUBJ]||{};if(c.pools)c=c.pools;return !!c[o.type]}
 function cBuild(){const rows=typeRows().filter(o=>CC.sel.has(o.k));CC.pick={};

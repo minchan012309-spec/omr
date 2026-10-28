@@ -1,109 +1,100 @@
-# Solvi 라즈베리파이 서버
+# 라즈베리파이 문제 데이터 서버
 
-Supabase 에서 이 앱이 쓰던 것(DB, REST, 로그인, 패스키)만 라즈베리파이 5(2GB)로 옮기는 설치 파일입니다.
-Realtime·Storage·Studio 는 앱이 쓰지 않아 뺐고, 컨테이너 합계 메모리 한도는 약 1.2GB 입니다.
+Solvi 앱이 문제 데이터(`bank/` `cm/` `ph/` `hl/` 폴더의 JSON)를 사이트 대신 라즈베리파이에서 받아 오게 하는 설정입니다.
+공유기 포트포워딩은 필요 없습니다. 파이가 바깥으로 먼저 연결하는 방식(Tailscale Funnel)을 씁니다.
 
-> **상태: 라즈베리파이에서 직접 돌려 보지 않았습니다.** `setup.sql` 이 일반 PostgreSQL 16 에서 오류 없이 두 번 실행되는 것,
-> 데이터 덤프→복원, 키 생성 스크립트의 서명은 이 저장소 쪽 환경에서 확인했습니다.
-> 게이트웨이(Caddy)의 주소 연결과 CORS 규칙은 가짜 서버를 붙여 로컬에서 시험했고, 공인 IP용 설정은 문법 검사까지 했습니다.
-> Docker 이미지 실행, 패스키 함수, 인증서 발급, 외부 접속은 Pi 에서 처음 올릴 때 확인해야 합니다. 오류가 나면 `docker compose logs <서비스>` 내용을 알려주세요.
+> 이 안내와 설치 스크립트는 라즈베리파이에서 직접 실행해 보지 못했습니다(앱 쪽 전환과 되돌리기만 시험했습니다). 막히면 오류 메시지를 그대로 알려 주세요.
+
+## 동작 방식
 
 ```
-브라우저(https://solvi.p-e.kr) ──HTTPS──> (A) 공인 IP+DuckDNS 직접 / (B) Tailscale Funnel / (C) Cloudflare Tunnel ──> Caddy
-                                                ├ /rest/v1/*            -> PostgREST ─┐
-                                                ├ /auth/v1/*            -> GoTrue ────┼─> PostgreSQL (USB SSD)
-                                                └ /functions/v1/passkey -> Deno(패스키)┘
+학생·선생님 브라우저 ──https──▶ Tailscale Funnel ──▶ 파이(Caddy 파일 서버) ──▶ /srv/solvi/repo (GitHub에서 5분마다 자동 갱신)
+        │
+        └─ 파이가 응답하지 않으면 사이트 안 파일(bank/ cm/ ph/ hl/)로 자동 전환
 ```
 
-## 0. 준비물
-- 라즈베리파이 5 + **64비트** Raspberry Pi OS Lite, 가능하면 **USB SSD 로 부팅**(또는 DB 폴더만 SSD)
-- 학교 인터넷(바깥 포트 개방 없이 쓸 수 있는 방법을 아래에서 고릅니다)
-- 정전 대비: 가능하면 UPS 또는 안전 종료 방법
+- 앱(`index.html`)의 `DATA_ORIGIN_DEFAULT` 에 파이 주소를 적으면 켜집니다. 비워 두면 지금처럼 동작합니다.
+- 파이에서 받은 문제는 기기에도 저장돼, 한 번 받은 뒤에는 인터넷이 없어도 열립니다.
+- 파이가 두 번 연달아 응답하지 않으면 그 접속에서는 사이트 안 파일을 씁니다. **사이트 안 폴더를 지우기 전까지는** 파이가 꺼져도 서비스가 멈추지 않습니다.
 
-## 1. Pi 기본 설정
+## 준비물
+
+- 라즈베리파이 4 이상(램 2GB 이상), 전원, **랜선 연결 권장**
+- 저장장치: SD카드(32GB 이상). 오래 쓸 거라면 USB SSD를 권장합니다(SD카드는 쓰기가 많으면 고장이 납니다)
+- 다른 컴퓨터(SD카드에 운영체제를 넣을 때 사용)
+
+## 1. 운영체제 설치
+
+1. 컴퓨터에 **Raspberry Pi Imager**(raspberrypi.com/software)를 설치합니다.
+2. 운영체제는 `Raspberry Pi OS Lite (64-bit)` 를 고릅니다.
+3. 톱니바퀴(설정)에서 호스트 이름 `solvi-data`, SSH 켜기, 사용자 이름·비밀번호, (무선이면) 와이파이를 설정한 뒤 SD카드에 씁니다.
+4. 파이에 SD카드를 넣고 전원을 켭니다. 1~2분 뒤 컴퓨터에서 `ssh 사용자이름@solvi-data.local` 로 접속합니다.
+
+## 2. 설치
+
+파이에 접속한 상태에서 한 줄씩 실행합니다.
+
 ```bash
-sudo apt update && sudo apt full-upgrade -y
-curl -fsSL https://get.docker.com | sudo sh && sudo usermod -aG docker $USER   # 다시 로그인
-# 메모리 2GB 이므로 zram 스왑을 켭니다
-sudo apt install -y zram-tools && echo -e "ALGO=zstd\nPERCENT=50" | sudo tee /etc/default/zramswap && sudo systemctl restart zramswap
-# SSD 를 /mnt/ssd 에 마운트해 두었다면 DB 폴더를 만듭니다
-sudo mkdir -p /mnt/ssd/solvi && sudo chown $USER /mnt/ssd/solvi
+sudo apt-get install -y git
+git clone --depth 1 https://github.com/minchan012309-spec/omr.git
+sudo bash omr/pi/setup.sh
 ```
 
-## 2. 올리기
+끝나면 확인합니다.
+
 ```bash
-git clone https://github.com/minchan012309-spec/omr.git && cd omr/pi
-./gen-keys.sh          # .env 를 만들고 비밀번호·JWT 키를 채웁니다 (ANON_KEY 가 출력됩니다)
-nano .env              # SITE_URL, API_URL, DATA_DIR 확인 (API_URL 은 3단계 후 알게 됩니다)
-docker compose up -d
-./init-db.sh           # 표·함수·접근 정책 만들기 (setup.sql). 다시 실행해도 안전
-curl -s localhost:8080/health   # ok 가 나오면 게이트웨이 동작
+curl http://127.0.0.1:8080/health          # ok
+curl -I http://127.0.0.1:8080/hl/index.json  # 200 이 나오면 성공
 ```
 
-## 3. 바깥에서 HTTPS 로 접속되게 (하나 고르기)
-브라우저가 `https://solvi.p-e.kr` 에서 Pi 로 요청하므로 **Pi 도 HTTPS 주소**가 필요합니다. 사이트 주소(`solvi.p-e.kr`)는 그대로 두고, 서버 주소만 따로 정합니다. 학생에게 보이는 주소는 사이트 주소뿐입니다.
+> 저장소가 비공개라면 3번째 줄이 실패합니다. 이 경우 GitHub에서 읽기 전용 토큰을 만들어 `REPO_URL=https://토큰@github.com/minchan012309-spec/omr.git sudo -E bash omr/pi/setup.sh` 로 실행하세요.
 
-**A. 공인 IP 직접 + DuckDNS (무료, 도메인 구입 불필요)** — 공유기 포트포워딩이 가능할 때
-1. 공인 IP 가 맞는지 확인: 공유기 관리 화면의 WAN(인터넷) IP 와 "내 IP 확인" 사이트에 나오는 IP 가 **같아야** 합니다. 다르면 통신사 공유 IP(CGNAT)라 이 방식은 안 됩니다 → B 로.
-2. https://www.duckdns.org 에서 로그인 후 이름 만들기(예: `solvi-api` → `solvi-api.duckdns.org`). 토큰을 복사해 둡니다.
-3. 공유기에서 Pi 의 내부 IP 를 고정(DHCP 예약)하고, **TCP 80 과 443 을 Pi 로 포트포워딩**합니다.
-4. `.env` 에 `DUCKDNS_SUBDOMAIN`, `DUCKDNS_TOKEN`, `API_HOST=solvi-api.duckdns.org`, `ACME_EMAIL=내메일`, `API_URL=https://solvi-api.duckdns.org` 를 채웁니다.
-5. 올리기(2단계의 `docker compose up -d` 대신):
-```bash
-docker compose -f docker-compose.yml -f docker-compose.public.yml up -d
-curl -s https://solvi-api.duckdns.org/health     # ok (인증서가 자동 발급되는 데 1~2분 걸릴 수 있음)
-```
-- 인증서는 `DATA_DIR/caddy` 에 저장됩니다(지우지 마세요. 자주 새로 받으면 발급 제한에 걸립니다).
-- 공개되는 것은 80/443 의 Caddy 뿐이고 DB 포트는 열리지 않습니다. 그래도 Pi 가 인터넷에 직접 노출되므로 OS 자동 보안 업데이트(`unattended-upgrades`)를 켜고 SSH 는 비밀번호 대신 키로만 쓰세요.
-- 일부 통신사가 80 포트를 막는 경우가 있어도 Caddy 는 443 만으로 인증서를 받을 수 있습니다.
+## 3. 밖에서 접속되게 하기 (Tailscale Funnel, 포트포워딩 없음)
 
-**B. Tailscale Funnel (도메인·포트포워딩 불필요)**
-```bash
-curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up
-# Tailscale 관리 콘솔(DNS 탭)에서 HTTPS 인증서를 켜고, ACL 에서 Funnel 을 허용한 뒤:
-sudo tailscale funnel --bg 8080      # https://<기기이름>.<tailnet>.ts.net 주소가 나옵니다
-```
-그 주소를 `.env` 의 `API_URL` 에 넣고 `docker compose up -d`. 학교 Wi-Fi 에서 `*.ts.net` 이 막히지 않는지 먼저 확인하세요.
+1. 파이에서 `sudo tailscale up` 을 실행하고, 나오는 주소를 컴퓨터 브라우저에서 열어 Tailscale 계정(무료)으로 로그인합니다.
+2. 브라우저에서 Tailscale 관리 화면(login.tailscale.com/admin)에 들어가 `DNS` 메뉴에서 **HTTPS Certificates** 를 켭니다.
+3. 파이에서 실행합니다.
 
-**C. Cloudflare Tunnel** — 도메인을 Cloudflare DNS 로 관리할 수 있을 때(도메인 구입 필요)만 가능합니다.
+   ```bash
+   sudo tailscale funnel --bg 8080
+   tailscale funnel status
+   ```
 
-> 학교 네트워크에 Pi 를 둔다면 포트 개방·터널 허용 여부를 담당 선생님께 확인하세요.
+   처음에는 "Funnel 을 켜려면 이 주소를 여세요" 라는 링크가 나옵니다. 열어서 허용하면 됩니다.
+4. 상태 화면에 `https://solvi-data.○○○.ts.net` 같은 주소가 나옵니다. 컴퓨터 브라우저(또는 스마트폰 데이터 연결)에서 `주소/health` 를 열어 `ok` 가 나오는지 확인합니다.
 
-## 4. 개발자·교사 계정
-- 기존 데이터를 옮기면 교사 계정과 개발자 등록도 같이 옮겨집니다(5단계).
-- 새로 시작한다면: 앱에서 회원가입한 뒤, 아래를 실행해 개발자로 등록합니다.
-```bash
-docker compose exec -T db psql -U supabase_admin -d postgres -c "insert into developers(user_id,email) select id,email from auth.users where email='내이메일@example.com' on conflict do nothing"
-```
-- 이메일 인증: SMTP 서버가 없으면 `.env` 의 `MAILER_AUTOCONFIRM=true`(가입 즉시 사용)로 둡니다. 가입 승인 절차(앱의 가입 요청 승인)는 그대로 동작합니다.
+> Tailscale Funnel 은 무료로 쓸 수 있지만 전송량이 많으면 속도가 제한될 수 있습니다. 사용자가 늘어 느려지면 아래 "Cloudflare Tunnel" 로 바꾸세요(도메인이 필요합니다).
 
-## 5. 기존 Supabase 데이터 옮기기 (전환 직전에)
-```bash
-sudo apt install -y postgresql-client
-SUPABASE_DB_URL='postgresql://postgres:비밀번호@db.xxxx.supabase.co:5432/postgres' ./migrate-from-supabase.sh
-```
-교사 비밀번호 해시가 같이 옮겨져 기존 비밀번호로 로그인됩니다. JWT 키가 달라서 **로그인 세션은 전부 풀립니다**(다시 로그인). 패스키는 같은 사이트 주소(`solvi.p-e.kr`)이므로 그대로 쓸 수 있을 가능성이 높지만, 안 되면 다시 등록하세요.
+### 대안: Cloudflare Tunnel
 
-## 6. 앱을 Pi 로 전환
-`index.html` 의 `loadCfg()` 에서 **두 값만** 바꿉니다.
+도메인을 Cloudflare 에서 관리할 수 있다면 더 안정적입니다. Cloudflare 대시보드의 `Zero Trust → Networks → Tunnels` 에서 터널을 만들고, 안내에 나오는 `cloudflared` 설치 명령을 파이에 붙여넣은 뒤 `Public hostname` 을 `data.내도메인` → `http://127.0.0.1:8080` 으로 지정합니다.
+
+## 4. 앱에 연결
+
+`index.html` 에서 `DATA_ORIGIN_DEFAULT` 를 찾아 파이 주소를 적고 커밋·배포합니다. 끝에 `/` 는 붙이지 않습니다.
+
 ```js
-CF={url:'<API_URL>', key:'<ANON_KEY>', pub:'https://solvi.p-e.kr/'}
+const DATA_ORIGIN_DEFAULT='https://solvi-data.○○○.ts.net';
 ```
-그리고 `books.js`/`dev.js` 는 건드리지 않으므로 `?v=` 번호는 그대로 둡니다. 배포 후 `sw.js` 의 `VER` 를 하나 올리면 학생 기기에서도 빠르게 갱신됩니다.
-**되돌리기**: 위 두 값을 예전 Supabase 값으로 되돌리면 됩니다(전환 후 Pi 에 쌓인 데이터는 Supabase 에 없습니다).
 
-## 7. 백업과 운영
-```bash
-crontab -e   # 매일 새벽 3시 30분 백업 (14개 보관)
-30 3 * * * /home/pi/omr/pi/backup.sh /mnt/ssd/solvi-backup
+배포 후 앱에서 화법과 언어 교재를 열고, 브라우저 개발자도구(F12) → Network 에서 `hl/…json` 요청이 `ts.net` 주소로 가는지 확인합니다.
+파이를 끄고 같은 화면을 다시 열어도 문제가 나오면(사이트 안 파일로 전환) 정상입니다.
+
+시험용으로 컴퓨터에서 바로 바꿔 보려면(주소가 `localhost` 일 때만 동작):
+
+```js
+localStorage.setItem('omr_data_origin','https://solvi-data.○○○.ts.net'); location.reload();
+// 되돌리기: localStorage.removeItem('omr_data_origin')
 ```
-- **다른 장소로도 복사**해 두세요(SSD 고장 대비). 복원: `gunzip -c 백업.sql.gz | docker compose exec -T db psql -U supabase_admin -d postgres`
-- 상태: `docker compose ps`, `docker stats --no-stream`(메모리), `docker compose logs -f auth rest passkey`
-- 업데이트: `git pull && docker compose pull && docker compose up -d` (그 전에 백업)
-- 개인정보: 학생 이름·풀이 기록이 학교 기기에 저장됩니다. 학교의 개인정보 보호 지침에 맞춰 접근 권한과 보관 기간을 정하세요.
 
-## 문제 확인 순서
-1. `curl -s localhost:8080/health` → ok 아니면 `docker compose logs gateway`
-2. `curl -s -H "apikey: $ANON_KEY" localhost:8080/rest/v1/site_config?select=key&limit=1` → `[]` 또는 목록이면 REST 정상
-3. `curl -s localhost:8080/auth/v1/health` → GoTrue 정상
-4. 앱의 개발자 탭 → 진단에서 "Supabase REST", "패스키 함수" 점검 항목 확인
+## 5. 사이트 용량을 실제로 줄이려면 (나중에, 파이가 안정된 뒤)
+
+- 먼저 위 3~4번이 며칠 동안 문제없이 도는지 보세요. 파이가 꺼지면 사이트 안 폴더가 마지막 안전망입니다.
+- 그다음 `bank/` `cm/` `ph/` `hl/` 의 큰 JSON 을 사이트 저장소에서 빼려면 데이터를 별도 저장소(예: `omr-data`)로 옮기고 `setup.sh` 의 `REPO_URL` 을 그쪽으로 바꿉니다. 이때 앱의 오프라인 저장·전범위 모의고사 같은 기능이 사이트 안 폴더를 가정하는 곳이 더 있는지 먼저 확인해야 합니다(현재는 `index.html` 의 4곳만 파이로 전환했습니다).
+
+## 알아 둘 점
+
+- **보안:** 앱은 받은 문제 HTML을 그대로 화면에 넣습니다. 파이가 해킹되면 모든 사용자 화면에 악성 코드가 들어갈 수 있으니, 파이 비밀번호는 길게 하고 SSH 는 키 로그인으로 바꾸고 `sudo apt-get update && sudo apt-get upgrade -y` 로 가끔 업데이트하세요. 앱은 정해진 주소(`https://…` 또는 `localhost`)만 받도록 막아 두었습니다.
+- **API 키:** 문제 파일은 브라우저가 내려받는 공개 파일이라 키를 넣어도 보호가 되지 않습니다(키가 코드에 그대로 보이기 때문). 대신 `Caddyfile` 이 이 사이트에서 온 요청만 읽도록 허용합니다. 로그인한 사람에게만 문제를 주려면 별도 서버 코드(인증)가 필요합니다.
+- **끊김:** 집·학교 인터넷이나 전기가 끊기면 파이에서 받는 문제는 멈춥니다(사이트 안 파일로 전환되는 동안은 괜찮습니다). 가능하면 UPS나 보조 전원, 유선 인터넷을 쓰세요.
+- **속도:** 동시 접속이 많으면 파이의 업로드 속도가 병목이 됩니다. 앱이 한 번 받은 문제를 기기에 저장하므로 두 번째부터는 빠릅니다.

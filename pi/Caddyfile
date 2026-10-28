@@ -1,12 +1,30 @@
-# 터널 방식(Tailscale Funnel / Cloudflare Tunnel)용: 바깥 HTTPS 는 터널이 맡고, 여기는 127.0.0.1:8080 으로만 열립니다.
-# 공인 IP 로 직접 여는 방식은 Caddyfile.public 을 씁니다 (README 3단계 A).
+# Solvi 문제 데이터 서버 (라즈베리파이). 바깥에서는 Tailscale Funnel 또는 Cloudflare Tunnel 이 이 주소(127.0.0.1:8080)로 연결해 준다.
 {
 	auto_https off
 	admin off
 }
 
-import /etc/caddy/solvi.caddy
+:8080 {
+	bind 127.0.0.1
+	root * /srv/solvi/repo
+	encode zstd gzip
 
-:80 {
-	import solvi
+	# 이 사이트에서 온 요청에만 문제 파일을 읽도록 허용 (브라우저가 지킨다)
+	@site header_regexp Origin ^https://(solvi\.p-e\.kr|minchan012309-spec\.github\.io)$
+
+	@data path /bank/* /cm/* /ph/* /hl/*
+	handle @data {
+		header @site Access-Control-Allow-Origin "{http.request.header.Origin}"
+		header Vary Origin
+		header Cache-Control "public, max-age=300"
+		file_server
+	}
+
+	handle /health {
+		respond "ok" 200
+	}
+
+	handle {
+		respond "solvi data server" 404
+	}
 }
