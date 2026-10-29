@@ -705,24 +705,34 @@ function bkPlanMain(id){
 
 /* ---------- 내 교재 : 직접 만든 책 · 전범위 모의고사 ---------- */
 const BKXK='omr_books_v1',BKXF={concept:1,ox:2,bl:4,basic:8,type:16,essay:32,all:64,last:128};
+const BKXBLOCK=new Set(),BKXREMOTE=new Map();
 function bkxLocal(){try{return JSON.parse(localStorage.getItem(BKXK)||'[]')}catch(e){return[]}}
+function bkxGone(){try{return new Set(JSON.parse(localStorage.getItem('omr_books_del_v1')||'[]'))}catch(e){return new Set()}}
 function bkAsgRecs(){const o=[];(typeof BKASG!=='undefined'?BKASG:[]).forEach(a=>{try{const n=JSON.parse(a.note||'{}');if(n&&n.bk&&n.bk.id&&!o.some(x=>x.id===n.bk.id))o.push({...n.bk,asg:1,due:a.due||''})}catch(e){}});return o}
-function bkxAll(){const l=bkxLocal();bkAsgRecs().forEach(r=>{if(!l.some(x=>x.id===r.id))l.push(r)});return l}
+function bkxAll(){const raw=bkxLocal(),gone=bkxGone(),l=raw.filter(b=>!b.deletedAt&&!gone.has(b.id));raw.filter(b=>b.deletedAt).forEach(b=>gone.add(b.id));bkAsgRecs().forEach(r=>{if(!gone.has(r.id)&&!BKXBLOCK.has(r.id)&&!l.some(x=>x.id===r.id))l.push(r)});return l}
 function bkxStore(a){try{localStorage.setItem(BKXK,JSON.stringify((a||[]).filter(x=>!x.asg)))}catch(e){}bkxPushSoon()}
 /* ---------- 선생님 교재 목록을 계정(teacher_settings.data.books)에 보관해 다른 기기에서도 보이게 ---------- */
 const bkxCloudOk=()=>typeof teacher==='function'&&teacher()&&typeof cloud==='function'&&cloud()&&typeof sess!=='undefined'&&!!sess&&!(typeof STUD!=='undefined'&&STUD);
 let _bkxT=0,_bkxP=null,_bkxBusy=null;
 async function bkxWrite(d){try{const r=await sb('/rest/v1/teacher_settings?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({data:d,updated_at:new Date().toISOString()})});return r.ok}catch(e){return false}}
-function bkxMerge(cl,loc,del){const m=new Map();[...(cl||[]),...(loc||[])].forEach(b=>{if(!b||!b.id||del.has(b.id))return;const o=m.get(b.id);if(!o||(b.t||0)>=(o.t||0))m.set(b.id,b)});return [...m.values()].sort((a,b)=>(a.t||0)-(b.t||0))}
+function bkxMerge(cl,loc,del){const m=new Map();[...(cl||[]),...(loc||[])].forEach(b=>{if(!b||!b.id||del.has(b.id))return;const o=m.get(b.id);if(!o||(b.updatedAt||b.t||0)>=(o.updatedAt||o.t||0))m.set(b.id,b)});return [...m.values()].sort((a,b)=>(a.t||0)-(b.t||0))}
 async function bkxSync(force){if(!bkxCloudOk())return false;if(_bkxBusy)return _bkxBusy;if(!force&&Date.now()-_bkxT<15000)return false;
- return _bkxBusy=(async()=>{try{_bkxT=Date.now();const d=await tsRaw();if(d===null)return false;const del=new Set(d.booksDel||[]);const loc=bkxLocal(),cl=d.books||[];const merged=bkxMerge(cl,loc,del);
+ return _bkxBusy=(async()=>{try{_bkxT=Date.now();const d=await tsRaw();if(d===null)return false;const del=new Set([...(d.booksDel||[]),...bkxGone()]);try{localStorage.setItem('omr_books_del_v1',JSON.stringify([...del]))}catch(e){}const loc=bkxLocal(),cl=d.books||[];const merged=bkxMerge(cl,loc,del);
   const changedLocal=JSON.stringify(merged)!==JSON.stringify(loc);
   if(changedLocal)try{localStorage.setItem(BKXK,JSON.stringify(merged))}catch(e){}
   if(JSON.stringify(merged)!==JSON.stringify(cl)){d.books=merged;await bkxWrite(d)}
   return changedLocal}catch(e){return false}finally{_bkxBusy=null}})()}
-function bkxPushSoon(){if(!bkxCloudOk())return;clearTimeout(_bkxP);_bkxP=setTimeout(async()=>{try{const d=await tsRaw();if(d===null)return;const del=new Set(d.booksDel||[]);d.books=bkxMerge(d.books,bkxLocal(),del);
+function bkxPushSoon(){if(!bkxCloudOk())return;clearTimeout(_bkxP);_bkxP=setTimeout(async()=>{try{const d=await tsRaw();if(d===null)return;const del=new Set([...(d.booksDel||[]),...bkxGone()]);d.books=bkxMerge(d.books,bkxLocal(),del);
   await bkxWrite(d)}catch(e){}},600)}
-async function bkxTomb(id){if(!bkxCloudOk())return;try{const d=await tsRaw();if(d===null)return;d.booksDel=[...new Set([...(d.booksDel||[]),id])].slice(-300);d.books=(d.books||[]).filter(b=>b.id!==id);await bkxWrite(d)}catch(e){}}
+async function bkxTomb(id){if(!bkxCloudOk())return;try{if(_bkxBusy)await _bkxBusy;const d=await tsRaw();if(d===null)return;d.books=bkxMerge(d.books,bkxLocal(),new Set(d.booksDel||[]));await bkxWrite(d)}catch(e){}}
+function bkxTrash(){return bkxLocal().filter(b=>b.deletedAt)}
+async function bkxAccess(id,owner){const base=bkBare(id).replace(/r\d+$/,'');if(!/^(me|cm|ph|hl)-x/.test(base))return true;
+ if(bkxGone().has(base)||bkxTrash().some(b=>b.id===base)){toast('삭제된 교재입니다');return false}
+ const who=owner||(typeof sess!=='undefined'&&sess&&sess.user&&sess.user.id)||((bkxAll().find(b=>b.id===base)||{}).owner)||null;
+ if(typeof cloud==='function'&&cloud()){try{const r=await rpc('book_access',{p_book:base,p_owner:who});if(r.ok){const ok=await r.json();if(!ok){toast('등록되지 않았거나 삭제된 교재입니다');return false}return true}}catch(e){}
+  toast('교재 접근 상태를 확인하지 못했습니다');return false}
+ if(!bkxAll().some(b=>b.id===base)){toast('등록되지 않은 교재입니다');return false}return true}
+async function bkxCheckAssigned(){if(!bkIsStud()||typeof cloud!=='function'||!cloud())return;await Promise.all(bkAsgRecs().map(async b=>{const c=BKXREMOTE.get(b.id);let ok=c&&Date.now()-c.t<10000?c.ok:false;if(!c||Date.now()-c.t>=10000){try{const r=await rpc('book_access',{p_book:b.id,p_owner:b.owner||null});ok=r.ok&&await r.json()===true}catch(e){ok=false}BKXREMOTE.set(b.id,{ok,t:Date.now()})}ok?BKXBLOCK.delete(b.id):BKXBLOCK.add(b.id)}))}
 function bkxId(subj,d){
  if(d.kind==='free')return subj+'-xf'+bkfPayload(d);
  const lvS=(d.lv&&d.lv!==15?'l'+d.lv.toString(16):'');
@@ -1056,7 +1066,7 @@ function bkPlanFree(id,d){
 /* ---------- 쪽 HTML ---------- */
 const BKCAP=BK_BODY;
 function bkBase(){if(window.BKBASE)return window.BKBASE;return ((typeof CF!=='undefined'&&CF&&CF.pub)||location.href).split('#')[0].split('?')[0]}
-function bkUrl(plan,p){return bkBase()+'#bk='+plan.id+':'+(plan.kind==='m'?'all':p.n)}
+function bkUrl(plan,p){const owner=String(plan.id).includes('-x')&&typeof sess!=='undefined'&&sess&&sess.user&&sess.user.id;return bkBase()+'#bk='+plan.id+':'+(plan.kind==='m'?'all':p.n)+(owner?'@'+owner:'')}
 function bkQr(plan,p){return !!((p.codes&&p.codes.length)||(plan.kind==='m'&&p.k==='ak'))}
 function bkHd2(plan,p){const even=p.n%2===0;const L='<span>'+esc(SNAME[SUBJ])+' · <b>'+esc(plan.short)+'</b></span>';const R='<span class="lb2">'+(p.sub&&p.sub.k?esc(p.sub.k)+' · ':'')+esc(p.label||'')+'</span>';
  return '<div class="hd2">'+(even?R+L:L+R)+'</div>'}
@@ -1154,12 +1164,13 @@ function bkPageHtml0(plan,i){
 
 /* ---------- 채점 · 경로 ---------- */
 function bkPageNums(p){const o={};((p.cols||[]).concat(p.top&&p.top.length?[p.top]:[])).forEach(c=>c.forEach(h=>{const m=String(h).match(/data-c="([^"]+)"/);if(!m)return;const n=String(h).match(/class="no">(\d+)</)||String(h).match(/class="nc"><b>(\d+)<\/b>/);if(n)o[m[1]]=+n[1]}));return o}
-async function bkSolve(id,n){await bkInit();const P=bkParts(id);if(!P)return;if(P.subj!==SUBJ)await setSubject(P.subj);await conceptLoad();const plan=await bkPlan(id);if(!plan)return;
+async function bkSolve(id,n){if(!await bkxAccess(id))return;await bkInit();const P=bkParts(id);if(!P)return;if(P.subj!==SUBJ)await setSubject(P.subj);await conceptLoad();const plan=await bkPlan(id);if(!plan)return;
  let codes=[];if(!n){codes=plan.M?plan.M.codes.slice():[]}else{const p=plan.pages.find(x=>x.n===+n);codes=(p&&p.codes)||[]}
  if(!codes.length){toast('p.'+n+'에는 풀 문제가 없어요');return}
  const title=n?plan.short+' p.'+n:plan.short;await practice(codes,title)}
-async function bkGradePage(id,n){
- if(needLogin()){askLogin('BK:'+id+':'+n);return}
+async function bkGradePage(id,n,owner){
+ if(needLogin()){askLogin('BK:'+id+':'+n+(owner?'@'+owner:''));return}
+ if(!await bkxAccess(id,owner))return;
  await bkInit();const P=bkParts(id);if(!P)return;
  if(P.subj!==SUBJ)await setSubject(P.subj);
  await conceptLoad();const plan=await bkPlan(id);const p=plan&&plan.pages.find(x=>x.n===+n);
@@ -1169,21 +1180,26 @@ async function bkGradePage(id,n){
  const key=id+':'+p.n,bk={page:key,bk:id,n:p.n,label:plan.short+' p.'+p.n,nums:bkPageNums(p)};
  {const lk=recLock('book',key);if(lk&&lk.items){showLockedRec(lk,{book:bk});return}}
  newCur(qs,{book:bk})}
-async function bkGradeAll(id){
- if(needLogin()){askLogin('BK:'+id+':all');return}
+async function bkGradeAll(id,owner){
+ if(needLogin()){askLogin('BK:'+id+':all'+(owner?'@'+owner:''));return}
+ if(!await bkxAccess(id,owner))return;
  await bkInit();const P=bkParts(id);if(!P)return;if(P.subj!==SUBJ)await setSubject(P.subj);
  const plan=await bkPlan(id);if(guardStu())return;
  if(!plan||!plan.M)return;const qs=plan.M.codes.map(c=>byCode[c]).filter(Boolean);if(!qs.length)return;
  const key=id+':all',bk={page:key,bk:id,n:0,all:1,label:plan.short+' 전체',nums:Object.fromEntries(plan.M.codes.map((c,i)=>[c,i+1]))};
  {const lk=recLock('book',key);if(lk&&lk.items){showLockedRec(lk,{book:bk});return}}
  newCur(qs,{book:bk})}
-function bkRouteStr(s){const m=String(s).match(/^((?:me|cm|ph|hl)-(?:c|t|h(?:[sgoc]|mg?)?|x[0-9a-z._\-]+)(?:~g[1-3])?):(\d+|all)$/);if(!m)return;return m[2]==='all'?bkGradeAll(m[1]):bkGradePage(m[1],+m[2])}
+function bkRouteStr(s){const m=String(s).match(/^((?:me|cm|ph|hl)-(?:c|t|h(?:[sgoc]|mg?)?|x[0-9a-z._\-]+)(?:~g[1-3])?):(\d+|all)(?:@([0-9a-f-]{36}))?$/i);if(!m)return;return m[2]==='all'?bkGradeAll(m[1],m[3]):bkGradePage(m[1],+m[2],m[3])}
 function bkNextHtml(){const b=cur&&cur.book;if(!b||!b.bk||b.all)return '';const plan=BKP[b.bk];if(!plan)return '';
  const nx=plan.pages.find(p=>p.n>b.n&&p.codes&&p.codes.length);
  return nx?'<div class="hint" style="margin:10px 0">'+esc(plan.short)+' p.'+b.n+' 채점을 마쳤습니다. 다음 문제 쪽(<b>p.'+nx.n+'</b>)도 이어서 채점할까요? <button class="p" style="margin-left:8px" onclick="bkGradePage(\''+b.bk+'\','+nx.n+')">p.'+nx.n+' 채점하기</button></div>':''}
 
 /* ---------- 교재함 · 리더 ---------- */
 let BKV={v:'shelf',id:null,z:1};
+let BKSQ='',BKSS='new',BKSF='all',BKXSEL=new Set();
+let _bksT=0;
+function bkSearch(v){BKSQ=v;clearTimeout(_bksT);_bksT=setTimeout(async()=>{await bkShow();const e=document.querySelector('.bk-list-tools input');if(e){e.focus();e.setSelectionRange(v.length,v.length)}},180)}
+function bkxTrashView(){const a=bkxTrash().filter(b=>b.subj===SUBJ).sort((x,y)=>y.deletedAt-x.deletedAt);return `<div class="card"><div class="row"><h2 style="margin:0">교재 휴지통</h2><button class="s" onclick="BKV={v:'shelf',id:null};bkShow()">교재 목록</button></div><p class="m">삭제 후 30일 동안 복원할 수 있습니다.</p>${a.length?`<div class="bk-tr-list">${a.map(b=>`<div><label><input type="checkbox" ${BKXSEL.has(b.id)?'checked':''} onchange="this.checked?BKXSEL.add('${b.id}'):BKXSEL.delete('${b.id}');bkShow()"> <b>${esc(b.name)}</b> <small>${new Date(b.deletedAt).toLocaleDateString('ko-KR')}</small></label><button class="s sm" onclick="bkxRestore('${b.id}')">복원</button></div>`).join('')}</div><div class="row"><button class="s sm" onclick="bkxPurge([...BKXSEL])">선택 영구 삭제</button><button class="s sm" onclick="bkxPurge(${JSON.stringify(a.map(b=>b.id))})">전체 비우기</button></div>`:'<div class="empty">휴지통이 비어 있습니다.</div>'}</div>`}
 function bkLook(o){bkOset(o);if(BKV&&BKV.v==='read'){const y=scrollY;render();setTimeout(()=>scrollTo(0,y),400)}}
 function bkDupTog(){dupSet(!dupGet());const b=document.getElementById('bkdup');if(b)b.classList.toggle('on',!!dupGet())}
 function bkZoom(d){const Z=[1,1.6,2.4,3.2];let i=d===0?0:Z.indexOf(BKV.z||1);i=Math.max(0,Math.min(Z.length-1,i+d));BKV.z=Z[i];bkScale();const l=document.getElementById('bkzl');if(l)l.textContent=Math.round(Z[i]*100)+'%'}
@@ -1198,6 +1214,7 @@ function bkBookList(){const S=bkSel();const sk=bkScope(S).map(s=>s.k),inS=k=>sk.
  return L}
 async function bkShow(){
  await bkInit();await conceptLoad();
+ await bkxCheckAssigned();
  if(!BKV._synced){BKV._synced=1;bkxSync(true).then(ch=>{if(ch&&tab==='books'&&BKV.v==='shelf')bkShow()})}
  if(BKV.id&&bkParts(BKV.id)&&bkParts(BKV.id).subj!==SUBJ){BKV={v:'shelf',id:null}}
  if(BKV.v==='new'&&(bkIsStud()||(BKV.d&&BKV.d.subj&&BKV.d.subj!==SUBJ)))BKV={v:'shelf',id:null}
@@ -1205,14 +1222,16 @@ async function bkShow(){
  if(BKV.v==='korean'&&SUBJ==='hl'&&!bkIsStud()){await bkLoadJs('lib/korean-editor.js?v=1',()=>!!window.KoreanEditor);KoreanEditor.open();return}
  if(BKV.v==='new'){$('#main').innerHTML=bkBuilder();bkxEst();return}
  if(BKV.v==='rounds'){$('#main').innerHTML=bkRounds(BKV.id);return}
- const L=bkBookList(),m=$('#main');
+ if(BKV.v==='trash'){$('#main').innerHTML=bkxTrashView();return}
+ const L=bkBookList(),m=$('#main'),custom=L.filter(b=>b.custom&&(!BKSQ||(b.name+' '+b.sub+' '+b.meta).toLowerCase().includes(BKSQ.toLowerCase()))&&(BKSF==='all'||(BKSF==='assigned'?b.asg:!b.asg))).sort((a,b)=>BKSS==='name'?a.name.localeCompare(b.name,'ko'):BKSS==='old'?(bkxAll().find(x=>x.id===a.id)?.t||0)-(bkxAll().find(x=>x.id===b.id)?.t||0):(bkxAll().find(x=>x.id===b.id)?.t||0)-(bkxAll().find(x=>x.id===a.id)?.t||0));
  const card=b=>`<div class="bkcard"><div class="bkcov"><i></i><b>${esc(b.custom?b.name:SNAME[SUBJ])}</b><span>${esc(b.custom?SNAME[SUBJ]:b.name)}</span><em>Solvi</em></div><div class="bi2"><h3>${esc(b.name)}</h3><p>${esc(b.sub)}<br><small>${esc(b.meta)}</small></p><div class="bt2">${b.full?`<button class="p" onclick="BKV={v:'rounds',id:'${b.id}'};bkShow()">회차 보기</button>`:`<button class="p" onclick="bkOpen('${b.id}')">열기</button><button class="s" onclick="bkPrint('${b.id}',1)">인쇄 · PDF</button>`}${b.custom&&!b.asg&&bkCanDist()?`<button class="s" onclick="bkDistOpen('${b.id}')">학생에게 배포${bkDistN(b.id)?' · '+bkDistN(b.id)+'명':''}</button>`:''}${b.custom&&!b.asg?`<button class="s" onclick="bkxDel('${b.id}')">삭제</button>`:''}</div></div></div>`;
  m.innerHTML=`<div class="card"><h2>교재 <small style="font-weight:400;color:var(--m);font-size:13px">${esc(SNAME[SUBJ])}</small></h2>
  <p style="margin:-4px 0 14px;font-size:13px;color:var(--m);line-height:1.6">문제 쪽 아래 <b>QR</b>을 스캔하면 그 쪽이 바로 채점돼요.</p>
  ${L.some(b=>!b.custom&&!b.main)?`<div class="bkshelf">${L.filter(b=>!b.custom&&!b.main).map(card).join('')}</div>`:(bkIsStud()?`<div class="m" style="font-size:13px">이 과목은 기본 교재 없이, 선생님이 배포한 교재를 아래에서 열어 볼 수 있어요.</div>`:`<div class="m" style="font-size:13px">이 과목은 기본 교재 없이, 아래 <b>교재 만들기</b>로 필요한 범위·유형만 골라 처음부터 만들어요.</div>`)}</div>
  <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2 style="margin:0">${bkIsStud()?'배포받은 교재':'내 교재'}</h2>${bkIsStud()?'':`<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="p" onclick="bkNew('std')">＋ 교재 만들기</button>${SUBJ==='hl'?'<button class="s" onclick="BKV={v:&#39;korean&#39;,id:null};bkShow()">국어 원고 편집</button>':''}</div>`}</div>
  <p style="margin:6px 0 12px;font-size:13px;color:var(--m);line-height:1.6">${bkIsStud()?'선생님이 배포한 교재가 여기에 나와요. 교재는 선생님이 만들어 배포해요.':(SUBJ==='hl'?'국어의 원리 기출·파생, 화법.pdf 원본·변형, 수능특강을 소단원마다 몇 문항씩 넣을지 정하거나, 총 문항 수만 정하고 소단원 비중 · 난이도 · 출처 초점대로 나눠 만들어요.':'종합, 직전 대비, 양치기, 전범위 모의고사 중에서 골라 만들어요.')+' 만든 교재는 「학생에게 배포」로 학생 화면에 올릴 수 있어요.'}</p>
- ${L.some(b=>b.custom)?`<div class="bkshelf">${L.filter(b=>b.custom).map(card).join('')}</div>`:bkIsStud()?`<div class="m" style="font-size:13px">아직 배포받은 교재가 없어요.</div>`:`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">${(SUBJ==='hl'?['std','full']:['std','last','drill','part','full']).map(k=>`<button class="s" onclick="bkNew('${k}')" style="text-align:left;padding:12px;border-radius:10px"><b style="display:block">${SUBJ==='hl'&&k==='std'?'직접 구성 교재':BKK[k][0]}</b><small style="font-weight:400;color:var(--m)">${SUBJ==='hl'&&k==='std'?'출처(국어의 원리·화법.pdf·수특)별 문항 수를 직접 정해 만들기':BKK[k][1]}</small></button>`).join('')}</div>`}</div>`}
+ <div class="bk-list-tools"><input type="search" placeholder="교재 이름·정보 검색" value="${esc(BKSQ)}" oninput="bkSearch(this.value)"><select aria-label="교재 정렬" onchange="BKSS=this.value;bkShow()"><option value="new" ${BKSS==='new'?'selected':''}>최신순</option><option value="old" ${BKSS==='old'?'selected':''}>오래된 순</option><option value="name" ${BKSS==='name'?'selected':''}>이름순</option></select><select aria-label="교재 필터" onchange="BKSF=this.value;bkShow()"><option value="all" ${BKSF==='all'?'selected':''}>전체</option><option value="mine" ${BKSF==='mine'?'selected':''}>내 교재</option><option value="assigned" ${BKSF==='assigned'?'selected':''}>배포 교재</option></select>${bkIsStud()?'':`<button class="s" onclick="BKV={v:'trash'};bkShow()">휴지통 (${bkxTrash().filter(b=>b.subj===SUBJ).length})</button>`}</div>
+ ${custom.length?`<div class="bkshelf">${custom.map(card).join('')}</div>`:L.some(b=>b.custom)?'<div class="m">검색 결과가 없습니다.</div>':bkIsStud()?`<div class="m" style="font-size:13px">아직 배포받은 교재가 없어요.</div>`:`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">${(SUBJ==='hl'?['std','full']:['std','last','drill','part','full']).map(k=>`<button class="s" onclick="bkNew('${k}')" style="text-align:left;padding:12px;border-radius:10px"><b style="display:block">${SUBJ==='hl'&&k==='std'?'직접 구성 교재':BKK[k][0]}</b><small style="font-weight:400;color:var(--m)">${SUBJ==='hl'&&k==='std'?'출처(국어의 원리·화법.pdf·수특)별 문항 수를 직접 정해 만들기':BKK[k][1]}</small></button>`).join('')}</div>`}</div>`}
 function bkGroups(plan){const g=new Map();plan.pages.forEach(p=>{if(!p.codes||!p.codes.length)return;const k=plan.kind==='m'?'문제지':((p.sub?p.sub.k+' ':'')+(p.label||''));if(!g.has(k))g.set(k,[]);g.get(k).push(p)});return g}
 async function bkPath(lv){
  const s1=$('#bkp1'),s2=$('#bkp2'),s3=$('#bkp3'),go=$('#bkpg');
@@ -1232,6 +1251,7 @@ function bkOpen(id){if(tab!=='books'){tab='books'}BKV={v:'shelf',id:null};render
 function bkClose(){BKV={v:'shelf',id:null};render();scrollTo(0,0)}
 function bkScale(){const w=document.getElementById('bkpages');if(!w)return;const W=w.clientWidth;const s=Math.min(1,W/(210*BK_MM))*(BKV.z||1);w.style.setProperty('--bks',s.toFixed(4));w.style.setProperty('--bkw',(210*BK_MM*s)+'px');w.style.setProperty('--bkh',(297*BK_MM*s)+'px')}
 async function bkReader(id){
+ if(!await bkxAccess(id))return;
  id=bkPid(id);
  const m=$('#main');m.innerHTML='<div class="card">'+ldg('책을 펴는 중…')+'</div>';
  const plan=await bkPlan(id);if(!plan){bkClose();return}
@@ -1266,6 +1286,7 @@ EBI.thumb='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="c
 const ebT=tbT,ebS=tbS;
 const EBC=['#e5484d','#2f7fd0','#1f9d55','#111111','#f7b928','#8e4ec6'];
 async function bkEbook(id){
+ if(!await bkxAccess(id))return;
  id=bkPid(id);if(EBKFX){try{await bkLoadJs('lib/html2canvas.min.js',()=>window.html2canvas)}catch(e){}}await bkInit();const P0=bkParts(id);if(P0&&P0.subj!==SUBJ)await setSubject(P0.subj);const plan=await bkPlan(id);if(!plan)return;
  const st=ebkSt()[id]||{};const N=plan.pages.length;
  Object.assign(EBK,{id,plan,N,marks:st.marks||[],p:Math.min(N,Math.max(1,st.last||1)),z:1,rev:[],pen:ebkPenGet(id),view:st.view||'auto',tool:'none',proj:0,wh:0,undo:[],tex:new Map(),txq:Promise.resolve(),busy:0,np:0,cs:null,G:null,noclick:0});
@@ -1595,6 +1616,7 @@ async function bkShowIn(w,plan,all){window._popExtra=bkBarHtml(plan);try{await c
 async function bkPrint(id,all){
  id=bkPid(id);
  if(typeof isMob==='function'&&isMob()){toast('휴대폰·태블릿은 인쇄 창이 열리지 않는 경우가 많아 PDF로 만들어 드려요. 저장한 PDF를 열어 인쇄하세요');return bkPdf(id,all)}
+ if(!await bkxAccess(id))return;
  const pw=typeof popOpen==='function'?popOpen('인쇄할 책을 만드는 중…'):null;
  await bkInit();const P=bkParts(id);if(P&&P.subj!==SUBJ)await setSubject(P.subj);
  busyRun('인쇄할 책을 만드는 중…',async()=>{await conceptLoad();const plan=await bkPlan(id);if(!plan){if(pw)pw.close();return}
@@ -1603,6 +1625,7 @@ async function bkPrint(id,all){
 /* ---------- PDF 파일로 내려받기(쪽마다 이미지로 그려 한 파일로 묶음) ---------- */
 function bkLoadJs(src,ok){return new Promise((res,rej)=>{if(ok())return res();const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error(src));document.head.appendChild(s)})}
 async function bkPdf(id,all){
+ if(!await bkxAccess(id))return;
  id=bkPid(id);await bkInit();const P=bkParts(id);if(P&&P.subj!==SUBJ)await setSubject(P.subj);
  busyRun('PDF를 만드는 중…',async()=>{let st,host;
   try{
@@ -1834,7 +1857,7 @@ function bkDistCls(c){const D=BKD;D.cls=D.cls.includes(c)?D.cls.filter(x=>x!==c)
 function bkDistPick(id,on){const D=BKD;D.ids=D.ids.filter(x=>x!==id);if(on)D.ids.push(id);bkDistDraw()}
 function bkDistClose(){const el=document.getElementById('bkdist');if(el)el.remove();BKD=null}
 async function bkDistGo(){const D=BKD;if(!D)return;const rec=bkxAll().find(b=>b.id===D.id);if(!rec)return;const ts=bkDistT();if(!ts.length){toast('배포할 학생을 고르세요');return}
- const nw=ts.filter(s=>!bkHasDist(D.id,s.id));const pub={...rec};delete pub.asg;delete pub.due;delete pub.t;
+ const nw=ts.filter(s=>!bkHasDist(D.id,s.id));const pub={...rec,owner:(typeof sess!=='undefined'&&sess&&sess.user&&sess.user.id)||null};delete pub.asg;delete pub.due;delete pub.t;
  try{if(nw.length){const rows=nw.map(s=>({student_id:s.id,wid:'bk~'+D.id,title:rec.name,due:D.due||null,note:JSON.stringify({bk:pub}),t:Date.now()}));const r=await sb('/rest/v1/assignments',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(rows)});if(!r.ok)throw 0}
   await asSync();toast(nw.length?nw.length+'명에게 교재를 배포했어요'+(ts.length>nw.length?' (이미 받은 '+(ts.length-nw.length)+'명 제외)':''):'선택한 학생은 모두 이미 받았어요');bkDistClose();if(tab==='books')bkShow()}
  catch(e){toast('배포하지 못했어요. 로그인 상태와 학생 목록을 확인하세요')}}
@@ -1854,16 +1877,18 @@ function bkxKind(k){bkxRead();const o=BKV.d,n=bkxPreset(k);const keepN=o.name!==
 function bkxSaveBook(){bkxRead();const d=BKV.d;let nm=(d.name||'').trim();if(!nm){toast('교재 이름을 입력하세요');return}
  if(d.kind==='free'){const pts=bkfParts(d);if(!pts.length){toast('넣을 구성을 하나 이상 고르세요');return}
   if(d.pre==='part'&&!(d.subs||[]).length){toast('파고들 소단원을 하나 이상 고르세요');return}
-  const pl0=d.pl&&d.pl.on?d.pl:null;let id=bkxId(SUBJ,{...d,parts:pts,pl:pl0}),cp=0;const ex=new Set(bkxAll().map(b=>b.id));while(ex.has(id)&&cp<500){cp++;id=bkxId(SUBJ,{...d,parts:pts,pl:pl0,copy:cp.toString(36)})}
+  const pl0=d.pl&&d.pl.on?d.pl:null;let id=bkxId(SUBJ,{...d,parts:pts,pl:pl0}),cp=0;const ex=new Set([...bkxLocal().map(b=>b.id),...bkxGone()]);while(ex.has(id)&&cp<500){cp++;id=bkxId(SUBJ,{...d,parts:pts,pl:pl0,copy:cp.toString(36)})}if(ex.has(id)){toast('교재 번호를 만들지 못했습니다');return}
   const a=bkxAll();a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:'free',gut:d.gut||0,color:d.color||'',cover:d.cover|0,noqr:d.noqr?1:0,font:d.font||'',lf:d.lf||'solvi',lfp:d.lfp||'br',lb:d.lb||'solvi',lbp:d.lbp||'bc',back:d.back?1:0,cx:d.cx||null,t:Date.now()});bkxStore(a);
   delete BKP[id];BKV={v:'shelf',id:null};toast('교재를 만들었어요');render();scrollTo(0,0);return id}
  if(d.kind!=='full'){if(!Object.keys(d.inc||{}).length){toast('넣을 구성을 하나 이상 고르세요');return}
   if(d.kind==='part'&&!d.subs.length){toast('파고들 소단원을 하나 이상 고르세요');return}}
- const id=bkxId(SUBJ,d);const a=bkxAll().filter(b=>b.id!==id);if(d.kind==='full'&&(d.subs||[]).length&&nm===BKK.full[0])nm='범위 모의고사';a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:d.kind==='last'?'std':d.kind,rounds:d.rounds||20,gut:d.gut||0,t:Date.now()});bkxStore(a);
+ const id=bkxId(SUBJ,d);if(bkxGone().has(id)){toast('영구 삭제된 교재 번호입니다. 구성을 바꿔 새 교재를 만들어 주세요');return}const a=bkxAll().filter(b=>b.id!==id);if(d.kind==='full'&&(d.subs||[]).length&&nm===BKK.full[0])nm='범위 모의고사';a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:d.kind==='last'?'std':d.kind,rounds:d.rounds||20,gut:d.gut||0,t:Date.now()});bkxStore(a);
  delete BKP[id];Object.keys(BKP).forEach(k=>{if(k.startsWith(id+'r'))delete BKP[k]});
  BKV={v:'shelf',id:null};toast('교재를 만들었어요');render();scrollTo(0,0)}
-function bkxDel(id){const b=bkxAll().find(x=>x.id===id);if(!b||b.asg||!confirm('「'+b.name+'」 교재를 삭제할까요?\n(이미 인쇄한 책의 QR은 그대로 채점돼요)'))return;
- bkxStore(bkxAll().filter(x=>x.id!==id));bkxTomb(id);Object.keys(BKP).forEach(k=>{if(k===id||k.startsWith(id+'r'))delete BKP[k]});bkShow()}
+function bkxDel(id){const b=bkxAll().find(x=>x.id===id);if(!b||b.asg||!confirm('「'+b.name+'」 교재를 휴지통으로 옮길까요?'))return;
+ const a=bkxLocal().map(x=>x.id===id?{...x,deletedAt:Date.now(),updatedAt:Date.now()}:x);bkxStore(a);clearTimeout(_bkxP);bkxTomb(id);Object.keys(BKP).forEach(k=>{if(k===id||k.startsWith(id+'r'))delete BKP[k]});bkShow()}
+function bkxRestore(id){BKXSEL.delete(id);const a=bkxLocal().map(x=>x.id===id?{...x,deletedAt:null,updatedAt:Date.now()}:x);bkxStore(a);clearTimeout(_bkxP);bkxTomb(id);bkShow()}
+function bkxPurge(ids){ids=ids.filter(id=>bkxTrash().some(b=>b.id===id&&b.subj===SUBJ));if(!ids.length||!confirm(ids.length+'개 교재를 영구 삭제할까요?'))return;const gone=new Set(ids);ids.forEach(id=>BKXSEL.delete(id));try{localStorage.setItem('omr_books_del_v1',JSON.stringify([...new Set([...bkxGone(),...ids])]))}catch(e){}bkxStore(bkxLocal().filter(x=>!gone.has(x.id)));clearTimeout(_bkxP);if(bkxCloudOk())Promise.resolve(_bkxBusy).then(()=>tsRaw()).then(d=>{if(!d)return;d.books=(d.books||[]).filter(x=>!gone.has(x.id));d.booksDel=[...new Set([...(d.booksDel||[]),...ids])];bkxWrite(d)});bkShow()}
 function bkBuilder(){if(BKV.d&&BKV.d.kind==='free')return bkfBuilder();const d=BKV.d,subs=bkSubs();const S=bkSel();
  const chip=k=>`<button class="${d.kind===k?'p':'s'}" onclick="bkxKind('${k}')" style="text-align:left;padding:10px 12px;border-radius:10px;min-width:0"><b style="display:block;font-size:14px">${BKK[k][0]}</b><small style="font-weight:400;opacity:.8">${BKK[k][1]}</small></button>`;
  const ck=(k,l)=>`<label class="chk"><input type="checkbox" id="bxi_${k}" ${d.inc[k]?'checked':''} onchange="bkxRead();bkxEst()"> ${l}</label>`;
