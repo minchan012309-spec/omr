@@ -1,0 +1,11 @@
+:root{
+  --ui-ground:#f4f6f8;--ui-surface:#fff;--ui-raised:#f8fafb;--ui-border:#dfe4e8;
+  --ui-text:#16202c;--ui-muted:#566273;--ui-accent:#16385f;--ui-accent-strong:#0f2947;
+  --ui-accent-soft:#e9f0f7;--ui-signal:#f4c542;--ui-danger:#b94242;--ui-success:#18734f;
+  --ui-radius-panel:18px;--ui-radius-control:10px;--ui-radius-pill:999px;
+  --ui-space-1:4px;--ui-space-2:8px;--ui-space-3:12px;--ui-space-4:16px;
+  --ui-space-5:20px;--ui-space-6:24px;--ui-space-8:32px;--ui-space-10:40px;
+  --ui-content:1180px;--ui-font:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+html[data-theme=dark]{--ui-ground:#10151d;--ui-surface:#171e28;--ui-raised:#202a36;--ui-border:#344152;--ui-text:#f3f6f9;--ui-muted:#a8b3c1;--ui-accent:#8db5df;--ui-accent-strong:#c5dcf3;--ui-accent-soft:#20364d}
+
