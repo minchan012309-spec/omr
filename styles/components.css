@@ -1,0 +1,18 @@
+.ui-panel{background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:var(--ui-radius-panel);padding:var(--ui-space-6);box-shadow:none!important}
+.ui-panel--quiet{background:var(--ui-raised)}
+.metric-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border:1px solid var(--ui-border);border-radius:var(--ui-radius-panel);overflow:hidden;background:var(--ui-surface)}
+.metric-strip>*{padding:18px 20px;border-right:1px solid var(--ui-border)}.metric-strip>*:last-child{border-right:0}
+.ui-segment{display:inline-flex;gap:3px;padding:3px;border:1px solid var(--ui-border);border-radius:12px;background:var(--ui-raised)}
+.ui-segment button{min-height:38px;padding:0 14px;border:0;border-radius:8px;background:transparent;color:var(--ui-muted)}.ui-segment button[aria-pressed=true],.ui-segment button.on{background:var(--ui-surface);color:var(--ui-text);box-shadow:0 1px 2px #10182812}
+.status-pill{display:inline-flex;align-items:center;min-height:26px;padding:3px 9px;border-radius:var(--ui-radius-pill);background:var(--ui-accent-soft);color:var(--ui-accent-strong);font-size:12px;font-weight:700}
+.ui-empty{display:grid;place-items:center;min-height:240px;padding:40px 24px;text-align:center;border:1px dashed var(--ui-border);border-radius:var(--ui-radius-panel);color:var(--ui-muted)}
+.ui-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}.ui-actions .p{background:var(--ui-accent);color:#fff;box-shadow:none}
+@media(pointer:coarse){button,.btn,input,select{min-height:44px}}
+@media(max-width:560px){.ui-panel{padding:18px}.metric-strip{grid-template-columns:1fr 1fr}.metric-strip>*{border-bottom:1px solid var(--ui-border)}.ui-actions{align-items:stretch;flex-direction:column}.ui-actions>*{width:100%}}
+
+/* App chrome stays quiet: depth comes from spacing and borders, not decoration. */
+#main .card,#main .stick,#main .mkgo,#main .bg,#main .clsp{box-shadow:none!important;background-image:none!important;border-color:var(--ui-border)}
+#main button.p,#main a.p{background-image:none!important;background-color:var(--ui-accent)!important;box-shadow:none!important}
+#main button.s,#main .chp,#main .chip,#main .tag{background-image:none!important;box-shadow:none!important}
+#main button{transition:transform .16s ease,background-color .16s ease,color .16s ease}#main button:hover{transform:translateY(-1px)}#main button:active{transform:translateY(1px)}
+
