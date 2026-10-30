@@ -814,7 +814,7 @@ function ovAll(){Object.keys(QOV).forEach(c=>{const q=byCode[c];if(!q)return;ovA
 async function ovFetch(){try{const r=await sb('/rest/v1/q_overrides?select=code,patch,hidden,note&limit=5000');if(!r.ok)return;const L=await r.json();Object.keys(QOV).forEach(k=>delete QOV[k]);L.forEach(x=>QOV[x.code]=x);ovAll()}catch(e){}}
 /* 개발자 페이지는 처음 열 때 dev.js 를 불러옵니다 */
 let _devp=null;
-function devLoad(){if(window.devMain)return Promise.resolve();return _devp||(_devp=new Promise((res,rej)=>{const t=document.createElement('script');t.src='dev.js?v=7';t.onload=res;t.onerror=()=>{_devp=null;rej(new Error('dev'))};document.head.appendChild(t)}))}
+function devLoad(){if(window.devMain)return Promise.resolve();return _devp||(_devp=new Promise((res,rej)=>{const t=document.createElement('script');t.src='dev.js?v=8';t.onload=res;t.onerror=()=>{_devp=null;rej(new Error('dev'))};document.head.appendChild(t)}))}
 function devView(){if(!DEV.ok){$('#main').innerHTML='<div class="card empty">개발자 계정으로 로그인해야 볼 수 있어요.</div>';return}$('#main').innerHTML='<div class="card">'+ldg('개발자 페이지를 여는 중…')+'</div>';devLoad().then(()=>devMain()).catch(()=>{$('#main').innerHTML='<div class="card empty">개발자 페이지를 불러오지 못했어요. 새로고침해 보세요.</div>'})}
 async function devLog(act,info){try{await sb('/rest/v1/dev_log',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({who:(sess&&sess.user&&sess.user.email)||'',act,info:String(info||'').slice(0,300)})})}catch(e){}}
 
