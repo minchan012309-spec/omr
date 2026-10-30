@@ -73,3 +73,7 @@ html.entry-mode body>header,html.entry-mode #toast,html.entry-mode #qrFab{displa
 .stx .student-row{border-radius:0!important;border-width:0 0 1px!important;box-shadow:none!important;margin:0!important}
 @media(max-width:900px){.stx .screen-head{gap:12px}.stx .screen-head .ui-actions{width:100%;display:flex;gap:8px}.stx .screen-head .ui-actions>*{flex:1}.stx-tabs{width:100%}.stx-tabs button{flex:1;padding:9px 10px}.stx-sort{width:100%}.stx-sort select{flex:1}}
 @media(max-width:900px){.stx-row>.stx-c::before{white-space:nowrap;font-size:11px}.stx-row>.stx-c{white-space:nowrap}.stx-bulk .stx-bg{width:100%;flex-wrap:wrap;white-space:nowrap}.stx-bulk>b{width:100%}}
+.entry-brand{display:flex;align-items:center;gap:16px;margin:0 0 32px;color:var(--ui-accent)}.entry-brand .eb-solvi{height:38px;width:auto;display:block}.entry-brand i{width:1px;height:30px;background:var(--ui-border)}.entry-brand .eb-ac{display:block;height:40px;width:auto;max-width:180px;object-fit:contain}
+html[data-theme=dark] .entry-brand{color:#f3f6f9}
+@media(max-width:760px){.entry-brand{margin-bottom:20px}.entry-brand .eb-solvi{height:30px}.entry-brand .eb-ac{height:32px}}
+.entry-title{word-break:keep-all;max-width:12ch}

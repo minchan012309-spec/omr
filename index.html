@@ -1151,12 +1151,15 @@ function entryRoleSet(role){
  document.querySelectorAll('.entry-roles button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.role===role)));
  const first=document.querySelector('#stbody input');if(first)first.focus()
 }
+/* 로그인 화면 로고: 솔비 로고 + (이 기기에 저장된) 학원 로고. 학원 로고가 없으면 솔비 로고만 */
+function entryBrand(){let a={};try{a=acCfg()}catch(e){}const dark=document.documentElement.dataset.theme==='dark',src=dark?(a.logoDark||a.logo):(a.logo||a.logoDark);
+ return `<div class="entry-brand">${lgSvg('w','currentColor','eb-solvi')}${a.mode==='logo'&&src?`<i aria-hidden="true"></i><img class="eb-ac" src="${src}" alt="${esc(a.name||'학원 로고')}">`:''}</div>`}
 function entryShellHtml(activeRole){return `<div class="entry-roles" role="tablist" aria-label="로그인 사용자 선택">${[['teacher','선생님'],['student','학생'],['parent','학부모']].map(([k,v])=>`<button type="button" role="tab" data-role="${k}" aria-selected="${activeRole===k}" onclick="entryRoleSet('${k}')">${v}</button>`).join('')}</div>`}
 function enterView(){
  const t=teacher();
  const stuBanner=t&&!CUR_S?`<div class="hint" style="margin-bottom:12px">번호를 넣거나 QR을 찍으면 바로 문제와 정답을 볼 수 있어요. <b>채점을 제출할 때</b> 누구의 기록인지 고르면 돼요.</div>`:'';
  const login=(!t&&!STUD&&cloud())?stLoginCard():'';
- if(needLogin()){document.documentElement.classList.add('entry-mode');$('#main').innerHTML=`<div class="entry-shell"><section class="entry-intro"><h1 class="entry-title">학습을 성장으로 연결합니다.</h1><p class="entry-copy">채점, 취약 유형 분석, 맞춤 학습지를 한 흐름에서 관리하세요. 학생과 학부모는 발급받은 계정으로 같은 공간에 들어옵니다.</p></section><section class="entry-card">${entryShellHtml(PRL?'parent':'student')}${cloud()?`<div id="stbody">${stLoginBody()}</div>`:'<div class="ui-empty">온라인 저장이 설정되어 있지 않습니다. 선생님에게 문의하세요.</div>'}<div class="ui-actions" style="margin-top:14px"><button class="s" onclick="openByNumber(prompt('학습지 번호를 입력하세요')||'')">번호로 바로 채점</button></div></section></div>`;return}
+ if(needLogin()){document.documentElement.classList.add('entry-mode');$('#main').innerHTML=`<div class="entry-shell"><section class="entry-intro">${entryBrand()}<h1 class="entry-title">학습을 성장으로 연결합니다.</h1><p class="entry-copy">채점, 취약 유형 분석, 맞춤 학습지를 한 흐름에서 관리하세요. 학생과 학부모는 발급받은 계정으로 같은 공간에 들어옵니다.</p></section><section class="entry-card">${entryShellHtml(PRL?'parent':'student')}${cloud()?`<div id="stbody">${stLoginBody()}</div>`:'<div class="ui-empty">온라인 저장이 설정되어 있지 않습니다. 선생님에게 문의하세요.</div>'}<div class="ui-actions" style="margin-top:14px"><button class="s" onclick="openByNumber(prompt('학습지 번호를 입력하세요')||'')">번호로 바로 채점</button></div></section></div>`;return}
  document.documentElement.classList.remove('entry-mode');
  $('#main').innerHTML=`${gdraftBanner()}${stuBanner}<div class="screen-head"><div><span class="status-pill">빠른 채점</span><h1>${!t&&!STUD?'로그인하고 학습을 이어가세요':'무엇을 채점할까요?'}</h1><p>학습지 번호, 교재 쪽수, 소단원 중 가장 편한 방식으로 시작하세요.</p></div>${!t&&!STUD?entryShellHtml(PRL?'parent':'student'):''}</div><div class="gv"><div class="gmain">${login}
  <div class="card gbox"><div class="gtabs">${[['no','학습지 번호'],['page','교재 쪽수'],['unit','교재 소단원별']].map(([k,v])=>`<button class="${GM===k?'on':''}" onclick="setGM('${k}')">${v}</button>`).join('')}</div>
