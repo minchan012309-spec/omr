@@ -98,3 +98,14 @@ html[data-theme=dark] .entry-brand{color:#f3f6f9}
  .stx-row>.stx-acct{display:none}
  .stx-menu{max-width:calc(100vw - 32px)}
 }
+/* 2026-10-30 디자인 점검: 바탕 위에 바로 놓인 보조 버튼이 글자만 떠 보이지 않게(학습지 만들기 · 화면 머리) */
+.screen-head .ui-actions button.s{background:var(--ui-surface);border:1px solid var(--ui-border);color:var(--ui-text)}
+.screen-head .ui-actions button.s:hover{border-color:var(--ui-accent)}
+/* 오답노트 머리의 버튼 줄: 좁은 화면에서 글자가 두 줄로 꺾이지 않고 줄을 바꿔 놓인다 */
+.wnact{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.wnact button{white-space:nowrap}
+@media(max-width:720px){.wnact{margin-left:0;width:100%;justify-content:flex-start}}
+body:has(.stick) #toast,body:has(.mkgo) #toast{bottom:calc(var(--navh,0px) + 110px)}
+/* 학생 홈 파란 머리: 강조 버튼이 같은 남색 바탕 + 파란 글자로 묻히던 것(components.css 의 #main button.p !important) → 흰 버튼 */
+#main .st-hero button.p{background-color:#fff!important;color:var(--bd)!important;border:0}
+#main .st-hero button.p:hover{background-color:#eef4fb!important}
+html[data-theme=dark] #main .st-hero button.p{background-color:#fff!important;color:#1d3556!important}

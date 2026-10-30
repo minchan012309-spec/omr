@@ -95,7 +95,8 @@ function stripHTML(n,i){if(i>=n)return '';var w='calc(var(--w)/'+n+' + .6px)';
  return '<div class="st"'+(i===0?' style="width:'+w+'"':'')+'><div class="face f" style="background-image:var(--f);background-size:var(--w) var(--h);background-position:calc(var(--w)/'+n+'*-'+i+') 0"><i class="sd"></i></div><div class="face k" style="background-image:var(--k);background-size:var(--w) var(--h);background-position:calc(var(--w)/'+n+'*-'+(n-1-i)+') 0"><i class="sd"></i></div>'+stripHTML(n,i+1)+'</div>'}
 function bookBox(cover,color,spine){return '<div class="bk"><div class="face back" style="background:'+color+'"></div><i class="ee r"></i><i class="ee t"></i><i class="ee b"></i><div class="spine" style="background:'+color+'"><span>'+spine+'</span></div><div class="face cv" data-bg="intro/'+cover+'.webp"></div></div>'}
 
-var M,vw,vh,u,S={},tl,leaves=[],built=false,total=2320;
+var M,vw,vh,u,S={},tl,leaves=[],zs=[],built=false,total=2320;
+function zsync(){zs.forEach(function(z){var v=+gsap.getProperty(z.o,'scaleX');if(Math.abs(v-z.s)>.0005){z.s=v;z.w.style.transform='scaleZ('+v.toFixed(4)+')'}})}
 function sizes(){vw=innerWidth;vh=stage.clientHeight||innerHeight;M=vw<861;
  u=M?Math.min(vw*.0145,vh*.0075):Math.min(vw*.01,vh*.0165);H.style.setProperty('--u',u.toFixed(2)+'px');
  S.xdr=M?vw*.92:64*u;S.mac=M?vw*.8:50*u;S.pad=M?vw*.46:24*u;S.phone=M?Math.min(vw*.42,vh*.2):15*u;S.book=M?vw*.42:21*u;S.sheet=M?vw*.62:25*u;
@@ -104,11 +105,11 @@ function sizes(){vw=innerWidth;vh=stage.clientHeight||innerHeight;M=vw<861;
 function build(){
  stage.innerHTML='';leaves=[];loadedS=-1;
  var NS=M?6:12,NE=M?4:6;
- var h='<div class="floor"></div><svg class="links" id="links"></svg><div class="rig" id="rig">';
+ var h='<div class="rig" id="rig">';
  /* Pro Display XDR */
  h+='<div class="obj xdr" id="xdr" style="--w:'+S.xdr+'px"><div class="xdr-in" id="xdrIn"><i class="glow"></i><i class="arm"></i><i class="arm-b"></i><i class="foot"></i><i class="foot-e"></i><div class="xdr-body"><div class="face f-back"></div><div class="face f-l"></div><div class="face f-r"></div><div class="face f-t"></div><div class="face f-b"></div><div class="face f-front"><div class="scr" data-ui>'+
   IMG('xdr-dash',0,'on')+IMG('xdr-cls',1)+IMG('xdr-build',1)+IMG('xdr-dash',6,'a8')+IMG('xdr-stu',6)+IMG('xdr-cls',6,'a8c')+IMG('xdr-cns',6)+IMG('xdr-weak',7)+
-  '<i class="hl" style="left:20.6%;top:17.9%;width:73.8%;height:16%"></i><i class="hl" style="left:48.5%;top:17.9%;width:27.4%;height:16%"></i><i class="hl" style="left:20.6%;top:40.7%;width:24.2%;height:34.4%"></i><i class="hl" style="left:70.2%;top:40.7%;width:24.2%;height:34.4%"></i><i class="hl" style="left:20.6%;top:22%;width:73.8%;height:62%"></i><i class="pw" style="position:absolute;inset:0;background:#000"></i></div><i class="sheen"></i></div></div></div></div>';
+  '<i class="pw" style="position:absolute;inset:0;background:#000"></i></div><i class="sheen"></i></div></div></div></div>';
  /* 문제은행 카드 · 학습지 */
  h+='<div class="obj qb" id="qb" data-ui><div class="qf" id="qf"><span>물질과 에너지</span><span>Ⅲ 반응 엔탈피</span><span>Ⅳ 반응 속도</span><span>난이도 하</span><span>중</span><span>상</span></div>';
  QS.forEach(function(q,i){var d=DOTS[q[3]],dots='';for(var k=1;k<=4;k++)dots+=k<=d?'●':'<span class="o">●</span>';
@@ -126,16 +127,17 @@ function build(){
  /* iPad */
  h+='<div class="obj pad-o" id="pad"><div class="slab pad" style="--w:'+S.pad+'px">'+slabEdges(NE)+'<div class="face bk"><i class="cam"></i></div><div class="face fr"><div class="scr" data-ui>'+IMG('cover-me-c',3,'on')+IMG('pad-home',3)+IMG('pad-stat',7)+'<div class="kio">'+IMG('kiosk',6,'on')+'</div></div></div></div></div>';
  /* iPhone */
- h+='<div class="obj ph-o" id="phone"><div class="slab phone" style="--w:'+S.phone+'px">'+slabEdges(NE+1)+'<div class="btns" aria-hidden="true"><i></i><i></i><i></i></div><div class="face bk"><i class="lens"></i></div><div class="face fr"><div class="scr" data-ui>'+IMG('phone-omr',4,'on')+IMG('phone-result',4,'res')+IMG('phone-weak',4)+IMG('phone-home',7)+
+ h+='<div class="obj ph-o" id="phone"><div class="slab phone" style="--w:'+S.phone+'px">'+slabEdges(NE+1)+'<div class="btns" aria-hidden="true"><i></i><i></i><i></i></div><div class="face bk"><i class="lens"></i></div><div class="face fr"><div class="scr" data-ui>'+IMG('phone-omr',4,'on')+IMG('phone-result',4,'res')+IMG('phone-weak',4)+IMG('phone-parent',7)+IMG('phone-home',7)+
   '<div class="scan">'+IMG('book-problem',4,'cam')+'<div class="camtop">교재 · 학습지의 QR 찍기</div><div class="fr4"><i></i><i></i><i></i><i></i><b class="line"></b></div><span class="lab">QR 인식 · 이 쪽 문항을 불러와요</span></div><div class="burst"><b></b>'+new Array(15).join('<i></i>')+'</div></div><i class="island"></i></div></div></div>';
  /* 오답 분석 */
  h+='<div class="obj ana" id="ana" data-ui><div class="agrp" style="--aw:'+S.aw+'px"><h3>틀린 문항 · 유형별로 모으기</h3><p class="tt">연소·생성·분해·용해·기화 엔탈피의 정의</p><div class="slots"><i></i><i></i><i></i></div><p class="why"><span>진술 오판단 2</span><span>개념 혼동 1</span></p></div>'+
   '<div class="abars" style="--aw:'+S.aw+'px"><h3>유형별 정답률 · 솔비 학생</h3><ol>'+BARS.map(function(b){return '<li><span>'+esc(b[0])+'</span><i><b style="--c:'+b[2]+'"></b></i><em>'+b[1]+'%</em></li>'}).join('')+'</ol></div>'+
   ['43번','47번','51번'].map(function(t){return '<span class="chip">'+t+'</span>'}).join('')+'</div>';
  h+='</div>';
- h+='<div class="scrim"></div><div class="hl-cap" data-ui><span>재원생 · 오늘 수업 · 출석률 · 수납률을 한눈에</span><span>출석률 92% · 수납률 88% · 미수금까지</span><span>반마다 오늘 수업과 등원 현황</span><span>7일 안에 할 상담과 다음 할 일</span><span>반 · 시간표도 같은 화면에서</span></div>';
- h+='<div class="tags" data-ui><span class="tag" data-t="x0"><b>원생</b>재원 · 휴원 · 상담 상태</span><span class="tag" data-t="x1"><b>반 · 시간표</b>주간 시간표와 담당 선생님</span><span class="tag" data-t="x2"><b>상담</b>상담 일지와 보강 일정</span><span class="tag" data-t="m"><b>학생</b>학생별 학습 기록</span><span class="tag" data-t="p"><b>출결</b>입구 태블릿 출결 단말</span><span class="tag" data-t="f"><b>행정</b>학부모 알림장 · 수납</span></div><div class="veil" id="veil"></div>';
+ h+='<div class="veil" id="veil"></div>';
  stage.innerHTML=h;
+ /* GSAP 의 scale 은 가로 · 세로만 줄인다. 기기 · 책의 두께(z)도 같이 줄도록 안쪽 껍질에 scaleZ 를 건다(줄인 노트북 바닥판이 화면보다 크게 보이던 원인) */
+ zs=[];$$('.obj',stage).forEach(function(o){if(o.matches('.qb,.ana'))return;var w=D.createElement('div');w.className='zs';while(o.firstChild)w.appendChild(o.firstChild);o.appendChild(w);zs.push({o:o,w:w,s:-1})});
  $$('.leaf',stage).forEach(function(l){leaves.push({el:l,st:$$('.st',l),sd:$$('.sd',l),rigid:l.classList.contains('cover'),t:0,z:parseFloat(l.style.transform.slice(11))})});
  built=true}
 
@@ -150,50 +152,59 @@ function loadUpTo(s){if(s<=loadedS)return;loadedS=s;
 function setLeaf(L,t){L.t=t;var th=-180*t,b=L.rigid?0:-46*Math.sin(Math.PI*t)/L.st.length;
  /* 넘긴 잎은 왼쪽 더미에서 먼저 넘긴 것이 아래로 가도록 깊이를 뒤집는다 */
  L.el.style.transform='translateZ('+(L.z*(1-2*t)).toFixed(2)+'px) rotateY('+th.toFixed(2)+'deg)';
- for(var i=0;i<L.st.length;i++){var s=L.st[i];if(i>0||!L.rigid)s.style.transform=i===0?'':'rotateY('+b.toFixed(2)+'deg)';var a=(th+b*i)*Math.PI/180,o=(.28*Math.abs(Math.sin(a))).toFixed(3);s.children[0].children[0].style.opacity=o;s.children[1].children[0].style.opacity=o}}
+ for(var i=0;i<L.st.length;i++){var s=L.st[i];if(i>0||!L.rigid)s.style.transform=i===0?'':'rotateY('+b.toFixed(2)+'deg)';var a=(th+b*i)*Math.PI/180,o=((L.rigid?.1:.22)*Math.abs(Math.sin(a))).toFixed(3);s.children[0].children[0].style.opacity=o;s.children[1].children[0].style.opacity=o}}
 
 function timeline(){
  var X=function(id){return $('#'+id,stage)},xdr=X('xdr'),xin=X('xdrIn'),qb=X('qb'),sheet=X('sheet'),book=X('bookO'),mac=X('mac'),lid=X('lid'),pad=X('pad'),phone=X('phone'),ana=X('ana'),rig=X('rig'),veil=X('veil');
  var mbs=[0,1,2,3].map(function(i){return X('mb'+i)});
  var cps={};$$('.sc').forEach(function(s){cps[s.dataset.scene]=$('.cp',s)});
- var xs=$$('.scr img',xdr),hl=$$('.hl',xdr),pw=$('.pw',xdr),cap=$$('.hl-cap span',stage),scrim=$('.scrim',stage),floor=$('.floor',stage);
+ var xs=$$('.scr img',xdr),pw=$('.pw',xdr);
  var ms=$$('.scr img',mac),ps=$$('.scr>img',pad),kio=$('.kio',pad),fs=$$('.scr>img',phone),scan=$('.scan',phone),line=$('.line',scan),fr4=$('.fr4',scan),lab=$('.lab',scan),burst=$$('.burst i',phone),ring=$('.burst b',phone);
  var tiles=$$('.qt',qb),qf=$$('.qf span',qb),qcount=X('qcount'),chips=$$('.chip',ana),agrp=$('.agrp',ana),abars=$('.abars',ana),bars=$$('.abars b',ana),why=$$('.why span',ana);
- var tags={};$$('.tag',stage).forEach(function(t){tags[t.dataset.t]=t});var links=X('links');
  var heroCp=cps.hero,heroKids=[$('h1',heroCp),$('p',heroCp)],cue=$('.cue');
  var P=function(d,m){return M?m:d};
  /* 가로 배치 기준 폭: 기기 크기(u)와 같은 비율로. 아주 넓은 화면에서 기기가 바깥으로 퍼져 잘리지 않게 */
- var LW=M?vw:Math.min(vw,u*100);
+ var LW=M?vw:Math.min(vw,u*100),HD=hd.offsetHeight||64;
+ /* 기기를 둘 자리: 왼쪽 문구 장면은 문구 오른쪽, 가운데 문구 장면(과 휴대폰)은 문구 아래. 문구와 기기가 겹치지 않게 실제 문구 크기로 잰다.
+    좌표는 무대 가운데가 0 인 rig 좌표(l · t = 왼쪽 위, x · y = 가운데) */
+ function area(name,mid){var cp=cps[name],top=parseFloat(getComputedStyle(cp).top)||HD,x0,x1,y0,y1;
+  if(M||mid){y0=top+cp.offsetHeight+(M?.025:.04)*vh;y1=vh-(M?.03:.04)*vh;x0=M?.04*vw:parseFloat(getComputedStyle(cp).marginLeft)||24;x1=vw-x0}
+  else{x0=cp.getBoundingClientRect().right+.035*vw;x1=vw-Math.max(.03*vw,16);y0=HD+.035*vh;y1=vh-.05*vh}
+  if(y1-y0<vh*.28)y0=y1-vh*.28;
+  return {l:x0-vw/2,t:y0-vh/2,w:x1-x0,h:y1-y0,x:(x0+x1)/2-vw/2,y:(y0+y1)/2-vh/2}}
+ /* 원근(perspective)을 되돌린 위치: 깊이 z 에 두어도 화면에서는 (x, y) 에 크기 s 로 보이게 */
+ var PER=parseFloat(getComputedStyle(stage).perspective)||3400,OY=.05*vh;
+ var Z=function(x,y,z,s,o){var f=PER/(PER-z),r={x:x/f,y:(y+OY)/f-OY,z:z,scale:s/f};for(var k in o)r[k]=o[k];return r};
+ /* 기기별 화면 위 크기(너비 W 기준): XDR 은 받침대까지 .756W(화면 가운데에서 위 .287W · 아래 .469W),
+    MacBook 은 경첩에서 위 .665W · 아래 .30W, iPad 는 W × 1.4065W, iPhone 은 W × 2.049W */
+ var XH=.756;
 
  /* 첫 화면: 히어로 문구 아래 남는 공간에 디스플레이 + 받침대를 맞춘다 */
- var cb=heroCp.getBoundingClientRect().bottom-heroCp.parentNode.getBoundingClientRect().top,gap=P(.035,.04)*vh,avail=vh-cb-gap-P(.15,.14)*vh,grp=S.xdr*.756;
+ var cb=heroCp.getBoundingClientRect().bottom-heroCp.parentNode.getBoundingClientRect().top,gap=P(.035,.04)*vh,avail=vh-cb-gap-P(.15,.14)*vh,grp=S.xdr*XH;
  var s0=Math.min(avail/grp,P(.66,.98)*LW/S.xdr),dispY=cb+gap-vh/2+S.xdr*.287*s0;
- var sw=S.xdr*.969,sh=S.xdr*.543,sF=M?vw/sw:Math.max(vw/sw,vh/sh)*1.01;
  tl=gsap.timeline({defaults:{ease:'none',duration:20},paused:true});
  var at=function(t,target,vars,dur){vars.duration=dur==null?20:dur;tl.to(target,vars,t);return tl};
-  gsap.set([qb,sheet,book,mac,pad,phone,ana].concat(mbs),{autoAlpha:0});
+ gsap.set([qb,sheet,book,mac,pad,phone,ana].concat(mbs),{autoAlpha:0});
  gsap.set(xdr,{autoAlpha:1,y:dispY,scale:s0});
 
- /* SCENE 01 → 02: 디스플레이 속으로 들어가는 카메라 */
+ /* SCENE 02: 디스플레이가 문구 옆으로 비켜서며 돌아선다. 문구는 왼쪽, 대시보드는 오른쪽 — 겹치지 않는다 */
  tl.fromTo(cue,{autoAlpha:1},{autoAlpha:0,duration:24,immediateRender:false},0);
- at(55,xdr,{scale:sF,y:0,ease:'power2.inOut'},95);
- /* 다음 장면 문구가 아래에서 스크롤과 함께 올라오므로 그 전에 아래쪽을 어둡게 깐다 */
- at(70,scrim,{opacity:M?0:1},26);
- var hlT=[150,174,196,216,244];
- hl.forEach(function(e,i){tl.fromTo(e,{opacity:0},{opacity:1,duration:10,immediateRender:false},hlT[i]);tl.to(e,{opacity:0,duration:8},hlT[i]+(i===4?16:18));tl.fromTo(cap[i],{opacity:0,y:10},{opacity:1,y:0,duration:8,immediateRender:false},hlT[i]);tl.to(cap[i],{opacity:0,duration:6},hlT[i]+(i===4?16:19))});
- at(230,xs[1],{opacity:1},12);
- at(262,xs[2],{opacity:1},12);
- at(300,scrim,{opacity:0},14);
+ var a2=area('ops'),s2=Math.min(a2.w*P(.97,.96)/S.xdr,a2.h*P(.9,.94)/(XH*S.xdr)),x2=a2.x,y2=a2.y-.091*S.xdr*s2;
+ at(12,xdr,{x:x2,y:y2,scale:s2,rotationY:P(-14,0),rotationX:P(3,0),ease:'power2.inOut'},84);
+ if(!M)at(96,xdr,{rotationY:-4,rotationX:0,ease:'sine.inOut'},176);
+ at(204,xs[1],{opacity:1},12);
+ at(258,xs[2],{opacity:1},12);
  /* SCENE 03: 문제은행 */
- at(272,xdr,{scale:s0*.62,y:P(-.1,-.2)*vh,z:-380,ease:'power2.inOut'},52);
+ at(272,xdr,{scale:s2*.62,y:y2-P(.06,.1)*vh,z:-380,ease:'power2.inOut'},52);
  at(318,xdr,{autoAlpha:0},22);
- var qX=P(.15,0)*LW,qY=P(.05,.12)*vh,cols=S.cols,rows=Math.ceil(tiles.length/cols),gw=cols*S.tw+(cols-1)*S.gap,gh=rows*S.th+(rows-1)*S.gap;
- gsap.set(qb,{x:qX,y:qY});
+ var a3=area('bank'),cols=S.cols,rows=Math.ceil(tiles.length/cols),gw=cols*S.tw+(cols-1)*S.gap,gh=rows*S.th+(rows-1)*S.gap;
+ var qs=M?1:Math.min(1,a3.w*.96/gw,a3.h*.8/(gh+110)),qX=a3.x,qY=a3.y+P(8,6);
+ gsap.set(qb,{x:qX,y:qY,scale:qs});
  var qfEl=$('.qf',qb);qfEl.style.left='0px';qfEl.style.top=(-gh/2-16)+'px';qcount.style.left='0px';qcount.style.top=(gh/2+18)+'px';
  at(296,qb,{autoAlpha:1},6);
  gsap.set(qfEl,{autoAlpha:0});at(300,qfEl,{autoAlpha:1},16);
  var pos=tiles.map(function(t,i){var c=i%cols,r=Math.floor(i/cols);return {x:-gw/2+c*(S.tw+S.gap),y:-gh/2+r*(S.th+S.gap)}});
- tiles.forEach(function(t,i){gsap.set(t,{x:-qX-S.tw/2+(i%cols-cols/2)*14,y:P(-.1,-.2)*vh-qY-S.th/2,z:-420,scale:.3,autoAlpha:0});
+ tiles.forEach(function(t,i){gsap.set(t,{x:(x2-qX)/qs-S.tw/2+(i%cols-cols/2)*14,y:(y2-P(.06,.1)*vh-qY)/qs-S.th/2,z:-420,scale:.3,autoAlpha:0});
   tl.to(t,{x:pos[i].x,y:pos[i].y,z:0,scale:1,autoAlpha:1,duration:34,ease:'power2.out'},296+i*1.6)});
  var ACC=cssv('--acc'),AINK=cssv('--acc-ink'),INK=cssv('--ink-d'),MUTE=cssv('--mute-d');
  var on=function(sp,t){tl.to(sp,{backgroundColor:ACC,color:AINK,duration:6},t)};
@@ -203,22 +214,22 @@ function timeline(){
  sel.forEach(function(t){tl.to(t,{boxShadow:'0 0 0 3px '+ACC,duration:8},384)});
  at(388,qcount,{opacity:1},8);
  /* 고른 문항이 학습지 한 장으로 모인다 */
- var sw2=S.sheet,shH=sw2*1.414;
- gsap.set(sheet,{x:qX,y:qY,scale:.7,z:-120});
- at(398,sheet,{autoAlpha:1,scale:1,z:0,ease:'power2.out'},20);
+ var sw2=S.sheet,shH=sw2*1.414,ss=M?1:Math.min(1,a3.h*.86/shH,a3.w*.6/sw2);
+ gsap.set(sheet,{x:qX,y:qY,scale:.7*ss,z:-120});
+ at(398,sheet,{autoAlpha:1,scale:ss,z:0,ease:'power2.out'},20);
  tiles.forEach(function(t){if(sel.indexOf(t)<0)tl.to(t,{autoAlpha:0,duration:10},398)});
  at(398,qfEl,{autoAlpha:0},10);at(424,qcount,{opacity:0},8);
- sel.forEach(function(t,k){var c=k%2,r=Math.floor(k/2);tl.to(t,{x:(c?.06:-.44)*sw2-S.tw*.1,y:(-.36+r*.22)*shH,scale:.36,z:6,duration:30,ease:'power2.inOut'},404+k*2);tl.to(t,{autoAlpha:0,duration:10},430+k*2)});
+ sel.forEach(function(t,k){var c=k%2,r=Math.floor(k/2);tl.to(t,{x:((c?.06:-.44)*sw2-S.tw*.1)*ss/qs,y:(-.36+r*.22)*shH*ss/qs,scale:.36*ss/qs,z:6,duration:30,ease:'power2.inOut'},404+k*2);tl.to(t,{autoAlpha:0,duration:10},430+k*2)});
  var sd=$$('.sd',sheet);
- at(446,sheet,{x:P(.12,0)*LW,y:P(.01,.08)*vh,z:P(150,60),rotationX:-10,rotationY:-28,rotationZ:3,ease:'power2.inOut'},34);
+ at(446,sheet,{x:qX,y:a3.y+P(0,.04)*vh,z:P(150,60),rotationX:-10,rotationY:-28,rotationZ:3,ease:'power2.inOut'},34);
  at(446,sd,{opacity:.12},34);
  at(482,sheet,{rotationY:26,rotationX:8,rotationZ:-2,ease:'sine.inOut'},40);
  at(482,sd,{opacity:.05},40);
  at(524,sheet,{y:-vh*.9,rotationX:42,autoAlpha:0,ease:'power2.in'},28);
 
- /* SCENE 04: 살아 움직이는 교재 */
- var bw=S.book,bX=P(.1,0)*LW,bY=P(.07,.1)*vh;
- gsap.set(book,{x:bX-bw/2,y:vh*.85,rotationX:62,rotationY:-40,rotationZ:12});
+ /* SCENE 04: 살아 움직이는 교재(펼친 두 쪽이 문구 오른쪽에 들어오는 크기) */
+ var a4=area('book'),bw=S.book,sb=M?1:Math.min(1,a4.w*.9/(2*bw),a4.h*.84/(bw*1.414)),bwS=bw*sb,bX=a4.x,bY=a4.y;
+ gsap.set(book,{x:bX-bwS/2,y:vh*.85,scale:sb,rotationX:62,rotationY:-40,rotationZ:12});
  /* 잎의 상태는 타임라인 시간에서 바로 계산한다(되감기 · 건너뛰기에도 어긋나지 않게) */
  var ease=gsap.parseEase('sine.inOut'),leafTo=function(L,v,t,d){(L.k||(L.k=[])).push([t,d,v])};
  var LC=leaves[2],L1=leaves[1],L0=leaves[0];
@@ -230,34 +241,38 @@ function timeline(){
  at(796,book,{rotationY:-30,rotationX:24,z:70,ease:'sine.inOut'},34);
  at(832,book,{rotationY:0,rotationX:4,z:0,ease:'sine.inOut'},24);
  leafTo(L0,0,858,18);leafTo(L1,0,866,18);leafTo(LC,0,874,20);
- at(874,book,{x:bX-bw/2},20);
+ at(874,book,{x:bX-bwS/2},20);
  var pg=$$('.pages span',cps.book),pgOn=function(i,a,b){tl.to(pg[i],{color:INK,duration:6},a);tl.to(pg[i],{color:MUTE,duration:6},b)};
  pgOn(0,560,640);pgOn(1,650,722);pgOn(2,650,722);pgOn(3,724,782);pgOn(4,724,782);pgOn(5,784,860);pgOn(6,784,860);
  /* 책이 닫히고 여러 권이 한 줄로 정돈된다 */
- var sR=P(.6,.4),step=bw*sR*1.1,slots=[-2,-1,1,2];
- at(890,book,{x:P(.04,0)*LW-bw*sR/2,y:bY+P(.04,.02)*vh,scale:sR,rotationY:-10,rotationX:6,ease:'power2.inOut'},34);
- mbs.forEach(function(m,i){gsap.set(m,{x:P(.04,0)*LW+slots[i]*step*1.8-bw*sR/2,y:bY+P(.04,.02)*vh+30,scale:sR,rotationY:-10,rotationX:6});
-  tl.to(m,{autoAlpha:1,duration:12},896+i*3);tl.to(m,{x:P(.04,0)*LW+slots[i]*step-bw*sR/2,y:bY+P(.04,.02)*vh,duration:30,ease:'power2.out'},896+i*3)});
+ var sR=Math.min(P(.6,.4),a4.w*.96/(5.4*bw)),step=bw*sR*1.1,slots=[-2,-1,1,2],lY=bY+P(.02,.02)*vh;
+ at(890,book,{x:bX-bw*sR/2,y:lY,scale:sR,rotationY:-10,rotationX:6,ease:'power2.inOut'},34);
+ mbs.forEach(function(m,i){gsap.set(m,{x:bX+slots[i]*step*1.8-bw*sR/2,y:lY+30,scale:sR,rotationY:-10,rotationX:6});
+  tl.to(m,{autoAlpha:1,duration:12},896+i*3);tl.to(m,{x:bX+slots[i]*step-bw*sR/2,y:lY,duration:30,ease:'power2.out'},896+i*3)});
 
- /* SCENE 05: 교재 → 태블릿 → 노트북 */
- var pS=P(.82,1),pw0=S.pad*pS,k=pw0*(1-2*.0303)/bw,padY=P(.12,.06)*vh;
- mbs.forEach(function(m,i){tl.to(m,{x:'+='+(slots[i]<0?-1:1)*LW*.4,autoAlpha:0,duration:26,ease:'power2.in'},934)});
- at(940,book,{x:-bw*k/2,y:padY,scale:k,rotationY:0,rotationX:0,ease:'power2.inOut'},30);
- gsap.set(pad,{y:padY,scale:pS});
- at(966,pad,{autoAlpha:1},16);at(980,book,{autoAlpha:0},8);
+ /* SCENE 05: 교재 → 태블릿 → 노트북(문구 오른쪽에서) */
+ var a5=area('device');
+ mbs.forEach(function(m,i){tl.to(m,{x:'+='+(slots[i]<0?-1:1)*a5.w*.18,y:'+='+vh*.06,autoAlpha:0,duration:22,ease:'power2.in'},932)});
+ var pS=Math.min(a5.h*.74/(1.4065*S.pad),a5.w*P(.42,.5)/S.pad),k=S.pad*pS*(1-2*.0303)/bw,padX=a5.x,padY=a5.y;
+ at(936,book,{x:padX-bw*k/2,y:padY,scale:k,rotationY:0,rotationX:0,ease:'power2.inOut'},30);
+ gsap.set(pad,{x:padX,y:padY,scale:pS});
+ at(962,pad,{autoAlpha:1},16);at(976,book,{autoAlpha:0},8);
  at(990,ps[1],{opacity:1},14);
- at(1010,pad,{rotationY:360,y:padY-vh*.03,ease:'sine.inOut'},64);
- at(1010,pad,{rotationX:14,rotationZ:-5,ease:'sine.out'},32);at(1042,pad,{rotationX:4,rotationZ:0,ease:'sine.in'},32);
- var macS=P(.78,1),macX=P(-.08,0)*LW,macHy=P(.4*vh+.69*S.mac*macS-vh/2,.1*vh+S.mac*.26);
- gsap.set(mac,{x:macX,y:vh*.9,rotationX:-14,rotationY:P(16,0)});gsap.set(lid,{rotationX:-90});
- at(1076,pad,{x:P(.25,.25)*LW,y:P(.2,.2)*vh,z:P(90,40),rotationY:338,rotationX:4,scale:P(.72,.62),ease:'power2.inOut'},50);
- at(1078,mac,{autoAlpha:1},10);at(1078,mac,{y:macHy,scale:macS,ease:'power2.out'},40);
- at(1092,lid,{rotationX:12,ease:'power2.inOut'},46);
+ at(1006,pad,{rotationY:360,y:padY-vh*.02,ease:'sine.inOut'},64);
+ at(1006,pad,{rotationX:14,rotationZ:-5,ease:'sine.out'},32);at(1038,pad,{rotationX:4,rotationZ:0,ease:'sine.in'},32);
+ /* 노트북은 뒤(z<0)에, 태블릿은 앞 오른쪽에. 노트북 바닥판이 앞으로 길게 나와 보이지 않게 위에서 살짝 내려다본다 */
+ var Wm=Math.min(a5.w*P(.8,.9),a5.h*P(.84,.6)/.965),mZ=-Wm*.6,macX=a5.x-P(.1,0)*a5.w,macHy=a5.t+.665*Wm+P(.02,0)*a5.h;
+ var Wp=Math.min(a5.h*P(.56,.5)/1.4065,a5.w*P(.3,.36)),padX2=a5.l+a5.w-Wp/2-.02*a5.w,padY2=a5.t+a5.h-Wp*1.4065/2-.03*a5.h;
+ var macEnd=Z(macX,macHy,mZ,Wm/S.mac,{rotationX:-8,rotationY:P(5,0)});
+ gsap.set(mac,Z(macX,vh*.95,mZ,Wm/S.mac,{rotationX:-8,rotationY:P(5,0)}));gsap.set(lid,{rotationX:-90});
+ at(1072,pad,Z(padX2,padY2,60,Wp/S.pad,{rotationY:338,rotationX:4,ease:'power2.inOut'}),50);
+ at(1076,mac,{autoAlpha:1},10);at(1076,mac,{y:macEnd.y,ease:'power2.out'},40);
+ at(1090,lid,{rotationX:12,ease:'power2.inOut'},46);
 
  /* SCENE 06: OMR 채점 */
  var phY=P(.04,.035)*vh,phH=S.phone*2.049;
- at(1150,mac,{x:-vw*.75,z:-200,rotationY:30,ease:'power2.in'},34);at(1170,mac,{autoAlpha:0},14);
- at(1150,pad,{x:vw*.75,ease:'power2.in'},34);at(1170,pad,{autoAlpha:0},14);
+ at(1150,mac,{y:'+='+vh*.7,ease:'power2.in'},34);at(1166,mac,{autoAlpha:0},14);
+ at(1150,pad,{x:'+='+vw*.5,ease:'power2.in'},34);at(1170,pad,{autoAlpha:0},14);
  gsap.set(phone,{y:vh*.9,rotationY:180,rotationZ:-10});
  at(1166,phone,{autoAlpha:1},10);
  at(1166,phone,{y:phY,rotationY:0,rotationZ:0,ease:'power2.out'},58);
@@ -272,78 +287,71 @@ function timeline(){
  var cnt=dds.map(function(d,i){var dd=$('dd',d);tl.to(d,{autoAlpha:1,y:0,duration:10},1304+i*10);return {dd:dd,n:+dd.dataset.n,u:dd.dataset.u||'',a:1304+i*10,last:-1}});
  at(1368,fs[2],{opacity:1},14);
 
- /* SCENE 07: 오답 분석과 맞춤형 학습 */
- var aX=P(.17,0)*LW,aY=P(.06,.08)*vh,phX7=P(-.27,-.3)*LW;
+ /* SCENE 07: 오답 분석과 맞춤형 학습(휴대폰은 문구 오른쪽 자리의 왼쪽, 분석 카드는 그 오른쪽) */
+ var a7=area('wrong'),Wph=Math.min(a7.h*.68/2.049,a7.w*.26),phS7=P(Wph/S.phone,.55),phX7=P(a7.l+Wph/2+.02*a7.w,-.3*LW),phY7=P(a7.y+.04*a7.h,a7.y+.1*vh);
+ var anaS=M?1:Math.min(1,(a7.w-Wph-.1*a7.w)/S.aw,a7.h*.92/460),aX=P(a7.l+a7.w-S.aw*anaS/2-.02*a7.w,0),aY=a7.y;
  at(1420,fs[2],{opacity:0},12);
- at(1420,phone,{x:phX7,y:P(.17,.22)*vh,rotationY:14,scale:P(.84,.55),ease:'power2.inOut'},30);
+ at(1420,phone,{x:phX7,y:phY7,rotationY:P(14,0),scale:phS7,ease:'power2.inOut'},30);
  at(1430,fs[1],{scale:1.75,transformOrigin:'50% 84%',ease:'power2.inOut'},26);
- gsap.set(ana,{x:aX,y:aY});
+ gsap.set(ana,{x:aX,y:aY,scale:anaS});
  var gH=agrp.offsetHeight,bH=abars.offsetHeight,gy=-(gH+bH+16)/2+gH/2,by=gy+gH/2+16+bH/2;
  gsap.set([agrp,abars],{xPercent:-50,yPercent:-50});gsap.set(agrp,{x:0,y:gy});gsap.set(abars,{x:0,y:by});gsap.set(why,{autoAlpha:0});
  at(1440,ana,{autoAlpha:1},4);
  tl.fromTo(agrp,{autoAlpha:0,y:gy+24},{autoAlpha:1,y:gy,duration:16,immediateRender:false},1446);
  var slotsEl=$$('.slots i',agrp);
  chips.forEach(function(c,i){var sl=slotsEl[i];
-  gsap.set(c,{xPercent:-50,yPercent:-50,x:phX7-aX+(i-1)*S.phone*.3,y:P(.17,.22)*vh-aY+phH*.25,scale:.6});
-  tl.to(c,{opacity:1,duration:6},1452+i*5);var d=function(k){var a=sl.getBoundingClientRect(),q=c.getBoundingClientRect();return k?a.top+a.height/2-q.top-q.height/2+(gy-gsap.getProperty(agrp,'y')):a.left+a.width/2-q.left-q.width/2};
+  gsap.set(c,{xPercent:-50,yPercent:-50,x:(phX7-aX+(i-1)*S.phone*.3)/anaS,y:(phY7-aY+phH*phS7*.25)/anaS,scale:.6});
+  tl.to(c,{opacity:1,duration:6},1452+i*5);var d=function(k){var a=sl.getBoundingClientRect(),q=c.getBoundingClientRect();return (k?a.top+a.height/2-q.top-q.height/2:a.left+a.width/2-q.left-q.width/2)/anaS+(k?gy-gsap.getProperty(agrp,'y'):0)};
   tl.to(c,{x:function(){return gsap.getProperty(c,'x')+d(0)},y:function(){return gsap.getProperty(c,'y')+d(1)},scale:1,duration:30,ease:'power3.inOut'},1452+i*5)});
  why.forEach(function(w,i){tl.to(w,{autoAlpha:1,duration:10},1494+i*6)});
  tl.fromTo(abars,{autoAlpha:0,y:by+24},{autoAlpha:1,y:by,duration:16,immediateRender:false},1512);
  bars.forEach(function(b,i){tl.to(b,{scaleX:BARS[i][1]/100,duration:26,ease:'power2.out'},1522+i*5)});
- at(1592,ana,{autoAlpha:0,scale:.92,x:aX+P(.05,0)*LW},20);
+ at(1592,ana,{autoAlpha:0,scale:.92*anaS,x:aX+P(.03,0)*vw},20);
+ /* 진단 화면을 띄운 노트북이 분석 카드 자리로 들어온다 */
+ var Wm7=Math.min((a7.w-P(Wph,0))*P(.86,.9),a7.h*P(.8,.62)/.965),m7=Z(P(a7.l+a7.w-Wm7*.56-.03*a7.w,0),a7.t+.665*Wm7+P(.04,.02)*a7.h,-Wm7*.6,Wm7/S.mac,{rotationY:P(-5,0),rotationX:-8});
  at(1588,ms[1],{opacity:1},4);
- at(1596,mac,{y:P(.36*vh+.69*S.mac*.66-vh/2,.14*vh+S.mac*.26*.9),z:0,rotationY:P(-14,0),scale:P(.66,.9),ease:'power2.out'},44);
- tl.fromTo(mac,{x:vw*.7},{x:P(.18,0)*LW,duration:44,ease:'power2.out',immediateRender:false},1596);
+ at(1596,mac,{y:m7.y,z:m7.z,scale:m7.scale,rotationY:m7.rotationY,rotationX:-8,ease:'power2.out'},44);
+ tl.fromTo(mac,{x:vw*.7},{x:m7.x,duration:44,ease:'power2.out',immediateRender:false},1596);
  at(1596,mac,{autoAlpha:1},10);
  at(1600,fs[2],{opacity:1},14);
  if(M)at(1462,phone,{autoAlpha:0},14);
 
- /* SCENE 08: 학원 운영 시스템 */
- var L8={x:{x:P(.14,0),y:P(-.05,-.05),s:P(.6,.8)},m:{x:P(-.25,-.22),y:P(.33,.33),s:P(.64,.48)},p:{x:P(.33,.24),y:P(.22,.24),s:P(.66,.56)},f:{x:P(.17,.04),y:P(.27,.31),s:P(.72,.46)}};
- var px8=function(o){return {x:o.x*LW,y:o.y*vh}};
- at(1680,phone,{x:L8.f.x*LW,y:L8.f.y*vh,rotationY:-12,scale:L8.f.s,autoAlpha:1,ease:'power2.inOut'},44);
- at(1700,ms[2],{opacity:1},10);
- at(1680,mac,{x:L8.m.x*LW,y:L8.m.y*vh,rotationY:18,scale:L8.m.s,ease:'power2.inOut'},44);
+ /* SCENE 08: 학원 운영 — 뒤에 디스플레이(원생 · 시간표 · 상담), 앞 왼쪽 휴대폰(학부모), 앞 오른쪽 출결 단말 */
+ var a8=area('academy');
+ var W8=Math.min(a8.w*P(.84,.92),a8.h*P(.7,.56)/XH),x8=a8.x+P(.05,0)*a8.w,y8=a8.t+.287*W8+P(.02,0)*a8.h;
+ var Wk=Math.min(a8.w*P(.42,.5),a8.h*.4*1.4065),kx=a8.l+a8.w-Wk/2,ky=a8.t+a8.h-Wk/1.4065/2;
+ var Wf=Math.min(a8.h*P(.5,.44)/2.049,a8.w*.22),fx=a8.l+Wf/2+P(.08,.04)*a8.w,fy=a8.t+a8.h-Wf*2.049/2;
+ at(1680,mac,{y:'+='+vh*.7,ease:'power2.in'},30);at(1696,mac,{autoAlpha:0},14);
+ at(1680,phone,Z(fx,fy,140,Wf/S.phone,{rotationY:P(12,0),autoAlpha:1,ease:'power2.inOut'}),44);
+ at(1680,fs[1],{opacity:0},10);at(1690,fs[3],{opacity:1},10);
  at(1690,xs[3],{opacity:1},2);
  tl.fromTo(xdr,{autoAlpha:0},{autoAlpha:1,duration:16,immediateRender:false},1690);
- at(1690,xdr,{x:L8.x.x*LW,y:L8.x.y*vh,z:0,scale:L8.x.s*LW/S.xdr*P(.74,1),ease:'power2.out'},40);
+ at(1690,xdr,Z(x8,y8,-260,W8/S.xdr,{rotationY:P(-6,0),rotationX:0,ease:'power2.out'}),40);
  gsap.set(kio,{opacity:0});
- tl.fromTo(pad,{x:vw*.75,y:L8.p.y*vh,rotationY:360,rotationZ:0,scale:L8.p.s,z:0},{x:L8.p.x*LW,rotationZ:-90,duration:44,ease:'power2.out',immediateRender:false},1684);
+ var k8=Z(kx,ky,80,Wk/1.4065/S.pad);
+ tl.fromTo(pad,{x:vw*.75,y:k8.y,z:80,rotationY:360,rotationX:0,rotationZ:0,scale:k8.scale},{x:k8.x,rotationZ:-90,duration:44,ease:'power2.out',immediateRender:false},1684);
  at(1684,pad,{autoAlpha:1},10);at(1700,kio,{opacity:1},10);
- /* 기기 사이를 잇는 선과 이름표 */
- links.setAttribute('viewBox','0 0 '+vw+' '+vh);
- var c0={x:vw/2,y:vh/2},cx=function(o,dy){return {x:c0.x+o.x*LW,y:c0.y+o.y*vh+(dy||0)}};
- var xdrS=L8.x.s*LW/S.xdr*P(.74,1),xc=cx(L8.x),mc=cx(L8.m,-S.mac*.32*L8.m.s),pc=cx(L8.p),fc=cx(L8.f);
- var path=function(a,b){var mx=(a.x+b.x)/2,my=Math.min(a.y,b.y)-40;return 'M'+a.x.toFixed(1)+' '+a.y.toFixed(1)+' Q'+mx.toFixed(1)+' '+my.toFixed(1)+' '+b.x.toFixed(1)+' '+b.y.toFixed(1)};
- links.innerHTML=[[xc,mc],[xc,pc],[xc,fc],[mc,fc]].map(function(p){return '<path d="'+path(p[0],p[1])+'"/><path class="flow" d="'+path(p[0],p[1])+'" style="stroke:'+ACC+';stroke-width:2;stroke-dasharray:3 14"/>'}).join('');
- var lp=$$('path',links);lp.forEach(function(p){if(!p.classList.contains('flow')){var L=p.getTotalLength();gsap.set(p,{strokeDasharray:L,strokeDashoffset:L})}else gsap.set(p,{opacity:0})});
- lp.forEach(function(p,i){if(p.classList.contains('flow')){tl.to(p,{opacity:1,duration:8},1770);tl.to(p,{strokeDashoffset:-170,duration:170},1770);tl.to(p,{opacity:0,duration:10},1900)}else{tl.to(p,{strokeDashoffset:0,duration:26},1742+i*3);tl.to(p,{opacity:0,duration:10},1900)}});
- var tagAt=function(t,pt,dx,dy){gsap.set(t,{x:pt.x+dx,y:pt.y+dy})};
- var xTop={x:xc.x+(S.xdr*xdrS*P(.5,.2)),y:xc.y-S.xdr*.287*xdrS};
- tagAt(tags.x0,xTop,P(-60,-40),P(-18,-48));tagAt(tags.x1,xTop,P(-60,-40),P(-18,-48));tagAt(tags.x2,xTop,P(-60,-40),P(-18,-48));
- tagAt(tags.m,mc,P(-150,-60),P(-S.mac*.5*L8.m.s,-S.mac*.42*L8.m.s));tagAt(tags.p,pc,P(-80,-56),P(-S.pad*.5*L8.p.s-36,-S.pad*.5*L8.p.s-30));tagAt(tags.f,fc,P(-40,-80),S.phone*1.02*L8.f.s+P(10,6));
- [tags.m,tags.p,tags.f].forEach(function(t,i){tl.fromTo(t,{opacity:0,y:'+=10'},{opacity:1,y:'-=10',duration:10,immediateRender:false},1752+i*8);tl.to(t,{opacity:0,duration:10},1900)});
  var lis=$$('.ops-list li',cps.academy),liOn=function(i,a,b){tl.to(lis[i],{color:ACC,duration:6},a);tl.to(lis[i],{color:INK,duration:6},b)};
- tl.fromTo(tags.x0,{opacity:0},{opacity:1,duration:8,immediateRender:false},1790);at(1830,tags.x0,{opacity:0},8);
+ liOn(2,1730,1768);liOn(4,1752,1790);
  at(1790,xs[4],{opacity:1},12);liOn(0,1790,1830);
- at(1830,xs[5],{opacity:1},12);tl.fromTo(tags.x1,{opacity:0},{opacity:1,duration:8,immediateRender:false},1832);at(1868,tags.x1,{opacity:0},8);liOn(1,1830,1868);
- liOn(2,1752,1790);liOn(4,1768,1790);
- at(1868,xs[6],{opacity:1},12);tl.fromTo(tags.x2,{opacity:0},{opacity:1,duration:8,immediateRender:false},1870);at(1904,tags.x2,{opacity:0},8);liOn(3,1868,1904);
+ at(1830,xs[5],{opacity:1},12);liOn(1,1830,1868);
+ at(1868,xs[6],{opacity:1},12);liOn(3,1868,1904);
 
- /* SCENE 09: 전체 제품 생태계 */
- var L9={x:{x:0,y:P(.14,-.02),s:P(.34,.84)},m:{x:P(-.27,-.24),y:P(.42,.3),s:P(.5,.46)},p:{x:P(.27,.27),y:P(.24,.2),s:P(.6,.5)},f:{x:P(.12,.05),y:P(.3,.3),s:P(.56,.44)}};
- at(1960,floor,{opacity:1},40);
- at(1960,xdr,{x:0,y:L9.x.y*vh,scale:L9.x.s*LW/S.xdr,ease:'power2.inOut'},50);
- at(1960,mac,{x:L9.m.x*LW,y:L9.m.y*vh,scale:L9.m.s,rotationY:22,ease:'power2.inOut'},50);
- at(1960,pad,{x:L9.p.x*LW,y:L9.p.y*vh,scale:L9.p.s,rotationZ:0,rotationY:340,ease:'power2.inOut'},50);
- at(1972,kio,{opacity:0},12);at(1972,ps[2],{opacity:1},12);
- at(1960,phone,{x:L9.f.x*LW,y:L9.f.y*vh,scale:L9.f.s,rotationY:-10,ease:'power2.inOut'},50);
- at(1972,fs[3],{opacity:1},12);at(1972,xs[7],{opacity:1},12);
- tl.fromTo(rig,{rotationY:-7,scale:1.06},{rotationY:7,scale:1,duration:180,ease:'sine.inOut',immediateRender:false},1960);
+ /* SCENE 09: 전체 제품 생태계 — 가운데 문구가 올라오는 동안 기기는 비켜 내려갔다가, 문구 아래에 한 줄로 선다 */
+ [xdr,pad,phone].forEach(function(o){at(1918,o,{y:'+='+vh*.55,autoAlpha:0,ease:'power2.in'},30)});
+ var a9=area('eco',true);
+ var W9=Math.min(a9.h*.9/XH,LW*P(.4,.78)),x9=a9.x,y9=a9.t+.287*W9;
+ var Wm9=Math.min(W9*P(.66,.6),a9.h*.6/.965),mx9=Math.max(x9-W9*.5-Wm9*.12,-vw/2+Wm9/2+.03*vw),my9=a9.t+a9.h-.3*Wm9-.02*a9.h;
+ var Wp9=Math.min(a9.h*.64/1.4065,W9*.34),px9=Math.min(x9+W9*.5+Wp9*.2,vw/2-Wp9/2-.03*vw),py9=a9.t+a9.h-Wp9*1.4065/2;
+ var Wf9=Math.min(a9.h*.44/2.049,W9*P(.2,.17)),fx9=x9+W9*P(.26,.2),fy9=a9.t+a9.h-Wf9*2.049/2;
+ var E={x:Z(x9,y9,-320,W9/S.xdr,{rotationY:0}),m:Z(mx9,my9,-Wm9*.55,Wm9/S.mac,{rotationY:P(6,4),rotationX:-8}),p:Z(px9,py9,40,Wp9/S.pad,{rotationZ:0,rotationY:340,rotationX:0}),f:Z(fx9,fy9,160,Wf9/S.phone,{rotationY:-10})};
+ var rise=function(o,v,t){var y=v.y;v=Object.assign({},v);delete v.y;tl.set(o,Object.assign(v,{y:y+vh*.4}),t);at(t+4,o,{y:y,autoAlpha:1,ease:'power2.out'},48)};
+ tl.set(ms[2],{opacity:1},1990);tl.set(kio,{opacity:0},1990);tl.set(ps[2],{opacity:1},1990);tl.set(fs[4],{opacity:1},1990);tl.set(xs[7],{opacity:1},1990);
+ rise(xdr,E.x,1990);rise(mac,E.m,1996);rise(pad,E.p,2000);rise(phone,E.f,2004);
+ tl.fromTo(rig,{rotationY:-3,scale:1.02},{rotationY:3,scale:1,duration:170,ease:'sine.inOut',immediateRender:false},1990);
 
  /* SCENE 10: 밝은 마지막 장면 */
  at(2140,rig,{y:vh*.22,autoAlpha:0,ease:'power2.in'},50);
- at(2140,floor,{opacity:0},30);
  at(2160,filmBg,{backgroundColor:cssv('--end')},44);
  tl.to({},{duration:total-2230},2230);
 
@@ -351,8 +359,8 @@ function timeline(){
  var sceneAt=[0,150,296,540,930,1150,1420,1680,1960,2140];
  var frame=function(t){leaves.forEach(function(L){var v=0;(L.k||[]).forEach(function(k){if(t>=k[0])v=t>=k[0]+k[1]?k[2]:(1-k[2])+(k[2]-(1-k[2]))*ease((t-k[0])/k[1])});if(v!==L.t)setLeaf(L,v)});
   cnt.forEach(function(c){var p=Math.max(0,Math.min(1,(t-c.a)/16)),v=Math.round(c.n*(1-Math.pow(1-p,2)));if(v!==c.last){c.last=v;c.dd.textContent=v+c.u}})};
- S.frame=frame;frame(0);
- tl.eventCallback('onUpdate',function(){var t=tl.time(),s=0;frame(t);for(var i=0;i<sceneAt.length;i++)if(t>=sceneAt[i]-120)s=i;loadUpTo(s+1);var lf=t>=2186&&H.dataset.theme!=='light';if(lf!==lightFilm){lightFilm=lf;theme()}});
+ S.frame=frame;frame(0);zsync();
+ tl.eventCallback('onUpdate',function(){var t=tl.time(),s=0;frame(t);zsync();for(var i=0;i<sceneAt.length;i++)if(t>=sceneAt[i]-120)s=i;loadUpTo(s+1);var lf=t>=2186&&H.dataset.theme!=='light';if(lf!==lightFilm){lightFilm=lf;theme()}});
 
  /* 들어오는 순간: 어둠 속에서 디스플레이가 드러나고, 테두리를 따라 빛이 지난다 */
  if(S.introDone){gsap.set([veil,pw],{opacity:0});return}S.introDone=1;

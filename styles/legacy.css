@@ -192,7 +192,7 @@ html[data-theme=dark] .scs select{background-image:url("data:image/svg+xml,%3Csv
  nav button{flex:1;padding:12px 2px 14px;font-size:12px;border-bottom:0;border-top:3px solid transparent;text-align:center}nav button.on{border-top-color:var(--b)}
  main{padding:0 12px 90px;margin:10px auto}.card{padding:14px;border-radius:12px}h2{font-size:16px}
  #exp{width:100%}.heat{grid-template-columns:repeat(auto-fill,minmax(98px,1fr))}
- .stick{bottom:62px}#bkbar{bottom:70px}
+ #bkbar{bottom:calc(var(--navh,56px) + 14px)}
 }
 
 .fab{position:fixed;right:20px;top:50%;transform:translateY(-50%);background:var(--surface);border:1px solid var(--l);border-radius:16px;padding:14px 14px 12px;box-shadow:0 8px 28px #0002;z-index:15;width:132px;text-align:center}
