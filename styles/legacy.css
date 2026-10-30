@@ -1109,7 +1109,7 @@ html[data-theme=dark] .dvl.ts .dvn button[data-k]{color:#d6dae0}
  html[data-sb=mini] body header nav#nav .nvg{padding:6px 10px;font-size:0}html[data-sb=mini] body header nav#nav .nvg span{display:block;height:1px;background:var(--l)}
  html body header #stuSel,html body header #sync,html body header #saved{margin:0!important;align-self:flex-start}
  html body header #cmdBtn{display:flex!important;align-items:center;gap:12px;width:100%!important;height:42px!important;padding:0 12px!important;border-radius:12px!important;justify-content:flex-start;color:var(--m)!important;background:none!important;border:0!important}
- html body header #cmdBtn svg{width:20px;height:20px;flex:none}html body header #cmdBtn:after{content:"검색 · 이동";font-size:14px;white-space:nowrap}
+ html body header #cmdBtn svg{width:20px;height:20px;flex:none}html body header #cmdBtn:after{content:"통합검색";font-size:14px;white-space:nowrap}
  html body header #cmdBtn:hover{background:var(--sf1)!important;color:var(--t)!important}
  html body header .prof{margin:2px 0 0!important;align-self:stretch;min-width:0;justify-content:flex-start;border-radius:14px!important;border:1px solid var(--l)!important;background:var(--sf1)!important;color:var(--t)!important;padding:6px 10px 6px 6px!important}
  html body header .prof .profn{display:flex!important;flex-direction:column;align-items:flex-start;min-width:0;line-height:1.25;text-align:left}html body header .prof .profn b,html body header .prof .profn small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}html body header .prof .profn b{font-size:13.5px;font-weight:700}html body header .prof .profn small{font-size:11.5px;color:var(--m)}
@@ -1303,3 +1303,6 @@ body:has(#cfg.open) #qrFab,body:has(#exp.open) #qrFab,body:has(#qsheet.open) #qr
  .gres .sc4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.gres .sc4 .s4.grow{grid-column:auto;min-width:0}.rhero{gap:10px}.rhero .rst{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;text-align:center}.rhero .rst b{font-size:20px}
  .bk-list-tools>*{width:100%}.bk-tr-list>div{flex-wrap:wrap}
 }
+
+/* 통합검색은 메뉴의 홈 바로 아래(nav 안 .nvsrch)로 옮겼다. 메뉴가 있는 화면에서는 아래쪽 옛 버튼을 숨긴다 */
+html:not(.noauth) body header #nav:has(.nvsrch)~#cmdBtn{display:none!important}
