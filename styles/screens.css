@@ -8,8 +8,9 @@
 .student-list{display:grid;gap:8px}
 /* 로그인 화면은 앱 머리글 · QR 버튼만 숨긴다. 토스트(안내 · alert 대신 쓰는 메시지)는 숨기지 않는다 */
 html.entry-mode body>header,html.entry-mode #qrFab{display:none!important}html.entry-mode main{margin:0!important;padding:0!important;max-width:none!important}
-@keyframes ui-enter{from{transform:translateY(18px)}to{transform:translateY(0)}}
-.entry-title,.entry-copy,.entry-card,.entry-roles button,.entry-card #stbody>*{animation:ui-enter .55s cubic-bezier(.2,.75,.25,1) both}.entry-copy{animation-delay:.07s}.entry-card{animation-delay:.12s}.entry-roles button:nth-child(1){animation-delay:.16s}.entry-roles button:nth-child(2){animation-delay:.22s}.entry-roles button:nth-child(3){animation-delay:.28s}.entry-card #stbody>*:nth-child(1){animation-delay:.32s}.entry-card #stbody>*:nth-child(2){animation-delay:.38s}.entry-card #stbody>*:nth-child(3){animation-delay:.44s}
+@keyframes ui-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* 로그인 화면: 제목 · 설명 · 카드만 짧게. 입력칸 · 역할 탭은 움직이지 않는다(입력하려는 순간 · 키보드로 탭을 바꿀 때 흔들리지 않게) */
+.entry-title,.entry-copy,.entry-card{animation:ui-enter .2s cubic-bezier(.23,1,.32,1) both}.entry-copy{animation-delay:.03s}.entry-card{animation-delay:.06s}
 @media(max-width:900px){.entry-shell{grid-template-columns:1fr;max-width:680px;padding-top:28px}.entry-intro{display:block;max-width:600px}.entry-title{font-size:44px;margin:0 0 12px}.entry-copy{font-size:15px}.workflow-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.entry-shell{min-height:100dvh;padding:28px 16px;gap:22px}.entry-intro{display:block}.entry-title{font-size:32px;max-width:12ch}.entry-copy{font-size:16px;line-height:1.55}.entry-card{padding:22px;border-radius:18px}.entry-roles button{font-size:13px}.workflow-choice{grid-template-columns:40px 1fr}.workflow-choice>*:last-child{grid-column:2}}
 @media(prefers-reduced-motion:reduce){.entry-title,.entry-copy,.entry-card,.entry-roles button,.entry-card #stbody>*{animation:none}}
@@ -29,11 +30,11 @@ html.entry-mode body>header,html.entry-mode #qrFab{display:none!important}html.e
 .stx-row{display:grid;grid-template-columns:36px minmax(170px,1.4fr) 70px 120px minmax(110px,.9fr) minmax(130px,1.2fr) 82px 120px 118px;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid var(--ui-border)}
 .stx-row.stx-head{font-size:12.5px;color:var(--ui-muted);font-weight:600;padding-top:4px;padding-bottom:8px}
 .stx-row.cur{background:var(--ui-accent-soft)}.stx-row.sel{background:color-mix(in srgb,var(--ui-signal) 14%,transparent)}
-.stx-row:not(.stx-head):hover{background:var(--ui-raised)}
+@media(hover:hover) and (pointer:fine){.stx-row:not(.stx-head):hover{background:var(--ui-raised)}}
 .stx-ck{display:flex;justify-content:center}.stx-ck input{width:18px;height:18px}
 .stx-name{display:flex;align-items:center;gap:10px;border:0;background:none;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer;min-width:0}
 .stx-name b{display:block;font-size:15px;color:var(--ui-text)}.stx-name small{display:block;font-size:12.5px;color:var(--ui-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.stx-name:hover b{text-decoration:underline;text-underline-offset:3px}
+@media(hover:hover) and (pointer:fine){.stx-name:hover b{text-decoration:underline;text-underline-offset:3px}}
 .stx-av{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--ui-accent-soft);color:var(--ui-accent);font-weight:700}
 .stx-c{font-size:14px;color:var(--ui-text);min-width:0}
 .stx-num b{font-variant-numeric:tabular-nums}
@@ -47,10 +48,10 @@ html.entry-mode body>header,html.entry-mode #qrFab{display:none!important}html.e
 .stx-acct{display:flex;gap:4px}.stx-acct em{background:var(--ui-raised);color:var(--ui-muted)}.stx-acct em.on{background:var(--ui-accent-soft);color:var(--ui-accent)}
 .stx-act{display:flex;gap:6px;justify-content:flex-end;align-items:center}
 .stx-more{position:relative}.stx-more>summary{list-style:none;width:34px;height:34px;display:grid;place-items:center;border-radius:9px;cursor:pointer;color:var(--ui-muted);font-weight:700;letter-spacing:1px;border:1px solid var(--ui-border);background:var(--ui-surface)}
-.stx-more>summary::-webkit-details-marker{display:none}.stx-more[open]>summary,.stx-more>summary:hover{color:var(--ui-text);background:var(--ui-raised)}
+.stx-more>summary::-webkit-details-marker{display:none}.stx-more[open]>summary{color:var(--ui-text);background:var(--ui-raised)}@media(hover:hover) and (pointer:fine){.stx-more>summary:hover{color:var(--ui-text);background:var(--ui-raised)}}
 .stx-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:40;min-width:190px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:12px;box-shadow:0 12px 32px rgba(16,32,44,.18);padding:6px;display:flex;flex-direction:column}
 .stx-menu button{border:0;background:none;text-align:left;font:inherit;font-size:14px;padding:9px 12px;border-radius:8px;color:var(--ui-text);cursor:pointer}
-.stx-menu button:hover,.stx-menu button:focus-visible{background:var(--ui-raised)}.stx-menu button.dg{color:var(--ui-danger)}
+.stx-menu button:focus-visible{background:var(--ui-raised)}@media(hover:hover) and (pointer:fine){.stx-menu button:hover{background:var(--ui-raised)}}.stx-menu button.dg{color:var(--ui-danger)}
 .stx-menu hr{border:0;border-top:1px solid var(--ui-border);margin:4px 6px}
 .stx-bulk{position:sticky;bottom:12px;z-index:20;margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-radius:14px;background:var(--ui-text);color:var(--ui-surface);box-shadow:0 10px 28px rgba(16,32,44,.25)}
 .stx-bulk b{font-size:15px}.stx-bulk .stx-bg{display:inline-flex;align-items:center;gap:6px;font-size:14px}.stx-bulk input[type=number]{width:58px;padding:5px 6px;border-radius:8px;border:0;text-align:center}
@@ -100,12 +101,33 @@ html[data-theme=dark] .entry-brand{color:#f3f6f9}
 }
 /* 2026-10-30 디자인 점검: 바탕 위에 바로 놓인 보조 버튼이 글자만 떠 보이지 않게(학습지 만들기 · 화면 머리) */
 .screen-head .ui-actions button.s{background:var(--ui-surface);border:1px solid var(--ui-border);color:var(--ui-text)}
-.screen-head .ui-actions button.s:hover{border-color:var(--ui-accent)}
+@media(hover:hover) and (pointer:fine){.screen-head .ui-actions button.s:hover{border-color:var(--ui-accent)}}
 /* 오답노트 머리의 버튼 줄: 좁은 화면에서 글자가 두 줄로 꺾이지 않고 줄을 바꿔 놓인다 */
 .wnact{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.wnact button{white-space:nowrap}
 @media(max-width:720px){.wnact{margin-left:0;width:100%;justify-content:flex-start}}
 body:has(.stick) #toast,body:has(.mkgo) #toast{bottom:calc(var(--navh,0px) + 110px)}
 /* 학생 홈 파란 머리: 강조 버튼이 같은 남색 바탕 + 파란 글자로 묻히던 것(components.css 의 #main button.p !important) → 흰 버튼 */
 #main .st-hero button.p{background-color:#fff!important;color:var(--bd)!important;border:0}
-#main .st-hero button.p:hover{background-color:#eef4fb!important}
+@media(hover:hover) and (pointer:fine){#main .st-hero button.p:hover{background-color:#eef4fb!important}}
 html[data-theme=dark] #main .st-hero button.p{background-color:#fff!important;color:#1d3556!important}
+
+/* ── 2026-10-30 모션 · 휴대폰 손맛 점검(review-animations · mobile-native) ── */
+/* 탭할 때 파랗게 번쩍이는 브라우저 강조를 끄고, 대신 :active 눌림을 쓴다 */
+html{-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+/* 안쪽 스크롤 상자가 끝에 닿아도 뒤 페이지가 따라 움직이지 않게 */
+.modal .box,#profMenu,#notifp,.shbox,#mkw,#cfgBox,#askstu .asb,#navmore .nms{overscroll-behavior:contain}
+@media(max-width:720px){nav#nav{overscroll-behavior:contain}}
+/* 누르는 것은 바로 반응(두 번 탭 확대 대기 없음), 길게 눌러도 글자가 선택되지 않게. 본문 글은 그대로 선택된다 */
+[role=button],[role=tab],summary,label,select{touch-action:manipulation}
+button,[role=button],[role=tab],.scb,.chip,.chp,.tag,summary{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* 터치 입력에서 iOS 가 입력칸을 확대하지 않도록 16px 이상 */
+@media(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:max(16px,1em)}}
+/* 노치 · 홈 표시줄: 위 막대와 아래에 떠 있는 버튼 · 알림이 가리지 않게 */
+@media(max-width:720px){
+ body>header{padding-top:env(safe-area-inset-top,0px);min-height:calc(52px + env(safe-area-inset-top,0px))}
+ html:not(.mtab) body nav#nav{padding-top:calc(10px + env(safe-area-inset-top,0px))}
+}
+#toast,#totop,#qrFab,#bkbar{margin-bottom:env(safe-area-inset-bottom,0px)}
+/* 동작 줄이기: 0 으로 없애지 않고 움직임만 뺀 짧은 페이드(모달 · 아래 시트 · 메뉴 · 알림) */
+@keyframes rm-fade{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.modal.open .box,#qsheet.open .shbox,#profMenu,#notifp,#askstu .asb{animation:rm-fade .15s linear both!important;animation-duration:.15s!important}#toast .tt,#toast .tt.out{transform:none!important;transition:opacity .15s linear!important}}

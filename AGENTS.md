@@ -22,7 +22,7 @@
   | `lazy/*.js` | 늦게 불러오는 화면(`admin` 학원 운영, `acad` 출결 · 수납 · 알림장, `tset` 학원 설정, `omr-report`) |
   | `styles/*.css` | `tokens → legacy → base → shell → components → screens` 순(새 디자인 층이 legacy를 덮음). 링크와 `sw.js` SHELL에 같은 `?v=N`. 새 화면 스타일은 `screens.css`, `--ui-*` 토큰 사용 |
   | `bank/`, `cm/`, `ph/`, `hl/` | 과목 데이터(물질과 에너지 · 세포와 물질대사 · 역학과 에너지 · 화법과 언어). `index.json`(유형 목록), `data.json`/`data.js`(교재 문항), `<태그>.json`(문제은행) |
-  | `intro.html` · `intro.css` · `intro.js` | 로그인 전 소개 페이지. 장면 섹션은 문서 흐름, 3D 무대만 sticky, GSAP 타임라인이 `scrollY`를 따라감(pin · scrub · 스냅 · wheel 가로채기 금지) |
+  | `intro.html` · `intro.css` · `intro.js` | 로그인 전 소개 페이지. 장면마다 문구 + 실제 앱 캡처(`intro/*.webp`)만 둔 보통 문서. 기기 목업 · 3D 무대 · GSAP · 스크롤 연출 없음(사용자 요청, 2026-10-30). 캡처는 `tools/capture_cine.js` · `tools/capture_intro.js` → `tools/intro_webp.py` |
   | `policy.html` | 이용약관 · 개인정보처리방침(초안, 법률 검토 전) |
   | `sw.js` | 서비스 워커. **배포되는 파일을 바꾸면 `VER`을 올린다** |
   | `tools/` | 캡처(`capture_intro.js`, `capture_cine.js`) · 교재 높이 측정(`measure_books.js`) · 화법과 언어 생성기(`tools/hl/`) |
@@ -45,6 +45,7 @@ python3 tools/hl/make_hl.py       # 화법과 언어 문항을 바꾸면 재생�
 
 - UI 문구는 한국어, 글꼴은 Pretendard. 화면은 "깔끔하고 직관적이게, AI 티 나지 않게". 기본 HTML 버튼 · 입력 모양이 그대로 보이면 안 된다.
 - 무거운 효과(`backdrop-filter`, 큰 blur, 글래스) 금지 — 사용자가 렉 때문에 싫어함.
+- 모션: 탭 이동 · 범위(반/학생) 전환 · 키보드로 하는 동작에는 애니메이션을 넣지 않는다. UI 애니메이션은 300ms 이하, `transform`/`opacity`만, 곡선은 `cubic-bezier(.23,1,.32,1)`. `transition: all` 금지. 모든 `:hover` 는 `@media(hover:hover) and (pointer:fine)` 안에(`tests/app-ui.cjs` 가 검사).
 - 교재의 ①·㉠ 같은 원문자는 CSS로 그리지 말고 글꼴 특수문자. 교재 디자인에 **왼쪽 굵은 실선(`border-left` 액센트) 금지.**
 - 과목색: 물질과 에너지 파랑(`#2f7fd0`), 세포와 물질대사 초록, 역학과 에너지 보라, 화법과 언어 주황. `body[data-subj]`의 `--b`로 쓴다.
 - 인쇄는 A4. 인쇄 창은 새 창(`popOpen` → `popInject` → `popWire`). **태블릿 · 휴대폰(`isMob()`)은 브라우저 인쇄가 여백을 멋대로 넣어 쪽이 밀리므로 인쇄 버튼이 A4 PDF 저장(`popPdf`)으로 바뀐다.** 교재는 `bkPdf`.
