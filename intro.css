@@ -1,8 +1,8 @@
-/* Solvi 소개: 장면마다 문구와 실제 앱 캡처를 나란히 두는 보통 문서(기기 목업 · 3D 무대 없음). 스크립트가 없어도 같은 화면. */
-:root{--k:#000;--ink-d:#f5f5f7;--mute-d:#a1a1a6;--acc:#fdc62d;--acc-ink:#111;--acc-rgb:253,198,45;--panel:#1c1c1e;--panel-ink:#f5f5f7;--panel-mute:#d9d9de;--chip:rgba(255,255,255,.1);--soft:rgba(255,255,255,.08);--veil:#000;--hdbg:rgba(0,0,0,.78);--end:#f5f5f7;--end-ink:#1d1d1f;--paper:#f5f5f7;--ink:#1d1d1f;--mute:#6e6e73;--line:#d2d2d7;--blue:#2f7fd0;--navy:#0d387e;--yellow:#fdc62d;--g:clamp(20px,5vw,72px);--hd:64px;--ease:cubic-bezier(.22,1,.36,1);--shot-line:rgba(255,255,255,.1);--shot-sh:rgba(0,0,0,.6);
+/* Solvi 소개: 고객 문제 → 다섯 단계 순환(고르기 · 만들기 · 채점 · 분석 · 다시 학습) → 연결 → 학원 운영 순서의 스크롤 이야기. 화면은 실제 앱 캡처만(기기 목업 · 3D 없음). */
+:root{--k:#000;--ink-d:#f5f5f7;--mute-d:#a1a1a6;--acc:#fdc62d;--acc-ink:#111;--acc-rgb:253,198,45;--panel:#1c1c1e;--panel-ink:#f5f5f7;--panel-mute:#d9d9de;--chip:rgba(255,255,255,.1);--soft:rgba(255,255,255,.08);--veil:#000;--hdbg:rgba(0,0,0,.92);--end:#f5f5f7;--end-ink:#1d1d1f;--paper:#f5f5f7;--ink:#1d1d1f;--mute:#6e6e73;--line:#d2d2d7;--blue:#2f7fd0;--navy:#0d387e;--yellow:#fdc62d;--g:clamp(20px,5vw,72px);--hd:64px;--ease:cubic-bezier(.23,1,.32,1);--shot-line:rgba(255,255,255,.1);--shot-sh:rgba(0,0,0,.6);
  font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color-scheme:dark}
 /* 라이트 모드: 물질과 에너지 색(파랑) 바탕. 시스템 설정을 따르고, 머리글 버튼으로 바꿀 수 있다(omr_theme) */
-html[data-theme=light]{color-scheme:light;--k:#f4f8fd;--ink-d:#0f1d33;--mute-d:#4f6079;--acc:#2f7fd0;--acc-ink:#fff;--acc-rgb:47,127,208;--panel:#ffffff;--panel-ink:#0f1d33;--panel-mute:#3d4b60;--chip:rgba(47,127,208,.09);--soft:rgba(15,40,80,.06);--veil:#f4f8fd;--hdbg:rgba(244,248,253,.9);--end:#2f7fd0;--end-ink:#fff;--shot-line:#dbe3ee;--shot-sh:rgba(15,40,80,.22)}
+html[data-theme=light]{color-scheme:light;--k:#f4f8fd;--ink-d:#0f1d33;--mute-d:#4f6079;--acc:#2f7fd0;--acc-ink:#fff;--acc-rgb:47,127,208;--panel:#ffffff;--panel-ink:#0f1d33;--panel-mute:#3d4b60;--chip:rgba(47,127,208,.09);--soft:rgba(15,40,80,.06);--veil:#f4f8fd;--hdbg:rgba(244,248,253,.95);--end:#2f7fd0;--end-ink:#fff;--shot-line:#dbe3ee;--shot-sh:rgba(15,40,80,.22)}
 *{box-sizing:border-box}
 html{scroll-padding-top:calc(var(--hd) + 16px);-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--k);color:var(--ink-d);font-size:17px;line-height:1.6;letter-spacing:-.02em;word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased}
@@ -54,26 +54,97 @@ html{-webkit-tap-highlight-color:transparent}a,button,summary{touch-action:manip
 @media(hover:hover) and (pointer:fine){.dock-top:hover{transform:translateY(-2px)}}
 .dock-top i{width:10px;height:10px;border-left:2px solid #fff;border-top:2px solid #fff;transform:translateY(2px) rotate(45deg)}
 
-/* ── 장면: 문구 + 실제 앱 캡처. 기기 목업 · 3D · 스크롤 연출 없음 ── */
+
+/* ── 장면: 문구 + 실제 앱 캡처(기기 목업 · 3D 없음) ──
+   스크롤은 브라우저 기본 그대로. html.fx(동작 줄이기가 아닐 때)에서만 intro.js 가 스크롤 위치에 맞춰 캡처의 transform · opacity 를 바꾼다.
+   문구(.cp)는 움직이지 않아 스크롤과 1:1. 스크립트가 없거나 동작 줄이기면 아래 기본값(완성된 모습) 그대로. */
 .scenes{background:var(--k)}
-.sc{position:relative;padding:clamp(72px,11vh,128px) var(--g);max-width:1320px;margin-inline:auto;display:grid;grid-template-columns:minmax(0,4.3fr) minmax(0,7.7fr);gap:clamp(32px,5vw,80px);align-items:center}
+.sc{position:relative;padding:clamp(88px,15vh,176px) var(--g);max-width:1320px;margin-inline:auto;display:grid;grid-template-columns:minmax(0,4.3fr) minmax(0,7.7fr);gap:clamp(32px,5vw,88px);align-items:center}
+.sc.flip{grid-template-columns:minmax(0,7.7fr) minmax(0,4.3fr)}
 .sc.flip>.cp{order:2}
-.sc-hero{display:block;padding-top:calc(var(--hd) + clamp(48px,9vh,112px));padding-bottom:clamp(48px,8vh,96px);text-align:center}
-.cp h1{font-size:clamp(40px,6vw,92px)}
-.cp h2{font-size:clamp(32px,3.6vw,56px)}
+.cp h1{font-size:clamp(46px,7.6vw,124px);letter-spacing:-.055em;line-height:1.02}
+.cp h2{font-size:clamp(32px,3.8vw,60px)}
 .cp p{margin-top:20px;font-size:clamp(16px,1.3vw,19px);line-height:1.6;color:var(--mute-d);max-width:34em}
-.sc-hero .cp p{margin-inline:auto;max-width:30em}
-.bm{display:none}
+.cp .kick{margin:0 0 18px;font-size:15px;font-weight:700;letter-spacing:-.01em;color:var(--acc);font-variant-numeric:tabular-nums}
+.det{list-style:none;display:flex;flex-wrap:wrap;gap:8px 10px;margin-top:24px;padding:0}
+.det li{font-size:14px;font-weight:600;color:var(--ink-d);background:var(--chip);padding:7px 12px;border-radius:999px}
+
 /* 캡처: 얇은 테두리와 옅은 그림자만. 기기 테두리를 흉내 내지 않는다 */
-.shots{min-width:0}
-.shot{width:100%;border-radius:12px;background:#fff;border:1px solid var(--shot-line);box-shadow:0 18px 40px -22px var(--shot-sh)}
+.shots{min-width:0;margin:0}
+.shot{width:100%;border-radius:12px;background:#fff;border:1px solid var(--shot-line);box-shadow:0 24px 48px -26px var(--shot-sh)}
 .shot.paper{border-radius:4px}
 .shot.phone{border-radius:24px}
-.sc-hero .shots{margin:clamp(40px,6vh,64px) auto 0;max-width:1200px}
-.shots-side{display:grid;grid-template-columns:minmax(0,1fr) 30%;gap:16px;align-items:end}
-.shots-pages{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:620px;justify-self:center;width:100%}
-.shots-phones{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2.4vw,28px);max-width:500px;justify-self:center;width:100%}
-.shots-stack{display:grid;gap:16px}.shots-stack .shot+.shot{width:58%;justify-self:end}
+.fx [data-fx] img,.fx [data-lag]{will-change:transform}
+
+/* 히어로: 가운데 큰 제목, 아래로 취약 유형 지도 캡처가 스크롤에 맞춰 커진다 */
+.sc-hero{display:block;max-width:none;padding-top:calc(var(--hd) + clamp(56px,11vh,132px));padding-bottom:0;text-align:center;overflow:hidden}
+.sc-hero .cp{max-width:1100px;margin-inline:auto}
+.eyebrow{display:inline-block;margin:0 0 26px!important;padding:8px 14px;border-radius:999px;background:var(--chip);color:var(--ink-d)!important;font-size:14px!important;font-weight:600;line-height:1.3!important}
+.sc-hero .ln{display:inline-block}
+.sc-hero .lede{margin:28px auto 0;max-width:31em;font-size:clamp(17px,1.5vw,21px)}
+.hero-act{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:36px}
+.hero-shot{max-width:1240px;margin:clamp(48px,8vh,88px) auto 0;padding-bottom:clamp(72px,12vh,140px)}
+.hero-shot .shot{transform-origin:50% 0;border-radius:16px}
+.fx .hero-shot .shot{transform:scale(.9)}
+/* 처음 한 번: 제목 줄이 차례로 올라온다(300ms, transform · opacity) */
+@keyframes up{from{opacity:0;transform:translateY(18px)}}
+.fx .sc-hero .eyebrow,.fx .sc-hero .ln,.fx .sc-hero .lede,.fx .hero-act{animation:up .3s var(--ease) both}
+.fx .sc-hero .ln:nth-child(1){animation-delay:.06s}.fx .sc-hero .ln:nth-child(2){animation-delay:.12s}.fx .sc-hero .lede{animation-delay:.18s}.fx .hero-act{animation-delay:.24s}
+
+/* 문제 제기: 글자가 스크롤만큼 차례로 밝아진다(글 자체는 고정된 화면 가운데) */
+.why{position:relative;padding:clamp(120px,20vh,220px) var(--g)}
+.why-pin{max-width:1180px;margin-inline:auto}
+.why-t{font-size:clamp(30px,4.3vw,66px);line-height:1.22;letter-spacing:-.045em}
+.why-t em{font-style:normal;color:var(--acc)}
+.fx .why{height:260vh;padding:0}
+.fx .why-pin{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:center;padding-inline:var(--g);max-width:calc(1180px + 2 * var(--g))}
+.fx .why .w{opacity:.16}
+
+/* 핵심 흐름 다섯 단계: 이 구역 안에서만 머리글 아래에 붙는 진행 막대 */
+.loop{position:relative}
+.rail{position:sticky;top:var(--hd);z-index:40;background:var(--hdbg);height:52px}
+.rail-in{position:relative;max-width:1320px;margin-inline:auto;height:100%;padding-inline:var(--g);display:flex;align-items:center;gap:clamp(14px,3vw,40px);font-size:14px;font-weight:600}
+.rail a{text-decoration:none;color:var(--ink-d);opacity:.42;display:flex;gap:8px;align-items:baseline;white-space:nowrap;transition:opacity .2s var(--ease)}
+.rail a b{font-size:12px;font-variant-numeric:tabular-nums;color:var(--acc)}
+.rail a[aria-current]{opacity:1}
+@media(hover:hover) and (pointer:fine){.rail a:hover{opacity:.8}}
+.rail-bar{position:absolute;left:var(--g);right:var(--g);bottom:0;height:2px;background:var(--soft)}
+.rail-bar i{position:absolute;inset:0;background:var(--acc);transform-origin:0 50%;transform:scaleX(0)}
+html:not(.fx) .rail-bar i{transform:none}
+
+/* 캡처 묶음 */
+.shots-side{display:grid;grid-template-columns:minmax(0,1fr) 30%;gap:18px;align-items:end}
+.shots-qr{display:grid;grid-template-columns:1.25fr .85fr .85fr;gap:clamp(12px,1.8vw,22px);align-items:end;max-width:700px;justify-self:center;width:100%}
+.shots-pair{display:grid;grid-template-columns:.8fr 1.1fr;gap:clamp(14px,2.4vw,28px);align-items:end;max-width:620px;justify-self:center;width:100%}
+.shots-covers{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2.4vw,28px);max-width:540px;justify-self:center;width:100%}
+.shots-covers .shot+.shot{margin-top:48px}
+/* 교재: 다섯 쪽이 부채꼴로 펼쳐진다(스크립트가 있으면 한 묶음에서 시작해 스크롤만큼 펼침) */
+.fan{display:flex;justify-content:center;align-items:flex-end;padding:24px 4% 12px}
+.fan .shot{width:33%;flex:none;margin-left:-16%;transform:rotate(var(--r));transform-origin:50% 100%;box-shadow:0 18px 40px -18px var(--shot-sh)}
+.fan .shot:first-child{margin-left:0}
+/* 하나의 기록, 세 개의 화면 */
+.sc-center{display:block;text-align:center}
+.sc-center .cp{max-width:780px;margin-inline:auto}
+.sc-center .cp p{margin-inline:auto}
+.roles{display:grid;grid-template-columns:2.1fr .95fr .62fr;gap:clamp(14px,2vw,28px);align-items:end;max-width:1180px;margin:clamp(48px,8vh,80px) auto 0}
+.role figcaption{margin-top:14px;font-size:15px;font-weight:600;color:var(--mute-d)}
+/* 학원 운영: 세로 스크롤만큼 운영 화면들이 옆으로 지나간다(스크립트 없으면 두 줄 격자) */
+.sc-strip{display:block;max-width:none;padding-inline:0}
+.sc-strip>.cp{max-width:calc(1320px + 2 * var(--g));margin-inline:auto;padding-inline:var(--g)}
+.strip{margin-top:clamp(40px,7vh,72px)}
+.strip-track{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;max-width:calc(1320px + 2 * var(--g));margin-inline:auto;padding-inline:var(--g)}
+.frame{margin:0}
+.frame figcaption{margin-top:12px;font-size:15px;font-weight:600;color:var(--mute-d)}
+.fx .strip-pin{position:sticky;top:var(--hd);height:calc(100vh - var(--hd));height:calc(100svh - var(--hd));overflow:hidden;display:flex;align-items:center}
+.fx .strip-track{display:flex;gap:clamp(16px,2.4vw,32px);max-width:none;margin:0;padding-inline:var(--g);width:max-content}
+.fx .frame .shot{height:min(60vh,50vw);height:min(60svh,50vw);width:auto;max-width:none}
+/* 지원 과목 */
+.subj{list-style:none;padding:0;margin:26px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,max-content));gap:12px 28px;font-size:16px;font-weight:600}
+.subj li{display:flex;align-items:center;gap:10px}
+.subj li::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--c)}
+.subj [data-s=me]{--c:#2f7fd0}.subj [data-s=cm]{--c:#15804c}.subj [data-s=ph]{--c:#6d4cc4}.subj [data-s=hl]{--c:#d9622b}
+html[data-theme=dark] .subj [data-s=me]{--c:#5aa2ea}html[data-theme=dark] .subj [data-s=cm]{--c:#52c48c}html[data-theme=dark] .subj [data-s=ph]{--c:#a58cf0}html[data-theme=dark] .subj [data-s=hl]{--c:#f0905f}
+
 .score{display:flex;gap:clamp(24px,4vw,56px);margin-top:32px}
 .score dt{font-size:15px;color:var(--mute-d)}
 .score dd{font-size:clamp(40px,4.4vw,68px);font-weight:700;letter-spacing:-.04em;line-height:1.1;font-variant-numeric:tabular-nums}
@@ -87,7 +158,6 @@ html{-webkit-tap-highlight-color:transparent}a,button,summary{touch-action:manip
 .sc-end .btn-line{background:#e3e3e8;color:var(--ink)}
 @media(hover:hover) and (pointer:fine){.sc-end .btn-line:hover{background:#d8d8de}}
 .end-num{display:inline-block;margin-top:22px;font-size:15px;color:var(--navy);text-underline-offset:5px}
-
 /* ── 요금제 · 자주 묻는 질문 · 바닥글(밝은 면) ── */
 .sec{background:var(--paper);color:var(--ink);padding:clamp(96px,14vh,160px) 0}
 .sec h2{font-size:clamp(34px,4.4vw,64px)}
@@ -161,17 +231,28 @@ html{-webkit-tap-highlight-color:transparent}a,button,summary{touch-action:manip
  .hd-stu{display:none}
  .hd-in{gap:16px}
  .nav.open{display:flex;position:absolute;top:var(--hd);left:0;right:0;flex-direction:column;gap:0;padding:8px var(--g) 20px;background:rgba(10,10,12,.98);font-size:18px}
+ html[data-theme=light] .nav.open{background:rgba(244,248,253,.99)}
  .hd.light .nav.open{background:rgba(245,245,247,.99)}
  .nav.open a{padding:14px 0;opacity:1}
  .nav.open .nav-app{display:block}
- .sc{grid-template-columns:1fr;gap:32px}
+ .sc,.sc.flip{grid-template-columns:1fr;gap:36px}
  .sc.flip>.cp{order:0}
  .shots-side{grid-template-columns:minmax(0,1fr) 34%}
- .bm{display:inline}.bd{display:none}
  .cp h1{font-size:min(10vw,44px)}
  .cp h2{font-size:clamp(28px,7.4vw,40px)}
+ .eyebrow{font-size:13px!important}
+ .why-t{font-size:clamp(26px,6.6vw,40px)}
+ .fx .why{height:220vh}
+ .rail{height:46px}
+ .rail-in{gap:14px;font-size:13px;justify-content:space-between}
+ .rail a{gap:5px}
+ .rail a b{font-size:11px}
+ .roles{grid-template-columns:1.15fr .8fr}
+ .roles .role:first-child{grid-column:1/-1}
+ .fx .frame .shot{height:min(46svh,58vw)}
  .ft-top p{text-align:left}
 }
+@media(max-width:560px){.shots-side{grid-template-columns:1fr}.shots-side .shot.paper,.shots-side .shot.tall{max-width:62%}.strip-track{grid-template-columns:1fr}.subj{grid-template-columns:1fr}}
 @media(max-width:420px){.hd-act .btn-sm{padding:8px 12px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.btn,.plan,.dock{transition:none}}
 
@@ -184,7 +265,3 @@ html{-webkit-tap-highlight-color:transparent}a,button,summary{touch-action:manip
 .trial .btn{background:#fff;color:#0d387e}@media(hover:hover) and (pointer:fine){.trial .btn:hover{background:#eef5fd}}
 html[data-theme=light] .sc-end .cp p{color:rgba(255,255,255,.86)}html[data-theme=light] .sc-end .btn-pri{background:#fff;color:#0d387e}html[data-theme=light] .sc-end .btn-line{background:rgba(255,255,255,.18);color:#fff}html[data-theme=light] .sc-end .end-num{color:#fff}html[data-theme=light] .end-logo{color:#fff}
 html[data-theme=light] .hd:not(.scrolled):not(.light){color:var(--ink-d)}
-/* 장면마다 세부 기능 줄 */
-.det{list-style:none;display:flex;flex-wrap:wrap;gap:8px 10px;margin-top:20px;padding:0}
-.det li{font-size:14px;font-weight:600;color:var(--ink-d);background:var(--chip);padding:7px 12px;border-radius:999px}
-@media(max-width:560px){.shots-side{grid-template-columns:1fr}.shots-stack .shot+.shot{width:80%}.shots-side .shot.paper,.shots-side .shot.tall{max-width:62%}}

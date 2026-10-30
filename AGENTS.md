@@ -22,7 +22,7 @@
   | `lazy/*.js` | 늦게 불러오는 화면(`admin` 학원 운영, `acad` 출결 · 수납 · 알림장, `tset` 학원 설정, `omr-report`) |
   | `styles/*.css` | `tokens → legacy → base → shell → components → screens` 순(새 디자인 층이 legacy를 덮음). 링크와 `sw.js` SHELL에 같은 `?v=N`. 새 화면 스타일은 `screens.css`, `--ui-*` 토큰 사용 |
   | `bank/`, `cm/`, `ph/`, `hl/` | 과목 데이터(물질과 에너지 · 세포와 물질대사 · 역학과 에너지 · 화법과 언어). `index.json`(유형 목록), `data.json`/`data.js`(교재 문항), `<태그>.json`(문제은행) |
-  | `intro.html` · `intro.css` · `intro.js` | 로그인 전 소개 페이지. 장면마다 문구 + 실제 앱 캡처(`intro/*.webp`)만 둔 보통 문서. 기기 목업 · 3D 무대 · GSAP · 스크롤 연출 없음(사용자 요청, 2026-10-30). 캡처는 `tools/capture_cine.js` · `tools/capture_intro.js` → `tools/intro_webp.py` |
+  | `intro.html` · `intro.css` · `intro.js` | 로그인 전 소개 페이지. 고객 문제 → 다섯 단계 순환(고르기 · 만들기 · 채점 · 분석 · 다시 학습) → 연결 → 학원 운영 순서의 스크롤 이야기(근거: 사용자가 준 `intro-audience-search-intent.json`). 화면은 실제 앱 캡처(`intro/*.webp`)만, 기기 목업 · 3D · GSAP 없음. 스크롤은 브라우저 기본 그대로, `html.fx`(동작 줄이기 아님)일 때만 `intro.js`가 스크롤 위치로 캡처의 transform · opacity 를 계산(문구는 움직이지 않음). 캡처는 `tools/capture_cine.js` · `tools/capture_intro.js` → `tools/intro_webp.py` |
   | `policy.html` | 이용약관 · 개인정보처리방침(초안, 법률 검토 전) |
   | `sw.js` | 서비스 워커. **배포되는 파일을 바꾸면 `VER`을 올린다** |
   | `tools/` | 캡처(`capture_intro.js`, `capture_cine.js`) · 교재 높이 측정(`measure_books.js`) · 화법과 언어 생성기(`tools/hl/`) |
