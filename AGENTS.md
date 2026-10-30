@@ -22,7 +22,7 @@
   | `lazy/*.js` | 늦게 불러오는 화면(`admin` 학원 운영, `acad` 출결 · 수납 · 알림장, `tset` 학원 설정, `omr-report`) |
   | `styles/*.css` | `tokens → legacy → base → shell → components → screens` 순(새 디자인 층이 legacy를 덮음). 링크와 `sw.js` SHELL에 같은 `?v=N`. 새 화면 스타일은 `screens.css`, `--ui-*` 토큰 사용 |
   | `bank/`, `cm/`, `ph/`, `hl/` | 과목 데이터(물질과 에너지 · 세포와 물질대사 · 역학과 에너지 · 화법과 언어). `index.json`(유형 목록), `data.json`/`data.js`(교재 문항), `<태그>.json`(문제은행) |
-  | `intro.html` · `intro.css` · `intro.js` | 로그인 전 소개 페이지. 히어로의 살아 있는 취약 유형 지도(앱과 같은 상태 아이콘 6단계 · 실제 유형 이름, 눌러서 고르기) → 「한 바퀴」 sticky 무대(고르기 · 만들기 · QR 채점 · 유형 분석 · 다시 학습, 72×54 단위 / 휴대폰 44×64) → 연결 그래프(학생 기록 하나에 12기능) → 교재 · 역할 · 학원 운영 캡처 → 구체적 기능표 → 과목. 기기 목업 · 3D · GSAP 없음, 숫자는 실제 데이터(문항 39,277 · 유형 262)만. 스크롤은 브라우저 기본 그대로, `html.fx`일 때만 `intro.js`가 스크롤 진행도에서 transform · opacity 를 바로 계산(되돌리면 그대로 되돌아감). 캡처는 `tools/capture_cine.js` · `tools/capture_intro.js` → `tools/intro_webp.py` |
+  | `intro.html` · `intro.css` · `intro.js` | 로그인 전 소개 페이지. 히어로 살아 있는 취약 유형 지도(앱 상태 아이콘 6단계 · 실제 유형 이름) → 「한 바퀴」 sticky 무대(5단계, 72×54 / 휴대폰 44×64) → **QR 채점** sticky 무대(카메라 창이 쪽 QR로 확대 → 인식 → OMR → 결과) → 연결 그래프 → 교재 · 역할 캡처 → **학원의 하루** sticky(9장면 실제 캡처) → 기능 전체(분야 고르기, 33개) → 과목 → 요금제 + 요금제별 비교표. 기기 목업 · 3D · GSAP · 한글 로고 없음, 숫자는 실제 데이터만. 스크롤은 브라우저 기본 그대로, `html.fx`일 때만 진행도에서 transform · opacity 계산. 캡처는 `tools/capture_cine.js` · `tools/capture_intro.js` · `tools/capture_ops.js`(운영 업무 · 보강 · 출결 · 월 청구 · 알림장) → `tools/intro_webp.py`. 무대 조각을 transform 으로 화면 밖에서 들여오면 휴대폰 레이아웃 폭이 넓어져 페이지가 축소되니 가로 방향으로 들여오지 말 것 |
   | `policy.html` | 이용약관 · 개인정보처리방침(초안, 법률 검토 전) |
   | `sw.js` | 서비스 워커. **배포되는 파일을 바꾸면 `VER`을 올린다** |
   | `tools/` | 캡처(`capture_intro.js`, `capture_cine.js`) · 교재 높이 측정(`measure_books.js`) · 화법과 언어 생성기(`tools/hl/`) |
