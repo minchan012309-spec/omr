@@ -61,7 +61,7 @@ const wheel = async (page, dy) => {
       assert.ok(Math.abs(h1Before - h1After - d1) <= 2, tag + " hero copy travels with the scroll 1:1");
 
       /* 장면 경계 바로 앞에서 작은 휠: 다음 장면 시작점으로 끌려가지 않는다 */
-      for (const id of ["bank", "device", "academy"]) {
+      for (const id of ["book", "device", "academy"]) {
         const top = await secTop(page, id);
         const start = await at(page, top - 40);
         const d = await wheel(page, 80);
@@ -85,14 +85,14 @@ const wheel = async (page, dy) => {
       /* 3. 큰 휠: 입력에 비례해서 멀리 간다(장면 하나로 제한하지 않음) */
       const big = await wheel(page, 900);
       assert.ok(big > 700 && big < 1100, tag + " big wheel moves ~900px, got " + big);
-      await at(page, (await secTop(page, "omr")) - 300);
+      await at(page, (await secTop(page, "connect")) - 300);
       let far = 0;
       for (let i = 0; i < 6; i++) far += await wheel(page, 900);
-      const passed = await page.evaluate(() => ["omr", "wrong", "academy"].filter((id) => document.getElementById(id).getBoundingClientRect().top < 0).length);
+      const passed = await page.evaluate(() => ["connect", "book", "device", "academy", "spec"].filter((id) => document.getElementById(id).getBoundingClientRect().top < 0).length);
       assert.ok(far > 4500 && passed >= 2, tag + " fast scrolling passes several sections (" + far + "px, " + passed + ")");
 
       /* 4. 역방향: 작은 음수 휠은 조금만 올라간다 */
-      await at(page, (await secTop(page, "wrong")) + 120);
+      await at(page, (await secTop(page, "book")) + 120);
       const up = await wheel(page, -80);
       assert.ok(up < 0 && Math.abs(up + 80) <= 16, tag + " small reverse wheel moves ~-80px, got " + up);
       const up2 = await wheel(page, -80);
@@ -132,7 +132,7 @@ const wheel = async (page, dy) => {
       assert.equal(await y(page), 0, tag + " Home returns to the top");
 
       /* 섹션 중간에서 멈출 수 있고, 긴 문구도 끝까지 화면에 들어온다 */
-      for (const id of ["bank", "book", "device", "omr", "wrong", "academy", "eco", "start"]) {
+      for (const id of ["book", "device", "academy", "eco", "start"]) {
         await at(page, (await secTop(page, id)) + 1);
         const r = await page.locator("#" + id + " .cp").evaluate((e) => { const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom }; });
         assert.ok(r.top >= 0 && r.bottom <= height + 1, tag + " #" + id + " copy fits on screen while its section is in view");
@@ -178,9 +178,9 @@ const wheel = async (page, dy) => {
       await page.mouse.move(720, 450);
       const d = await wheel(page, 80);
       assert.ok(Math.abs(d - 80) <= 16, "reduced motion wheel ~80px, got " + d);
-      await page.locator('.nav a[href="#bank"]').click();
+      await page.locator('.nav a[href="#flow"]').click();
       await settle(page, 200);
-      assert.ok(await page.evaluate(() => Math.abs(document.getElementById("bank").getBoundingClientRect().top - parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)) < 2), "anchor jumps instantly with reduced motion");
+      assert.ok(await page.evaluate(() => Math.abs(document.getElementById("flow").getBoundingClientRect().top - parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)) < 2), "anchor jumps instantly with reduced motion");
       assert.deepEqual(errors, []);
       await context.close();
     }
