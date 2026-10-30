@@ -25,4 +25,5 @@ create policy "leads select" on site_leads for select using (is_dev());
 create policy "leads update" on site_leads for update using (is_dev());
 create policy "leads delete" on site_leads for delete using (is_dev());
 grant insert on site_leads to anon, authenticated;
+grant select, update, delete on site_leads to authenticated; -- RLS 가 개발자(is_dev)로 한정
 grant usage, select on sequence site_leads_id_seq to anon, authenticated;
