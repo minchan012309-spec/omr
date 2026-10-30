@@ -22,7 +22,7 @@
   | `lazy/*.js` | 늦게 불러오는 화면(`admin` 학원 운영, `acad` 출결 · 수납 · 알림장, `tset` 학원 설정, `omr-report`) |
   | `styles/*.css` | `tokens → legacy → base → shell → components → screens` 순(새 디자인 층이 legacy를 덮음). 링크와 `sw.js` SHELL에 같은 `?v=N`. 새 화면 스타일은 `screens.css`, `--ui-*` 토큰 사용 |
   | `bank/`, `cm/`, `ph/`, `hl/` | 과목 데이터(물질과 에너지 · 세포와 물질대사 · 역학과 에너지 · 화법과 언어). `index.json`(유형 목록), `data.json`/`data.js`(교재 문항), `<태그>.json`(문제은행) |
-  | `intro.html` · `intro.css` · `intro.js` | 로그인 전 소개 페이지. 장면 섹션은 문서 흐름, 3D 무대만 sticky, GSAP 타임라인이 `scrollY`를 따라감(pin · scrub · 스냅 · wheel 가로채기 금지) |
+  | `intro.html` · `intro.css` · `intro.js` | 로그인 전 소개 페이지. 장면마다 문구 + 실제 앱 캡처(`intro/*.webp`)만 둔 보통 문서. 기기 목업 · 3D 무대 · GSAP · 스크롤 연출 없음(사용자 요청, 2026-10-30). 캡처는 `tools/capture_cine.js` · `tools/capture_intro.js` → `tools/intro_webp.py` |
   | `policy.html` | 이용약관 · 개인정보처리방침(초안, 법률 검토 전) |
   | `sw.js` | 서비스 워커. **배포되는 파일을 바꾸면 `VER`을 올린다** |
   | `tools/` | 캡처(`capture_intro.js`, `capture_cine.js`) · 교재 높이 측정(`measure_books.js`) · 화법과 언어 생성기(`tools/hl/`) |
