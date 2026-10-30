@@ -19,6 +19,8 @@ function onScroll(){scrollQ=false;var y=scrollY;hd.classList.toggle('scrolled',y
 addEventListener('scroll',function(){if(!scrollQ){scrollQ=true;requestAnimationFrame(onScroll)}},{passive:true});onScroll();
 
 /* ---------- 밝은 · 어두운 화면: 앱과 같은 저장값(omr_theme) ---------- */
+/* 맨 위로: 주소 해시에 기대지 않고 직접 올라간다(같은 해시를 다시 눌러도 · 고정 장면 한가운데에서도 동작) */
+D.addEventListener('click',function(e){var a=e.target.closest('a[href="#hero"],a[href="#top"]');if(!a)return;e.preventDefault();var rm=!H.classList.contains('fx');window.scrollTo({top:0,left:0,behavior:rm?'auto':'smooth'});try{history.replaceState(null,'',location.pathname+location.search)}catch(ig){}var f=$('#main');if(f&&f.focus){f.setAttribute('tabindex','-1');f.focus({preventScroll:true})}});
 var thm=$('#thm');if(thm)thm.addEventListener('click',function(){var t=H.dataset.theme==='light'?'dark':'light';H.dataset.theme=t;try{localStorage.setItem('omr_theme',t)}catch(e){}});
 
 /* ---------- 요금제: 개발자 탭 「요금제」(site_config 의 pricing). 못 읽으면 HTML 기본값 그대로 ---------- */
@@ -29,7 +31,17 @@ function needUpd(){var cards=$$('.plan',plansEl),n=cards.length,sel=$$('.need [a
  var lv=Math.min(n-1,Math.max.apply(null,sel.map(function(b){return +b.dataset.lv})));
  cards.forEach(function(c,i){c.classList.toggle('hit',i===lv);c.classList.toggle('dim',i<lv)});
  if(!cards[lv])return;var nm=$('h3',cards[lv]).firstChild.textContent.trim();out.innerHTML='고른 '+sel.length+'가지가 모두 들어 있는 요금제는 <b>'+esc(nm)+'</b>예요.'+(n===3&&lv===1?' 학생은 50명까지 등록할 수 있어요.':'')}
-$$('.need button').forEach(function(b){b.addEventListener('click',function(){b.setAttribute('aria-pressed',String(b.getAttribute('aria-pressed')!=='true'));needUpd()})});
+function bindNeed(b){b.addEventListener('click',function(){b.setAttribute('aria-pressed',String(b.getAttribute('aria-pressed')!=='true'));needUpd()})}
+$$('.need button').forEach(bindNeed);
+/* 요금제별 비교표: 개발자 탭이 보낸 줄(g=묶음 제목, t=기능, v=요금제별 칸). O · 빈칸(—) · 글자 */
+function cmpCell(c,top){c=String(c==null?'':c).trim();var y=/^(o|○|◯|포함|ㅇ)$/i.test(c),n=!c||/^(x|×|-|—|없음)$/i.test(c),cls=(y?'y':n?'n':'')+(top?' top':'');
+ var parts=c.split(';'),h=y?'O':n?'—':esc(parts[0].trim())+(parts[1]?'<small>'+esc(parts.slice(1).join(';').trim())+'</small>':'');return '<td'+(cls?' class="'+cls.trim()+'"':'')+'>'+h+'</td>'}
+function cmpBuild(cmp,rows){var n=PL.length,top=topIdx(n,PL),pr=function(x){var p=String(x.price||'').trim(),n0=/^[\d,]+$/.test(p)?+p.replace(/,/g,''):-1;return n0===0?'무료':n0>0?n0.toLocaleString('ko-KR')+'원':p||'문의'};
+ var h='<tr><th scope="col"><span class="sr-only">기능</span></th>'+PL.map(function(x,i){return '<th scope="col" data-i="'+i+'"'+(i===top?' class="top"':'')+'>'+esc(x.name)+'</th>'}).join('')+'</tr>';
+ var b='<tr class="price"><th scope="row">월 요금</th>'+PL.map(function(x,i){return '<td data-i="'+i+'"'+(i===top?' class="top"':'')+'>'+esc(pr(x))+'</td>'}).join('')+'</tr>';
+ rows.forEach(function(r){if(r.g!=null)b+='<tr class="g"><th scope="row" colspan="'+(n+1)+'">'+esc(r.g)+'</th></tr>';else b+='<tr><th scope="row">'+esc(r.t)+'</th>'+PL.map(function(x,i){return cmpCell((r.v||[])[i],i===top)}).join('')+'</tr>'});
+ $('thead',cmp).innerHTML=h;$('tbody',cmp).innerHTML=b;cmp.hidden=false}
+
 (function(){if(!plansEl||!window.fetch)return;
  var U='https://airejqudbqfsfhadvwqp.supabase.co',K='sb_publishable_YPbHe6NNnV5eQT0u1SZiCg_JLvrM7IV';
  fetch(U+'/rest/v1/site_config?key=eq.pricing&select=value',{headers:{apikey:K}}).then(function(r){return r.ok?r.json():null}).then(function(j){
@@ -39,11 +51,13 @@ $$('.need button').forEach(function(b){b.addEventListener('click',function(){b.s
   plansEl.innerHTML=PL.map(function(x,i){var p=String(x.price||'').trim(),num=/^[\d,]+$/.test(p),ask=/문의/.test(x.cta||'')&&ctHref,isTop=i===top;
    var n0=num?+p.replace(/,/g,''):-1,price=p?(n0===0?'무료':num?n0.toLocaleString('ko-KR')+'원':esc(p)):'';num=num&&n0>0;
    return '<article class="plan'+(isTop?' top':'')+'" data-i="'+i+'"><h3>'+esc(x.name)+'</h3><p class="price">'+(price?'<b>'+price+'</b>'+(num&&x.unit?'<small>'+esc(x.unit)+'</small>':''):'<b class="tbd">요금 준비 중</b>')+'</p>'+(x.desc?'<p class="pd">'+esc(x.desc)+'</p>':'')+
-    (PL.length===3?'<p class="who">'+who[i]+'</p>':'')+((x.items||[]).length?'<ul>'+x.items.map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ul>':'<ul></ul>')+
+    ((x.who!=null?String(x.who).trim():(PL.length===3?who[i]:''))?'<p class="who">'+esc(x.who!=null?String(x.who).trim():who[i])+'</p>':'')+((x.items||[]).length?'<ul>'+x.items.map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ul>':'<ul></ul>')+
     '<a class="btn '+(isTop?'yel':'line')+'" href="'+(ask?esc(ctHref):'index.html?app=1#login')+'"'+(ask?'':' data-app')+'>'+esc(x.cta||'무료로 시작하기')+'</a></article>'}).join('');
   var note=$('#prNote');if(note)note.textContent=v.note||'';
-  var cmp=$('#cmp');if(cmp){if(PL.length!==3)cmp.hidden=true;else PL.forEach(function(x,i){var th=$('thead th[data-i="'+i+'"]',cmp),td=$('tr.price td[data-i="'+i+'"]',cmp),pr=String(x.price||'').trim(),n0=/^[\d,]+$/.test(pr)?+pr.replace(/,/g,''):-1;if(th)th.textContent=x.name||th.textContent;if(td)td.textContent=n0===0?'무료':n0>0?n0.toLocaleString('ko-KR')+'원':pr||'문의'})}
+  var cmp=$('#cmp');if(cmp&&v.cmp&&v.cmp.length){cmpBuild(cmp,v.cmp)}
+  else if(cmp){if(PL.length!==3)cmp.hidden=true;else PL.forEach(function(x,i){var th=$('thead th[data-i="'+i+'"]',cmp),td=$('tr.price td[data-i="'+i+'"]',cmp),pr=String(x.price||'').trim(),n0=/^[\d,]+$/.test(pr)?+pr.replace(/,/g,''):-1;if(th)th.textContent=x.name||th.textContent;if(td)td.textContent=n0===0?'무료':n0>0?n0.toLocaleString('ko-KR')+'원':pr||'문의'})}
   
+  if(v.need&&v.need.length){var nb=$('.need');if(nb)nb.innerHTML=v.need.map(function(n){return '<button type="button" aria-pressed="false" data-lv="'+Math.max(0,Math.min(PL.length-1,(+n.lv||1)-1))+'">'+esc(n.t)+'</button>'}).join('');$$('.need button').forEach(bindNeed)}
   needUpd()}).catch(function(){})})();
 
 /* ---------- 밝은 면(마지막 장면 · 요금제 · 질문 · 바닥글) 위에서는 머리글도 밝게 ---------- */
@@ -190,14 +204,29 @@ var QRS=(function(){var run=$('#qrRun'),qb=$('#qb');if(!run||!qb)return null;
   var c=out(seg(p,.7,.78));dds[0].textContent=Math.round(9*c);dds[1].textContent=Math.round(3*c);dds[2].textContent=Math.round(75*c)+'%'}
  return {run:run,update:update}})();
 
-/* ---------- 학원의 하루: 아홉 장면이 스크롤 위치만큼 넘어간다(겹쳐 사라지고 나타남) ---------- */
+/* ---------- 학원의 하루: 아홉 장면. 화면이 장면마다 다른 방식으로 돌고 · 넘어가고 · 날아간다(스크롤 위치에서 바로 계산, 되감으면 그대로) ---------- */
 var DAY=(function(){var run=$('#dayRun');if(!run)return null;
  var steps=$$('.day-steps li'),descs=$$('.dd'),imgs=$$('.day-frame .shot'),MAP=[0,1,2,2,3,4,5,6,7,8],N=9,cur=-1;
+ /* 들어올 때(E)와 나갈 때(X)의 모양: [가로 %, 세로 %, 깊이 px, X회전, Y회전, Z회전, 크기] */
+ var V=[
+  {E:[60,0,-200,0,-58,0,.86],X:[-60,0,-200,0,58,0,.86]},   /* 회전목마처럼 옆으로 돈다 */
+  {E:[0,70,-120,-48,0,0,.9],X:[0,-60,-120,40,0,0,.9]},     /* 아래에서 젖혀 올라오고, 위로 넘어간다 */
+  {E:[90,10,0,0,0,9,.8],X:[-95,-8,0,0,0,-10,.8]},          /* 기울어진 채 날아든다 */
+  {E:[0,0,-600,0,0,0,.6],X:[0,0,420,0,0,0,1.25]},          /* 깊은 곳에서 다가와 지나간다 */
+  {E:[0,0,0,0,-110,0,1],X:[0,0,0,0,110,0,1]},              /* 책장처럼 뒤집힌다 */
+  {E:[-60,0,-200,0,58,0,.86],X:[60,0,-200,0,-58,0,.86]},
+  {E:[0,-70,-120,48,0,0,.9],X:[0,70,-120,-40,0,0,.9]},
+  {E:[-90,10,0,0,0,-9,.8],X:[95,-8,0,0,0,10,.8]},
+  {E:[0,30,-500,24,0,0,.7],X:[0,0,0,0,0,0,1]}];
+ var mix=function(A,B,t){return A.map(function(a,i){return a+(B[i]-a)*t})},ID=[0,0,0,0,0,0,1];
+ var tf=function(v){return 'translate3d('+v[0].toFixed(1)+'%,'+v[1].toFixed(1)+'%,'+v[2].toFixed(0)+'px) rotateX('+v[3].toFixed(1)+'deg) rotateY('+v[4].toFixed(1)+'deg) rotateZ('+v[5].toFixed(1)+'deg) scale('+v[6].toFixed(3)+')'};
  function update(p){var f=p*N,i=Math.max(0,Math.min(N-1,Math.floor(f)));
-  if(i!==cur){cur=i;steps.forEach(function(li,k){li.classList.toggle('on',k===i);var a=$('a',li);if(k===i)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current')});descs.forEach(function(d,k){d.classList.toggle('on',k===i)})}
-  imgs.forEach(function(im,k){var s=MAP[k],d=f-(s+.5),o=cl(1.6-Math.abs(d)*2);if(s===0&&d<0||s===N-1&&d>0)o=1;
-   var kio=im.classList.contains('kio');im.style.opacity=o.toFixed(3);im.style.visibility=o<.01?'hidden':'visible';
-   im.style.transform=kio?'translateY('+((1-out(cl(1-Math.abs(d)*1.2)))*30+d*-14).toFixed(1)+'px)':'translateY('+(d*-14).toFixed(1)+'px) scale('+(1-Math.abs(d)*.03).toFixed(4)+')'})}
+  if(i!==cur){cur=i;steps.forEach(function(li,k){li.classList.toggle('on',k===i);li.classList.toggle('past',k<i);var a=$('a',li);if(k===i)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current')});descs.forEach(function(d,k){d.classList.toggle('on',k===i)});var ck=$('#dayClock'),nw=$('#dayNow');if(ck)ck.textContent=$('time',steps[i]).textContent;if(nw)nw.textContent=i+1}
+  var fr=$('.day-frame'),fi=f-i,sw=Math.sin(fi*Math.PI);if(fr)fr.style.transform='rotateY('+((fi-.5)*-7).toFixed(2)+'deg) rotateX('+(sw*2.2).toFixed(2)+'deg)';
+  imgs.forEach(function(im,k){var s=MAP[k],v=V[s],d=f-(s+.5),kio=im.classList.contains('kio');if(kio)d-=.12;
+   var tin=s===0?1:io2(cl((d+1)/.72)),tout=s===N-1?0:io2(cl((d-.28)/.72)),o=cl(tin*1.4-.2)*(1-cl(tout*1.4-.4));
+   var m=tout>0?mix(ID,v.X,tout):mix(v.E,ID,tin);if(kio)m=mix([0,40,0,0,0,0,.9],ID,tin);
+   im.style.opacity=o.toFixed(3);im.style.visibility=o<.01?'hidden':'visible';im.style.zIndex=String(Math.round(10-Math.abs(d)*4));im.style.transform=tf(m)})}
  if(!H.classList.contains('fx'))update(0);
  return {run:run,update:update}})();
 
@@ -215,9 +244,10 @@ var DAY=(function(){var run=$('#dayRun');if(!run)return null;
   $$('[data-count]').forEach(function(el){el.textContent='0'+(el.dataset.unit||'');cio.observe(el)});
   var sio=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');sio.unobserve(en.target)}})},{threshold:.35});$$('.sp').forEach(function(s){sio.observe(s)})}
  if(!H.classList.contains('fx')||!window.requestAnimationFrame)return;
- var vh=innerHeight,hdH=64,items=[],q=false;
+ var vh=innerHeight,hdH=64,items=[],q=false;var tmap=$('#tmap');
  $$('[data-fx]').forEach(function(el){var k=el.dataset.fx,it={el:el,k:k,last:-1};
   if(k==='rise')it.kids=$$('[data-lag]',el);
+  if(k==='fly'||k==='flip')it.kids=Array.prototype.slice.call(el.children);
   if(k==='fan')it.pages=$$('.shot',el);
   if(k==='strip'){it.pin=$('.strip-pin',el);it.track=$('.strip-track',el)}
   items.push(it)});
@@ -235,12 +265,15 @@ var DAY=(function(){var run=$('#dayRun');if(!run)return null;
    else if(it.k==='strip')p=it.run?cl((hdH-r.top)/it.run):0;
    else p=cl((vh-r.top)/(vh*.62));
    st.push(p)});
+  if(tmap&&scrollY<vh*1.4){var hk=out(cl(scrollY/(vh*.55))),sm=innerWidth<861?.45:1;tmap.style.transform='rotateX('+(9*(1-hk)*sm).toFixed(2)+'deg) rotateY('+(-15*(1-hk)*sm).toFixed(2)+'deg) scale('+(.95+.05*hk).toFixed(4)+')'}
   if(fp&&fp.near)FLOW.update(fp.p,fp.e);
   var qp=QRS&&runP(QRS.run),dp=DAY&&runP(DAY.run);if(qp&&qp.near)QRS.update(qp.p,qp.e);if(dp&&dp.near)DAY.update(dp.p);
   if(lp&&lp.near)LINK.update(lp.p);
   items.forEach(function(it,i){var p=st[i];if(Math.abs(p-it.last)<.0005)return;it.last=p;var e=out(p);
    if(it.k==='rise'){it.el.style.opacity=(.2+.8*cl(p*1.6)).toFixed(3);it.el.style.transform='translateY('+((1-e)*56).toFixed(1)+'px) scale('+(.965+.035*e).toFixed(4)+')';
     it.kids.forEach(function(c){c.style.transform='translateY('+((1-e)*(+c.dataset.lag||1)*26).toFixed(1)+'px)'})}
+   else if(it.k==='fly'){var F=[[-34,0,0,26],[0,30,-28,0],[34,0,0,-26]];it.kids.forEach(function(c,j){var g=F[j%3],q=out(cl(p*1.25-j*.12)),r=1-q;c.style.opacity=(.1+.9*q).toFixed(3);c.style.transform='perspective(1400px) translate3d('+(g[0]*r).toFixed(1)+'%,'+(g[1]*r).toFixed(1)+'%,0) rotateX('+(g[2]*r).toFixed(1)+'deg) rotateY('+(g[3]*r).toFixed(1)+'deg) scale('+(.88+.12*q).toFixed(3)+')'})}
+   else if(it.k==='flip')it.kids.forEach(function(c,j){var q=out(cl(p*1.3-j*.18)),r=1-q;c.style.opacity=(.15+.85*q).toFixed(3);c.style.transform='rotateY('+((j%2?-1:1)*92*r).toFixed(1)+'deg) translateZ('+(-120*r).toFixed(0)+'px)';c.style.transformOrigin=j%2?'100% 50%':'0 50%'})
    else if(it.k==='fan')it.pages.forEach(function(pg,j){pg.style.transform='translateX('+((1-e)*it.dx[j]).toFixed(1)+'px) translateY('+((1-e)*(j%2?14:0)).toFixed(1)+'px) rotate('+(e*parseFloat(pg.style.getPropertyValue('--r'))).toFixed(2)+'deg)'});
    else if(it.k==='strip')it.track.style.transform='translateX('+(-p*it.run).toFixed(1)+'px)'})}
  function req(){if(!q){q=true;requestAnimationFrame(frame)}}
