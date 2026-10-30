@@ -26,7 +26,7 @@ const prop = (page, sel, p) => page.evaluate(([sel, p]) => gsap.getProperty(docu
 (async () => {
   const browser = await chromium.launch(browserOptions());
   try {
-    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: "block" });
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: "block", colorScheme: "dark" });
     const page = await context.newPage();
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
@@ -123,6 +123,10 @@ const prop = (page, sel, p) => page.evaluate(([sel, p]) => gsap.getProperty(docu
     const assets = await page.evaluate(() => [...new Set([...document.querySelectorAll("img")].map((i) => i.getAttribute("src") || i.dataset.src).concat([...document.querySelectorAll(".leaf")].flatMap((l) => [l.dataset.f, l.dataset.k])).concat([...document.querySelectorAll("[data-bg]")].map((e) => e.dataset.bg)).filter(Boolean))]);
     for (const src of assets) assert.equal((await page.request.get(BASE + "/" + src)).ok(), true, "asset exists: " + src);
     assert.equal((await page.request.get(BASE + "/policy.html")).ok(), true);
+    for (const p of ["trial.html", "contact.html", "lead.js", "lead.css"]) assert.equal((await page.request.get(BASE + "/" + p)).ok(), true, p);
+    assert.ok((await page.locator('a[href="trial.html"]').count()) > 0, "free trial entry under pricing");
+    assert.equal(await page.locator('a[href^="mailto:"]').count(), 0, "contact uses the built-in form, not e-mail");
+    assert.equal(await page.locator(".ft-word svg.sym").count(), 1, "footer shows the S symbol");
 
     /* 폭마다 가로 넘침 없음 · 모바일은 가벼운 3D 그대로 */
     for (const width of [1440, 1024, 768, 390]) {
@@ -145,6 +149,22 @@ const prop = (page, sel, p) => page.evaluate(([sel, p]) => gsap.getProperty(docu
     assert.deepEqual(errors, [], "no uncaught browser errors");
     await context.close();
 
+    /* 라이트 모드: 시스템 설정을 따르고, 물질과 에너지 파랑으로 끝난다. 버튼으로 바꿀 수 있다 */
+    const lightCtx = await browser.newContext({ viewport: { width: 1920, height: 900 }, colorScheme: "light" });
+    const lp = await lightCtx.newPage();
+    await lp.goto(BASE + "/intro.html");
+    await lp.waitForTimeout(2500);
+    assert.equal(await lp.evaluate(() => document.documentElement.dataset.theme), "light");
+    await seek(lp, 1820);
+    assert.ok(await lp.evaluate(() => [...document.querySelectorAll("#pad,#mac,#phone,#xdr")].every((e) => { const r = e.querySelector(".slab,.mac-lid,.xdr-body,.mac-base") || e; const b = r.getBoundingClientRect(); return b.right <= innerWidth + 2 && b.left >= -2 })), "operations scene fits a wide screen");
+    await lp.screenshot({ path: OUT + "/light-academy-1920.png" });
+    await seek(lp, 2310);
+    assert.equal(await lp.locator(".film-bg").evaluate((e) => getComputedStyle(e).backgroundColor), "rgb(47, 127, 208)");
+    await lp.locator("#thm").click();
+    await lp.waitForTimeout(800);
+    assert.equal(await lp.evaluate(() => document.documentElement.dataset.theme), "dark");
+    await lightCtx.close();
+
     /* 동작 줄이기: 3D 무대 없이 같은 장면이 정적으로 이어진다 */
     const reduced = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
     const rp = await reduced.newPage();
@@ -160,7 +180,8 @@ const prop = (page, sel, p) => page.evaluate(([sel, p]) => gsap.getProperty(docu
 
     const staticContext = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
     const staticPage = await staticContext.newPage();
-    await staticPage.goto(BASE + "/intro.html");
+    await staticPage.goto(BASE + "/intro.html", { waitUntil: "networkidle" });
+    await staticPage.waitForTimeout(500);
     assert.equal(await staticPage.locator("#h1").isVisible(), true);
     assert.equal(await staticPage.locator("#omr .still").isVisible(), true);
     assert.equal(await staticPage.locator("#plans .plan").count(), 3);

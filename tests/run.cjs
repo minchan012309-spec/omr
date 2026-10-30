@@ -70,6 +70,7 @@ const run = (args, env) =>
       ["--test", "tests/academy-core.test.cjs", "tests/korean-editor.test.cjs"],
       ["tests/operations-db.cjs"],
       ["tests/full-schema-db.cjs"],
+      ["tests/leads-db.cjs"],
       ["tests/print-regression.cjs"],
       ["tests/korean-browser.cjs"],
       ["tests/book-pdf.cjs"],

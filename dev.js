@@ -3,7 +3,7 @@
 const DEVNAV=[
  ['개요',[['home','대시보드'],['daily','사용량 분석']]],
  ['콘텐츠',[['notice','사이트 공지'],['qrep','문항 신고함'],['db','문항 관리'],['ovr','수정·숨김 목록'],['types','과목·유형 현황'],['scan','DB 점검'],['qstat','문항 통계']]],
- ['사용자',[['users','계정·개발자'],['students','학생 목록'],['signups','가입 신청'],['attempts','최근 채점'],['bugs','버그 신고'],['qrep','문항 신고함']]],
+ ['사용자',[['leads','체험 신청 · 문의'],['users','계정·개발자'],['students','학생 목록'],['signups','가입 신청'],['attempts','최근 채점'],['bugs','버그 신고'],['qrep','문항 신고함']]],
  ['사이트',[['site','배너·과목·기능'],['price','요금제'],['maint','점검 모드'],['deploy','업데이트 배포']]],
  ['시스템',[['pk','패스키 진단'],['curl','eBook 효과 진단'],['srv','서버 설정 점검'],['health','연결·성능'],['store','브라우저 저장소'],['tools','정리·도구'],['about','버전 정보']]],
  ['기록',[['log','활동 기록'],['export','내보내기']]]
@@ -11,7 +11,7 @@ const DEVNAV=[
 const DEVSEC=()=>DEVNAV.flatMap(g=>g[1]);
 const DVP=()=>document.getElementById('devb');
 const DVS={home:()=>devHome(),daily:()=>devDaily(),notice:()=>devNotice(),db:()=>devDb(),ovr:()=>devOvr(),types:()=>devTypes(),scan:()=>devScanView(),qstat:()=>devQstat(),
- users:()=>devUsers(),students:()=>devStudents(),signups:()=>devSignups(),attempts:()=>devAttempts(),bugs:()=>devBugs(),qrep:()=>devQrep(),site:()=>devSite(),price:()=>devPrice(),maint:()=>devMaint(),deploy:()=>devDeploy(),
+ leads:()=>devLeads(),users:()=>devUsers(),students:()=>devStudents(),signups:()=>devSignups(),attempts:()=>devAttempts(),bugs:()=>devBugs(),qrep:()=>devQrep(),site:()=>devSite(),price:()=>devPrice(),maint:()=>devMaint(),deploy:()=>devDeploy(),
  pk:()=>devPk(),curl:()=>devCurl(),srv:()=>devSrv(),health:()=>devHealth(),store:()=>devStore(),tools:()=>devTools(),about:()=>devAbout(),log:()=>devLogView(),export:()=>devExport()};
 function devMain(){
  if(!DEV.ok){$('#main').innerHTML='<div class="card empty">개발자 계정으로 로그인해야 볼 수 있어요.</div>';return}
@@ -102,6 +102,18 @@ async function devUsers(){const [a,b]=await Promise.all([rpc('dev_stats',{}),rpc
 async function devAdd(){const email=$('#dv_e').value.trim();if(!email)return;const r=await rpc('dev_add',{p_email:email});if(!r.ok){toast(devErr(r));return}toast(await r.json()?'개발자로 지정했어요':'그 이메일의 계정이 없어요');devLog('개발자 지정',email);devRender()}
 async function devRemove(id){if(!confirm('개발자 권한을 해제할까요?'))return;const r=await rpc('dev_remove',{p_uid:id});if(!r.ok){toast(devErr(r));return}devLog('개발자 해제',id);devRender()}
 async function devBan(id,ban){if(!confirm(ban?'이 계정을 정지할까요? 로그인할 수 없게 돼요.':'정지를 해제할까요?'))return;const r=await rpc('dev_ban',{p_uid:id,p_ban:ban});if(!r.ok){toast(devErr(r));return}devLog(ban?'계정 정지':'정지 해제',id);devRender()}
+/* --- 소개 페이지의 무료 체험 신청 · 문의(trial.html · contact.html → site_leads, supabase/sql_26_site_leads.sql) --- */
+let DVL={k:'',st:'new'};
+async function devLeads(){const q='/rest/v1/site_leads?select=*&order=t.desc&limit=300'+(DVL.k?'&kind=eq.'+DVL.k:'')+(DVL.st?'&status=eq.'+DVL.st:'');const r=await sb(q);
+ if(r.status===404){document.getElementById('devb').innerHTML='<div class="card"><h3 style="margin-top:0">체험 신청 · 문의</h3><div class="hint">서버에 표가 아직 없어요. Supabase SQL 편집기에서 <b>supabase/sql_26_site_leads.sql</b>을 실행하세요.</div></div>';return}
+ if(!r.ok)throw new Error(devErr(r));const L=await r.json();
+ const seg=(v,l,cur,f)=>`<button class="chp ${cur===v?'on':''}" onclick="${f}='${v}';devRender()">${l}</button>`;
+ const row=x=>`<div class="wn"><div class="wnh"><span class="tag">${x.kind==='trial'?'무료 체험':'문의'}</span><b>${esc(x.academy||'')}${x.academy?' · ':''}${esc(x.name)}</b><span class="m">${new Date(x.t).toLocaleString('ko-KR')}</span><span style="margin-left:auto;display:flex;gap:6px">${x.status==='new'?`<button class="s sm" onclick="devLeadSet(${x.id},'done')">처리 완료</button>`:`<button class="s sm" onclick="devLeadSet(${x.id},'new')">다시 열기</button>`}<button class="s sm" onclick="devLeadDel(${x.id})">삭제</button></span></div>
+  <div class="m" style="margin:6px 0">${[x.phone&&('전화 '+esc(x.phone)),x.email&&('<a href="mailto:'+esc(x.email)+'">'+esc(x.email)+'</a>'),x.students&&('학생 '+esc(x.students)),x.subjects&&esc(x.subjects),x.topic&&esc(x.topic)].filter(Boolean).join(' · ')}</div>${x.message?`<div style="white-space:pre-wrap">${esc(x.message)}</div>`:''}</div>`;
+ document.getElementById('devb').innerHTML=`<div class="card"><div class="row" style="gap:10px;flex-wrap:wrap;align-items:center"><h3 style="margin:0">체험 신청 · 문의 ${L.length}건</h3><span class="chps">${seg('','전체',DVL.k,'DVL.k')}${seg('trial','무료 체험',DVL.k,'DVL.k')}${seg('contact','문의',DVL.k,'DVL.k')}</span><span class="chps">${seg('new','새 신청',DVL.st,'DVL.st')}${seg('done','처리 완료',DVL.st,'DVL.st')}${seg('','모두',DVL.st,'DVL.st')}</span></div>
+ <p class="m" style="margin:6px 0 10px">소개 페이지의 「무료 체험하기」 · 「문의하기」에서 들어온 내용이에요. 연락한 뒤 「처리 완료」를 누르세요.</p>${L.length?L.map(row).join(''):'<div class="m">아직 들어온 신청이 없어요.</div>'}</div>`}
+async function devLeadSet(id,st){const r=await sb('/rest/v1/site_leads?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({status:st})});if(!r.ok){toast(devErr(r));return}devRender()}
+async function devLeadDel(id){if(!confirm('이 신청을 지울까요?'))return;const r=await sb('/rest/v1/site_leads?id=eq.'+id,{method:'DELETE'});if(!r.ok){toast(devErr(r));return}devRender()}
 async function devBugs(){const r=await sb('/rest/v1/bug_reports?select=id,who,msg,info,t&order=t.desc&limit=100');if(!r.ok)throw new Error(devErr(r));const L=await r.json();
  document.getElementById('devb').innerHTML=`<div class="card"><h3 style="margin-top:0">버그 신고 ${L.length}건</h3>${L.length?L.map(x=>`<div class="wn"><div class="wnh"><b>${esc(x.who||'선생님')}</b><span class="m">${new Date(+x.t).toLocaleString('ko-KR')}</span><button class="s sm" style="margin-left:auto" onclick="devBugDel(${x.id})">삭제</button></div><div style="margin:6px 0;white-space:pre-wrap">${esc(x.msg)}</div>${[...new Set(String(x.msg).match(/\b[A-Z]-?[a-z]*\d*-?\d{2,4}(?:-\d{3,4})?\b/g)||[])].filter(c=>tagOf(c)).slice(0,4).map(c=>`<button class="s sm" onclick="devQEdit('${c}')">${c} 열기</button>`).join(' ')}<div class="m" style="font-size:11px;word-break:break-all">${esc(JSON.stringify(x.info||{}).slice(0,300))}</div></div>`).join(''):'<div class="m">신고가 없어요.</div>'}</div>`}
 async function devBugDel(id){if(!confirm('이 신고를 삭제할까요?'))return;const r=await sb('/rest/v1/bug_reports?id=eq.'+id,{method:'DELETE'});if(!r.ok){toast(devErr(r));return}devRender()}
