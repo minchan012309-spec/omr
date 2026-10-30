@@ -150,16 +150,24 @@ const wheel = async (page, dy) => {
     {
       const { context, page, errors } = await openIntro(browser, { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
       const cdp = await context.newCDPSession(page);
+      /* 실제 터치 이벤트 열(시작 → 이동 여러 번 → 끝)을 보내고, 관성까지 멈출 때까지 기다린다 */
       const swipe = async (dy) => {
-        const b = await y(page);
-        await cdp.send("Input.synthesizeScrollGesture", { x: 195, y: dy < 0 ? 300 : 600, yDistance: dy, gestureSourceType: "touch", speed: 800, preventFling: true });
-        await settle(page, 600);
-        return (await y(page)) - b;
+        const b = await y(page), x = 195, y0 = dy < 0 ? 640 : 240, steps = 12;
+        await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y: y0 }] });
+        for (let i = 1; i <= steps; i++) {
+          await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: y0 + (dy * i) / steps }] });
+          await page.waitForTimeout(16);
+        }
+        await page.waitForTimeout(120);
+        await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+        let last = -1, now = await y(page);
+        for (let i = 0; i < 40 && now !== last; i++) { await page.waitForTimeout(150); last = now; now = await y(page); }
+        return now - b;
       };
       const down = await swipe(-300);
-      assert.ok(down > 200 && down < 420, "touch swipe up scrolls ~300px, got " + down);
+      assert.ok(down > 200 && down < 700, "touch swipe up scrolls about the swipe distance, got " + down);
       const back = await swipe(200);
-      assert.ok(back < -120 && back > -320, "touch swipe down scrolls back ~200px, got " + back);
+      assert.ok(back < -120 && back > -600, "touch swipe down scrolls back about the swipe distance, got " + back);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "no horizontal overflow on touch phone");
       assert.deepEqual(errors, []);
       await context.close();

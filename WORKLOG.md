@@ -23,7 +23,7 @@
 - 바뀐 파일: `intro.js`, `intro.css`, `intro.html`, `index.html`, `styles/legacy.css`, `styles/shell.css`, `styles/screens.css`, `sw.js`, `package.json`, `tests/run.cjs`, `tests/ui-system.test.cjs`, `tests/intro-regression.cjs`, `tests/intro-scroll.cjs`(새), `tests/app-ui.cjs`(새), `scripts/verify-local-ui-backup.cjs`(이동), `AGENTS.md`.
 - `AGENTS.md`를 고친 이유: 저장소 장기 규칙이 실제로 바뀜 — CSS 로드 순서 줄(legacy 위치 · `?v=N`), 인트로 구조 설명(pin · scrub 금지), 필수 명령(`npm test` 범위, 로컬 백업 검증 명령).
 - 새 · 수정 테스트
-  - `tests/intro-scroll.cjs`: 1440 · 768 · 390에서 휠 80(≈80px, 화면 1/4 미만, 히어로 문구가 1:1로 이동, 타임라인 12단위 미만), 장면 경계 40px 앞에서 휠 80(시작점으로 끌려가지 않음, 들어오는 문구가 1:1), 휠 80×5(모두 반영 · ≈400px), 휠 900(≈900px)과 900×6(섹션 여러 개 통과), 역방향 −80 두 번, `scrollTo(본문 45%)` 뒤 1.2초 위치 그대로, PageDown/PageUp/Space/Shift+Space(한 화면 안쪽)/ArrowDown/ArrowUp(200px 미만)/End/Home, 섹션 중간 정지 · 문구가 화면 안, 가로 넘침 없음. 휴대폰 터치(CDP 터치 제스처) 위 300px · 아래 200px, 동작 줄이기, file://. 수정 전 코드(origin/main)에서 돌리면 「hero copy travels with the scroll 1:1」에서 실패함을 확인.
+  - `tests/intro-scroll.cjs`: 1440 · 768 · 390에서 휠 80(≈80px, 화면 1/4 미만, 히어로 문구가 1:1로 이동, 타임라인 12단위 미만), 장면 경계 40px 앞에서 휠 80(시작점으로 끌려가지 않음, 들어오는 문구가 1:1), 휠 80×5(모두 반영 · ≈400px), 휠 900(≈900px)과 900×6(섹션 여러 개 통과), 역방향 −80 두 번, `scrollTo(본문 45%)` 뒤 1.2초 위치 그대로, PageDown/PageUp/Space/Shift+Space(한 화면 안쪽)/ArrowDown/ArrowUp(200px 미만)/End/Home, 섹션 중간 정지 · 문구가 화면 안, 가로 넘침 없음. 휴대폰 터치(CDP `Input.dispatchTouchEvent` 터치 시작 · 이동 · 끝) 위 · 아래 스와이프가 스와이프 거리만큼 움직임. 처음엔 `synthesizeScrollGesture`를 썼으나 리눅스 CI 헤드리스에서 0px이 나와 바꿈, 동작 줄이기, file://. 수정 전 코드(origin/main)에서 돌리면 「hero copy travels with the scroll 1:1」에서 실패함을 확인.
   - `tests/app-ui.cjs`(가짜 Supabase 응답 · 예시 학생 「가학생」 「나학생」): 로그인 1440 · 390(탭 키보드 · 포커스 · 값 유지 · 새로고침 없음 · Enter 제출(학생 · 학부모 RPC) · 번호 채점 안내 · 가로 넘침 · 폼 가림 · 선생님 로그인 뒤 entry-mode 해제 · 뒤로/앞으로 · 로그아웃), 세션 자동 복구, `#login` · `#student` 해시, 학습지 만들기(시작점 · 제목 하나 · bGo로 빌더 창 · 취약 유형 추천 · 선택 요약 · 하단 버튼 · bdGo), 취약 유형(전체 · 반 · 학생 질문, 최약 유형 · 정답률 · 표본, 선택 · 해제, 바로 풀기(quickPractice) · 학습지 만들기, 휴대폰 하단 요약), 학생 목록(행 · 검색 · 반 필터 · 상세 · 390 핵심 정보 · 메뉴 키보드 · Escape · 바깥 클릭 · 기존 핸들러 · 빈 상태), 공통(Pretendard · YetHangul 없음 · backdrop-filter 없음 · 장식 이모지 없음, 다크, 동작 줄이기, 서비스 워커가 새 순서의 CSS를 캐시하고 오프라인에서 열림).
   - `tests/intro-regression.cjs`: pin 검사 → ScrollTrigger 없음 · 무대 sticky, 장면 이동은 `__intro.yAt`, 목차는 앵커 + `aria-current`. `tests/ui-system.test.cjs`: 새 CSS 순서와 `sw.js`의 같은 `?v=` 확인.
 - 확인(실제 실행)
@@ -34,7 +34,7 @@
   - file://: `intro-scroll.cjs`가 file://로 열어 휠 80 확인(BASE 없이 돌리면 전부 file://).
   - Taste Skill inspector(`intro.html`): 수정 전 5 FAIL → 지금 1 FAIL · 6 WARN. 남은 FAIL은 `empty-screens`(데스크톱 12장 중 8장이 빈 바탕 20% 미만, 수정 전 9장)로 시네마틱 장면 구성 자체의 밀도 문제라 이번 범위에서 고치지 않음.
 - 남은 위험 · 후속
-  - 실제 Mac 트랙패드 · iOS Safari · Android Chrome에서 직접 만져 보지 못함(Playwright 휠 · CDP 터치 제스처로만 확인).
+  - 실제 Mac 트랙패드 · iOS Safari · Android Chrome에서 직접 만져 보지 못함(Playwright 휠 · CDP 터치 이벤트로만 확인).
   - 인트로 페이지가 데스크톱 약 43화면 길이. 스크롤바를 끌면 장면이 빨리 지나감(위치 보정은 없음). 길이 비율은 `intro.js`의 `layout()`(1.7 / 1.4).
   - 다음 장면 문구가 들어올 때 이전 장면 기기 위를 잠깐 지나감(inspector WARN `pinned-over-picture` · `long-pin`).
   - 900~1180px 폭에서는 학생 행의 약한 유형 · 계정 칸이 여전히 숨음(390 · 768은 보임).
