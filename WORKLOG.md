@@ -2,7 +2,7 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
-## 2026-10-30 · Claude Code · claude/intro-scroll-ui-fixes · PR (커밋 뒤 적음)
+## 2026-10-30 · Claude Code · claude/intro-scroll-ui-fixes · PR #100 (https://github.com/minchan012309-spec/omr/pull/100)
 - 시작: `origin/main` 3836e04(PR #99 병합) 위에서 새 브랜치. 직전 작업은 PR #99(인트로 라이트/다크 · 스크롤 거리 1.5배), PR #98(시네마틱 인트로), PR #97(UI 재구축, Codex). 열린 PR 없음. 직전 세션은 사용자가 「아직도 스크롤이 너무 빨라」라고 한 뒤 한도로 끊겨 손대지 못한 상태였음.
 - 목적: 인트로에서 휠 · 트랙패드를 조금만 움직여도 장면이 통째로 넘어가는 문제 해결, 그리고 남은 앱 문제(CSS 순서, 테스트 진입점, 로그인 탭 접근성, entry-mode, 학생 목록 모바일, 장식, YetHangul, 서비스 워커 캐시).
 - 인트로 스크롤 원인: wheel · touch 핸들러나 scroll-snap은 원래 없었다(측정: 휠 80px → scrollY 80px 그대로). 원인은 구조였다. `#film`(100vh, overflow:hidden)을 GSAP ScrollTrigger `pin`으로 약 35화면 동안 고정하고 `scrub:1.2`로 타임라인 하나에 10장면을 묶어서, ① 글이 스크롤을 따라 움직이지 않고 ② 문구가 18~24단위(≈250~320px) 안에 통째로 페이드 교체되며 ③ 손을 뗀 뒤에도 1.2초 동안 장면이 계속 진행됐다. 그래서 짧은 트랙패드 관성 한 번이 「한 장」 전환으로 보였다.
@@ -39,7 +39,7 @@
   - 다음 장면 문구가 들어올 때 이전 장면 기기 위를 잠깐 지나감(inspector WARN `pinned-over-picture` · `long-pin`).
   - 900~1180px 폭에서는 학생 행의 약한 유형 · 계정 칸이 여전히 숨음(390 · 768은 보임).
   - 로그인 화면 「번호로 바로 채점」은 여전히 브라우저 `prompt` 창을 쓰고, 로그인 전에는 채점할 수 없다는 안내로 끝남(기존 동작).
-- 커밋: (커밋 뒤 적음)
+- 커밋: 45d1b88(구현 · 테스트), 이 기록 줄은 뒤이은 docs 커밋
 
 ## 2026-10-30 · Claude Code · claude/print-students-ebook-intro · PR #99
 - 한 일
