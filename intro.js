@@ -42,6 +42,7 @@ $$('.need button').forEach(function(b){b.addEventListener('click',function(){b.s
     (PL.length===3?'<p class="who">'+who[i]+'</p>':'')+((x.items||[]).length?'<ul>'+x.items.map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ul>':'<ul></ul>')+
     '<a class="btn '+(isTop?'yel':'line')+'" href="'+(ask?esc(ctHref):'index.html?app=1#login')+'"'+(ask?'':' data-app')+'>'+esc(x.cta||'무료로 시작하기')+'</a></article>'}).join('');
   var note=$('#prNote');if(note)note.textContent=v.note||'';
+  var cmp=$('#cmp');if(cmp){if(PL.length!==3)cmp.hidden=true;else PL.forEach(function(x,i){var th=$('thead th[data-i="'+i+'"]',cmp),td=$('tr.price td[data-i="'+i+'"]',cmp),pr=String(x.price||'').trim(),n0=/^[\d,]+$/.test(pr)?+pr.replace(/,/g,''):-1;if(th)th.textContent=x.name||th.textContent;if(td)td.textContent=n0===0?'무료':n0>0?n0.toLocaleString('ko-KR')+'원':pr||'문의'})}
   
   needUpd()}).catch(function(){})})();
 
@@ -168,6 +169,43 @@ var LINK=(function(){var run=$('#linkRun'),lb=$('#lb');if(!run||!lb)return null;
  if(!H.classList.contains('fx'))update(1);
  return {run:run,update:update,visible:visible}})();
 
+
+/* ---------- QR 채점: 카메라 창이 쪽 아래 QR로 다가가 확대 → 인식 → OMR → 결과 ---------- */
+var QRS=(function(){var run=$('#qrRun'),qb=$('#qb');if(!run||!qb)return null;
+ var qz=$('.qz',qb),page=$('.qpage',qb),fd=$('.qfind',qb),scan=$('b',fd),ok=$('.qok',qb),ph=$('.qphone',qb),res=$('.res',ph),sc=$('.qscore',qb),dds=$$('dd',sc),steps=$$('.qr-steps li'),mq=matchMedia('(max-width: 860px)'),cur=-1;
+ /* 쪽 안 QR 가운데(34×48.1 창 기준): 가로 92% · 세로 89.7%, 한 변 약 1.4 */
+ var QX=31.28,QY=43.16,CX=17,CY=24.05;
+ function st(el,o,t){el.style.opacity=o.toFixed(3);el.style.transform=t||'none';el.style.visibility=o<.01?'hidden':'visible'}
+ function update(p,e){var m=mq.matches,i=p<.3?0:p<.5?1:p<.78?2:3;
+  if(i!==cur){cur=i;steps.forEach(function(li,k){li.classList.toggle('on',k===i)})}
+  var zin=io2(seg(p,.08,.32)),zout=io2(seg(p,.5,.6)),mm=zin*(1-zout),z=1+4*mm,dx=(CX-QX)*mm,dy=(CY-QY)*mm;
+  page.style.transform='translate('+dx.toFixed(2)+'em,'+dy.toFixed(2)+'em) scale('+z.toFixed(3)+')';
+  var k=zout,sx=m?-4*k:0;st(qz,cl(e*1.3),'translate('+sx.toFixed(2)+'em,0) scale('+lerp(1,m?.5:.55,k).toFixed(3)+')');
+  var fx=QX+dx,fy=QY+dy,fs=2.2*z/10;st(fd,seg(p,.12,.2)*(1-seg(p,.5,.55)),'translate('+(fx-5).toFixed(2)+'em,'+(fy-5).toFixed(2)+'em) scale('+fs.toFixed(3)+')');
+  fd.classList.toggle('ok',p>.42);scan.style.top=(seg(p,.32,.42)*88).toFixed(1)+'%';scan.style.opacity=p>.32&&p<.42?1:0;
+  ok.textContent=p<.7?'인식 완료 · 물질과 에너지 유형서 3쪽 · 문항 2개':'학생 기록 · 유형 지도에 바로 반영';
+  st(ok,seg(p,.42,.46)*(1-seg(p,.56,.6))+seg(p,.8,.84),'translateY('+((1-out(seg(p,.42,.46)))*.6).toFixed(2)+'em)');
+  var pin=out(seg(p,.52,.6));st(ph,pin,'translateY('+((1-pin)*10).toFixed(2)+'em)');res.style.opacity=seg(p,.66,.7).toFixed(3);
+  st(sc,seg(p,.7,.74),'translateY('+((1-out(seg(p,.7,.74)))*1.5).toFixed(2)+'em)');
+  var c=out(seg(p,.7,.78));dds[0].textContent=Math.round(9*c);dds[1].textContent=Math.round(3*c);dds[2].textContent=Math.round(75*c)+'%'}
+ return {run:run,update:update}})();
+
+/* ---------- 학원의 하루: 아홉 장면이 스크롤 위치만큼 넘어간다(겹쳐 사라지고 나타남) ---------- */
+var DAY=(function(){var run=$('#dayRun');if(!run)return null;
+ var steps=$$('.day-steps li'),descs=$$('.dd'),imgs=$$('.day-frame .shot'),MAP=[0,1,2,2,3,4,5,6,7,8],N=9,cur=-1;
+ function update(p){var f=p*N,i=Math.max(0,Math.min(N-1,Math.floor(f)));
+  if(i!==cur){cur=i;steps.forEach(function(li,k){li.classList.toggle('on',k===i);var a=$('a',li);if(k===i)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current')});descs.forEach(function(d,k){d.classList.toggle('on',k===i)})}
+  imgs.forEach(function(im,k){var s=MAP[k],d=f-(s+.5),o=cl(1.6-Math.abs(d)*2);if(s===0&&d<0||s===N-1&&d>0)o=1;
+   var kio=im.classList.contains('kio');im.style.opacity=o.toFixed(3);im.style.visibility=o<.01?'hidden':'visible';
+   im.style.transform=kio?'translateY('+((1-out(cl(1-Math.abs(d)*1.2)))*30+d*-14).toFixed(1)+'px)':'translateY('+(d*-14).toFixed(1)+'px) scale('+(1-Math.abs(d)*.03).toFixed(4)+')'})}
+ if(!H.classList.contains('fx'))update(0);
+ return {run:run,update:update}})();
+
+/* ---------- 기능 전체: 분야 고르기 ---------- */
+(function(){var bs=$$('.cats button'),cards=$$('.spec-g .sp'),n=$('#catN');if(!bs.length)return;
+ function set(c){bs.forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.cat===c))});var k=0;cards.forEach(function(a){var on=c==='all'||a.dataset.cat===c;a.hidden=!on;if(on){k++;a.classList.add('in')}});n.textContent=k}
+ bs.forEach(function(b){b.addEventListener('click',function(){set(b.dataset.cat)})});set('all')})();
+
 /* ---------- 스크롤 → 진행도. 매 프레임 읽기를 먼저, 쓰기는 나중에 ---------- */
 (function(){
  /* 숫자 세기(처음 보일 때 한 번): 문제은행 문항 수 등 */
@@ -198,6 +236,7 @@ var LINK=(function(){var run=$('#linkRun'),lb=$('#lb');if(!run||!lb)return null;
    else p=cl((vh-r.top)/(vh*.62));
    st.push(p)});
   if(fp&&fp.near)FLOW.update(fp.p,fp.e);
+  var qp=QRS&&runP(QRS.run),dp=DAY&&runP(DAY.run);if(qp&&qp.near)QRS.update(qp.p,qp.e);if(dp&&dp.near)DAY.update(dp.p);
   if(lp&&lp.near)LINK.update(lp.p);
   items.forEach(function(it,i){var p=st[i];if(Math.abs(p-it.last)<.0005)return;it.last=p;var e=out(p);
    if(it.k==='rise'){it.el.style.opacity=(.2+.8*cl(p*1.6)).toFixed(3);it.el.style.transform='translateY('+((1-e)*56).toFixed(1)+'px) scale('+(.965+.035*e).toFixed(4)+')';
@@ -208,8 +247,8 @@ var LINK=(function(){var run=$('#linkRun'),lb=$('#lb');if(!run||!lb)return null;
  addEventListener('scroll',req,{passive:true});
  var rz;addEventListener('resize',function(){clearTimeout(rz);rz=setTimeout(function(){measure();req()},120)});
  addEventListener('load',function(){measure();req()});
- measure();if(FLOW)FLOW.update(0,0);frame();
- window.__intro={flow:FLOW,link:LINK};
+ measure();if(FLOW)FLOW.update(0,0);if(QRS)QRS.update(0,0);if(DAY)DAY.update(0);frame();
+ window.__intro={flow:FLOW,link:LINK,qr:QRS,day:DAY};
 })();
 
 watchLight();

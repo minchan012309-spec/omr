@@ -61,7 +61,7 @@ const wheel = async (page, dy) => {
       assert.ok(Math.abs(h1Before - h1After - d1) <= 2, tag + " hero copy travels with the scroll 1:1");
 
       /* 장면 경계 바로 앞에서 작은 휠: 다음 장면 시작점으로 끌려가지 않는다 */
-      for (const id of ["book", "device", "academy"]) {
+      for (const id of ["book", "device", "eco"]) {
         const top = await secTop(page, id);
         const start = await at(page, top - 40);
         const d = await wheel(page, 80);
@@ -132,7 +132,7 @@ const wheel = async (page, dy) => {
       assert.equal(await y(page), 0, tag + " Home returns to the top");
 
       /* 섹션 중간에서 멈출 수 있고, 긴 문구도 끝까지 화면에 들어온다 */
-      for (const id of ["book", "device", "academy", "eco", "start"]) {
+      for (const id of ["book", "device", "eco", "start"]) {
         await at(page, (await secTop(page, id)) + 1);
         const r = await page.locator("#" + id + " .cp").evaluate((e) => { const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom }; });
         assert.ok(r.top >= 0 && r.bottom <= height + 1, tag + " #" + id + " copy fits on screen while its section is in view");
