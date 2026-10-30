@@ -19,7 +19,12 @@ const go = async (page, id) => {
   await page.evaluate((id) => document.getElementById(id).scrollIntoView({ block: "start" }), id);
   await page.waitForTimeout(500);
 };
-const SCENES = ["bank", "book", "omr", "wrong", "next", "device", "academy", "eco"];
+const SCENES = ["book", "device", "academy", "eco"];
+/* sticky 장면(run)의 진행도 p 로 스크롤 */
+const runTo = async (page, id, p) => {
+  await page.evaluate(([id, p]) => { const r = document.getElementById(id), pin = r.firstElementChild, hd = document.querySelector(".hd").offsetHeight; scrollTo(0, r.getBoundingClientRect().top + scrollY - hd + (r.offsetHeight - pin.offsetHeight) * p); }, [id, p]);
+  await page.waitForTimeout(350);
+};
 (async () => {
   const browser = await chromium.launch(browserOptions());
   try {
@@ -50,7 +55,7 @@ const SCENES = ["bank", "book", "omr", "wrong", "next", "device", "academy", "ec
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType), "none", "no forced scroll");
     assert.equal(await page.locator("#h1").isVisible(), true);
     await page.screenshot({ path: OUT + "/desktop-hero.png" });
-    for (const id of ["hero"].concat(SCENES)) {
+    for (const id of SCENES) {
       await go(page, id);
       const shots = await page.locator("#" + id + " img.shot").evaluateAll((l) => l.map((i) => ({ ok: i.complete && i.naturalWidth > 0, src: i.getAttribute("src"), alt: i.alt })));
       assert.ok(shots.length > 0, id + " has captures");
@@ -58,7 +63,7 @@ const SCENES = ["bank", "book", "omr", "wrong", "next", "device", "academy", "ec
         assert.ok(sh.ok, id + " capture loads: " + sh.src);
         assert.ok(sh.alt.length > 4, id + " capture has alt text: " + sh.src);
       }
-      if (id !== "hero") await page.screenshot({ path: OUT + "/desktop-" + id + ".png" });
+      await page.screenshot({ path: OUT + "/desktop-" + id + ".png" });
     }
     await page.evaluate(() => scrollTo(0, document.getElementById("start").getBoundingClientRect().top + scrollY + 120));
     await page.waitForTimeout(600);
@@ -85,6 +90,18 @@ const SCENES = ["bank", "book", "omr", "wrong", "next", "device", "academy", "ec
         return out;
       }, SCENES);
       assert.deepEqual(bad, [], "captures at " + width + "x" + height);
+      /* 한 바퀴 무대 · 연결 그래프: 단계 글과 겹치지 않고, 머리글 아래 화면 안에 다 들어온다 */
+      for (const [run, side, box, ps] of [["flowRun", ".flow-side", "#fb", [0.05, 0.3, 0.5, 0.7, 0.95]], ["linkRun", ".link-cp", "#lb", [0.2, 0.98]]]) {
+        for (const p of ps) {
+          await runTo(page, run, p);
+          const r = await page.evaluate(([side, box]) => {
+            const a = document.querySelector(box).getBoundingClientRect(), hd = document.querySelector(".hd").offsetHeight;
+            const t = [...document.querySelectorAll(side + " h2," + side + " .fd.on," + side + " .flow-steps," + side + " li.on")].map((e) => e.getBoundingClientRect()).filter((x) => x.height);
+            return { over: t.some((c) => a.left < c.right - 1 && a.right > c.left + 1 && a.top < c.bottom - 1 && a.bottom > c.top + 1), top: a.top - hd, bottom: innerHeight - a.bottom, left: a.left, right: innerWidth - a.right, w: a.width };
+          }, [side, box]);
+          assert.ok(!r.over && r.top > -2 && r.bottom > -2 && r.left > -2 && r.right > -2 && r.w > 200, run + " " + p + " at " + width + "x" + height + ": " + JSON.stringify(r));
+        }
+      }
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "no horizontal overflow at " + width);
     }
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -98,25 +115,43 @@ const SCENES = ["bank", "book", "omr", "wrong", "next", "device", "academy", "ec
       e.click();
     });
     assert.equal(await page.evaluate(() => localStorage.getItem("omr_app")), "1");
-    await page.locator('.nav a[href="#bank"]').click();
+    await page.locator('.nav a[href="#flow"]').click();
     await page.waitForTimeout(600);
-    assert.ok(await page.evaluate(() => Math.abs(document.getElementById("bank").getBoundingClientRect().top - parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)) < 2), "nav is a plain anchor to the question bank section");
-    assert.equal(await page.locator('.nav a[href="#bank"]').getAttribute("aria-current"), "true", "nav marks the section in view");
-    /* 스크롤 연출: 위치에서 바로 계산(문구는 그대로), 핵심 흐름 진행 막대, 학원 운영 띠 */
+    assert.ok(await page.evaluate(() => Math.abs(document.getElementById("flow").getBoundingClientRect().top - parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)) < 2), "nav is a plain anchor to the core-flow section");
+    assert.equal(await page.locator('.nav a[href="#flow"]').getAttribute("aria-current"), "true", "nav marks the section in view");
+    /* 히어로: 살아 있는 취약 유형 지도(실제 앱의 상태 6단계). 처음에 칠해지고 약한 유형이 골라진 뒤, 눌러서 고를 수 있다 */
     await page.evaluate(() => scrollTo(0, 0));
-    await page.waitForTimeout(300);
-    const heroScale = () => page.locator("#hero .shot").evaluate((e) => new DOMMatrix(getComputedStyle(e).transform).a);
-    assert.ok((await heroScale()) < 0.95, "hero capture starts slightly smaller");
-    await page.evaluate(() => scrollTo(0, innerHeight * 0.7));
-    await page.waitForTimeout(300);
-    assert.ok((await heroScale()) > 0.99, "hero capture grows to full size with the scroll");
-    assert.ok((await page.locator("#why .w").count()) > 20, "problem statement is split into words");
-    assert.match(await page.locator("#h-why").getAttribute("aria-label"), /^학생마다 틀리는 곳은 다릅니다\./, "screen readers get the sentence, not words");
-    for (const [i, id] of ["bank", "book", "omr", "wrong", "next"].entries()) {
-      await go(page, id);
-      assert.equal(await page.locator(".rail a").nth(i).getAttribute("aria-current"), "step", "rail marks step " + id);
-      assert.equal(await page.locator(".rail a[aria-current]").count(), 1);
+    const lg = () => page.evaluate(() => Object.fromEntries([...document.querySelectorAll(".tm-lg li")].map((l) => [l.dataset.lv, +l.querySelector("b").textContent])));
+    assert.equal(await page.locator("#tmap .tt").count(), 15);
+    assert.deepEqual(await lg(), { skull: 2, red: 3, yellow: 3, gray: 2, green: 3, star: 2 }, "type map painted: skull · red · yellow …");
+    assert.equal(await page.locator('#tmap .tt[aria-pressed="true"]').count(), 5, "weak types picked");
+    assert.equal(await page.locator("#tmQ").innerText(), "25");
+    await page.locator('#tmap .tt[data-lv="gray"]').first().click();
+    assert.equal(await page.locator("#tmN").innerText(), "6", "tapping a type adds it");
+    assert.equal(await page.locator("#tmQ").innerText(), "30");
+    assert.match(await page.locator('#tmap .tt[data-lv="skull"]').first().getAttribute("aria-label"), /해골 · 거의 못 맞힘 · 정답률 25%/);
+    /* 한 바퀴: 진행도마다 단계 · 설명 · 무대가 바뀐다(스크롤 위치에서 바로 계산) */
+    for (const [i, p] of [0.1, 0.3, 0.5, 0.7, 0.9].entries()) {
+      await runTo(page, "flowRun", p);
+      assert.equal(await page.locator(".flow-steps li").nth(i).locator("a").getAttribute("aria-current"), "step", "step " + (i + 1) + " at " + p);
+      assert.equal(await page.locator(".fd.on").getAttribute("id"), "flow-" + i);
     }
+    await runTo(page, "flowRun", 0.5);
+    assert.ok(+(await page.locator(".fphone").evaluate((e) => getComputedStyle(e).opacity)) > 0.9, "phone capture in the grading step");
+    await runTo(page, "flowRun", 0.78);
+    assert.deepEqual(await page.locator(".fm-g span").evaluateAll((l) => l.map((x) => x.dataset.s)), ["skull", "red", "red", "yellow", "green", "star"], "wrong answers paint the type tiles");
+    await runTo(page, "flowRun", 1);
+    assert.deepEqual(await page.locator(".fm-g span").evaluateAll((l) => l.map((x) => x.dataset.s)), ["red", "yellow", "green", "green", "star", "star"], "studying again changes the colours");
+    await runTo(page, "flowRun", 0.1);
+    assert.deepEqual(await page.locator(".fm-g span").evaluateAll((l) => l.map((x) => x.dataset.s)), ["gray", "gray", "gray", "gray", "gray", "gray"], "scrolling back restores the earlier state");
+    /* 연결: 끝까지 내리면 열두 기능이 모두 이어지고, 기능에 올리면 설명과 이어진 선이 강조된다 */
+    await runTo(page, "linkRun", 1);
+    assert.equal(await page.locator("#lb .ln.lit").count(), 12, "every feature is linked");
+    assert.ok((await page.locator("#lb .lsvg path").count()) >= 23);
+    await page.locator("#lb .ln").nth(3).hover();
+    assert.ok((await page.locator("#lb .lsvg path.hot").count()) >= 3, "hovering a feature highlights its links");
+    assert.equal(await page.locator("#lb .ln").nth(3).locator("span").isVisible(), true);
+    assert.equal(await page.getByText("학습지 번호로 바로 채점하기").count(), 0, "number-grading shortcut removed from the intro");
     const strip = await page.evaluate(async () => {
       const s = document.querySelector("#academy .strip"), t = s.querySelector(".strip-track");
       const top = s.getBoundingClientRect().top + scrollY - document.querySelector(".hd").offsetHeight;
@@ -133,7 +168,9 @@ const SCENES = ["bank", "book", "omr", "wrong", "next", "device", "academy", "ec
     for (const p of ["trial.html", "contact.html", "lead.js", "lead.css"]) assert.equal((await page.request.get(BASE + "/" + p)).ok(), true, p);
     assert.ok((await page.locator('a[href="trial.html"]').count()) > 0, "free trial entry under pricing");
     assert.equal(await page.locator('a[href^="mailto:"]').count(), 0, "contact uses the built-in form, not e-mail");
-    assert.equal(await page.locator(".ft-word svg.sym").count(), 1, "footer shows the S symbol");
+    assert.equal(await page.locator(".ft-logos svg.sym").count(), 1, "footer shows the S symbol");
+    assert.equal(await page.locator(".ft-logos svg.ft-wm").count(), 1, "footer shows the Solvi wordmark");
+    assert.equal(await page.locator(".ft-logos .ko-logo").innerText(), "솔비", "footer shows the Korean logo");
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(() => scrollTo(0, 0));
@@ -167,10 +204,10 @@ const SCENES = ["bank", "book", "omr", "wrong", "next", "device", "academy", "ec
     await rp.goto(BASE + "/intro.html");
     await rp.waitForTimeout(600);
     assert.equal(await rp.evaluate(() => document.documentElement.classList.contains("fx")), false, "no scroll effects with reduced motion");
-    assert.equal(await rp.locator("#why .w").count(), 0);
-    assert.equal(await rp.locator("#hero .shot").evaluate((e) => getComputedStyle(e).transform), "none");
     assert.equal(await rp.locator("#book .shots").isVisible(), true);
-    assert.equal(await rp.locator("#omr .shots").isVisible(), true);
+    assert.equal(await rp.locator(".fd:visible").count(), 5, "all five steps readable without motion");
+    assert.equal(await rp.locator("#lb .ln:visible").count(), 12);
+    assert.equal(await rp.locator('#tmap .tt[aria-pressed="true"]').count(), 5, "type map already painted");
     await rp.locator("#book").scrollIntoViewIfNeeded();
     await rp.screenshot({ path: OUT + "/reduced-motion.png" });
     await reduced.close();
@@ -180,7 +217,8 @@ const SCENES = ["bank", "book", "omr", "wrong", "next", "device", "academy", "ec
     await staticPage.goto(BASE + "/intro.html", { waitUntil: "networkidle" });
     await staticPage.waitForTimeout(500);
     assert.equal(await staticPage.locator("#h1").isVisible(), true);
-    assert.equal(await staticPage.locator("#omr .shots").isVisible(), true);
+    assert.equal(await staticPage.locator("#book .shots").isVisible(), true);
+    assert.equal(await staticPage.locator("#tmap .tt").count(), 15);
     assert.equal(await staticPage.locator("#plans .plan").count(), 3);
     await staticPage.locator("details").first().locator("summary").click();
     assert.equal(await staticPage.locator("details").first().getAttribute("open"), "");
@@ -195,7 +233,7 @@ const SCENES = ["bank", "book", "omr", "wrong", "next", "device", "academy", "ec
     assert.match(await fallback.locator("#plans .plan h3").first().innerText(), /솔비 라이트/);
     assert.equal(await fallback.locator("#plans .plan").count(), 3);
     await fallbackContext.close();
-    console.log("PASS: pricing, captures only (no mockup/3D/GSAP), scroll-linked hero · words · rail · strip, captures load with alt, no copy overlap at 5 sizes, app destinations, keyboard menu, light end, reduced motion, no JS. Screenshots: " + OUT);
+    console.log("PASS: pricing, no mockup/3D/GSAP, live type map (paint · pick · tap), 5-step scroll stage (forward · back), link graph (draw · hover), strip, captures load with alt, no copy overlap at 5 sizes, app destinations, keyboard menu, light end, reduced motion, no JS. Screenshots: " + OUT);
   } finally {
     await browser.close();
   }
