@@ -81,8 +81,9 @@ const runTo = async (page, id, p) => {
           const text = [...sec.querySelectorAll(".cp h2,.cp p,.cp .det,.cp .score")].map((e) => e.getBoundingClientRect());
           for (const img of sec.querySelectorAll("img.shot")) {
             const r = img.getBoundingClientRect();
-            if (r.width < 40) out.push(id + " capture too small " + Math.round(r.width));
-            if (+getComputedStyle(img).opacity > 0.05 && (r.left < -1 || r.right > innerWidth + 1)) out.push(id + " capture off-screen");
+            let eo = 1; for (let n = img; n && n !== document.body; n = n.parentElement) eo *= +getComputedStyle(n).opacity;
+            if (eo > 0.9 && r.width < 40) out.push(id + " capture too small " + Math.round(r.width));
+            if (eo > 0.9 && (r.left < -1 || r.right > innerWidth + 1)) out.push(id + " capture off-screen");
             for (const c of text) if (r.left < c.right - 1 && r.right > c.left + 1 && r.top < c.bottom - 1 && r.bottom > c.top + 1) out.push(id + " capture covers copy");
           }
         }

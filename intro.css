@@ -133,7 +133,7 @@ html[data-theme=dark] .subj [data-s=me]{--c:#5aa2ea}html[data-theme=dark] .subj 
 .plan .price .tbd{font-size:24px}
 .plan .pd{margin-top:12px;font-size:16px;color:var(--ink)}
 .plan .who{margin-top:6px;font-size:14px;color:var(--mute)}
-.plan ul{margin:22px 0 28px;padding:0;list-style:none;display:grid;gap:9px;font-size:15px;line-height:1.45;flex:1}
+.plan ul{margin:22px 0 28px;padding:0;list-style:none;display:grid;gap:9px;align-content:start;align-items:start;font-size:15px;line-height:1.45;flex:1}
 .plan li{padding-left:22px;position:relative}
 .plan li::before{content:"";position:absolute;left:2px;top:.42em;width:10px;height:6px;border-left:2px solid var(--blue);border-bottom:2px solid var(--blue);transform:rotate(-45deg)}
 .plan .btn{align-self:flex-start}
@@ -466,34 +466,6 @@ html:not(.fx) .qr-stage{display:none}
 .qr-facts{margin-top:14px}.qr-facts li{font-size:14.5px;line-height:1.55;color:var(--mute-d);padding:16px 18px;border-radius:16px;background:var(--soft)}
 .qr-facts b{display:block;margin-bottom:4px;color:var(--ink-d);font-size:15px}
 
-/* 학원의 하루: 시간 순서로 아홉 장면. 왼쪽 시간표 · 설명, 오른쪽 실제 화면 */
-.day-head{max-width:880px;margin:0 auto;padding:clamp(88px,14vh,160px) var(--g) clamp(20px,4vh,40px);text-align:center}
-.day-head h2{font-size:clamp(32px,4.2vw,64px)}.day-head p{margin:20px auto 0;max-width:36em;color:var(--mute-d);font-size:clamp(16px,1.3vw,19px)}
-.day-pin{max-width:1360px;margin:0 auto;padding:0 var(--g) 48px;display:grid;grid-template-columns:minmax(0,3.2fr) minmax(0,7.8fr);grid-template-rows:auto 1fr;column-gap:clamp(24px,4vw,56px);row-gap:18px;align-items:start}
-.day-steps{grid-column:1;list-style:none;margin:0;padding:0;display:grid;gap:2px}
-.day-steps a{display:grid;grid-template-columns:5.6em 1fr;gap:8px;align-items:baseline;padding:7px 10px;border-radius:10px;text-decoration:none;font-size:15px;font-weight:650;color:var(--ink-d);opacity:.4;transition:opacity .2s var(--ease),background-color .2s var(--ease)}
-.day-steps time{font-size:12.5px;font-weight:700;color:var(--acc);font-variant-numeric:tabular-nums}
-.day-steps li.on a{opacity:1;background:var(--soft)}
-html:not(.fx) .day-steps a{opacity:1}
-.day-desc{grid-column:1}
-.dd h3{font-size:clamp(20px,1.8vw,26px);letter-spacing:-.04em;line-height:1.25}
-.dd ul{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:7px}
-.dd li{position:relative;padding-left:16px;font-size:15px;line-height:1.5;color:var(--mute-d)}.dd li::before{content:"";position:absolute;left:0;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--acc)}
-html:not(.fx) .dd+.dd{margin-top:28px}
-.day-stage{grid-column:2;grid-row:1/3;align-self:center}
-.day-frame{position:relative;aspect-ratio:16/9}
-.day-frame .shot{position:absolute;left:0;top:0;width:100%;border-radius:14px}
-.day-frame .shot.kio{width:46%;left:auto;right:0;top:auto;bottom:-6%;border-radius:12px;box-shadow:0 30px 60px -28px var(--shot-sh)}
-.day-frame .shot.phone{width:26%;left:37%;top:-4%;border-radius:22px}
-html:not(.fx) .day-frame .shot:not(:first-child){display:none}
-.fx .day-run{height:calc(7.2 * 100vh);height:calc(7.2 * 100svh)}
-.fx .day-pin{position:sticky;top:var(--hd);height:calc(100vh - var(--hd));height:calc(100svh - var(--hd));padding-bottom:0;align-content:center}
-.fx .day-desc{display:grid}.fx .dd{grid-area:1/1;opacity:0;transform:translateY(8px);transition:opacity .22s var(--ease),transform .22s var(--ease)}.fx .dd.on{opacity:1;transform:none}
-.fx .day-frame .shot{opacity:0;will-change:transform,opacity}
-.day-roles{list-style:none;margin:0 auto;padding-top:clamp(28px,5vh,56px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.day-roles li{padding:18px 20px;border-radius:18px;background:var(--card);border:1px solid var(--card-line);font-size:14.5px;line-height:1.55;color:var(--mute-d)}
-.day-roles b{display:block;margin-bottom:4px;font-size:17px;color:var(--ink-d)}
-
 /* 기능 전체: 분야 고르기 */
 .spec-h p{margin-top:16px;color:var(--mute-d);font-size:clamp(16px,1.3vw,19px)}
 .cats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
@@ -517,11 +489,11 @@ html:not(.fx) .day-frame .shot:not(:first-child){display:none}
 .cmp tr.price td{font-size:20px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .cmp tr.g th{text-align:left;font-size:13px;font-weight:700;color:var(--mute);background:#fafafc;padding:9px 16px}
 .cmp td small{display:block;font-size:12px;color:var(--mute);font-weight:500}
-.cmp td.y{color:#1f7a45;font-weight:700}.cmp td.n{color:#b8bcc4}
+.cmp td.y{color:#0b57d0;font-weight:800;font-size:20px;line-height:1}.cmp td.n{color:#b8bcc4}
 .cmp tr:last-child>*{border-bottom:0}
 .cmp-note{margin-top:12px;font-size:13.5px;color:var(--mute)}
 
-@media(max-width:1024px){.qr-ways,.qr-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.day-roles{grid-template-columns:1fr}}
+@media(max-width:1024px){.qr-ways,.qr-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:860px){
  .qr-pin{grid-template-columns:1fr;gap:12px}
  .fx .qr-pin{grid-template-rows:auto minmax(0,1fr);align-content:start;padding-top:12px}
@@ -533,16 +505,6 @@ html:not(.fx) .day-frame .shot:not(:first-child){display:none}
  .qphone{left:21em;top:3em;width:21em}
  .qscore{left:1.5em;top:31em;flex-direction:column;gap:1.2em}.qscore dd{font-size:4.2em}
  .qok{left:.6em;top:33.4em;font-size:1.7em}
- .day-pin{grid-template-columns:1fr;grid-template-rows:auto auto 1fr;row-gap:10px}
- .day-stage{grid-column:1;grid-row:3;align-self:start}
- .fx .day-pin{align-content:start;padding-top:12px}
- .fx .day-steps li{display:none}.fx .day-steps li.on{display:block}
- .day-steps a{font-size:17px;padding:4px 0;grid-template-columns:auto 1fr}
- .fx .day-steps li.on a{background:none}
- .dd h3{font-size:19px}.dd ul{gap:4px;margin-top:8px}.dd li{font-size:14px}
- .fx .dd li:nth-child(n+4){display:none}
- .day-frame .shot.kio{width:52%;right:0;bottom:-10%}
- .day-frame .shot.phone{width:34%;left:33%;top:0}
 }
 @media(max-width:560px){.qr-ways,.qr-facts{grid-template-columns:1fr}}
 html[data-theme=dark] .cmp-scroll{background:#fff}
@@ -555,3 +517,97 @@ html[data-theme=dark] .cmp-scroll{background:#fff}
  .cmp tr.g th{padding-left:12px}
  .cmp td small{font-size:10.5px}
 }
+
+/* ── 2026-10-30 밤: 맨 위 Solvi 로고 · 더 큰 화면 · 학원의 하루 3D 넘김 ── */
+.hero-brand{display:flex;align-items:flex-end;gap:clamp(10px,1.2vw,16px);margin:0 0 22px;color:var(--ink-d)}
+.hb-sym{width:clamp(40px,4vw,58px);height:auto;display:block}
+.hb-wm{width:clamp(150px,15vw,230px);height:auto;display:block}
+.eyebrow b{font-weight:800}
+.hero .eyebrow{display:block;max-width:34em;padding:12px 16px;border-radius:16px;font-size:15px;line-height:1.55}
+@keyframes brandIn{from{opacity:0;transform:translateY(14px) scale(.92)}}
+.fx .hero-brand .hb-sym{animation:brandIn .5s cubic-bezier(.34,1.3,.64,1) both}.fx .hero-brand .hb-wm{animation:brandIn .5s .08s cubic-bezier(.34,1.3,.64,1) both}
+.fx .tmap{transform-origin:50% 60%;will-change:transform}
+.fx .hero-in{perspective:1600px}
+
+/* 화면을 크게: 무대 쪽 칸을 넓히고 전체 폭을 늘린다 */
+.flow-pin,.qr-pin,.link-pin{max-width:1480px}
+@media(min-width:861px){.flow-pin{grid-template-columns:minmax(0,3.3fr) minmax(0,7.7fr)}
+.qr-pin{grid-template-columns:minmax(0,3.6fr) minmax(0,7.4fr)}}
+@media(min-width:861px){
+.flow-stage{width:min(100%,calc((100vh - var(--hd) - 40px) * 72 / 54));width:min(100%,calc((100svh - var(--hd) - 40px) * 72 / 54))}
+.qr-stage{width:min(100%,calc((100vh - var(--hd) - 40px) * 72 / 54));width:min(100%,calc((100svh - var(--hd) - 40px) * 72 / 54))}
+}
+.roles{max-width:1360px}
+
+/* 학원의 하루: 위에 하루 시간표, 왼쪽 설명, 가운데 큰 화면. 화면은 장면이 바뀔 때마다 돌고 · 넘어가고 · 날아간다 */
+.day-head{max-width:900px;margin:0 auto;padding:clamp(88px,14vh,160px) var(--g) clamp(20px,4vh,40px);text-align:center}
+.day-head h2{font-size:clamp(32px,4.2vw,64px)}.day-head p{margin:20px auto 0;max-width:36em;color:var(--mute-d);font-size:clamp(16px,1.3vw,19px)}
+.day-pin{max-width:1560px;margin:0 auto;padding:0 var(--g) 48px;display:grid;grid-template-columns:minmax(0,3fr) minmax(0,8.4fr);grid-template-rows:auto minmax(0,1fr);column-gap:clamp(24px,3.4vw,56px);row-gap:clamp(14px,2.4vh,28px);align-items:center}
+.day-steps{grid-column:1/-1;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px;position:relative}
+.day-steps a{display:flex;flex-direction:column;gap:3px;padding:10px 10px 12px;border-radius:12px;text-decoration:none;font-size:14px;font-weight:700;line-height:1.25;letter-spacing:-.03em;color:var(--ink-d);opacity:.42;background:transparent;transition:opacity .2s var(--ease),background-color .2s var(--ease);position:relative}
+.day-steps a::after{content:"";position:absolute;left:10px;right:10px;bottom:4px;height:3px;border-radius:2px;background:var(--soft)}
+.day-steps time{font-size:12px;font-weight:800;color:var(--acc);font-variant-numeric:tabular-nums}
+.day-steps li.on a{opacity:1;background:var(--soft)}.day-steps li.on a::after,.day-steps li.past a::after{background:var(--acc)}.day-steps li.past a{opacity:.7}
+html:not(.fx) .day-steps a{opacity:1}
+.day-desc{grid-column:1;align-self:center}
+.dd h3{font-size:clamp(22px,2vw,30px);letter-spacing:-.04em;line-height:1.22}
+.dd-l{margin-top:12px;font-size:16px;line-height:1.6;color:var(--ink-d)}
+.dd ul{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:7px}
+.dd li{position:relative;padding-left:16px;font-size:14.5px;line-height:1.5;color:var(--mute-d)}.dd li::before{content:"";position:absolute;left:0;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--acc)}
+html:not(.fx) .dd+.dd{margin-top:28px}
+.day-stage{grid-column:2;width:min(100%,calc((100vh - var(--hd) - 150px) * 16 / 9));width:min(100%,calc((100svh - var(--hd) - 150px) * 16 / 9));justify-self:center;perspective:1800px;perspective-origin:50% 45%}
+.day-frame{position:relative;aspect-ratio:16/9;transform-style:preserve-3d}
+.day-frame .shot{position:absolute;left:0;top:0;width:100%;border-radius:16px;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 40px 80px -40px var(--shot-sh)}
+.day-frame .shot.kio{width:44%;left:auto;right:-2%;top:auto;bottom:-8%;border-radius:14px}
+.day-frame .shot.phone{width:26%;left:37%;top:-6%;border-radius:26px}
+html:not(.fx) .day-frame .shot:not(:first-child){display:none}
+.fx .day-run{height:calc(8.4 * 100vh);height:calc(8.4 * 100svh);overflow-x:clip}
+.fx .day-pin{position:sticky;top:var(--hd);height:calc(100vh - var(--hd));height:calc(100svh - var(--hd));padding-block:16px;align-content:center}
+.fx .day-desc{display:grid}.fx .dd{grid-area:1/1;opacity:0;transform:translateY(10px);transition:opacity .22s var(--ease),transform .22s var(--ease)}.fx .dd.on{opacity:1;transform:none}
+.fx .day-frame .shot{opacity:0;will-change:transform,opacity}
+@supports not (overflow:clip){.fx .day-stage{overflow:hidden;padding:2%}}
+.day-roles{list-style:none;margin:0 auto;padding-top:clamp(28px,5vh,56px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.day-roles li{padding:18px 20px;border-radius:18px;background:var(--card);border:1px solid var(--card-line);font-size:14.5px;line-height:1.55;color:var(--mute-d)}
+.day-roles b{display:block;margin-bottom:4px;font-size:17px;color:var(--ink-d)}
+/* 세 역할 · 과목 표지: 다른 방향에서 돌며 날아든다 */
+.fx [data-fx=fly]>*,.fx [data-fx=flip]>*{will-change:transform,opacity}
+.fx [data-fx=flip]{perspective:1400px}
+@media(max-width:1024px){.day-roles{grid-template-columns:1fr}.day-steps{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:860px){
+ .hero-brand{margin-bottom:16px}.hero .eyebrow{font-size:14px}
+ .day-pin{grid-template-columns:1fr;grid-template-rows:auto auto minmax(0,1fr);row-gap:10px}
+ .day-steps{grid-template-columns:none;display:flex;gap:4px}
+ .fx .day-steps li{flex:1;min-width:0}.fx .day-steps a{padding:0 0 8px;font-size:0;background:none!important}.fx .day-steps a time{display:none}.fx .day-steps a::after{left:0;right:0;bottom:0}
+ .day-desc{grid-column:1}
+ .fx .day-pin{align-content:start;padding-top:12px}
+ .dd h3{font-size:20px}.dd-l{font-size:14.5px;margin-top:6px}.fx .dd ul{display:none}
+ .day-stage{grid-column:1;width:100%;align-self:start;margin-top:8px}
+ .day-frame .shot.kio{width:50%;right:0;bottom:-12%}
+ .day-frame .shot.phone{width:34%;left:33%;top:-2%}
+}
+
+#device,#eco{overflow-x:clip}
+
+/* 2026-10-30 밤 2: 학원의 하루 — 위에 로고 · 제목 · 시각, 화면은 더 크게, 장면마다 기울며 흐른다 */
+.day-pin{max-width:1700px;grid-template-columns:minmax(0,2.5fr) minmax(0,9fr);grid-template-rows:auto auto minmax(0,1fr);row-gap:clamp(8px,1.6vh,16px);padding-bottom:20px}
+.day-bar{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:2px 4px;color:var(--ink-d)}
+.day-brand{display:inline-flex;color:var(--ink-d)}.day-lg{width:clamp(76px,7vw,104px);height:auto;display:block}
+.day-bar b{font-size:clamp(17px,1.5vw,22px);letter-spacing:-.04em;padding-left:14px;border-left:1px solid var(--line-d,rgba(128,128,140,.4))}
+.day-clock{margin-left:auto;padding:6px 14px;border-radius:999px;background:var(--soft);font-size:14px;font-weight:800;color:var(--acc);font-variant-numeric:tabular-nums;min-width:5.5em;text-align:center}
+.day-n{font-size:13px;font-weight:700;color:var(--mute-d);font-variant-numeric:tabular-nums}.day-n i{font-style:normal;color:var(--ink-d)}
+.day-steps a{padding:8px 10px 11px;font-size:13.5px}
+.day-stage{width:min(100%,calc((100vh - var(--hd) - 214px) * 16 / 9));width:min(100%,calc((100svh - var(--hd) - 214px) * 16 / 9))}
+.day-frame{will-change:transform}
+.day-frame::before{content:"";position:absolute;inset:6% 4% -4%;border-radius:32px;background:radial-gradient(60% 60% at 50% 50%,color-mix(in srgb,var(--acc) 38%,transparent),transparent 72%);filter:none;opacity:.55;transform:translateZ(-200px)}
+.dd-w{display:flex;align-items:center;gap:8px;margin-top:16px;font-size:13px;font-weight:700;color:var(--acc)}
+.dd-w i{width:8px;height:8px;border-radius:2px;background:var(--acc);transform:rotate(45deg)}
+.dd h3{font-size:clamp(24px,2.3vw,36px)}
+@media(max-width:860px){
+ .day-pin{grid-template-columns:1fr;grid-template-rows:auto auto auto minmax(0,1fr)}
+ .day-bar{gap:10px}.day-lg{width:72px}.day-bar b{font-size:16px;padding-left:10px}.day-clock{font-size:12.5px;padding:5px 10px}.day-n{display:none}
+ .dd-w{display:none}
+ .day-stage{width:100%}
+}
+html:not(.fx) .day-bar{display:none}
+@media(max-width:860px){.fx .day-stage{align-self:center;margin-top:0}.fx .day-frame{transform-origin:50% 50%}}
+@media(max-width:860px){.day-pin{grid-template-columns:minmax(0,1fr)}html:not(.fx) .day-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
