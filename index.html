@@ -2721,7 +2721,8 @@ load().then(async()=>{calibAll();if(_lg){if(!sess&&!STUD)setTimeout(()=>{try{ope
 let CONC={},CC={sel:new Set(),n:10,qs:null,pick:{}};
 const cfmt=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/_\{([^}]*)\}/g,'<sub>$1</sub>').replace(/\^\{([^}]*)\}/g,'<sup>$1</sup>');
 const cplain=h=>String(h||'').replace(/<[^>]+>/g,' ').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
-async function conceptLoad(){if(CONC[SUBJ])return;try{const r=await fetch(DIRS[SUBJ]+'concept.json');CONC[SUBJ]=r.ok?await r.json():{}}catch(e){CONC[SUBJ]={}}}
+/* 못 불러오면 저장하지 않는다: 빈 값을 남기면 그 뒤로 개념 없이 O/X만 있는 화면 · 인쇄로 굳어 버린다 */
+async function conceptLoad(){if(CONC[SUBJ]&&CONC[SUBJ].secs)return;const k=SUBJ;try{const r=await fetch(DIRS[k]+'concept.json');if(r.ok)CONC[k]=await r.json();else CONC[k]=CONC[k]||{}}catch(e){CONC[k]=CONC[k]||{}}}
 function cPairs(o){let c=CONC[SUBJ]||{};if(c.pools)c=c.pools;return c[o.type]||c['__'+o.sub]||[]}
 function cOwn(o){let c=CONC[SUBJ]||{};if(c.pools)c=c.pools;return !!c[o.type]}
 function cBuild(){const rows=typeRows().filter(o=>CC.sel.has(o.k));CC.pick={};
@@ -2752,11 +2753,11 @@ async function conceptPoolView(){
   <h4 style="margin:12px 0 6px">기초 O/X 문제</h4>${t.items.length?t.items.map((q,i)=>ccRow(ti,i)).join(''):'<div class="m">준비된 O/X 문제가 없어요.</div>'}</div>`).join('');
  else h+='<div class="card empty">위에서 유형을 고르거나 「내 취약 유형 불러오기」를 눌러 보세요.</div>';
  const y=scrollY;$('#main').innerHTML=h;scrollTo(0,y)}
-function ccPrint(){if(!CC.qs||!CC.qs.length)return;const nm=(STINFO&&STINFO.name)||(STU.find(s=>s.id===CUR_S)||{}).name||'';
- const body=CC.qs.map(t=>`<section><h2>${esc(t.o.sub)} ${esc(t.o.type)}</h2>${t.notes.length?`<h3>핵심 개념 정리</h3><ol>${t.notes.map(n=>`<li>${cfmt(n)}</li>`).join('')}</ol>`:''}<h3>기초 O/X 문제 <small>(옳으면 O, 옳지 않으면 X)</small></h3><ol class="qs">${t.items.map(q=>`<li>${cfmt(q.s)} <b class="bx">(&nbsp;&nbsp;&nbsp;)</b></li>`).join('')}</ol></section>`).join('');
- const ans=CC.qs.map(t=>`<p><b>${esc(t.o.type)}</b> : ${t.items.map((q,i)=>`${i+1}.${q.a}`).join(' ')}</p>`).join('');
- const html=`<!doctype html><meta charset="utf-8"><title>개념 학습지</title><style>body{font-family:'Noto Sans KR','Malgun Gothic',sans-serif;color:#1b2430;margin:0;padding:14mm;font-size:10.5pt;line-height:1.6}h1{font-size:18pt;margin:0 0 4px}.h{border-top:3px solid #2f7fd0;padding-top:6px;margin-bottom:12px;display:flex;justify-content:space-between}section{break-inside:auto;margin-bottom:12px}h2{font-size:13pt;border-left:4px solid #2f7fd0;padding-left:8px;margin:14px 0 6px}h3{font-size:10.5pt;margin:8px 0 4px;color:#1d5ca6}ol{margin:0;padding-left:20px}li{margin-bottom:3px}.bx{white-space:nowrap;margin-left:6px}.ans{page-break-before:always}small{font-weight:400;color:#586476}@media print{body{padding:0}}</style><div class="h"><div><h1>개념 학습지</h1><div>${esc(SNAME[SUBJ])}</div></div><div>이름 ${esc(nm)||'______'} · ${new Date().toLocaleDateString('ko-KR')}</div></div>${body}<section class="ans"><h2>정답</h2>${ans}</section>`;
- let f=document.getElementById('ccprint');if(f)f.remove();f=document.createElement('iframe');f.id='ccprint';f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);f.contentDocument.open();f.contentDocument.write(html);f.contentDocument.close();setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print()},300)}
+async function ccPrint(){if(!CC.qs||!CC.qs.length)return;const pw=popOpen('인쇄 문서를 만드는 중…');await conceptLoad();const nm=(STINFO&&STINFO.name)||(STU.find(s=>s.id===CUR_S)||{}).name||'';
+ const secsOf=t=>((CONC[SUBJ]||{}).secs||[]).filter(s=>(s.types||[]).includes(t.o.type));
+ const body=CC.qs.map((t,ti)=>`<section><h2 class="sc"><i>${ti+1}</i>${esc(t.o.sub)} ${esc(t.o.type)}</h2>${secsOf(t).map(sc=>`<div class="subh">개념 정리 · ${esc(sc.no+'. '+sc.title)}</div><div class="cbk">${sc.html}</div>`).join('')}${t.notes.length?`<div class="subh">핵심 개념 정리</div><div class="cbk">${t.notes.map(n=>`<p>· ${cfmt(n)}</p>`).join('')}</div>`:''}<div class="subh">기초 O/X 문제 (옳으면 O, 옳지 않으면 X)</div>${t.items.map((q,i)=>`<div class="oxq"><span class="n">${i+1}</span><span class="t">${cfmt(q.s)}</span><span class="a">(&nbsp;&nbsp;&nbsp;&nbsp;)</span></div>`).join('')}</section>`).join('');
+ const ans=CC.qs.map(t=>`<p><b>${esc(t.o.type)}</b> : ${t.items.map((q,i)=>`${i+1}.${q.a}`).join(' · ')}</p>`).join('');
+ cbPrintHtml(cpDoc('개념 학습지',`${esc(SNAME[SUBJ])} · 이름 ${esc(nm)||'________'} · ${new Date().toLocaleDateString('ko-KR')}`,body+`<section class="ansp"><h2 class="sc"><i>답</i>정답</h2>${ans}</section>`),pw)}
 
 
 /* ---------- 개념학습 (본교재 기반) ---------- */
@@ -2834,14 +2835,18 @@ async function cbView(){const C=await cbLoad();if(!C)return;
   ${bl.length?`<div class="card"><h3 style="margin-top:0">빈칸 채우기 <span class="m">${bl.length}문항</span></h3>${bl.map(q=>cbBlankHtml(q)).join('')}</div>`:''}`}
  const y=scrollY;$('#main').innerHTML=`<style>${cbTheme(CBCSS)}</style><div class="cbwrap" style="--cbp:${((C.pal||{}).p)||'#2f9d66'}">${side}<div class="cbmain">${main}</div></div>`;scrollTo(0,y)}
 function cbWeakGo(){const w=cbWeakSecs();if(!w.length){toast('아직 취약한 유형이 없어요');return}CB.print=new Set(w.map(s=>s.id));cbGo(w[0].id);toast('취약 유형과 관련된 개념 '+w.length+'개를 인쇄 대상으로 선택했어요')}
-const CBPRCSS=`@page{size:A4;margin:14mm 13mm 15mm}*{box-sizing:border-box}body{margin:0;font-family:YetHangul,SolviSymbols,Pretendard,PretendardLocal,'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',sans-serif;font-size:10.3pt;color:#17251e;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+const CBPRCSS=`@page{size:A4;margin:0}*{box-sizing:border-box}html{background:#e9eef5}body{margin:0;padding:14mm 13mm 15mm;background:#fff;font-family:YetHangul,SolviSymbols,Pretendard,PretendardLocal,'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',sans-serif;font-size:10.3pt;color:#17251e;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .top{border-top:1.2mm solid #2f9d66;padding-top:2mm;margin-bottom:5mm;display:flex;justify-content:space-between;align-items:flex-end}.top h1{font-size:17pt;margin:0}.top div{font-size:9.5pt;color:#485d52}
 h2.sc{display:flex;align-items:center;gap:2.4mm;font-size:13pt;margin:6mm 0 2mm;break-after:avoid;page-break-after:avoid}h2.sc i{font-style:normal;width:7mm;height:7mm;line-height:7mm;text-align:center;background:#2f9d66;color:#fff;font-size:11.5pt}
 .subh{font-size:10pt;font-weight:700;color:#1f7d4e;border-bottom:.3mm solid #2f9d66;margin:5mm 0 1mm;padding-bottom:.6mm;break-after:avoid;page-break-after:avoid}
 .cbk{font-size:10.3pt}.cbk .fg img{max-height:58mm}.cbk table,.cbk .nt,.cbk .fg,.cbk .eqn,.cbk .two-c>div{break-inside:avoid;page-break-inside:avoid}.cbk tr{break-inside:avoid;page-break-inside:avoid}.cbk .two-c{break-inside:auto}
 .oxq,.bq{display:flex;gap:1.4mm;padding:1.3mm 0;border-bottom:.2mm dotted #b0e3c9;line-height:1.6;break-inside:avoid;page-break-inside:avoid}.oxq .n,.bq .n{flex:none;min-width:8mm;font-weight:700;color:#1f7d4e}.oxq .t,.bq .t{flex:1}.oxq .a{flex:none;white-space:nowrap}
 .bl{display:inline-block;min-width:21mm;border-bottom:.3mm solid #17251e;margin:0 .6mm;text-align:center;color:transparent}.ansv .bl{color:#1f7d4e;font-weight:700;background:linear-gradient(transparent 20%,#fff06b 20%,#fff06b 92%,transparent 92%)}
-.ansp{break-before:page;page-break-before:always}.ansp p{margin:0 0 1.4mm;line-height:1.7}.sig{margin-top:6mm;font-size:9pt;color:#485d52}`;
+.ansp{break-before:page;page-break-before:always}.ansp p{margin:0 0 1.4mm;line-height:1.7}.sig{margin-top:6mm;font-size:9pt;color:#485d52}
+/* 쪽 나눔(cpPaginate)이 끝나면 본문이 A4 종이(.cpg)로 나뉜다. 화면에서도 인쇄와 같은 쪽으로 보인다 */
+body.cpaged{padding:84px 0 24px;background:transparent}.cpg{width:210mm;height:297mm;padding:14mm 13mm 15mm;margin:0 auto 18px;background:#fff;box-shadow:0 2px 14px rgba(15,30,50,.14);position:relative;overflow:hidden;zoom:var(--pz,1)}.cin{display:flow-root}
+.cpf{position:absolute;left:13mm;right:13mm;bottom:6.5mm;display:flex;justify-content:space-between;font-size:8pt;color:#8a96a6}
+@media print{html{background:#fff}body,body.cpaged{padding:0}body:not(.cpaged){padding:14mm 13mm 15mm}.cpg{margin:0;box-shadow:none;zoom:1!important;break-after:page;page-break-after:always}.cpg:last-child{break-after:auto;page-break-after:auto}}`;
 function cbPrintDoc(secs,withAns,title){const C=CONC[SUBJ];const nm=(STINFO&&STINFO.name)||(STU.find(s=>s.id===CUR_S)||{}).name||'';let n=0;const ans=[];
  const body=secs.map(sec=>{const ox=cbOxItems(sec),bl=sec.blank.map(c=>byCode[c]).filter(Boolean);ans.push(`<p><b>${esc(sec.no+'. '+sec.title)}</b></p>`);
   const oxh=ox.length?`<div class="subh">OX 확인 (옳으면 O, 옳지 않으면 X)</div>${ox.map((q,i)=>`<div class="oxq"><span class="n">${i+1}</span><span class="t">${cfmt(q.s)}</span><span class="a">(&nbsp;&nbsp;&nbsp;&nbsp;)</span></div>`).join('')}`:'';
@@ -2849,7 +2854,24 @@ function cbPrintDoc(secs,withAns,title){const C=CONC[SUBJ];const nm=(STINFO&&STI
   const blh=bl.length?`<div class="subh">빈칸 채우기</div>${bl.map((q,i)=>{let k=0;const t=String(q.q).replace(/<div class="qh">.*?<\/div>/,'').replace(/<div class="q"[^>]*>|<div class="qs">|<\/div>/g,'').replace(/<span class="bk">[^<]*<\/span>/g,()=>`<span class="bl">${'㉠㉡㉢㉣㉤'[k++]}</span>`);return `<div class="bq"><span class="n">${i+1}</span><span class="t">${t}</span></div>`}).join('')}`:'';
   bl.forEach((q,i)=>ans.push(`<p>빈칸 ${i+1} : ${(q.blanks||[]).map((a,k)=>`${'㉠㉡㉢㉣㉤'[k]} ${esc(a)}`).join(' · ')}</p>`));
   return `<section><h2 class="sc"><i>${sec.no}</i>${esc(sec.title)}</h2><div class="cbk">${sec.html}</div>${oxh}${blh}</section>`}).join('');
- return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css"><style>@font-face{font-family:PretendardLocal;font-weight:400;src:url(${location.origin}${location.pathname.replace(/[^/]*$/,'')}fonts/Pretendard-Regular.woff2) format('woff2')}@font-face{font-family:PretendardLocal;font-weight:500;src:url(${location.origin}${location.pathname.replace(/[^/]*$/,'')}fonts/Pretendard-Medium.woff2) format('woff2')}@font-face{font-family:PretendardLocal;font-weight:700;src:url(${location.origin}${location.pathname.replace(/[^/]*$/,'')}fonts/Pretendard-Bold.woff2) format('woff2')}@font-face{font-family:YetHangul;src:url(${location.origin}${location.pathname.replace(/[^/]*$/,'')}fonts/KoPubDotum-Medium.subset.woff2) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}${cbTheme(CBCSS+CBPRCSS)}</style></head><body><div class="top"><h1>${esc(title)}</h1><div>${esc(SNAME[SUBJ])} · 이름 ${esc(nm)||'________'} · ${new Date().toLocaleDateString('ko-KR')}</div>${footLogoHtml(6,'margin-left:auto')}</div>${body}${withAns&&ans.length?`<section class="ansp"><h2 class="sc"><i>답</i>정답</h2>${ans.join('')}</section>`:''}</body></html>`}
+ return cpDoc(title,`${esc(SNAME[SUBJ])} · 이름 ${esc(nm)||'________'} · ${new Date().toLocaleDateString('ko-KR')}`,body+(withAns&&ans.length?`<section class="ansp"><h2 class="sc"><i>답</i>정답</h2>${ans.join('')}</section>`:''))}
+/* 개념 인쇄 문서 공통 틀: 글꼴 · 테마 · 머리말. 본문 .cpsrc 는 인쇄 창에서 cpPaginate 가 A4 쪽으로 나눈다 */
+function cpDoc(title,meta,body,css){const root=location.origin+location.pathname.replace(/[^/]*$/,'');const ff=(w,n)=>`@font-face{font-family:PretendardLocal;font-weight:${w};src:url(${root}fonts/Pretendard-${n}.woff2) format('woff2')}`;
+ return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css"><style>${ff(400,'Regular')}${ff(500,'Medium')}${ff(700,'Bold')}@font-face{font-family:YetHangul;src:url(${root}fonts/KoPubDotum-Medium.subset.woff2) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}${cbTheme(CBCSS+CBPRCSS)}${css||''}</style></head><body><div class="cpsrc" data-title="${esc(title)}"><div class="top"><h1>${esc(title)}</h1><div>${meta}</div>${footLogoHtml(6,'margin-left:auto')}</div>${body}</div></body></html>`}
+/* 흐르는 개념 문서를 A4 쪽(.cpg)으로 나눈다: 제목은 다음 덩어리와 붙이고, 정답은 새 쪽에서 시작하고, 한 쪽보다 큰 덩어리는 줄여 넣는다 */
+function cpPaginate(d){const src=d.querySelector('.cpsrc');if(!src||d.body.classList.contains('cpaged'))return 0;
+ const root=d.documentElement,pz=root.style.getPropertyValue('--pz');root.style.setProperty('--pz','1');
+ const H=(297-14-15-7)*96/25.4,title=src.dataset.title||'',blocks=[];
+ const add=(el,brk,keep)=>{if(keep)el.dataset.keep='1';blocks.push({el,brk})};
+ [...src.children].forEach(ch=>{if(ch.tagName!=='SECTION'){add(ch,0,0);return}const brk=ch.classList.contains('ansp');let first=1;
+  [...ch.children].forEach(c=>{if(c.classList.contains('cbk')){[...c.children].forEach(x=>{const w=d.createElement('div');w.className=c.className;w.appendChild(x);add(w,brk&&first,0);first=0})}else{add(c,brk&&first,/^H[1-6]$/.test(c.tagName)||c.classList.contains('subh'));first=0}})});
+ d.body.classList.add('cpaged');let cin=null;const pages=[];
+ const page=()=>{const p=d.createElement('div');p.className='cpg';cin=d.createElement('div');cin.className='cin';p.appendChild(cin);src.before(p);pages.push(p)};page();
+ blocks.forEach(k=>{if(k.brk&&cin.children.length)page();cin.appendChild(k.el);
+  if(cin.offsetHeight>H&&cin.children.length>1){cin.removeChild(k.el);const carry=[];while(cin.lastElementChild&&cin.lastElementChild.dataset.keep&&carry.length<cin.children.length-1)carry.unshift(cin.lastElementChild);page();carry.forEach(c=>cin.appendChild(c));cin.appendChild(k.el)}
+  if(cin.offsetHeight>H&&cin.children.length===1)k.el.style.zoom=Math.max(.5,H/k.el.offsetHeight).toFixed(3)});
+ src.remove();pages.forEach((p,i)=>p.insertAdjacentHTML('beforeend','<div class="cpf"><span>'+esc(title)+'</span><span>'+(i+1)+' / '+pages.length+'</span></div>'));
+ if(pz)root.style.setProperty('--pz',pz);else root.style.removeProperty('--pz');return pages.length}
 /* ---------- 출력은 새 창에서 (인쇄·닫기·간격·디자인 아이콘은 오른쪽 위) ---------- */
 const isMob=()=>/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Mac/.test(navigator.platform));
 const popIcon=()=>{const l=document.querySelector('link[rel~=icon]');return l?'<link rel="icon" href="'+l.href+'">':''};
@@ -2867,6 +2889,7 @@ function popBarHtml(extra){return '<div id="pbar"><span id="pgrip" role="button"
 function popThumbs(w){const d=w.document;if(!d.body||d.querySelector('.thr'))return;
  let pages,css,open,close,cln;const pap=d.getElementById('paper');
  if(pap&&pap.shadowRoot){const sh=pap.shadowRoot;pages=[...sh.querySelectorAll('.pg')];css=[...sh.querySelectorAll('style')].map(x=>x.outerHTML).join('')+'<style>.pg{margin:0!important;box-shadow:none!important}</style>';open='<div class="wrap"><div class="pages">';close='</div></div>';cln=x=>x.classList.contains('wblank')?'빈 쪽':null}
+ else if(d.querySelector('.cpg')){pages=[...d.querySelectorAll('.cpg')];css=[...d.querySelectorAll('head style')].map(x=>x.outerHTML).join('')+'<style>.cpg{margin:0!important;box-shadow:none!important;zoom:1!important}</style>';open='<div>';close='</div>';cln=()=>null}
  else{pages=[...d.querySelectorAll('.bkdoc .bp')];if(!pages.length)return;css=[...d.querySelectorAll('head style')].map(x=>x.outerHTML).join('')+'<style>.bkdoc .bp{margin:0!important;box-shadow:none!important}</style>';open='<div class="bkdoc">';close='</div>';cln=x=>x.classList.contains('bkblank')?'빈 쪽':null}
  if(pages.length<2)return;let n=0;const nums=pages.map(x=>cln(x)||String(++n));
  const st=d.createElement('style');st.textContent=THRCSS+'.thr{--surface:#fff;--l:#dde3ea;--m:#6b7684;--b:#2f7fd0;top:76px!important;z-index:99998;font-family:YetHangul,SolviSymbols,Pretendard,PretendardLocal,sans-serif}@media print{.thr{display:none!important}}';d.head.appendChild(st);
@@ -2897,16 +2920,36 @@ function popBarInit(w){const d=w.document,bar=d.getElementById('pbar');if(!bar)r
  const end=e=>{if(!st)return;st=null;const r=bar.getBoundingClientRect();pos=keyOf(r.left+r.width/2,r.top+r.height/2);jset2('omr_pbar',pos);place(pos,1)};
  g.addEventListener('pointerup',end);g.addEventListener('pointercancel',end);g.addEventListener('lostpointercapture',end);
  g.addEventListener('keydown',e=>{const R='tmb',C='lcr';let r=R.indexOf(pos[0]),c=C.indexOf(pos[1]);if(e.key==='ArrowLeft')c=Math.max(0,c-1);else if(e.key==='ArrowRight')c=Math.min(2,c+1);else if(e.key==='ArrowUp')r=Math.max(0,r-1);else if(e.key==='ArrowDown')r=Math.min(2,r+1);else return;e.preventDefault();let k=R[r]+C[c];if(k==='mc')k=pos[0]==='b'?'bc':'tc';pos=k;jset2('omr_pbar',pos);place(pos,1)})}
-function popWire(w,fn){try{const d=w.document;const p=d.getElementById('pb-print'),c=d.getElementById('pb-close');if(p)p.onclick=()=>{try{w.focus();w.print()}catch(e){alert('이 기기에서는 인쇄 창을 열 수 없어요. 브라우저 메뉴의 공유·인쇄를 쓰거나 PDF로 받아 주세요.')}};if(c)c.onclick=()=>w.close();if(fn)fn(d);try{popThumbs(w)}catch(e){}try{popBarInit(w)}catch(e){}}catch(e){}}
+function popWire(w,fn){try{const d=w.document;const p=d.getElementById('pb-print'),c=d.getElementById('pb-close');if(p&&isMob()){const l=p.querySelector('.lb');if(l)l.textContent='A4 PDF 저장';p.title='태블릿 · 휴대폰은 쪽이 밀리지 않게 A4 PDF로 저장해요. 저장한 PDF를 열어 인쇄하세요'}if(p)p.onclick=()=>{if(isMob())return popPdf(w);try{w.focus();w.print()}catch(e){alert('이 기기에서는 인쇄 창을 열 수 없어요. 브라우저 메뉴의 공유·인쇄를 쓰거나 PDF로 받아 주세요.')}};if(c)c.onclick=()=>w.close();if(fn)fn(d);try{popThumbs(w)}catch(e){}try{popBarInit(w)}catch(e){}}catch(e){}}
 function popInject(html){const base='<base href="'+location.href.split('#')[0]+'">';
  let s=String(html);s=/<head[^>]*>/i.test(s)?s.replace(/<head[^>]*>/i,m=>m+base+popIcon()+'<style>'+POPCSS+'</style>'):'<head>'+base+popIcon()+'<style>'+POPCSS+'</style></head>'+s;
  return /<\/body>/i.test(s)?s.replace(/<\/body>/i,popBarHtml()+'</body>'):s+popBarHtml()}
 async function cbPrintHtml(html,w){
  w=w||popOpen('인쇄 문서를 만드는 중…');
- if(w){w.document.open();w.document.write(popInject(html));w.document.close();popWire(w);try{await w.document.fonts.ready}catch(e){}return}
+ if(w){w.document.open();w.document.write(popInject(html));w.document.close();popWire(w);await popReady(w.document);if(cpPaginate(w.document))try{popThumbs(w)}catch(e){}return}
  let f=document.getElementById('ccprint');if(f)f.remove();f=document.createElement('iframe');f.id='ccprint';f.style.cssText='position:fixed;right:0;bottom:0;width:210mm;height:297mm;border:0;opacity:0;pointer-events:none';document.body.appendChild(f);f.contentDocument.open();f.contentDocument.write(html);f.contentDocument.close();
  const d=f.contentDocument;await new Promise(r=>{const im=[...d.images].filter(x=>!x.complete);if(!im.length)return r();let n=im.length;const t=setTimeout(r,4000);im.forEach(x=>{const fn=()=>{if(--n<=0){clearTimeout(t);r()}};x.onload=fn;x.onerror=fn})});
- try{await d.fonts.ready}catch(e){}f.contentWindow.focus();f.contentWindow.print()}
+ try{await d.fonts.ready}catch(e){}cpPaginate(d);f.contentWindow.focus();f.contentWindow.print()}
+/* 인쇄 창의 그림 · 글꼴이 다 준비될 때까지(쪽 나눔은 실제 높이로 재야 한다) */
+async function popReady(d){await new Promise(r=>{const im=[...d.images].filter(x=>!x.complete);if(!im.length)return r();let n=im.length;const t=setTimeout(r,5000);im.forEach(x=>{const fn=()=>{if(--n<=0){clearTimeout(t);r()}};x.addEventListener('load',fn);x.addEventListener('error',fn)})});try{await Promise.race([d.fonts.ready,new Promise(r=>setTimeout(r,3000))])}catch(e){}}
+/* 태블릿 · 휴대폰: 브라우저 인쇄는 기기마다 여백을 멋대로 넣어 A4 쪽이 밀린다. 쪽마다 그림으로 떠서 정확한 A4 PDF로 저장한다 */
+function loadJsOnce(src,ok,d){d=d||document;return new Promise((res,rej)=>{if(ok())return res();const s=d.createElement('script');s.src=new URL(src,location.href).href;s.onload=res;s.onerror=()=>rej(new Error(src));d.head.appendChild(s)})}
+async function popPdf(w){const d=w.document,btn=d.getElementById('pb-print'),lb=btn&&btn.querySelector('.lb'),lb0=lb&&lb.textContent;if(btn&&btn.disabled)return;
+ let host=null;const root=d.documentElement,pz=root.style.getPropertyValue('--pz');
+ try{if(btn)btn.disabled=true;if(lb)lb.textContent='PDF 만드는 중';
+  /* html2canvas 는 그림을 뜰 문서(인쇄 창) 안에서 돌려야 멈추지 않는다 */
+  await Promise.all([loadJsOnce('lib/html2canvas.min.js',()=>w.html2canvas,d),loadJsOnce('lib/jspdf.umd.min.js',()=>window.jspdf)]);
+  root.style.setProperty('--pz','1');let pages=[...d.querySelectorAll('.cpg,.bkdoc>.bp')];const pap=d.getElementById('paper');
+  if(!pages.length&&pap&&pap.shadowRoot){host=d.createElement('div');host.id='pdfhost';host.style.cssText='position:absolute;left:0;top:0;width:210mm;z-index:-1;background:#fff';host.innerHTML=pap.shadowRoot.innerHTML.replace(/:host\b/g,'#pdfhost').replace(/\son[a-z]+="[^"]*"/g,'');d.body.appendChild(host);await popReady(d);pages=[...host.querySelectorAll('.pg')]}
+  if(!pages.length)throw new Error('쪽을 찾지 못했어요');
+  const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4',compress:true});
+  for(let i=0;i<pages.length;i++){if(lb)lb.textContent='PDF '+(i+1)+' / '+pages.length;const pg=pages[i],sh=pg.style.boxShadow,mg=pg.style.margin;pg.style.boxShadow='none';pg.style.margin='0';
+   const cv=await w.html2canvas(pg,{scale:1.8,backgroundColor:'#ffffff',useCORS:true,logging:false,ignoreElements:el=>el.id==='spanel'||el.id==='pbar'||el.id==='paper'&&!!host||(el.classList&&el.classList.contains('thr'))});pg.style.boxShadow=sh;pg.style.margin=mg;
+   if(i)doc.addPage();doc.addImage(cv.toDataURL('image/jpeg',.86),'JPEG',0,0,210,297,undefined,'FAST');cv.width=cv.height=0}
+  const a=d.createElement('a');a.href=URL.createObjectURL(doc.output('blob'));a.download=(d.title||'Solvi').replace(/[\\\/:*?"<>|]+/g,' ').trim()+'.pdf';d.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},6000);
+  if(lb)lb.textContent='PDF 저장됨'
+ }catch(e){alert('PDF를 만들지 못했어요. 컴퓨터에서 인쇄하거나 잠시 뒤 다시 시도해 주세요.\n('+(e&&e.message||e)+')');if(lb)lb.textContent=lb0}
+ finally{if(host)host.remove();if(pz)root.style.setProperty('--pz',pz);else root.style.removeProperty('--pz');if(btn)btn.disabled=false;setTimeout(()=>{if(lb&&/저장됨/.test(lb.textContent))lb.textContent=lb0},2500)}}
 /* 학습지·모의고사: 새 창 */
 let WSP={win:null,rec:null};
 function wsPopStart(rec){const w=popOpen('학습지를 만드는 중…');if(w)WSP={win:w,rec};return w}
@@ -2932,7 +2975,7 @@ function wsPopFill(win,rec){
 async function wsPopSet(o){if(!WSP.rec||!WSP.win||WSP.win.closed)return;Object.assign(WSP.rec,o);await openWs(WSP.rec,null,{win:WSP.win})}
 function cbPrint(id){const C=CONC[SUBJ];const ids=id?[id]:[...CB.print];if(!ids.length){toast('인쇄할 개념을 체크하거나 「이 개념 인쇄」를 눌러 주세요');return}
  const secs=C.secs.filter(s=>ids.includes(s.id));const pw=popOpen('인쇄 문서를 만드는 중…');busyRun('인쇄 문서를 만드는 중…',async()=>{await ensureCodes([...secs.flatMap(s=>[...s.ox,...s.blank])]);cbPrintHtml(cbPrintDoc(secs,true,secs.length===1?secs[0].title+' 개념 학습지':SNAME[SUBJ]+' 개념 학습지'),pw)})}
-function cbPrintSummary(){const C=CONC[SUBJ];const nm=(STINFO&&STINFO.name)||'';const pw=popOpen('인쇄 문서를 만드는 중…');busyRun('인쇄 문서를 만드는 중…',async()=>{cbPrintHtml(`<!doctype html><html><head><meta charset="utf-8"><title>요약 노트</title><style>${cbTheme(CBCSS+CBPRCSS)}.cbk table{font-size:9.6pt}h3.cbh{font-size:12pt;margin:5mm 0 1.5mm;border-left:1.4mm solid #2f9d66;padding-left:2.4mm;break-after:avoid}</style></head><body><div class="top"><h1>시험 10분 전 요약 노트</h1><div>${esc(SNAME[SUBJ])} · ${new Date().toLocaleDateString('ko-KR')}</div>${footLogoHtml(6,'margin-left:auto')}</div><div class="cbk">${C.summary.map(x=>`<h3 class="cbh">${esc(x.title)}</h3>${x.html}`).join('')}</div></body></html>`,pw)})}
+function cbPrintSummary(){const C=CONC[SUBJ];const nm=(STINFO&&STINFO.name)||'';const pw=popOpen('인쇄 문서를 만드는 중…');busyRun('인쇄 문서를 만드는 중…',async()=>{cbPrintHtml(cpDoc('시험 10분 전 요약 노트',`${esc(SNAME[SUBJ])} · ${new Date().toLocaleDateString('ko-KR')}`,`<section>${C.summary.map(x=>`<h3 class="cbh">${esc(x.title)}</h3><div class="cbk">${x.html}</div>`).join('')}</section>`,cbTheme('.cbk table{font-size:9.6pt}h3.cbh{font-size:12pt;margin:5mm 0 1.5mm;border-left:1.4mm solid #2f9d66;padding-left:2.4mm;break-after:avoid}')),pw)})}
 
 /* ---------- 학생 리포트 ---------- */
 
