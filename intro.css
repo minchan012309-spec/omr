@@ -109,8 +109,8 @@ a,button{-webkit-tap-highlight-color:transparent}
 .cine .sc-hero .cp p{margin-top:16px}
 .cine .cue{position:absolute;left:50%;bottom:calc(3.5vh + var(--tb));transform:translateX(-50%);margin:0;pointer-events:auto}
 .cine .sc-ops .cp{left:var(--g);bottom:9vh;max-width:640px}
-.cine .sc-bank .cp{left:var(--g);top:50%;transform:translateY(-50%);width:min(30vw,440px)}
-.cine .sc-bank .cp h2,.cine .sc-wrong .cp h2,.cine .sc-academy .cp h2,.cine .sc-book .cp h2{font-size:clamp(32px,3.6vw,58px)}
+.cine .sc-bank .cp{left:var(--g);top:50%;transform:translateY(-50%);width:min(32vw,480px)}
+.cine .sc-bank .cp h2,.cine .sc-wrong .cp h2,.cine .sc-academy .cp h2,.cine .sc-book .cp h2{font-size:clamp(30px,3.1vw,50px)}
 .cine .sc-book .cp{left:var(--g);top:calc(var(--hd) + 5vh);width:min(34vw,500px)}
 .cine .sc-book .pages{margin-top:20px}
 .cine .sc-device .cp,.cine .sc-eco .cp{left:0;right:0;top:calc(var(--hd) + 5vh);text-align:center;padding-inline:var(--g)}
@@ -200,15 +200,18 @@ a,button{-webkit-tap-highlight-color:transparent}
 .pad .cam::after{top:auto;bottom:10%;width:20%;left:60%;background:#e9e2c8}
 .pad .kio{position:absolute;left:50%;top:50%;width:calc((var(--h) - var(--b)*2));height:calc((var(--w) - var(--b)*2));transform:translate(-50%,-50%) rotate(90deg);opacity:0}
 .pad .kio img{position:absolute;inset:0;width:100%;height:100%;opacity:1}
-.phone{--w:calc(var(--u)*15);--h:calc(var(--w)*2.049);--t:calc(var(--w)*.11);--b:calc(var(--w)*.05);--r:calc(var(--w)*.165);--sr:calc(var(--w)*.125);--metal:#8f8a83;--rim:#b5b0a8;--back:linear-gradient(160deg,#a8a39b,#7f7a73 55%,#96918a)}
+.phone{--w:calc(var(--u)*15);--h:calc(var(--w)*2.049);--t:calc(var(--w)*.1);--b:calc(var(--w)*.036);--r:calc(var(--w)*.17);--sr:calc(var(--w)*.135);--metal:#8f8a83;--rim:#b5b0a8;--back:linear-gradient(160deg,#a8a39b,#7f7a73 55%,#96918a)}
 .island{position:absolute;left:50%;top:calc(var(--b) + var(--w)*.03);width:calc(var(--w)*.3);height:calc(var(--w)*.085);margin-left:calc(var(--w)*-.15);border-radius:999px;background:#000;z-index:3}
 .phone .lens{position:absolute;left:7%;top:4%;width:40%;aspect-ratio:1;border-radius:24%;background:#8d8881;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
 .phone .lens::before{content:"";position:absolute;inset:12%;background:radial-gradient(circle at 28% 28%,#141518 0 15%,#3a3d44 17% 19%,transparent 20%),radial-gradient(circle at 72% 50%,#141518 0 15%,#3a3d44 17% 19%,transparent 20%),radial-gradient(circle at 28% 72%,#141518 0 15%,#3a3d44 17% 19%,transparent 20%)}
 .scan{position:absolute;inset:0;opacity:0;background:#1a1a1a}
 .scan img{object-position:50% 100%;opacity:1;filter:brightness(.92)}
-.scan .fr4{position:absolute;left:58%;top:70%;width:30%;aspect-ratio:1;border-radius:8px;box-shadow:0 0 0 2px rgba(255,255,255,.9)}
-.scan .line{position:absolute;left:8%;right:8%;top:0;height:2px;background:var(--acc);box-shadow:0 0 12px 2px rgba(var(--acc-rgb),.7)}
-.scan .lab{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);white-space:nowrap;background:rgba(0,0,0,.72);color:#fff;font-size:calc(var(--w)*.06);padding:.4em .9em;border-radius:999px}
+.scan img.cam{inset:auto;left:50%;top:50%;width:420%;height:auto;max-width:none;opacity:1;object-fit:fill;transform:translate(-92%,-89.6%);filter:brightness(.96) contrast(1.04)}
+.scan .camtop{position:absolute;left:0;right:0;top:0;padding:calc(var(--w)*.17) 6% calc(var(--w)*.08);text-align:center;color:#fff;font-size:calc(var(--w)*.058);font-weight:600;background:linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,0))}
+.scan .fr4{position:absolute;left:50%;top:50%;width:56%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:10px;box-shadow:0 0 0 999px rgba(0,0,0,.38)}
+.scan .fr4 i{position:absolute;width:24%;height:24%;border:3px solid #fff}.scan .fr4 i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0;border-radius:10px 0 0 0}.scan .fr4 i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0;border-radius:0 10px 0 0}.scan .fr4 i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0;border-radius:0 0 0 10px}.scan .fr4 i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0;border-radius:0 0 10px 0}
+.scan .line{position:absolute;left:8%;right:8%;top:6%;height:2px;background:var(--acc);box-shadow:0 0 12px 2px rgba(var(--acc-rgb),.7)}
+.scan .lab{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);white-space:nowrap;background:rgba(0,0,0,.72);color:#fff;font-size:calc(var(--w)*.06);padding:.4em .9em;border-radius:999px}
 .burst{position:absolute;left:24.5%;top:38.5%;width:0;height:0}
 .burst i{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--acc);opacity:0}
 .burst b{position:absolute;left:-40px;top:-40px;width:80px;height:80px;border-radius:50%;box-shadow:0 0 0 2px rgba(253,198,45,.8);opacity:0}
@@ -397,3 +400,15 @@ a,button{-webkit-tap-highlight-color:transparent}
 html[data-theme=light] .sc-end .cp p{color:rgba(255,255,255,.86)}html[data-theme=light] .sc-end .btn-pri{background:#fff;color:#0d387e}html[data-theme=light] .sc-end .btn-line{background:rgba(255,255,255,.18);color:#fff}html[data-theme=light] .sc-end .end-num{color:#fff}html[data-theme=light] .end-logo{color:#fff}
 html[data-theme=light] .hd:not(.scrolled):not(.light){color:var(--ink-d)}
 html[data-theme=light] .tag{background:rgba(15,29,51,.9)}
+
+/* 휴대폰: 테두리 금속 하이라이트 · 측면 버튼 · 화면 유리 반사 */
+.phone .fr{box-shadow:inset 0 0 0 1.5px #c9c4bc,inset 0 0 0 3px #3a3835,0 0 0 1px rgba(0,0,0,.25)}
+.phone .ed:last-of-type{background:linear-gradient(100deg,#6f6a63,#cfcac2 18%,#8d8881 40%,#bfb9b1 70%,#6f6a63)}
+.phone .fr::after{content:"";position:absolute;inset:var(--b);border-radius:var(--sr);pointer-events:none;z-index:4;background:linear-gradient(118deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 34%)}
+.phone .btns{position:absolute;inset:0}.phone .btns i{position:absolute;width:calc(var(--w)*.018);border-radius:2px;background:#9d978f}
+.phone .btns i:nth-child(1){left:calc(var(--w)*-.012);top:22%;height:7%}.phone .btns i:nth-child(2){left:calc(var(--w)*-.012);top:31%;height:7%}.phone .btns i:nth-child(3){right:calc(var(--w)*-.012);top:26%;height:11%}
+/* 장면마다 세부 기능 줄 */
+.det{list-style:none;display:flex;flex-wrap:wrap;gap:8px 10px;margin-top:20px;padding:0}
+.det li{font-size:14px;font-weight:600;color:var(--ink-d);background:var(--chip);padding:7px 12px;border-radius:999px}
+.cine .sc-device .det,.cine .sc-eco .det{justify-content:center}
+@media(max-width:860px){.cine .det{display:none}}
