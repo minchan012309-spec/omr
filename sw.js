@@ -1,6 +1,6 @@
 /* Solvi 서비스 워커: 앱 껍데기와 한 번 불러온 데이터를 저장해 두어 오프라인에서도 열리게 합니다. */
-const VER = 'solvi-v163';
-const SHELL = ['./', 'index.html', 'styles/tokens.css?v=4', 'styles/legacy.css?v=4', 'styles/base.css?v=4', 'styles/shell.css?v=4', 'styles/components.css?v=4', 'styles/screens.css?v=4', 'books.js', 'lazy/omr-report.js?v=4', 'lazy/tset.js?v=4', 'lazy/acad.js?v=4', 'lazy/admin.js?v=4', 'lib/academy-core.js?v=1', 'lib/korean-editor.js?v=1', 'fonts/SolviSymbols.woff2', 'bank/data.js?v=1', 'manifest.webmanifest?v=2', 'icons/icon-192.png?v=2', 'icons/icon-512.png?v=2', 'fonts/KoPubDotum-Medium.subset.woff2', 'fonts/KoPubDotum-Bold.subset.woff2', 'intro.html', 'intro.css?v=12', 'intro.js?v=12', 'intro/xdr-weak.webp'];
+const VER = 'solvi-v164';
+const SHELL = ['./', 'index.html', 'styles/tokens.css?v=4', 'styles/legacy.css?v=4', 'styles/base.css?v=4', 'styles/shell.css?v=4', 'styles/components.css?v=4', 'styles/screens.css?v=4', 'books.js', 'lazy/omr-report.js?v=4', 'lazy/tset.js?v=4', 'lazy/acad.js?v=4', 'lazy/admin.js?v=4', 'lib/academy-core.js?v=1', 'lib/korean-editor.js?v=1', 'fonts/SolviSymbols.woff2', 'bank/data.js?v=1', 'manifest.webmanifest?v=2', 'icons/icon-192.png?v=2', 'icons/icon-512.png?v=2', 'fonts/KoPubDotum-Medium.subset.woff2', 'fonts/KoPubDotum-Bold.subset.woff2', 'intro.html', 'intro.css?v=13', 'intro.js?v=13', 'intro/xdr-weak.webp'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VER).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
