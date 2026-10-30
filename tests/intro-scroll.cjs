@@ -40,7 +40,6 @@ const wheel = async (page, dy) => {
     for (const [width, height] of [[1440, 900], [768, 1024], [390, 844]]) {
       const { context, page, errors } = await openIntro(browser, { viewport: { width, height } });
       const tag = width + "px";
-      assert.ok(await page.evaluate(() => document.documentElement.classList.contains("cine")), tag + " cinematic stage on");
       /* 스크롤을 잡는 장치가 없다 */
       const css = await page.evaluate(() => {
         const h = getComputedStyle(document.documentElement), b = getComputedStyle(document.body);
@@ -55,14 +54,11 @@ const wheel = async (page, dy) => {
 
       /* 1. 작은 휠: 입력만큼만, 화면 한 장보다 훨씬 적게. 글(문구)도 같은 만큼 올라간다 */
       const h1Before = await page.locator("#h1").evaluate((e) => e.getBoundingClientRect().top);
-      const tBefore = await page.evaluate(() => window.__intro.timeAt(scrollY));
       const d1 = await wheel(page, 80);
       assert.ok(d1 > 0 && Math.abs(d1 - 80) <= 16, tag + " small wheel moves ~80px, got " + d1);
       assert.ok(d1 < height / 4, tag + " small wheel stays far below one screen");
       const h1After = await page.locator("#h1").evaluate((e) => e.getBoundingClientRect().top);
       assert.ok(Math.abs(h1Before - h1After - d1) <= 2, tag + " hero copy travels with the scroll 1:1");
-      const tAfter = await page.evaluate(() => window.__intro.timeAt(scrollY));
-      assert.ok(tAfter - tBefore < 12, tag + " stage advances only a sliver of the film (" + (tAfter - tBefore).toFixed(1) + ")");
 
       /* 장면 경계 바로 앞에서 작은 휠: 다음 장면 시작점으로 끌려가지 않는다 */
       for (const id of ["bank", "device", "academy"]) {
@@ -136,7 +132,7 @@ const wheel = async (page, dy) => {
       assert.equal(await y(page), 0, tag + " Home returns to the top");
 
       /* 섹션 중간에서 멈출 수 있고, 긴 문구도 끝까지 화면에 들어온다 */
-      for (const id of ["ops", "bank", "book", "device", "omr", "wrong", "academy", "eco", "start"]) {
+      for (const id of ["bank", "book", "device", "omr", "wrong", "academy", "eco", "start"]) {
         await at(page, (await secTop(page, id)) + 1);
         const r = await page.locator("#" + id + " .cp").evaluate((e) => { const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom }; });
         assert.ok(r.top >= 0 && r.bottom <= height + 1, tag + " #" + id + " copy fits on screen while its section is in view");
@@ -176,7 +172,6 @@ const wheel = async (page, dy) => {
     /* 8. 동작 줄이기: 처음부터 내용이 보이고, 스크롤도 그대로 */
     {
       const { context, page, errors } = await openIntro(browser, { viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
-      assert.equal(await page.evaluate(() => document.documentElement.classList.contains("cine")), false, "reduced motion uses the still layout");
       assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior), "auto");
       const hidden = await page.evaluate(() => [...document.querySelectorAll(".sc .cp")].filter((e) => getComputedStyle(e).visibility === "hidden" || +getComputedStyle(e).opacity < 0.99).length);
       assert.equal(hidden, 0, "every scene copy is visible without motion");
@@ -193,7 +188,7 @@ const wheel = async (page, dy) => {
     /* file:// 로 바로 열어도 같은 원리로 움직인다 */
     {
       const { context, page, errors } = await openIntro(browser, { viewport: { width: 1440, height: 900 } }, FILE);
-      assert.ok(await page.evaluate(() => document.documentElement.classList.contains("cine")), "file:// cinematic stage on");
+      assert.equal(await page.locator("#h1").isVisible(), true, "file:// page renders");
       await page.mouse.move(720, 450);
       const d = await wheel(page, 80);
       assert.ok(Math.abs(d - 80) <= 16, "file:// small wheel ~80px, got " + d);

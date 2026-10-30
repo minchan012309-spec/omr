@@ -2,6 +2,17 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-10-30 · Claude Code · claude/intro-mockups-system-audit · PR #101 (이어서)
+- 요청: 「목업 그냥 다 빼고 그냥 캡쳐본만 넣어」. 바로 아래 기록(같은 PR)의 3D 기기 무대 수정 위에서 무대 자체를 없앰.
+- 한 일
+  - `intro.html`: 3D 무대(`#stage` · `.film-bg`) · GSAP 스크립트 · 스크롤 안내 삭제. 장면마다 문구 + 실제 앱 캡처(`img.shot`)만. 2장면(「아침에 볼 것은…」)은 히어로와 같은 대시보드를 또 보여 주게 돼 빼고, 히어로가 대시보드 캡처를 보여 줌. 학원 운영 장면 캡처는 반 시간표 + 출결 단말. OMR 점수 아래 「화면 속 점수는 예시 채점 기록」 표기. 바닥글의 「기기 모습은 그림」 문장 삭제.
+  - `intro.css`: 3D 기기 · 책 · 문제 카드 · 분석 카드 CSS 전부 삭제(423 → 약 190줄). 넓은 화면은 문구 | 캡처 두 열(장면마다 좌우 번갈아), 860px 이하 한 열. 캡처는 얇은 테두리 + 옅은 그림자만(기기 테두리 흉내 없음), 휴대폰 캡처는 모서리만 둥글게.
+  - `intro.js`: 시네마틱 코드(무대 만들기 · 타임라인 · 스크롤 동기화) 삭제. 머리글 · 목차 · 테마 · 요금제 · 밝은 머리글만 남음.
+  - `sw.js`: `intro.*?v=10`, GSAP 캐시 항목 삭제, VER `solvi-v161`. `AGENTS.md` 인트로 설명을 새 구조로.
+  - 테스트: `tests/intro-regression.cjs` — GSAP · 3D 무대 · 기기 목업 요소가 없음, 장면마다 캡처가 실제로 로드되고 alt 가 있음, 1990 · 1440 · 1280 · 820 · 390에서 캡처가 문구와 겹치지 않고 화면 밖으로 안 나감, 마지막 장면 밝은 머리글 · 라이트 마지막 장면 파랑. `tests/intro-scroll.cjs` — 시네마틱 전용 검사(`cine` · `__intro.timeAt`)와 없어진 `#ops` 제거, 휠 · 키 · 터치 검사는 그대로.
+- 확인: 1440 라이트 · 다크, 390 전체 페이지 캡처를 직접 봄. `intro-regression` · `intro-scroll` 통과, `npm test` 전체 통과(exit 0, 「PASS all isolated verification commands」).
+- 남은 일 · 주의: `lib/gsap/`와 이제 안 쓰는 `intro/` 이미지(book-basic · book-ox · book-problem · book-toc · cover-* · mock-cover · pad-stat · phone-weak · xdr-cns · xdr-stu · xdr-weak · mac-stu)는 지우지 않고 남겨 둠. 휴대폰 폭에서는 앱 전체 캡처가 작아 글자가 읽히지 않음(캡처 자체 한계).
+
 ## 2026-10-30 · Claude Code · claude/intro-mockups-system-audit · PR #101 (https://github.com/minchan012309-spec/omr/pull/101)
 - 시작: `origin/main` b72f028(PR #100 병합)과 같은 위치. 열린 PR 없음.
 - 요청: 인트로에서 깨진 장면(책 목업 · 노트북 키보드가 화면보다 크게 · 학원 운영 장면 기기 겹침 · 대시보드 위 문구 겹침) 고치기, 2장면(「복잡했던 학원 운영이…」 디스플레이 확대 + 강조 상자) 폐지 후 새로 만들기, 앱 전반 디자인 점검 후 고치기.
