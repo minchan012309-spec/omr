@@ -2,8 +2,33 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
-## 2026-10-30 · Claude Code · claude/intro-mockups-system-audit · PR #101 (이어서)
-- 요청: 「목업 그냥 다 빼고 그냥 캡쳐본만 넣어」. 바로 아래 기록(같은 PR)의 3D 기기 무대 수정 위에서 무대 자체를 없앰.
+## 2026-10-30 · Claude Code · claude/motion-mobile-native · (PR 번호는 아래 커밋)
+- 시작: `origin/main` c90ea8c(PR #101 병합). 열린 PR 없음. 작업 폴더가 Codex 의 `codex/frontend-system-audit`(main 과 같은 커밋, 새 커밋 없음)에 있어서 거기는 건드리지 않고 새 브랜치. 사용자가 설치한 스킬(`.agents/skills/` · `.claude/skills/` · `skills-lock.json`)은 커밋하지 않음(`skills-lock.json` 변경은 git stash 「skills-lock」에 보관).
+- 요청: `/review-animations` 결과(Block)와 `/mobile-native` 를 「다 고치고 pr」. main 에 빠진 「캡처만 인트로」 커밋도 함께(cherry-pick, 바로 아래 기록).
+- 모션(review-animations 지적 그대로)
+  - 삭제: 탭을 바꿀 때마다 재생되던 화면 전환(`#main.pgin` · `pageUp`), 보는 범위 · 오답 허브 전환 때 본문이 360ms 옆으로 미끄러지던 `segSlide` · `scopeSlide`(+ `scopeIdx` · `WRSL`), 로그인 역할 탭 전환 `#stbody.in`(`stIn`).
+  - 로그인 화면: 0.55s + 순차 지연 최대 0.44s → 제목 · 설명 · 카드만 opacity + 8px, 200ms, 지연 30 · 60ms. 역할 탭 · 입력칸은 움직이지 않음.
+  - 버튼: `#main button` hover 떠오름 삭제, 누름은 `scale(.97)` 160ms `cubic-bezier(.23,1,.32,1)`.
+  - 레이아웃 속성 애니메이션 제거: 사이드바 접기(본문 `padding-left` · 머리 `width`는 바로, 숨기기 transform 만), 칸 선택 막대(높이 빼고 200ms), 진행 막대 5종(`.gbar` · `.exp` · `.exfp` · `.bkp` · `.rxp` → `transform:scaleX` + JS 템플릿 · 타이머 갱신 수정), 둘러보기 강조 상자(전환 없음).
+  - `transition: all` 9곳 → 바뀌는 속성만. 토스트: 키프레임 → transition + `@starting-style`(아래 8px에서), 퇴장 200ms. 과목 목록 36px · .32s → 12px · .2s, 지연 30ms. 결제 완료 원 `scale(0)` → `scale(.6)`+투명. 프로필 · 알림 팝오버 `transform-origin` 을 누른 자리 쪽(`popPlace`).
+  - 동작 줄이기: 모달 · 아래 시트 · 메뉴 · 알림은 0 대신 150ms 페이드, 토스트는 움직임 없이 페이드.
+  - 인트로: 머리글 · 요금제 카드 · 질문 펼침 .3~.35s → .2s, 메뉴 버튼 줄이 `top` 대신 transform.
+- 휴대폰(mobile-native)
+  - 모든 `:hover` 규칙을 `@media(hover:hover) and (pointer:fine)` 로 감쌈(legacy 91 · screens 6 · components 1 · intro 12 · lead 3 규칙). 감싸기 전후를 Chrome CSS 파서로 비교해 선언 3,621개가 하나도 빠지거나 늘지 않았음을 확인. 인라인 CSS(index.html 인쇄 창 · books.js eBook)의 hover 는 그대로.
+  - 탭 강조색 끄기(앱 · 인트로 · 체험/문의), 앱 `html{overscroll-behavior-y:none}` + 모달 · 메뉴 · 시트 · 서랍 `overscroll-behavior:contain`, 누르는 것 `touch-action:manipulation` · 글자 선택 막기(본문은 그대로), 터치 입력 16px 이상, 휴대폰 위 막대 · 서랍에 `safe-area-inset-top`, 토스트 · 맨 위로 · QR · 담기 막대에 `safe-area-inset-bottom`, viewport 에 `interactive-widget=resizes-content`, 로그인 아이디 `autocorrect=off` · `enterkeyhint`.
+- 버전: CSS `?v=4`, `intro.*?v=11`, `lead.css?v=2`, `sw.js` VER `solvi-v162`. `AGENTS.md` 4절에 모션 규칙 한 줄.
+- 테스트: `tests/app-ui.cjs` 에 「탭 · 범위 전환 때 #main 애니메이션 0, 로그인 역할 탭 · 입력칸 정지, 카드 ≤200ms, 진행 막대 transform」, 「앱 CSS 에 감싸지 않은 :hover 0, 탭 강조 없음, overscroll none, 버튼 선택 · 터치 지연 없음, 채점 화면 입력 16px 이상」.
+- 확인: `node scripts/verify-static.cjs`, `tests/app-ui.cjs` 통과, 1440 · 390 화면 캡처로 진행 막대 · 화면 확인. `npm test` 전체 통과(exit 0, 「PASS all isolated verification commands」).
+- 못 한 것: 실제 iPhone · Android 에서 탭 반응 · 노치 · 홈 표시줄 · 키보드(`interactive-widget`) · 고무줄 스크롤을 만져 보지 못함(Playwright 에뮬레이션에서는 safe-area 값이 0이고 hover 고착 · 탭 지연이 재현되지 않음).
+
+## 2026-10-30 · Codex · claude/motion-mobile-native · PR 없음
+- 한 일: `npx skills@latest add emilkowalski/skills`를 실행해 Emil Kowalski 저장소의 스킬 16개를 프로젝트 로컬 `.agents/skills/`에 설치·갱신함.
+- 바뀐 파일: `.agents/skills/` 아래 16개 스킬, `.claude/skills/` 연결 항목, `skills-lock.json`, `WORKLOG.md`.
+- 확인: 설치 명령 exit 0, 16개 모두 설치 완료. 설치 도구의 보안 검사 결과 Gen Safe · Socket 0 alerts · Snyk Low Risk.
+- 남은 일 · 주의: 기존 작업 트리에 있던 앱 코드와 스타일 변경은 건드리지 않았고, 커밋·푸시는 하지 않음. 새 스킬은 다음 Codex 턴부터 사용 가능.
+
+## 2026-10-30 · Claude Code · claude/motion-mobile-native에 다시 올림(원래 claude/intro-mockups-system-audit 0dc31dd)
+- 요청: 「목업 그냥 다 빼고 그냥 캡쳐본만 넣어」. 바로 아래 기록(PR #101)의 3D 기기 무대 수정 위에서 무대 자체를 없앰. **PR #101 이 이 커밋보다 먼저 병합돼 main 에 빠져 있었음** → 다음 PR(claude/motion-mobile-native)에 cherry-pick 해서 올림.
 - 한 일
   - `intro.html`: 3D 무대(`#stage` · `.film-bg`) · GSAP 스크립트 · 스크롤 안내 삭제. 장면마다 문구 + 실제 앱 캡처(`img.shot`)만. 2장면(「아침에 볼 것은…」)은 히어로와 같은 대시보드를 또 보여 주게 돼 빼고, 히어로가 대시보드 캡처를 보여 줌. 학원 운영 장면 캡처는 반 시간표 + 출결 단말. OMR 점수 아래 「화면 속 점수는 예시 채점 기록」 표기. 바닥글의 「기기 모습은 그림」 문장 삭제.
   - `intro.css`: 3D 기기 · 책 · 문제 카드 · 분석 카드 CSS 전부 삭제(423 → 약 190줄). 넓은 화면은 문구 | 캡처 두 열(장면마다 좌우 번갈아), 860px 이하 한 열. 캡처는 얇은 테두리 + 옅은 그림자만(기기 테두리 흉내 없음), 휴대폰 캡처는 모서리만 둥글게.

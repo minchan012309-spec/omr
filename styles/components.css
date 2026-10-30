@@ -14,5 +14,5 @@
 #main .card,#main .stick,#main .mkgo,#main .bg,#main .clsp{box-shadow:none!important;background-image:none!important;border-color:var(--ui-border)}
 #main button.p,#main a.p{background-image:none!important;background-color:var(--ui-accent)!important;box-shadow:none!important}
 #main button.s,#main .chp,#main .chip,#main .tag{background-image:none!important;box-shadow:none!important}
-#main button{transition:transform .16s ease,background-color .16s ease,color .16s ease}#main button:hover{transform:translateY(-1px)}#main button:active{transform:translateY(1px)}
+#main button{transition:transform .16s cubic-bezier(.23,1,.32,1),background-color .16s cubic-bezier(.23,1,.32,1),color .16s cubic-bezier(.23,1,.32,1)}#main button:not(:disabled):active{transform:scale(.97)}
 

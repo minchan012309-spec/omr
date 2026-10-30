@@ -379,6 +379,51 @@ const focusedId = (page) => page.evaluate(() => document.activeElement && docume
       assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".entry-card")).opacity), "1");
       await context.close();
     });
+    /* 모션 · 휴대폰 손맛(review-animations · mobile-native): 자주 하는 동작에 애니메이션 없음, hover 는 마우스에서만, 탭 강조 없음, 진행 막대는 transform */
+    await check("motion: tab and scope switches do not animate the page; login inputs stay still", async () => {
+      const { context, page } = await newApp(browser, { session: true, data: true });
+      const running = () => page.evaluate(() => document.getAnimations().filter((a) => a.playState === "running" && a.effect && a.effect.target && document.getElementById("main").contains(a.effect.target)).length);
+      await page.evaluate(() => { tab = "stu"; render(); });
+      assert.equal(await running(), 0, "tab switch");
+      await page.evaluate(() => { tab = "weak"; render(); });
+      assert.equal(await running(), 0, "tab switch to weak");
+      await page.evaluate(() => { const b = [...document.querySelectorAll("#scopeBar .scb")].find((x) => !x.classList.contains("on")); b && b.click(); });
+      assert.equal(await running(), 0, "scope switch");
+      const bars = await page.evaluate(() => {
+        const box = document.createElement("div");
+        box.innerHTML = '<div class="gbar"><i></i></div><div class="exp"><i></i></div><div class="exfp"><i></i></div><div class="bkp"><i></i></div><div class="rx"><div class="rxp"><i></i></div></div>';
+        document.body.appendChild(box);
+        const r = [...box.querySelectorAll("i")].map((i) => getComputedStyle(i).transitionProperty);
+        box.remove();
+        return r;
+      });
+      assert.ok(bars.every((t) => /transform/.test(t) && !/width/.test(t)), "progress bars animate transform, not width: " + bars.join(" | "));
+      await context.close();
+      const login = await newApp(browser, {});
+      const moving = await login.page.evaluate(() => [...document.querySelectorAll(".entry-roles button, #stbody *")].filter((e) => getComputedStyle(e).animationName !== "none").length);
+      assert.equal(moving, 0, "role tabs and login fields do not animate");
+      assert.ok(await login.page.evaluate(() => parseFloat(getComputedStyle(document.querySelector(".entry-card")).animationDuration) <= 0.2), "entry card ≤ 200ms");
+      await login.context.close();
+    });
+    await check("touch: hover rules are mouse-only, no tap highlight, 16px inputs, controls not text-selectable", async () => {
+      const { context, page } = await newApp(browser, { width: 390, height: 844, session: true, data: true });
+      const r = await page.evaluate(() => {
+        let ungated = 0;
+        const walk = (rules, gated) => { for (const x of rules) { if (x.media) walk(x.cssRules, gated || /hover:\s*hover/.test(x.media.mediaText)); else if (x.selectorText && /:hover/.test(x.selectorText) && !gated) ungated++; } };
+        for (const sh of document.styleSheets) { if (!sh.href || !/styles\//.test(sh.href)) continue; try { walk(sh.cssRules, false) } catch (e) {} }
+        const b = document.querySelector("#main button") || document.querySelector("button");
+        return { ungated, tap: getComputedStyle(document.documentElement).webkitTapHighlightColor, over: getComputedStyle(document.documentElement).overscrollBehaviorY, sel: getComputedStyle(b).userSelect, ta: getComputedStyle(b).touchAction };
+      });
+      assert.equal(r.ungated, 0, "ungated :hover rules in app CSS");
+      assert.equal(r.tap, "rgba(0, 0, 0, 0)", "tap highlight");
+      assert.equal(r.over, "none", "page does not rubber-band behind the app");
+      assert.equal(r.sel, "none", "buttons are not text-selectable");
+      assert.equal(r.ta, "manipulation", "no double-tap delay on buttons");
+      await page.evaluate(() => { tab = "grade"; render(); });
+      const small = await page.evaluate(() => [...document.querySelectorAll("#main input:not([type=checkbox]):not([type=radio]):not([type=range]), #main select, #main textarea")].filter((e) => e.offsetParent && parseFloat(getComputedStyle(e).fontSize) < 16).length);
+      assert.equal(small, 0, "inputs under 16px zoom the page on iOS");
+      await context.close();
+    });
     await check("service worker precaches the versioned CSS in the new order and opens offline", async () => {
       const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: "allow" });
       await context.route(/supabase\.co|jsdelivr|googleapis|gstatic|cdnjs/, (r) => r.abort());
@@ -392,7 +437,7 @@ const focusedId = (page) => page.evaluate(() => document.activeElement && docume
         const links = [...document.querySelectorAll('link[rel="stylesheet"][href^="styles/"]')].map((l) => "/" + l.getAttribute("href"));
         return { v, keys, links };
       });
-      assert.deepEqual(r.links, ["/styles/tokens.css?v=3", "/styles/legacy.css?v=3", "/styles/base.css?v=3", "/styles/shell.css?v=3", "/styles/components.css?v=3", "/styles/screens.css?v=3"]);
+      assert.deepEqual(r.links, ["/styles/tokens.css?v=4", "/styles/legacy.css?v=4", "/styles/base.css?v=4", "/styles/shell.css?v=4", "/styles/components.css?v=4", "/styles/screens.css?v=4"]);
       for (const l of r.links) assert.ok(r.keys.includes(l), "cached " + l);
       await page.reload();
       await page.waitForTimeout(800);
