@@ -82,8 +82,7 @@ const runTo = async (page, id, p) => {
           for (const img of sec.querySelectorAll("img.shot")) {
             const r = img.getBoundingClientRect();
             if (r.width < 40) out.push(id + " capture too small " + Math.round(r.width));
-            /* 학원 운영 띠는 옆으로 지나가는 것이 의도(띠 바깥은 .strip-pin 이 잘라 페이지 가로 넘침은 없다) */
-            if (!img.closest(".strip") && (r.left < -1 || r.right > innerWidth + 1)) out.push(id + " capture off-screen");
+            if (+getComputedStyle(img).opacity > 0.05 && (r.left < -1 || r.right > innerWidth + 1)) out.push(id + " capture off-screen");
             for (const c of text) if (r.left < c.right - 1 && r.right > c.left + 1 && r.top < c.bottom - 1 && r.bottom > c.top + 1) out.push(id + " capture covers copy");
           }
         }
@@ -91,18 +90,18 @@ const runTo = async (page, id, p) => {
       }, SCENES);
       assert.deepEqual(bad, [], "captures at " + width + "x" + height);
       /* 한 바퀴 무대 · 연결 그래프: 단계 글과 겹치지 않고, 머리글 아래 화면 안에 다 들어온다 */
-      for (const [run, side, box, ps] of [["flowRun", ".flow-side", "#fb", [0.05, 0.3, 0.5, 0.7, 0.95]], ["linkRun", ".link-cp", "#lb", [0.2, 0.98]]]) {
+      for (const [run, side, box, ps] of [["flowRun", ".flow-side", "#fb", [0.05, 0.3, 0.5, 0.7, 0.95]], ["qrRun", ".qr-cp", "#qb", [0.05, 0.3, 0.6, 0.9]], ["linkRun", ".link-cp", "#lb", [0.2, 0.98]], ["dayRun", ".day-steps,.dd.on", ".day-frame", [0.05, 0.5, 0.95]]]) {
         for (const p of ps) {
           await runTo(page, run, p);
           const r = await page.evaluate(([side, box]) => {
             const a = document.querySelector(box).getBoundingClientRect(), hd = document.querySelector(".hd").offsetHeight;
-            const t = [...document.querySelectorAll(side + " h2," + side + " .fd.on," + side + " .flow-steps," + side + " li.on")].map((e) => e.getBoundingClientRect()).filter((x) => x.height);
+            const t = [...document.querySelectorAll(side.includes(",") ? side : side + " h2," + side + " .fd.on," + side + " .flow-steps," + side + " li.on")].map((e) => e.getBoundingClientRect()).filter((x) => x.height);
             return { over: t.some((c) => a.left < c.right - 1 && a.right > c.left + 1 && a.top < c.bottom - 1 && a.bottom > c.top + 1), top: a.top - hd, bottom: innerHeight - a.bottom, left: a.left, right: innerWidth - a.right, w: a.width };
           }, [side, box]);
           assert.ok(!r.over && r.top > -2 && r.bottom > -2 && r.left > -2 && r.right > -2 && r.w > 200, run + " " + p + " at " + width + "x" + height + ": " + JSON.stringify(r));
         }
       }
-      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), "no horizontal overflow at " + width);
+      assert.ok(await page.evaluate((w) => document.documentElement.scrollWidth <= w && innerWidth === w, width), "no horizontal overflow at " + width);
     }
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.waitForTimeout(400);
@@ -144,6 +143,39 @@ const runTo = async (page, id, p) => {
     assert.deepEqual(await page.locator(".fm-g span").evaluateAll((l) => l.map((x) => x.dataset.s)), ["red", "yellow", "green", "green", "star", "star"], "studying again changes the colours");
     await runTo(page, "flowRun", 0.1);
     assert.deepEqual(await page.locator(".fm-g span").evaluateAll((l) => l.map((x) => x.dataset.s)), ["gray", "gray", "gray", "gray", "gray", "gray"], "scrolling back restores the earlier state");
+    /* QR 채점: 카메라 창이 QR로 확대 → 인식 → OMR → 결과, 단계가 따라 켜진다 */
+    await runTo(page, "qrRun", 0.05);
+    assert.equal(await page.locator(".qr-steps li.on").getAttribute("data-i"), "0");
+    await runTo(page, "qrRun", 0.36);
+    assert.ok((await page.locator(".qpage").evaluate((e) => new DOMMatrix(getComputedStyle(e).transform).a)) > 3, "camera zooms onto the QR");
+    assert.equal(await page.locator(".qr-steps li.on").getAttribute("data-i"), "1");
+    await runTo(page, "qrRun", 0.45);
+    assert.ok(await page.locator(".qfind").evaluate((e) => e.classList.contains("ok")), "QR recognised");
+    await runTo(page, "qrRun", 0.9);
+    assert.equal(await page.locator(".qscore dd").last().innerText(), "75%");
+    assert.ok(+(await page.locator(".qphone .res").evaluate((e) => getComputedStyle(e).opacity)) > 0.9, "result capture shown");
+    assert.equal(await page.locator(".qr-ways li").count(), 4, "other ways to grade listed");
+    /* 학원의 하루: 아홉 장면이 스크롤 위치대로 넘어간다 */
+    assert.equal(await page.locator(".day-steps li").count(), 9);
+    for (const i of [0, 2, 4, 7, 8]) {
+      await runTo(page, "dayRun", (i + 0.5) / 9);
+      assert.equal(await page.locator(".day-steps li.on").getAttribute("data-i"), String(i), "day step " + i);
+      assert.equal(await page.locator(".dd.on").getAttribute("id"), "day-" + i);
+    }
+    const dayImgs = await page.locator(".day-frame .shot").evaluateAll((l) => l.map((i) => ({ ok: i.complete && i.naturalWidth > 0, src: i.getAttribute("src") })));
+    for (const d of dayImgs) assert.ok(d.ok, "academy capture loads: " + d.src);
+    /* 기능 전체: 분야를 누르면 그 분야 카드만 */
+    const total = await page.locator(".spec-g .sp").count();
+    assert.ok(total >= 30, "detailed feature catalog: " + total);
+    await page.locator('.cats button[data-cat="grade"]').click();
+    assert.equal(await page.locator(".spec-g .sp:visible").count(), await page.locator('.spec-g .sp[data-cat="grade"]').count());
+    assert.equal(await page.locator("#catN").innerText(), String(await page.locator('.spec-g .sp[data-cat="grade"]').count()));
+    await page.locator('.cats button[data-cat="all"]').click();
+    assert.equal(await page.locator(".spec-g .sp:visible").count(), total);
+    /* 요금제별 비교: 서버 요금제(시험용)의 이름 · 가격으로 맞춰진다 */
+    assert.equal(await page.locator("#cmp thead th[data-i]").count(), 3);
+    assert.equal(await page.locator('#cmp thead th[data-i="2"]').innerText(), "테스트 플래티넘");
+    assert.equal(await page.locator('#cmp tr.price td[data-i="1"]').innerText(), "150,000원");
     /* 연결: 끝까지 내리면 열두 기능이 모두 이어지고, 기능에 올리면 설명과 이어진 선이 강조된다 */
     await runTo(page, "linkRun", 1);
     assert.equal(await page.locator("#lb .ln.lit").count(), 12, "every feature is linked");
@@ -152,16 +184,6 @@ const runTo = async (page, id, p) => {
     assert.ok((await page.locator("#lb .lsvg path.hot").count()) >= 3, "hovering a feature highlights its links");
     assert.equal(await page.locator("#lb .ln").nth(3).locator("span").isVisible(), true);
     assert.equal(await page.getByText("학습지 번호로 바로 채점하기").count(), 0, "number-grading shortcut removed from the intro");
-    const strip = await page.evaluate(async () => {
-      const s = document.querySelector("#academy .strip"), t = s.querySelector(".strip-track");
-      const top = s.getBoundingClientRect().top + scrollY - document.querySelector(".hd").offsetHeight;
-      const x = () => new DOMMatrix(getComputedStyle(t).transform).m41;
-      scrollTo(0, top); await new Promise((r) => setTimeout(r, 300)); const a = x();
-      scrollTo(0, top + 400); await new Promise((r) => setTimeout(r, 300)); const b = x();
-      return { a, b, overflow: document.documentElement.scrollWidth - innerWidth };
-    });
-    assert.ok(Math.abs(strip.a) < 2 && Math.abs(strip.a - strip.b - 400) < 4, "academy strip moves sideways 1:1 with the vertical scroll: " + JSON.stringify(strip));
-    assert.ok(strip.overflow <= 0, "strip never widens the page");
     const assets = await page.evaluate(() => [...new Set([...document.querySelectorAll("img")].map((i) => i.getAttribute("src") || i.dataset.src).concat([...document.querySelectorAll(".leaf")].flatMap((l) => [l.dataset.f, l.dataset.k])).concat([...document.querySelectorAll("[data-bg]")].map((e) => e.dataset.bg)).filter(Boolean))]);
     for (const src of assets) assert.equal((await page.request.get(BASE + "/" + src)).ok(), true, "asset exists: " + src);
     assert.equal((await page.request.get(BASE + "/policy.html")).ok(), true);
@@ -170,7 +192,7 @@ const runTo = async (page, id, p) => {
     assert.equal(await page.locator('a[href^="mailto:"]').count(), 0, "contact uses the built-in form, not e-mail");
     assert.equal(await page.locator(".ft-logos svg.sym").count(), 1, "footer shows the S symbol");
     assert.equal(await page.locator(".ft-logos svg.ft-wm").count(), 1, "footer shows the Solvi wordmark");
-    assert.equal(await page.locator(".ft-logos .ko-logo").innerText(), "솔비", "footer shows the Korean logo");
+    assert.equal(await page.locator(".ko-logo").count(), 0, "no Korean logo in the footer (user removed it)");
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(() => scrollTo(0, 0));
@@ -197,6 +219,20 @@ const runTo = async (page, id, p) => {
     await lp.waitForTimeout(800);
     assert.equal(await lp.evaluate(() => document.documentElement.dataset.theme), "dark");
     await lightCtx.close();
+
+    /* 실제 휴대폰처럼(isMobile): 장면을 지나는 동안 레이아웃 폭이 화면보다 넓어지지 않는다(넓어지면 브라우저가 페이지를 축소해 보여 준다) */
+    const mob = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+    const mp = await mob.newPage();
+    await mp.goto(BASE + "/intro.html");
+    await mp.waitForTimeout(1200);
+    for (const [run, p] of [["flowRun", 0.5], ["qrRun", 0.3], ["qrRun", 0.55], ["linkRun", 0.9], ["dayRun", 0.3], ["dayRun", 0.9]]) {
+      await runTo(mp, run, p);
+      const w = await mp.evaluate(() => [innerWidth, document.documentElement.scrollWidth]);
+      assert.deepEqual(w, [390, 390], "mobile layout width stays 390 at " + run + " " + p);
+    }
+    await mp.locator("#cmp").scrollIntoViewIfNeeded();
+    assert.ok(await mp.evaluate(() => { const s = document.querySelector(".cmp-scroll"); return s.scrollWidth <= s.clientWidth + 1; }), "plan comparison fits a phone without sideways scrolling");
+    await mob.close();
 
     /* 동작 줄이기: 같은 문서 그대로(움직이는 연출이 원래 없다) */
     const reduced = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
@@ -233,7 +269,7 @@ const runTo = async (page, id, p) => {
     assert.match(await fallback.locator("#plans .plan h3").first().innerText(), /솔비 라이트/);
     assert.equal(await fallback.locator("#plans .plan").count(), 3);
     await fallbackContext.close();
-    console.log("PASS: pricing, no mockup/3D/GSAP, live type map (paint · pick · tap), 5-step scroll stage (forward · back), link graph (draw · hover), strip, captures load with alt, no copy overlap at 5 sizes, app destinations, keyboard menu, light end, reduced motion, no JS. Screenshots: " + OUT);
+    console.log("PASS: pricing, no mockup/3D/GSAP, live type map (paint · pick · tap), 5-step scroll stage (forward · back), QR scene, academy day (9 steps), feature catalog filter, plan comparison, link graph (draw · hover), mobile layout width, captures load with alt, no copy overlap at 5 sizes, app destinations, keyboard menu, light end, reduced motion, no JS. Screenshots: " + OUT);
   } finally {
     await browser.close();
   }
