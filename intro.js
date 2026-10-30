@@ -1,5 +1,6 @@
-/* Solvi 소개: 스크롤 하나가 필름 한 편을 재생한다. GSAP ScrollTrigger 하나(pin + scrub)에 모든 장면이 같은 타임라인으로 이어진다.
-   스크립트가 없거나 · 동작 줄이기 · 저사양이면 html.cine 없이 같은 내용을 정적인 장면으로 보여 준다. 터치 스크롤은 건드리지 않는다. */
+/* Solvi 소개: 장면 섹션은 보통 문서처럼 흐르고, 3D 무대(sticky)가 스크롤 위치를 따라 GSAP 타임라인 한 편을 재생한다.
+   스크롤은 브라우저 기본 동작 그대로다: wheel · touch · key 를 가로채지 않고, 고정(pin) · 스크럽 지연 · 스냅 · 위치 보정이 없다.
+   스크립트가 없거나 · 동작 줄이기 · 저사양이면 html.cine 없이 같은 내용을 정적인 장면으로 보여 준다. */
 (function(){
 'use strict';
 var D=document,H=D.documentElement;
@@ -14,9 +15,9 @@ menu.addEventListener('click',function(){navOpen(menu.getAttribute('aria-expande
 nav.addEventListener('click',function(e){if(e.target.closest('a'))navOpen(false)});
 D.addEventListener('keydown',function(e){if(e.key==='Escape'&&menu.getAttribute('aria-expanded')==='true'){navOpen(false);menu.focus()}});
 D.addEventListener('click',function(e){if(!e.target.closest('.hd'))navOpen(false);if(e.target.closest('[data-app]')){try{localStorage.setItem('omr_app','1')}catch(ignore){}}});
-var lightFilm=false,lightSecs=0,scrollQ=false;
+var lightFilm=false,lightSecs=0,scrollQ=false,sync=null;
 function theme(){hd.classList.toggle('light',lightFilm||lightSecs>0)}
-function onScroll(){scrollQ=false;var y=scrollY;hd.classList.toggle('scrolled',y>12);dock.classList.toggle('on',y>innerHeight*.9)}
+function onScroll(){scrollQ=false;var y=scrollY;hd.classList.toggle('scrolled',y>12);dock.classList.toggle('on',y>innerHeight*.9);if(sync)sync()}
 addEventListener('scroll',function(){if(!scrollQ){scrollQ=true;requestAnimationFrame(onScroll)}},{passive:true});onScroll();
 
 /* ---------- 밝은 · 어두운 화면: 앱과 같은 저장값(omr_theme) ---------- */
@@ -51,14 +52,19 @@ function watchLight(cine){if(!('IntersectionObserver' in window))return;
  var io=new IntersectionObserver(function(es){es.forEach(function(e){lightSecs+=e.isIntersecting?1:-1;if(lightSecs<0)lightSecs=0});theme()},{rootMargin:'0px 0px -96% 0px'});
  $$('.sec,.ft'+(cine?'':',.sc-end')).forEach(function(s){io.observe(s)})}
 
+/* ---------- 목차: 지금 보고 있는 구역(실제 교차 결과)에 aria-current ---------- */
+(function(){if(!('IntersectionObserver' in window))return;var links=$$('.nav a[href^="#"]'),seen={};
+ var io=new IntersectionObserver(function(es){es.forEach(function(e){seen[e.target.id]=e.isIntersecting});var cur=null;links.forEach(function(a){if(seen[a.getAttribute('href').slice(1)])cur=a});links.forEach(function(a){if(a===cur)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current')})},{rootMargin:'-45% 0px -45% 0px'});
+ links.forEach(function(a){var t=D.getElementById(a.getAttribute('href').slice(1));if(t)io.observe(t)})})();
+
 /* ---------- 시네마틱 모드를 켤 수 있나 ---------- */
 var rm=matchMedia('(prefers-reduced-motion: reduce)');
 var nav2=navigator,low=(nav2.hardwareConcurrency&&nav2.hardwareConcurrency<=2)||(nav2.deviceMemory&&nav2.deviceMemory<=2)||(nav2.connection&&nav2.connection.saveData);
-var can=!!(window.gsap&&window.ScrollTrigger&&window.CSS&&CSS.supports('transform-style','preserve-3d'))&&!rm.matches&&!low;
+var can=!!(window.gsap&&window.CSS&&CSS.supports('transform-style','preserve-3d'))&&!rm.matches&&!low;
 if(rm.addEventListener)rm.addEventListener('change',function(){location.reload()});
 if(!can){watchLight(false);return}
 H.classList.add('cine');watchLight(true);
-var gsap=window.gsap,ST=window.ScrollTrigger;gsap.registerPlugin(ST);ST.config({ignoreMobileResize:true});
+var gsap=window.gsap;
 
 /* 문제은행 장면에 쓰는 실제 문항(bank/data.js 의 코드 · 단원 · 유형 · 난이도 · 발문 앞부분) */
 var QS=[["Q31-032","Ⅲ-A","연소·생성·분해·용해·기화 엔탈피의 정의","하","그림은 25 ℃, 1기압에서 C(s, 흑연)의 연소 반응의 엔탈피 변화를 나타낸 것이다."],
@@ -89,8 +95,8 @@ function stripHTML(n,i){if(i>=n)return '';var w='calc(var(--w)/'+n+' + .6px)';
  return '<div class="st"'+(i===0?' style="width:'+w+'"':'')+'><div class="face f" style="background-image:var(--f);background-size:var(--w) var(--h);background-position:calc(var(--w)/'+n+'*-'+i+') 0"><i class="sd"></i></div><div class="face k" style="background-image:var(--k);background-size:var(--w) var(--h);background-position:calc(var(--w)/'+n+'*-'+(n-1-i)+') 0"><i class="sd"></i></div>'+stripHTML(n,i+1)+'</div>'}
 function bookBox(cover,color,spine){return '<div class="bk"><div class="face back" style="background:'+color+'"></div><i class="ee r"></i><i class="ee t"></i><i class="ee b"></i><div class="spine" style="background:'+color+'"><span>'+spine+'</span></div><div class="face cv" data-bg="intro/'+cover+'.webp"></div></div>'}
 
-var M,vw,vh,u,S={},tl,trig,leaves=[],built=false,total=2320;
-function sizes(){vw=innerWidth;vh=innerHeight;M=vw<861;
+var M,vw,vh,u,S={},tl,leaves=[],built=false,total=2320;
+function sizes(){vw=innerWidth;vh=stage.clientHeight||innerHeight;M=vw<861;
  u=M?Math.min(vw*.0145,vh*.0075):Math.min(vw*.01,vh*.0165);H.style.setProperty('--u',u.toFixed(2)+'px');
  S.xdr=M?vw*.92:64*u;S.mac=M?vw*.8:50*u;S.pad=M?vw*.46:24*u;S.phone=M?Math.min(vw*.42,vh*.2):15*u;S.book=M?vw*.42:21*u;S.sheet=M?vw*.62:25*u;
  S.tw=M?Math.floor((vw*.92-16)/3):150;S.th=M?62:122;S.cols=M?3:5;S.gap=M?8:12;S.aw=M?Math.min(vw*.88,420):400}
@@ -104,13 +110,13 @@ function build(){
   IMG('xdr-dash',0,'on')+IMG('xdr-cls',1)+IMG('xdr-build',1)+IMG('xdr-dash',6,'a8')+IMG('xdr-stu',6)+IMG('xdr-cls',6,'a8c')+IMG('xdr-cns',6)+IMG('xdr-weak',7)+
   '<i class="hl" style="left:20.6%;top:17.9%;width:73.8%;height:16%"></i><i class="hl" style="left:48.5%;top:17.9%;width:27.4%;height:16%"></i><i class="hl" style="left:20.6%;top:40.7%;width:24.2%;height:34.4%"></i><i class="hl" style="left:70.2%;top:40.7%;width:24.2%;height:34.4%"></i><i class="hl" style="left:20.6%;top:22%;width:73.8%;height:62%"></i><i class="pw" style="position:absolute;inset:0;background:#000"></i></div><i class="sheen"></i></div></div></div></div>';
  /* 문제은행 카드 · 학습지 */
- h+='<div class="obj qb" id="qb"><div class="qf" id="qf"><span>물질과 에너지</span><span>Ⅲ 반응 엔탈피</span><span>Ⅳ 반응 속도</span><span>난이도 하</span><span>중</span><span>상</span></div>';
+ h+='<div class="obj qb" id="qb" data-ui><div class="qf" id="qf"><span>물질과 에너지</span><span>Ⅲ 반응 엔탈피</span><span>Ⅳ 반응 속도</span><span>난이도 하</span><span>중</span><span>상</span></div>';
  QS.forEach(function(q,i){var d=DOTS[q[3]],dots='';for(var k=1;k<=4;k++)dots+=k<=d?'●':'<span class="o">●</span>';
   h+='<div class="qt" data-i="'+i+'" style="--tw:'+S.tw+'px;--th:'+S.th+'px"><div class="q1"><span class="code">'+q[0]+'</span><span class="dots" aria-hidden="true">'+dots+'</span></div><div class="ty">'+esc(q[2])+'</div><div class="sx">'+esc(q[4])+'</div></div>'});
  h+='<div class="qcount" id="qcount">반응 속도 · 중 이상 6문항으로 학습지 만들기</div></div>';
  h+='<div class="obj sheet" id="sheet" style="--w:'+S.sheet+'px"><div class="pp"><div class="face f" data-bg="intro/book-sheet.webp"><i class="sd"></i></div><div class="face k"><i class="sd"></i></div></div></div>';
  /* 교재 */
- h+='<div class="obj book" id="book" style="--w:'+S.book+'px"><div class="bk"><div class="face back"></div><i class="ee r"></i><i class="ee t"></i><i class="ee b"></i><div class="spine"><span>물질과 에너지 개념서</span></div><div class="pg base" data-bg="intro/book-answer.webp"></div>';
+ h+='<div class="obj book" id="bookO" style="--w:'+S.book+'px"><div class="bk"><div class="face back"></div><i class="ee r"></i><i class="ee t"></i><i class="ee b"></i><div class="spine"><span>물질과 에너지 개념서</span></div><div class="pg base" data-bg="intro/book-answer.webp"></div>';
  [['book-basic','book-problem'],['book-concept','book-ox'],['cover-me-c','book-toc']].forEach(function(p,i){h+='<div class="leaf'+(i===2?' cover':'')+'" data-f="intro/'+p[0]+'.webp" data-k="intro/'+p[1]+'.webp" style="transform:translateZ('+((i+1)*1.4)+'px)">'+stripHTML(i===2?1:NS,0)+'</div>'});
  h+='</div></div>';
  [['cover-me-t','#2b6fc0','물질과 에너지 유형서'],['cover-cm-c','#2e9b57','세포와 물질대사 개념서'],['cover-cm-t','#2e9b57','세포와 물질대사 유형서'],['mock-cover','#1d3f73','전범위 모의고사']].forEach(function(b,i){h+='<div class="obj mb book" id="mb'+i+'" style="--w:'+S.book+'px">'+bookBox(b[0],b[1],b[2])+'</div>'});
@@ -123,12 +129,12 @@ function build(){
  h+='<div class="obj ph-o" id="phone"><div class="slab phone" style="--w:'+S.phone+'px">'+slabEdges(NE+1)+'<div class="btns" aria-hidden="true"><i></i><i></i><i></i></div><div class="face bk"><i class="lens"></i></div><div class="face fr"><div class="scr" data-ui>'+IMG('phone-omr',4,'on')+IMG('phone-result',4,'res')+IMG('phone-weak',4)+IMG('phone-home',7)+
   '<div class="scan">'+IMG('book-problem',4,'cam')+'<div class="camtop">교재 · 학습지의 QR 찍기</div><div class="fr4"><i></i><i></i><i></i><i></i><b class="line"></b></div><span class="lab">QR 인식 · 이 쪽 문항을 불러와요</span></div><div class="burst"><b></b>'+new Array(15).join('<i></i>')+'</div></div><i class="island"></i></div></div></div>';
  /* 오답 분석 */
- h+='<div class="obj ana" id="ana"><div class="agrp" style="--aw:'+S.aw+'px"><h3>틀린 문항 · 유형별로 모으기</h3><p class="tt">연소·생성·분해·용해·기화 엔탈피의 정의</p><div class="slots"><i></i><i></i><i></i></div><p class="why"><span>진술 오판단 2</span><span>개념 혼동 1</span></p></div>'+
+ h+='<div class="obj ana" id="ana" data-ui><div class="agrp" style="--aw:'+S.aw+'px"><h3>틀린 문항 · 유형별로 모으기</h3><p class="tt">연소·생성·분해·용해·기화 엔탈피의 정의</p><div class="slots"><i></i><i></i><i></i></div><p class="why"><span>진술 오판단 2</span><span>개념 혼동 1</span></p></div>'+
   '<div class="abars" style="--aw:'+S.aw+'px"><h3>유형별 정답률 · 솔비 학생</h3><ol>'+BARS.map(function(b){return '<li><span>'+esc(b[0])+'</span><i><b style="--c:'+b[2]+'"></b></i><em>'+b[1]+'%</em></li>'}).join('')+'</ol></div>'+
   ['43번','47번','51번'].map(function(t){return '<span class="chip">'+t+'</span>'}).join('')+'</div>';
  h+='</div>';
- h+='<div class="scrim"></div><div class="hl-cap"><span>재원생 · 오늘 수업 · 출석률 · 수납률을 한눈에</span><span>출석률 92% · 수납률 88% · 미수금까지</span><span>반마다 오늘 수업과 등원 현황</span><span>7일 안에 할 상담과 다음 할 일</span><span>반 · 시간표도 같은 화면에서</span></div>';
- h+='<div class="tags"><span class="tag" data-t="x0"><b>원생</b>재원 · 휴원 · 상담 상태</span><span class="tag" data-t="x1"><b>반 · 시간표</b>주간 시간표와 담당 선생님</span><span class="tag" data-t="x2"><b>상담</b>상담 일지와 보강 일정</span><span class="tag" data-t="m"><b>학생</b>학생별 학습 기록</span><span class="tag" data-t="p"><b>출결</b>입구 태블릿 출결 단말</span><span class="tag" data-t="f"><b>행정</b>학부모 알림장 · 수납</span></div><div class="veil" id="veil"></div>';
+ h+='<div class="scrim"></div><div class="hl-cap" data-ui><span>재원생 · 오늘 수업 · 출석률 · 수납률을 한눈에</span><span>출석률 92% · 수납률 88% · 미수금까지</span><span>반마다 오늘 수업과 등원 현황</span><span>7일 안에 할 상담과 다음 할 일</span><span>반 · 시간표도 같은 화면에서</span></div>';
+ h+='<div class="tags" data-ui><span class="tag" data-t="x0"><b>원생</b>재원 · 휴원 · 상담 상태</span><span class="tag" data-t="x1"><b>반 · 시간표</b>주간 시간표와 담당 선생님</span><span class="tag" data-t="x2"><b>상담</b>상담 일지와 보강 일정</span><span class="tag" data-t="m"><b>학생</b>학생별 학습 기록</span><span class="tag" data-t="p"><b>출결</b>입구 태블릿 출결 단말</span><span class="tag" data-t="f"><b>행정</b>학부모 알림장 · 수납</span></div><div class="veil" id="veil"></div>';
  stage.innerHTML=h;
  $$('.leaf',stage).forEach(function(l){leaves.push({el:l,st:$$('.st',l),sd:$$('.sd',l),rigid:l.classList.contains('cover'),t:0,z:parseFloat(l.style.transform.slice(11))})});
  built=true}
@@ -147,7 +153,7 @@ function setLeaf(L,t){L.t=t;var th=-180*t,b=L.rigid?0:-46*Math.sin(Math.PI*t)/L.
  for(var i=0;i<L.st.length;i++){var s=L.st[i];if(i>0||!L.rigid)s.style.transform=i===0?'':'rotateY('+b.toFixed(2)+'deg)';var a=(th+b*i)*Math.PI/180,o=(.28*Math.abs(Math.sin(a))).toFixed(3);s.children[0].children[0].style.opacity=o;s.children[1].children[0].style.opacity=o}}
 
 function timeline(){
- var X=function(id){return $('#'+id,stage)},xdr=X('xdr'),xin=X('xdrIn'),qb=X('qb'),sheet=X('sheet'),book=X('book'),mac=X('mac'),lid=X('lid'),pad=X('pad'),phone=X('phone'),ana=X('ana'),rig=X('rig'),veil=X('veil');
+ var X=function(id){return $('#'+id,stage)},xdr=X('xdr'),xin=X('xdrIn'),qb=X('qb'),sheet=X('sheet'),book=X('bookO'),mac=X('mac'),lid=X('lid'),pad=X('pad'),phone=X('phone'),ana=X('ana'),rig=X('rig'),veil=X('veil');
  var mbs=[0,1,2,3].map(function(i){return X('mb'+i)});
  var cps={};$$('.sc').forEach(function(s){cps[s.dataset.scene]=$('.cp',s)});
  var xs=$$('.scr img',xdr),hl=$$('.hl',xdr),pw=$('.pw',xdr),cap=$$('.hl-cap span',stage),scrim=$('.scrim',stage),floor=$('.floor',stage);
@@ -160,28 +166,24 @@ function timeline(){
  var LW=M?vw:Math.min(vw,u*100);
 
  /* 첫 화면: 히어로 문구 아래 남는 공간에 디스플레이 + 받침대를 맞춘다 */
- gsap.set(heroCp,{autoAlpha:1});
- var cb=heroCp.getBoundingClientRect().bottom,gap=P(.035,.04)*vh,avail=vh-cb-gap-P(.15,.14)*vh,grp=S.xdr*.756;
+ var cb=heroCp.getBoundingClientRect().bottom-heroCp.parentNode.getBoundingClientRect().top,gap=P(.035,.04)*vh,avail=vh-cb-gap-P(.15,.14)*vh,grp=S.xdr*.756;
  var s0=Math.min(avail/grp,P(.66,.98)*LW/S.xdr),dispY=cb+gap-vh/2+S.xdr*.287*s0;
  var sw=S.xdr*.969,sh=S.xdr*.543,sF=M?vw/sw:Math.max(vw/sw,vh/sh)*1.01;
  tl=gsap.timeline({defaults:{ease:'none',duration:20},paused:true});
  var at=function(t,target,vars,dur){vars.duration=dur==null?20:dur;tl.to(target,vars,t);return tl};
- var copyIn=function(k,a,b){var c=cps[k];tl.fromTo(c,{autoAlpha:0,y:36},{autoAlpha:1,y:0,duration:24,ease:'power2.out',immediateRender:false},a);if(b!=null)tl.to(c,{autoAlpha:0,y:-36,duration:18,ease:'power1.in'},b)};
- gsap.set([qb,sheet,book,mac,pad,phone,ana].concat(mbs),{autoAlpha:0});
+  gsap.set([qb,sheet,book,mac,pad,phone,ana].concat(mbs),{autoAlpha:0});
  gsap.set(xdr,{autoAlpha:1,y:dispY,scale:s0});
- Object.keys(cps).forEach(function(k){if(k!=='hero')gsap.set(cps[k],{autoAlpha:0})});
 
  /* SCENE 01 → 02: 디스플레이 속으로 들어가는 카메라 */
  tl.fromTo(cue,{autoAlpha:1},{autoAlpha:0,duration:24,immediateRender:false},0);
- at(40,heroCp,{autoAlpha:0,y:-60,ease:'power1.in'},44);
  at(55,xdr,{scale:sF,y:0,ease:'power2.inOut'},95);
- at(118,scrim,{opacity:M?0:1},26);
- copyIn('ops',140,250);
+ /* 다음 장면 문구가 아래에서 스크롤과 함께 올라오므로 그 전에 아래쪽을 어둡게 깐다 */
+ at(70,scrim,{opacity:M?0:1},26);
  var hlT=[150,174,196,216,244];
  hl.forEach(function(e,i){tl.fromTo(e,{opacity:0},{opacity:1,duration:10,immediateRender:false},hlT[i]);tl.to(e,{opacity:0,duration:8},hlT[i]+(i===4?16:18));tl.fromTo(cap[i],{opacity:0,y:10},{opacity:1,y:0,duration:8,immediateRender:false},hlT[i]);tl.to(cap[i],{opacity:0,duration:6},hlT[i]+(i===4?16:19))});
  at(230,xs[1],{opacity:1},12);
  at(262,xs[2],{opacity:1},12);
- at(258,scrim,{opacity:0},14);
+ at(300,scrim,{opacity:0},14);
  /* SCENE 03: 문제은행 */
  at(272,xdr,{scale:s0*.62,y:P(-.1,-.2)*vh,z:-380,ease:'power2.inOut'},52);
  at(318,xdr,{autoAlpha:0},22);
@@ -213,7 +215,6 @@ function timeline(){
  at(482,sheet,{rotationY:26,rotationX:8,rotationZ:-2,ease:'sine.inOut'},40);
  at(482,sd,{opacity:.05},40);
  at(524,sheet,{y:-vh*.9,rotationX:42,autoAlpha:0,ease:'power2.in'},28);
- copyIn('bank',298,522);
 
  /* SCENE 04: 살아 움직이는 교재 */
  var bw=S.book,bX=P(.1,0)*LW,bY=P(.07,.1)*vh;
@@ -237,7 +238,6 @@ function timeline(){
  at(890,book,{x:P(.04,0)*LW-bw*sR/2,y:bY+P(.04,.02)*vh,scale:sR,rotationY:-10,rotationX:6,ease:'power2.inOut'},34);
  mbs.forEach(function(m,i){gsap.set(m,{x:P(.04,0)*LW+slots[i]*step*1.8-bw*sR/2,y:bY+P(.04,.02)*vh+30,scale:sR,rotationY:-10,rotationX:6});
   tl.to(m,{autoAlpha:1,duration:12},896+i*3);tl.to(m,{x:P(.04,0)*LW+slots[i]*step-bw*sR/2,y:bY+P(.04,.02)*vh,duration:30,ease:'power2.out'},896+i*3)});
- copyIn('book',556,920);
 
  /* SCENE 05: 교재 → 태블릿 → 노트북 */
  var pS=P(.82,1),pw0=S.pad*pS,k=pw0*(1-2*.0303)/bw,padY=P(.12,.06)*vh;
@@ -246,7 +246,6 @@ function timeline(){
  gsap.set(pad,{y:padY,scale:pS});
  at(966,pad,{autoAlpha:1},16);at(980,book,{autoAlpha:0},8);
  at(990,ps[1],{opacity:1},14);
- copyIn('device',992,1148);
  at(1010,pad,{rotationY:360,y:padY-vh*.03,ease:'sine.inOut'},64);
  at(1010,pad,{rotationX:14,rotationZ:-5,ease:'sine.out'},32);at(1042,pad,{rotationX:4,rotationZ:0,ease:'sine.in'},32);
  var macS=P(.78,1),macX=P(-.08,0)*LW,macHy=P(.4*vh+.69*S.mac*macS-vh/2,.1*vh+S.mac*.26);
@@ -262,7 +261,6 @@ function timeline(){
  gsap.set(phone,{y:vh*.9,rotationY:180,rotationZ:-10});
  at(1166,phone,{autoAlpha:1},10);
  at(1166,phone,{y:phY,rotationY:0,rotationZ:0,ease:'power2.out'},58);
- copyIn('omr',1186,1410);
  gsap.set(scan,{opacity:1});gsap.set(lab,{opacity:0});
  tl.fromTo(line,{top:'6%'},{top:'92%',duration:28,ease:'sine.inOut',immediateRender:false},1226);
  at(1254,$$('i',fr4),{borderColor:ACC},6);at(1254,line,{opacity:0},4);at(1254,lab,{opacity:1},6);
@@ -292,7 +290,6 @@ function timeline(){
  why.forEach(function(w,i){tl.to(w,{autoAlpha:1,duration:10},1494+i*6)});
  tl.fromTo(abars,{autoAlpha:0,y:by+24},{autoAlpha:1,y:by,duration:16,immediateRender:false},1512);
  bars.forEach(function(b,i){tl.to(b,{scaleX:BARS[i][1]/100,duration:26,ease:'power2.out'},1522+i*5)});
- copyIn('wrong',1440,1668);
  at(1592,ana,{autoAlpha:0,scale:.92,x:aX+P(.05,0)*LW},20);
  at(1588,ms[1],{opacity:1},4);
  at(1596,mac,{y:P(.36*vh+.69*S.mac*.66-vh/2,.14*vh+S.mac*.26*.9),z:0,rotationY:P(-14,0),scale:P(.66,.9),ease:'power2.out'},44);
@@ -313,7 +310,6 @@ function timeline(){
  gsap.set(kio,{opacity:0});
  tl.fromTo(pad,{x:vw*.75,y:L8.p.y*vh,rotationY:360,rotationZ:0,scale:L8.p.s,z:0},{x:L8.p.x*LW,rotationZ:-90,duration:44,ease:'power2.out',immediateRender:false},1684);
  at(1684,pad,{autoAlpha:1},10);at(1700,kio,{opacity:1},10);
- copyIn('academy',1700,1946);
  /* 기기 사이를 잇는 선과 이름표 */
  links.setAttribute('viewBox','0 0 '+vw+' '+vh);
  var c0={x:vw/2,y:vh/2},cx=function(o,dy){return {x:c0.x+o.x*LW,y:c0.y+o.y*vh+(dy||0)}};
@@ -344,13 +340,11 @@ function timeline(){
  at(1960,phone,{x:L9.f.x*LW,y:L9.f.y*vh,scale:L9.f.s,rotationY:-10,ease:'power2.inOut'},50);
  at(1972,fs[3],{opacity:1},12);at(1972,xs[7],{opacity:1},12);
  tl.fromTo(rig,{rotationY:-7,scale:1.06},{rotationY:7,scale:1,duration:180,ease:'sine.inOut',immediateRender:false},1960);
- copyIn('eco',2000,2134);
 
  /* SCENE 10: 밝은 마지막 장면 */
  at(2140,rig,{y:vh*.22,autoAlpha:0,ease:'power2.in'},50);
  at(2140,floor,{opacity:0},30);
  at(2160,filmBg,{backgroundColor:cssv('--end')},44);
- copyIn('end',2196,null);
  tl.to({},{duration:total-2230},2230);
 
  /* 장면별 이미지 받기 · 밝은 머리글 */
@@ -359,7 +353,6 @@ function timeline(){
   cnt.forEach(function(c){var p=Math.max(0,Math.min(1,(t-c.a)/16)),v=Math.round(c.n*(1-Math.pow(1-p,2)));if(v!==c.last){c.last=v;c.dd.textContent=v+c.u}})};
  S.frame=frame;frame(0);
  tl.eventCallback('onUpdate',function(){var t=tl.time(),s=0;frame(t);for(var i=0;i<sceneAt.length;i++)if(t>=sceneAt[i]-120)s=i;loadUpTo(s+1);var lf=t>=2186&&H.dataset.theme!=='light';if(lf!==lightFilm){lightFilm=lf;theme()}});
- S.labels={hero:0,ops:200,bank:330,book:600,device:1040,omr:1230,wrong:1500,academy:1760,eco:2040,end:total};
 
  /* 들어오는 순간: 어둠 속에서 디스플레이가 드러나고, 테두리를 따라 빛이 지난다 */
  if(S.introDone){gsap.set([veil,pw],{opacity:0});return}S.introDone=1;
@@ -374,21 +367,26 @@ function timeline(){
   .to(cueKids,{autoAlpha:1,duration:.8},2);
  S.intro=intro}
 
-function start(){
- sizes();build();loadUpTo(1);timeline();
- trig=ST.create({trigger:film,start:'top top',end:function(){return '+='+Math.round(total/100*vh*(M?1.25:1.5))},pin:true,scrub:1.2,anticipatePin:1,animation:tl});
- ST.refresh()}
-function rebuild(){var p=trig?trig.progress:0;if(trig){trig.kill(true)}if(tl)tl.kill();if(S.intro)S.intro.progress(1).kill();
+/* 스크롤 위치 → 타임라인 시간. 장면 섹션 i 의 윗변이 화면 위에 닿는 순간이 그 장면 문구가 자리 잡는 시간 A[i] 이고,
+   그 사이는 직선으로 잇는다. 섹션 높이는 장면 길이에 비례하되 문구가 다 읽히도록 문구 높이보다 짧지 않게 한다.
+   스크롤 위치는 한 번도 바꾸지 않는다(크기가 바뀌어 다시 짤 때 같은 장면으로 되돌려 놓는 것만 예외). */
+var secs=$$('.sc',film),A=[0,140,298,556,992,1186,1440,1700,2000,2196,total],tops=[],filmTop=0;
+function layout(){var k=vh/100*(M?1.4:1.7),n=secs.length;
+ secs.forEach(function(s,i){var cp=$('.cp',s),h=(A[i+1]-A[i])*k+(i===n-1?vh:0),need=(cp&&i?cp.offsetHeight+vh*.5:0);s.style.height=Math.round(Math.max(h,need,vh))+'px'});
+ filmTop=film.getBoundingClientRect().top+scrollY;tops=secs.map(function(s){return s.offsetTop});tops.push(tops[n-1]+secs[n-1].offsetHeight-vh)}
+function timeAt(y){var n=tops.length-1;if(y<=0)return 0;if(y>=tops[n])return total;for(var i=0;i<n-1&&y>=tops[i+1];i++);return A[i]+(A[i+1]-A[i])*(y-tops[i])/(tops[i+1]-tops[i])}
+function yAt(t){var n=tops.length-1;if(t<=0)return 0;if(t>=total)return tops[n];for(var i=0;i<n-1&&t>=A[i+1];i++);return tops[i]+(tops[i+1]-tops[i])*(t-A[i])/(A[i+1]-A[i])}
+sync=function(){if(tl)tl.time(timeAt(scrollY-filmTop))};
+S.timeAt=function(y){return timeAt(y-filmTop)};S.yAt=function(t){return filmTop+yAt(t)};
+function start(){sizes();build();loadUpTo(1);timeline();layout();sync()}
+function rebuild(){var t=tl?tl.time():0;if(tl)tl.kill();if(S.intro)S.intro.progress(1).kill();
  gsap.set($$('.cp,.cp h1,.cp p,.cue,.score > div,.pages span,.ops-list li,.film-bg'),{clearProps:'all'});
- start();var y=trig.start+p*(trig.end-trig.start);scrollTo(0,y)}
+ start();if(scrollY>filmTop||t>0)scrollTo(0,Math.round(filmTop+yAt(t)));sync()}
 window.__rebuild=function(){rebuild()};
+window.__intro=S;
 var lastW=innerWidth,lastH=innerHeight,rt;
 addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){var w=innerWidth,hh=innerHeight;if(w===lastW&&(Math.abs(hh-lastH)<160||w<861))return;lastW=w;lastH=hh;rebuild()},250)});
 
-/* 목차 · 장면 이동: 고정된 필름 안의 장면은 타임라인 위치로 부드럽게 스크롤 */
-D.addEventListener('click',function(e){var a=e.target.closest('[data-go]');if(!a||!trig)return;var t=S.labels[a.dataset.go];if(t==null)return;e.preventDefault();
- scrollTo({top:trig.start+(t/total)*(trig.end-trig.start),behavior:'smooth'})});
-
 start();
-addEventListener('load',function(){setTimeout(function(){loadUpTo(9)},2500);ST.refresh()});
+addEventListener('load',function(){setTimeout(function(){loadUpTo(9)},2500);layout();sync()});
 })();
