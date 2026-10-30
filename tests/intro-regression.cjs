@@ -66,7 +66,7 @@ const prop = (page, sel, p) => page.evaluate(([sel, p]) => gsap.getProperty(docu
 
     /* 장면별 상태 */
     await seek(page, 180);
-    assert.ok((await prop(page, "#xdr", "scale")) > s0 * 1.8, "camera moves into the display");
+    assert.ok((await prop(page, "#xdr", "x")) > 0, "display steps aside to the right of the scene 2 copy");
     assert.ok(+(await page.locator(".sc-ops .cp").evaluate((e) => getComputedStyle(e).opacity)) > 0.9, "scene 2 copy");
     await page.screenshot({ path: OUT + "/desktop-ops.png" });
     await seek(page, 380);
@@ -128,6 +128,33 @@ const prop = (page, sel, p) => page.evaluate(([sel, p]) => gsap.getProperty(docu
     assert.ok((await page.locator('a[href="trial.html"]').count()) > 0, "free trial entry under pricing");
     assert.equal(await page.locator('a[href^="mailto:"]').count(), 0, "contact uses the built-in form, not e-mail");
     assert.equal(await page.locator(".ft-word svg.sym").count(), 1, "footer shows the S symbol");
+
+    /* 장면이 자리 잡은 순간: 기기 · 카드가 그 장면 문구(제목 · 설명 · 기능 줄)와 겹치지 않고, 화면 밖으로 잘리지 않는다.
+       (예전에 노트북 바닥판이 화면보다 크게 그려지고, 대시보드 위에 문구가 겹치던 문제) */
+    for (const [width, height] of [[1440, 900], [1280, 720], [1990, 1150]]) {
+      await page.setViewportSize({ width, height });
+      await page.waitForTimeout(900);
+      for (const [t, scene] of [[200, "ops"], [380, "bank"], [705, "book"], [1140, "device"], [1560, "wrong"], [1640, "wrong"], [1880, "academy"], [2120, "eco"]]) {
+        await seek(page, t);
+        const bad = await page.evaluate((scene) => {
+          const cp = document.querySelector('.sc[data-scene="' + scene + '"] .cp');
+          const text = [...cp.querySelectorAll("h2,p,.det,.ops-list,.pages")].map((e) => e.getBoundingClientRect()).filter((r) => r.width && r.height);
+          const shown = (e) => { const o = e.closest(".obj"); const st = getComputedStyle(o || e); return st.visibility !== "hidden" && +st.opacity > 0.3 };
+          const parts = [...document.querySelectorAll("#xdr .f-front,#xdr .foot,.mac .lid-f,.mac .deck,#pad .fr,#phone .fr,#qb .qt,.agrp,.abars,#sheet .pp,#bookO .bk")].filter((e) => shown(e) && +getComputedStyle(e).opacity > 0.3);
+          const out = parts.length ? [] : ["nothing on stage"];
+          for (const e of parts) {
+            const r = e.getBoundingClientRect();
+            if (!r.width) continue;
+            if (r.left < -2 || r.right > innerWidth + 2) out.push(e.className + " off-screen " + Math.round(r.left) + "," + Math.round(r.right));
+            for (const c of text) if (r.left < c.right - 2 && r.right > c.left + 2 && r.top < c.bottom - 2 && r.bottom > c.top + 2) out.push(e.className + " covers copy");
+          }
+          return out;
+        }, scene);
+        assert.deepEqual(bad, [], "scene " + scene + " at " + width + "x" + height);
+      }
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.waitForTimeout(700);
 
     /* 폭마다 가로 넘침 없음 · 모바일은 가벼운 3D 그대로 */
     for (const width of [1440, 1024, 768, 390]) {
