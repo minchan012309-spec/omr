@@ -2,7 +2,7 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
-## 2026-10-30 · Claude Code · claude/intro-detail-pricing · (커밋 · PR 전)
+## 2026-10-30 · Claude Code · claude/intro-detail-pricing · PR #105 (https://github.com/minchan012309-spec/omr/pull/105)
 - 시작: `origin/main` ed550c8(PR #104 병합). 열린 PR 없음.
 - 요청: 「솔비 한글 로고는 빼고, 좀 더 구체적으로 · 내용 많게. QR 스캔 강조, 카테고리 더 세밀히, 학원 운영 더 길게, 가격별 비교」(`/apple-design`).
 - 한 일
