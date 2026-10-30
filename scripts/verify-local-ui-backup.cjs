@@ -1,3 +1,5 @@
+/* 로컬 전용 검증: git 에서 제외된 backups/ui-rebuild-2026-10-29 백업이 온전한지 확인한다.
+   깨끗한 clone · CI 에는 backups/ 가 없으므로 npm test 에 넣지 않는다. 실행: node --test scripts/verify-local-ui-backup.cjs */
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

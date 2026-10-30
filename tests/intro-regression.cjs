@@ -17,8 +17,7 @@ const PRICING = {
 /* 필름 타임라인의 시간 t(0–2320)로 스크롤하고, 스크럽이 따라올 때까지 기다린다 */
 const seek = async (page, t) => {
   await page.evaluate((t) => {
-    const st = ScrollTrigger.getAll().find((s) => s.pin);
-    scrollTo(0, st.start + (t / 2320) * (st.end - st.start));
+    scrollTo(0, window.__intro.yAt(t));
   }, t);
   await page.waitForTimeout(1400);
 };
@@ -46,10 +45,11 @@ const prop = (page, sel, p) => page.evaluate(([sel, p]) => gsap.getProperty(docu
     assert.equal(await page.locator(".plan.hit").count(), 1);
     await page.evaluate(() => scrollTo(0, 0));
 
-    /* 시네마틱 모드: 고정(pin)된 필름 하나와 스크럽 타임라인 */
+    /* 시네마틱 모드: 장면은 문서 흐름, 무대만 sticky. 고정(pin) · 스크럽 지연 없음(스크롤 테스트는 intro-scroll.cjs) */
     assert.ok(await page.evaluate(() => document.documentElement.classList.contains("cine")), "cinematic mode on desktop");
-    assert.equal(await page.evaluate(() => ScrollTrigger.getAll().filter((s) => s.pin).length), 1, "one pinned film drives every scene");
-    assert.ok(await page.evaluate(() => { const st = ScrollTrigger.getAll().find((s) => s.pin); return st.end - st.start > innerHeight * 15 }), "long continuous scroll");
+    assert.equal(await page.evaluate(() => typeof window.ScrollTrigger), "undefined", "no ScrollTrigger pin/scrub");
+    assert.equal(await page.locator("#stage").evaluate((e) => getComputedStyle(e).position), "sticky", "stage sticks while scenes scroll");
+    assert.ok(await page.evaluate(() => document.documentElement.scrollHeight > innerHeight * 15), "long continuous scroll");
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType), "none", "no forced scroll");
     await page.waitForTimeout(2600);
     await page.screenshot({ path: OUT + "/desktop-hero.png" });
@@ -117,9 +117,10 @@ const prop = (page, sel, p) => page.evaluate(([sel, p]) => gsap.getProperty(docu
       e.click();
     });
     assert.equal(await page.evaluate(() => localStorage.getItem("omr_app")), "1");
-    await page.locator('.nav a[data-go="bank"]').click();
-    await page.waitForTimeout(2200);
-    assert.ok(await page.evaluate(() => { const st = ScrollTrigger.getAll().find((s) => s.pin); return st.progress > 0.1 && st.progress < 0.2 }), "nav jumps to the question bank scene");
+    await page.locator('.nav a[href="#bank"]').click();
+    await page.waitForTimeout(600);
+    assert.ok(await page.evaluate(() => Math.abs(document.getElementById("bank").getBoundingClientRect().top - parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)) < 2), "nav is a plain anchor to the question bank section");
+    assert.equal(await page.locator('.nav a[href="#bank"]').getAttribute("aria-current"), "true", "nav marks the section in view");
     const assets = await page.evaluate(() => [...new Set([...document.querySelectorAll("img")].map((i) => i.getAttribute("src") || i.dataset.src).concat([...document.querySelectorAll(".leaf")].flatMap((l) => [l.dataset.f, l.dataset.k])).concat([...document.querySelectorAll("[data-bg]")].map((e) => e.dataset.bg)).filter(Boolean))]);
     for (const src of assets) assert.equal((await page.request.get(BASE + "/" + src)).ok(), true, "asset exists: " + src);
     assert.equal((await page.request.get(BASE + "/policy.html")).ok(), true);

@@ -6,7 +6,8 @@
 .entry-card .stth{box-shadow:none!important}.entry-card .sgjoin{border:0!important}
 .workflow-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px}.workflow-list{display:grid;gap:12px}.workflow-choice{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:16px;text-align:left;padding:18px;border:1px solid var(--ui-border);border-radius:14px;background:var(--ui-surface)}
 .student-list{display:grid;gap:8px}
-html.entry-mode body>header,html.entry-mode #toast,html.entry-mode #qrFab{display:none!important}html.entry-mode main{margin:0!important;padding:0!important;max-width:none!important}
+/* 로그인 화면은 앱 머리글 · QR 버튼만 숨긴다. 토스트(안내 · alert 대신 쓰는 메시지)는 숨기지 않는다 */
+html.entry-mode body>header,html.entry-mode #qrFab{display:none!important}html.entry-mode main{margin:0!important;padding:0!important;max-width:none!important}
 @keyframes ui-enter{from{transform:translateY(18px)}to{transform:translateY(0)}}
 .entry-title,.entry-copy,.entry-card,.entry-roles button,.entry-card #stbody>*{animation:ui-enter .55s cubic-bezier(.2,.75,.25,1) both}.entry-copy{animation-delay:.07s}.entry-card{animation-delay:.12s}.entry-roles button:nth-child(1){animation-delay:.16s}.entry-roles button:nth-child(2){animation-delay:.22s}.entry-roles button:nth-child(3){animation-delay:.28s}.entry-card #stbody>*:nth-child(1){animation-delay:.32s}.entry-card #stbody>*:nth-child(2){animation-delay:.38s}.entry-card #stbody>*:nth-child(3){animation-delay:.44s}
 @media(max-width:900px){.entry-shell{grid-template-columns:1fr;max-width:680px;padding-top:28px}.entry-intro{display:block;max-width:600px}.entry-title{font-size:44px;margin:0 0 12px}.entry-copy{font-size:15px}.workflow-grid{grid-template-columns:1fr}}
@@ -77,3 +78,23 @@ html.entry-mode body>header,html.entry-mode #toast,html.entry-mode #qrFab{displa
 html[data-theme=dark] .entry-brand{color:#f3f6f9}
 @media(max-width:760px){.entry-brand{margin-bottom:20px}.entry-brand .eb-solvi{height:30px}.entry-brand .eb-ac{height:32px}}
 .entry-title{word-break:keep-all;max-width:12ch}
+
+/* 로그인 입력 이름표: 자리표시자만으로 두지 않는다 */
+.entry-card .ent-l,.stl .ent-l{display:block;margin:10px 0 4px;font-size:13px;font-weight:600;color:var(--ui-muted)}
+.entry-card .ent-l+.stin,.stl .ent-l+.stin{margin-top:0}
+.entry-roles button:focus-visible{outline:3px solid color-mix(in srgb,var(--ui-accent) 40%,transparent);outline-offset:1px}
+@media(max-width:600px){.entry-roles button{min-width:0;padding-inline:4px;white-space:nowrap}}
+/* 문항 신고 */
+.rp-h{margin-top:0}.rp-f{width:100%}textarea.rp-f{font:inherit;padding:8px;border:1px solid var(--ui-border);border-radius:8px}.rp-act{justify-content:flex-end;margin-top:12px}
+/* 학생 목록 · 좁은 화면: 이름 · 반 · 정답률 · 최근 풀이 · 주의 유형 · 약한 유형을 모두 남기고 줄을 나눈다(계정 상태는 「⋯」 메뉴에서) */
+@media(max-width:900px){
+ .stx-row{grid-template-columns:28px minmax(0,1fr) minmax(0,1fr) auto;grid-template-areas:none;row-gap:6px;column-gap:12px;padding:14px 4px;align-items:center}
+ .stx-ck{grid-column:1;grid-row:1}.stx-name{grid-column:2/4;grid-row:1;min-width:0}.stx-act{grid-column:4;grid-row:1}
+ .stx-row>.stx-c{display:flex;flex-direction:row;align-items:baseline;gap:6px;font-size:13px;min-width:0;white-space:normal}
+ .stx-row>.stx-c::before{content:attr(data-l);font-size:12px;color:var(--ui-muted);white-space:nowrap;flex:none}
+ .stx-row>.stx-acc{grid-column:2;grid-row:2}.stx-row>.stx-last{grid-column:3;grid-row:2}
+ .stx-row>.stx-risk{grid-column:2;grid-row:3}.stx-row>.stx-num{grid-column:3;grid-row:3}
+ .stx-row>.stx-weak{display:flex;grid-column:2/5;grid-row:4;overflow-wrap:anywhere}
+ .stx-row>.stx-acct{display:none}
+ .stx-menu{max-width:calc(100vw - 32px)}
+}
