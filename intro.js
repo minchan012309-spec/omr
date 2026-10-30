@@ -1,5 +1,5 @@
-/* Solvi 소개: 장면마다 문구와 실제 앱 캡처를 나란히 두는 보통 문서. 기기 목업 · 3D 무대 · 스크롤 연출 없이
-   브라우저 기본 스크롤 그대로(wheel · touch · key 를 가로채지 않는다). 이 스크립트는 머리글 · 목차 · 테마 · 요금제만 맡는다. */
+/* Solvi 소개: 문구 + 실제 앱 캡처. 스크롤은 브라우저 기본 그대로(wheel · touch · key 를 가로채지 않고, 위치를 바꾸지 않는다).
+   html.fx(동작 줄이기가 아닐 때)에서만 스크롤 위치를 읽어 캡처의 transform · opacity 를 바로 계산한다(지연 · 관성 없음). 문구는 움직이지 않는다. */
 (function(){
 'use strict';
 var D=document,H=D.documentElement;
@@ -54,6 +54,62 @@ function watchLight(){if(!('IntersectionObserver' in window))return;
 (function(){if(!('IntersectionObserver' in window))return;var links=$$('.nav a[href^="#"]'),seen={};
  var io=new IntersectionObserver(function(es){es.forEach(function(e){seen[e.target.id]=e.isIntersecting});var cur=null;links.forEach(function(a){if(seen[a.getAttribute('href').slice(1)])cur=a});links.forEach(function(a){if(a===cur)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current')})},{rootMargin:'-45% 0px -45% 0px'});
  links.forEach(function(a){var t=D.getElementById(a.getAttribute('href').slice(1));if(t)io.observe(t)})})();
+
+/* ---------- 스크롤 연출: 위치 → 진행도(0~1) → transform · opacity. 매 프레임 읽기를 먼저, 쓰기는 나중에 ---------- */
+(function(){if(!H.classList.contains('fx')||!window.requestAnimationFrame)return;
+ var cl=function(v){return v<0?0:v>1?1:v},out=function(p){return 1-Math.pow(1-p,3)};
+ var vh=innerHeight,items=[],q=false;
+ /* 문제 제기 문장을 낱말로 나눈다(읽기 프로그램에는 문장 그대로) */
+ $$('[data-fx=words] .why-t').forEach(function(h){h.setAttribute('aria-label',h.textContent.replace(/\s+/g,' ').trim());
+  (function split(el){Array.prototype.slice.call(el.childNodes).forEach(function(n){
+   if(n.nodeType===3){var f=D.createDocumentFragment();n.textContent.split(/(\s+)/).forEach(function(t){if(!t)return;if(/^\s+$/.test(t)){f.appendChild(D.createTextNode(t));return}var w=D.createElement('span');w.className='w';w.setAttribute('aria-hidden','true');w.textContent=t;f.appendChild(w)});el.replaceChild(f,n)}
+   else if(n.nodeType===1)split(n)})})(h)});
+ $$('[data-fx]').forEach(function(el){var k=el.dataset.fx,it={el:el,k:k,last:-1};
+  if(k==='words')it.ws=$$('.w',el);
+  if(k==='rise')it.kids=$$('[data-lag]',el);
+  if(k==='fan')it.pages=$$('.shot',el);
+  if(k==='hero')it.img=$('.shot',el);
+  if(k==='strip'){it.pin=$('.strip-pin',el);it.track=$('.strip-track',el)}
+  items.push(it)});
+ var loop=$('#loop'),rail=$$('.rail a'),bar=$('.rail-bar i'),steps=rail.map(function(a){return D.getElementById(a.getAttribute('href').slice(1))}),railCur=-1;
+ /* 크기가 바뀌면 다시 재는 값: 교재 쪽마다 가운데까지 거리, 운영 화면 띠 길이 */
+ var hdH=64;
+ function measure(){vh=innerHeight;hdH=hd.offsetHeight||64;items.forEach(function(it){
+  if(it.k==='fan'){var w=it.el.clientWidth/2;it.dx=it.pages.map(function(p){return w-(p.offsetLeft+p.offsetWidth/2)})}
+  if(it.k==='strip'){it.run=Math.max(0,it.track.scrollWidth-it.pin.clientWidth);it.el.style.height=(it.pin.clientHeight+it.run)+'px'}
+  it.last=-1})}
+ function frame(){q=false;var y=scrollY,st=[];
+  items.forEach(function(it){var r=it.el.getBoundingClientRect(),p;
+   /* 띠 안의 캡처는 옆으로 가려져 있어 지연 로딩이 늦게 깨어난다 → 띠가 가까워지면 미리 받는다 */
+   if(it.k==='strip'&&!it.eager&&r.top<vh*2){it.eager=true;$$('img',it.el).forEach(function(i){i.loading='eager'})}
+   if(r.bottom<-vh*.5||r.top>vh*1.5)p=r.top>0?0:1;
+   else if(it.k==='hero')p=cl(y/(vh*.6));
+   else if(it.k==='words')p=cl((vh*.55-r.top)/(vh*.55+(r.height-vh)*.8));
+   else if(it.k==='fan')p=cl((vh*.95-r.top)/(vh*.7));
+   else if(it.k==='strip')p=it.run?cl((hdH-r.top)/it.run):0;
+   else p=cl((vh-r.top)/(vh*.62));
+   st.push(p)});
+  var ri=-1,rp=0;if(loop){var lr=loop.getBoundingClientRect();rp=cl((vh*.45-lr.top)/(lr.height-vh*.45));steps.forEach(function(s,i){if(s&&s.getBoundingClientRect().top<=vh*.45)ri=i})}
+  items.forEach(function(it,i){var p=st[i];if(Math.abs(p-it.last)<.0005)return;it.last=p;var e=out(p);
+   if(it.k==='hero')it.img.style.transform='scale('+(.9+.1*e).toFixed(4)+')';
+   else if(it.k==='rise'){it.el.style.opacity=(.2+.8*cl(p*1.6)).toFixed(3);it.el.style.transform='translateY('+((1-e)*56).toFixed(1)+'px) scale('+(.965+.035*e).toFixed(4)+')';
+    it.kids.forEach(function(c){c.style.transform='translateY('+((1-e)*(+c.dataset.lag||1)*26).toFixed(1)+'px)'})}
+   else if(it.k==='fan')it.pages.forEach(function(pg,j){pg.style.transform='translateX('+((1-e)*it.dx[j]).toFixed(1)+'px) translateY('+((1-e)*(j%2?14:0)).toFixed(1)+'px) rotate('+(e*parseFloat(pg.style.getPropertyValue('--r'))).toFixed(2)+'deg)'});
+   else if(it.k==='words'){var n=it.ws.length;it.ws.forEach(function(w,j){w.style.opacity=(.16+.84*cl(p*(n+4)-j)).toFixed(2)})}
+   else if(it.k==='strip')it.track.style.transform='translateX('+(-p*it.run).toFixed(1)+'px)'});
+  if(bar)bar.style.transform='scaleX('+rp.toFixed(4)+')';
+  if(ri!==railCur){railCur=ri;rail.forEach(function(a,i){if(i===ri)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current')})}}
+ function req(){if(!q){q=true;requestAnimationFrame(frame)}}
+ addEventListener('scroll',req,{passive:true});
+ var rz;addEventListener('resize',function(){clearTimeout(rz);rz=setTimeout(function(){measure();req()},120)});
+ addEventListener('load',function(){measure();req()});
+ measure();frame();
+ /* 예시 채점 숫자: 처음 보일 때 한 번만 0부터 세어 올린다 */
+ if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(en){if(!en.isIntersecting)return;io.unobserve(en.target);
+  var el=en.target,to=+el.dataset.count,u=el.dataset.unit||'',t0=0;
+  (function tick(t){if(!t0)t0=t;var k=cl((t-t0)/700);el.textContent=Math.round(to*out(k))+u;if(k<1)requestAnimationFrame(tick)})(performance.now())})},{threshold:.6});
+  $$('[data-count]').forEach(function(el){el.textContent='0'+(el.dataset.unit||'');io.observe(el)})}
+})();
 
 watchLight();
 })();
