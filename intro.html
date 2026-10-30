@@ -11,7 +11,7 @@
 <script>document.documentElement.classList.add('js');(function(){var t=null;try{t=localStorage.getItem('omr_theme')}catch(e){}if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=t})()</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css"></noscript>
 <link rel="preload" as="image" href="intro/xdr-dash.webp" type="image/webp" fetchpriority="high">
-<link rel="stylesheet" href="intro.css?v=6">
+<link rel="stylesheet" href="intro.css?v=7">
 </head><body>
 <a class="skip" href="#main">본문으로 건너뛰기</a>
 <header class="hd" id="top"><div class="hd-in">
@@ -30,11 +30,11 @@
  <a class="cue" href="#ops" data-go="ops"><span>스크롤해서 둘러보기</span><i aria-hidden="true"></i></a>
 </section>
 <section class="sc sc-ops" id="ops" data-scene="ops" aria-labelledby="h-ops">
- <div class="cp"><h2 id="h-ops">복잡했던 학원 운영이,<br>놀랍도록 단순해집니다.</h2><p>재원생과 오늘 수업, 출석률과 수납률, 상담 할 일까지. 아침에 확인할 숫자가 대시보드 한 화면에 모여요.</p></div>
+ <div class="cp"><h2 id="h-ops">복잡했던 학원 운영이,<br>놀랍도록 단순해집니다.</h2><p>재원생과 오늘 수업, 출석률과 수납률, 상담 할 일까지. 아침에 확인할 숫자가 대시보드 한 화면에 모여요.</p><ul class="det"><li>재원생 · 신규 · 퇴원</li><li>반별 오늘 수업과 등원</li><li>미납 · 기한 지남</li><li>상담 할 일 · 보강</li></ul></div>
  <figure class="still still-xdr" data-ui><img src="intro/xdr-cls.webp" width="2400" height="1350" loading="lazy" alt="반별 주간 시간표가 보이는 학원 운영 화면"></figure>
 </section>
 <section class="sc sc-bank" id="bank" data-scene="bank" aria-labelledby="h-bank">
- <div class="cp"><h2 id="h-bank">문제를 고르는 순간,<br>시험지가 완성됩니다.</h2><p>과목과 단원, 난이도로 문항을 거르면 고른 문제가 바로 A4 학습지로 짜여요. 쪽마다 QR이 함께 인쇄돼 채점까지 이어집니다.</p></div>
+ <div class="cp"><h2 id="h-bank">문제를 고르는 순간,<br>시험지가 완성됩니다.</h2><p>과목과 단원, 난이도로 문항을 거르면 고른 문제가 바로 A4 학습지로 짜여요. 쪽마다 QR이 함께 인쇄돼 채점까지 이어집니다.</p><ul class="det"><li>유형 · 난이도 · 출처로 거르기</li><li>5지선다 · 최상위 · OX · 빈칸 · 서술형</li><li>시험지 디자인 18가지</li><li>학습지 번호 · QR로 바로 채점</li></ul></div>
  <figure class="still still-pair"><img data-ui src="intro/xdr-build.webp" width="2400" height="1350" loading="lazy" alt="유형별 · 취약 유형 · 문항 검색으로 학습지를 만드는 화면"><img class="paper" src="intro/book-sheet.webp" width="1000" height="1414" loading="lazy" alt="문항과 쪽별 QR이 함께 인쇄된 학습지"></figure>
 </section>
 <section class="sc sc-book" id="book" data-scene="book" aria-labelledby="h-book">
@@ -42,7 +42,7 @@
  <figure class="still still-spread"><img src="intro/book-concept.webp" width="1000" height="1416" loading="lazy" alt="물질과 에너지 개념서의 개념 정리 쪽"><img src="intro/book-answer.webp" width="1000" height="1414" loading="lazy" alt="개념서의 정답과 해설 쪽"></figure>
 </section>
 <section class="sc sc-device" id="device" data-scene="device" aria-labelledby="h-device">
- <div class="cp"><h2 id="h-device">어떤 기기에서도,<br>끊김 없는 학습.</h2><p>학생은 태블릿에서 오늘의 처방과 교재를 펼치고, 선생님은 노트북에서 반 전체의 학습을 확인해요. 로그인하면 기록이 기기를 따라옵니다.</p></div>
+ <div class="cp"><h2 id="h-device">어떤 기기에서도,<br>끊김 없는 학습.</h2><p>학생은 태블릿에서 오늘의 처방과 교재를 펼치고, 선생님은 노트북에서 반 전체의 학습을 확인해요. 로그인하면 기록이 기기를 따라옵니다.</p><ul class="det"><li>학생: 오늘의 처방 · 과제 · eBook 교재</li><li>선생님: 반 전체 채점과 도움이 필요한 학생</li><li>학부모: 자녀 현황 · 알림장</li></ul></div>
  <figure class="still still-pair"><img data-ui src="intro/mac-thome.webp" width="1800" height="1169" loading="lazy" alt="선생님 홈: 오늘 채점, 도움이 필요한 학생, 최근 학습지"><img data-ui class="paper" src="intro/pad-home.webp" width="1112" height="1592" loading="lazy" alt="학생 홈: 오늘의 처방과 학습 습관"></figure>
 </section>
 <section class="sc sc-omr" id="omr" data-scene="omr" aria-labelledby="h-omr">
@@ -51,7 +51,7 @@
  <figure class="still still-phones"><img data-ui src="intro/phone-omr.webp" width="780" height="1688" loading="lazy" alt="학생 OMR 답안 입력 화면"><img data-ui src="intro/phone-result.webp" width="780" height="1688" loading="lazy" alt="75점, 맞음 9 · 틀림 3 · 정답률 75%와 틀린 원인이 보이는 채점 결과"></figure>
 </section>
 <section class="sc sc-wrong" id="wrong" data-scene="wrong" aria-labelledby="h-wrong">
- <div class="cp"><h2 id="h-wrong">틀린 문제 하나까지,<br>다음 학습의 출발점으로.</h2><p>틀린 문항은 유형과 원인으로 나뉘어 쌓여요. 정답률이 낮은 유형을 골라 개념 학습과 유사 문제 학습지로 바로 이어갑니다.</p></div>
+ <div class="cp"><h2 id="h-wrong">틀린 문제 하나까지,<br>다음 학습의 출발점으로.</h2><p>틀린 문항은 유형과 원인으로 나뉘어 쌓여요. 정답률이 낮은 유형을 골라 개념 학습과 유사 문제 학습지로 바로 이어갑니다.</p><ul class="det"><li>오답 원인 진단</li><li>취약 유형 지도</li><li>오답 유사 학습지</li><li>단원 챌린지</li></ul></div>
  <figure class="still still-xdr" data-ui><img src="intro/mac-diag.webp" width="1800" height="1169" loading="lazy" alt="오답 원인 진단: 진술 오판단과 개념 혼동, 다시 공부할 개념과 유사 문제"></figure>
 </section>
 <section class="sc sc-academy" id="academy" data-scene="academy" aria-labelledby="h-academy">
@@ -60,7 +60,7 @@
  <figure class="still still-pair"><img data-ui src="intro/xdr-cns.webp" width="2400" height="1350" loading="lazy" alt="상담 일지 화면"><img data-ui class="wide" src="intro/kiosk.webp" width="1592" height="1112" loading="lazy" alt="학원 입구 태블릿의 출결 단말: 전화번호 뒷자리로 등원 기록"></figure>
 </section>
 <section class="sc sc-eco" id="eco" data-scene="eco" aria-labelledby="h-eco">
- <div class="cp"><h2 id="h-eco">하나의 플랫폼.<br>무한한 가능성.</h2><p>모니터와 노트북, 태블릿과 휴대폰. 선생님과 학생, 학부모가 각자의 화면에서 같은 수업을 이어갑니다.</p></div>
+ <div class="cp"><h2 id="h-eco">하나의 플랫폼.<br>무한한 가능성.</h2><p>모니터와 노트북, 태블릿과 휴대폰. 선생님과 학생, 학부모가 각자의 화면에서 같은 수업을 이어갑니다.</p><ul class="det"><li>설치 없이 웹에서 바로</li><li>홈 화면에 추가하면 앱처럼</li><li>과목별 오프라인 준비</li></ul></div>
  <figure class="still still-phones"><img data-ui src="intro/phone-home.webp" width="780" height="1688" loading="lazy" alt="학생 홈의 학습 메뉴"><img data-ui src="intro/phone-parent.webp" width="780" height="1688" loading="lazy" alt="학부모 계정의 자녀 학습 현황"></figure>
 </section>
 <section class="sc sc-end" id="start" data-scene="end" aria-labelledby="h-end">
@@ -124,4 +124,4 @@
 </div></footer>
 <div class="dock" id="dock"><a class="btn btn-pri btn-sm" href="index.html?app=1#student" data-app>학생 로그인</a><a class="dock-top" href="#top" aria-label="맨 위로"><i aria-hidden="true"></i></a></div>
 <script src="lib/gsap/gsap.min.js?v=3.12.5" defer></script><script src="lib/gsap/ScrollTrigger.min.js?v=3.12.5" defer></script>
-<script src="intro.js?v=6" defer></script></body></html>
+<script src="intro.js?v=7" defer></script></body></html>
