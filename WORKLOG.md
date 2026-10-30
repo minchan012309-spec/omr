@@ -2,7 +2,7 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
-## 2026-10-30 · Claude Code · claude/intro-mockups-system-audit · (PR 아직 없음, 커밋 전)
+## 2026-10-30 · Claude Code · claude/intro-mockups-system-audit · PR #101 (https://github.com/minchan012309-spec/omr/pull/101)
 - 시작: `origin/main` b72f028(PR #100 병합)과 같은 위치. 열린 PR 없음.
 - 요청: 인트로에서 깨진 장면(책 목업 · 노트북 키보드가 화면보다 크게 · 학원 운영 장면 기기 겹침 · 대시보드 위 문구 겹침) 고치기, 2장면(「복잡했던 학원 운영이…」 디스플레이 확대 + 강조 상자) 폐지 후 새로 만들기, 앱 전반 디자인 점검 후 고치기.
 - 인트로 깨짐의 실제 원인
