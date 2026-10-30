@@ -8,7 +8,7 @@
 @font-face{font-family:PretendardLocal;font-weight:500;font-display:swap;src:url(fonts/Pretendard-Medium.woff2) format('woff2')}
 @font-face{font-family:YetHangul;font-weight:100 600;font-display:swap;src:url(fonts/KoPubDotum-Medium.subset.woff2) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}@font-face{font-family:YetHangul;font-weight:700 900;font-display:swap;src:url(fonts/KoPubDotum-Bold.subset.woff2) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}
 :root{--hdr-light:#2a72bf;--hdr-dark:#18181a;--hdr-line-dark:#2c2c30;--badge-bg:#c0352f;--surface:#ffffff;--l2:#cfd7e1;--sf1:#f6f9fc;--sf2:#e8eef5;--m2:#586476;--b:#2a72bf;--bd:#1d5ca6;--bl:#eaf3fd;--y:#ffca2c;--yl:#fff6d6;--t:#1f2933;--m:#5f6c7b;--l:#e3e8ee;--bg:#f5f8fc;--ok:#2a72bf;--no:#d9534f}
-*{box-sizing:border-box}body{margin:0;font:400 15px/1.6 YetHangul,SolviSymbols,Pretendard,PretendardLocal,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--t);background:var(--bg)}
+*{box-sizing:border-box}body{margin:0;font:400 15px/1.6 Pretendard,PretendardLocal,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--t);background:var(--bg)}
 header{background:var(--surface);border-bottom:1px solid var(--l);position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:20px;padding:0 20px;min-height:56px;flex-wrap:wrap}
 header h1{font-size:16px;font-weight:500;margin:0;white-space:nowrap}header h1 i{display:inline-block;width:10px;height:10px;background:var(--y);border-radius:50%;margin-right:8px}
 nav{display:flex;gap:2px;flex-wrap:wrap}nav button{border:0;background:none;padding:17px 12px;font:inherit;color:var(--m);cursor:pointer;border-bottom:3px solid transparent}

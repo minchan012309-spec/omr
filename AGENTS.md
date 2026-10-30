@@ -20,9 +20,9 @@
   | `index.html` | 앱 본체(약 4,700줄, 화면 · 상태 · 채점 · 인쇄 창 · 개념학습). 탭마다 `xxxView()` 함수, `render()`가 분기 |
   | `books.js` | 교재 엔진(쪽 계획 `bkPlan`, 쪽 HTML `bkPageHtml`, 인쇄 · PDF, eBook `bkEbook`/`ebk*`). `index.html`의 `bkLoad()`가 `books.js?v=N`으로 늦게 불러온다 |
   | `lazy/*.js` | 늦게 불러오는 화면(`admin` 학원 운영, `acad` 출결 · 수납 · 알림장, `tset` 학원 설정, `omr-report`) |
-  | `styles/*.css` | `tokens → base → shell → components → screens → legacy` 순. 새 화면 스타일은 `screens.css`, `--ui-*` 토큰 사용 |
+  | `styles/*.css` | `tokens → legacy → base → shell → components → screens` 순(새 디자인 층이 legacy를 덮음). 링크와 `sw.js` SHELL에 같은 `?v=N`. 새 화면 스타일은 `screens.css`, `--ui-*` 토큰 사용 |
   | `bank/`, `cm/`, `ph/`, `hl/` | 과목 데이터(물질과 에너지 · 세포와 물질대사 · 역학과 에너지 · 화법과 언어). `index.json`(유형 목록), `data.json`/`data.js`(교재 문항), `<태그>.json`(문제은행) |
-  | `intro.html` · `intro.css` · `intro.js` | 로그인 전 소개 페이지(GSAP ScrollTrigger 시네마틱 스크롤, `lib/gsap/` 동봉) |
+  | `intro.html` · `intro.css` · `intro.js` | 로그인 전 소개 페이지. 장면 섹션은 문서 흐름, 3D 무대만 sticky, GSAP 타임라인이 `scrollY`를 따라감(pin · scrub · 스냅 · wheel 가로채기 금지) |
   | `policy.html` | 이용약관 · 개인정보처리방침(초안, 법률 검토 전) |
   | `sw.js` | 서비스 워커. **배포되는 파일을 바꾸면 `VER`을 올린다** |
   | `tools/` | 캡처(`capture_intro.js`, `capture_cine.js`) · 교재 높이 측정(`measure_books.js`) · 화법과 언어 생성기(`tools/hl/`) |
@@ -31,7 +31,8 @@
 
 ```bash
 python3 server.py                 # http://localhost:8765 (로컬 확인용)
-npm test                          # 정적 파싱 + DB + 인쇄 + 국어 + 행정 + 인트로 회귀 (Playwright, Chrome 필요)
+npm test                          # 정적 파싱 + UI 계약 + DB + 인쇄 + 국어 + 행정 + 인트로(스크롤 포함) + 앱 행동 회귀 (Playwright, Chrome 필요)
+npm run verify:local-backup       # 로컬 전용: git 제외 backups/ 백업 검증(CI · 깨끗한 clone에서는 돌리지 않음)
 node scripts/verify-static.cjs    # 모든 인라인 스크립트 문법 확인(커밋 전 최소한 이것)
 node tools/measure_books.js [hl]  # 교재 글꼴·여백·문항을 바꾸면 반드시 쪽 높이 재측정
 python3 tools/hl/make_hl.py       # 화법과 언어 문항을 바꾸면 재생성 → python3 tools/hl/audit.py --all

@@ -5,7 +5,8 @@
   "scripts": {
     "test": "node tests/run.cjs",
     "check": "node scripts/verify-static.cjs",
-    "test:unit": "node --test tests/academy-core.test.cjs tests/korean-editor.test.cjs",
+    "test:unit": "node --test tests/academy-core.test.cjs tests/korean-editor.test.cjs tests/ui-system.test.cjs tests/ui-rebuild-contract.test.cjs",
+    "verify:local-backup": "node --test scripts/verify-local-ui-backup.cjs",
     "test:db": "node tests/operations-db.cjs && node tests/full-schema-db.cjs"
   },
   "devDependencies": {
