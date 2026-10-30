@@ -4,7 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.join(__dirname, '..');
-const files = ['tokens.css', 'base.css', 'shell.css', 'components.css', 'screens.css', 'legacy.css'];
+/* legacy.css 는 토큰 바로 다음: 새 디자인 층(base → shell → components → screens)이 legacy 를 덮는다 */
+const files = ['tokens.css', 'legacy.css', 'base.css', 'shell.css', 'components.css', 'screens.css'];
 
 test('external UI styles are linked in a stable cascade and cached', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
@@ -13,10 +14,11 @@ test('external UI styles are linked in a stable cascade and cached', () => {
   for (const file of files) {
     assert.ok(fs.existsSync(path.join(root, 'styles', file)), `${file} exists`);
     const href = `styles/${file}`;
-    const index = html.indexOf(href);
-    assert.ok(index > last, `${file} linked in order`);
-    assert.match(sw, new RegExp(href.replace('.', '\\.')));
-    last = index;
+    const link = html.match(new RegExp(`<link rel="stylesheet" href="(${href.replace('.', '\\.')}(?:\\?v=\\d+)?)">`));
+    assert.ok(link, `${file} is linked`);
+    assert.ok(html.indexOf(link[0]) > last, `${file} linked in order`);
+    assert.ok(sw.includes(`'${link[1]}'`), `${link[1]} is precached with the same version as index.html`);
+    last = html.indexOf(link[0]);
   }
 });
 
