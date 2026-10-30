@@ -2,7 +2,7 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
-## 2026-10-30 · Claude Code · claude/motion-mobile-native · (PR 번호는 아래 커밋)
+## 2026-10-30 · Claude Code · claude/motion-mobile-native · PR #102 (https://github.com/minchan012309-spec/omr/pull/102)
 - 시작: `origin/main` c90ea8c(PR #101 병합). 열린 PR 없음. 작업 폴더가 Codex 의 `codex/frontend-system-audit`(main 과 같은 커밋, 새 커밋 없음)에 있어서 거기는 건드리지 않고 새 브랜치. 사용자가 설치한 스킬(`.agents/skills/` · `.claude/skills/` · `skills-lock.json`)은 커밋하지 않음(`skills-lock.json` 변경은 git stash 「skills-lock」에 보관).
 - 요청: `/review-animations` 결과(Block)와 `/mobile-native` 를 「다 고치고 pr」. main 에 빠진 「캡처만 인트로」 커밋도 함께(cherry-pick, 바로 아래 기록).
 - 모션(review-animations 지적 그대로)
