@@ -7,6 +7,8 @@ for (const f of [
   "intro.html",
   "books.js",
   "intro.js",
+  "lead.js",
+  "dev.js",
   "lazy/admin.js",
   "lazy/acad.js",
   "lazy/tset.js",

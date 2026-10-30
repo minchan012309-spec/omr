@@ -8,6 +8,7 @@ var esc=function(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){r
 
 /* ---------- 머리글 · 목차 · 오른쪽 아래 버튼 ---------- */
 var hd=$('.hd'),menu=$('#menu'),nav=$('#nav'),dock=$('#dock');
+var cssv=function(n){return getComputedStyle(H).getPropertyValue(n).trim()};
 function navOpen(on){nav.classList.toggle('open',on);menu.setAttribute('aria-expanded',String(on));menu.setAttribute('aria-label',on?'목차 닫기':'목차 열기')}
 menu.addEventListener('click',function(){navOpen(menu.getAttribute('aria-expanded')!=='true')});
 nav.addEventListener('click',function(e){if(e.target.closest('a'))navOpen(false)});
@@ -17,6 +18,9 @@ var lightFilm=false,lightSecs=0,scrollQ=false;
 function theme(){hd.classList.toggle('light',lightFilm||lightSecs>0)}
 function onScroll(){scrollQ=false;var y=scrollY;hd.classList.toggle('scrolled',y>12);dock.classList.toggle('on',y>innerHeight*.9)}
 addEventListener('scroll',function(){if(!scrollQ){scrollQ=true;requestAnimationFrame(onScroll)}},{passive:true});onScroll();
+
+/* ---------- 밝은 · 어두운 화면: 앱과 같은 저장값(omr_theme) ---------- */
+var thm=$('#thm');if(thm)thm.addEventListener('click',function(){var t=H.dataset.theme==='light'?'dark':'light';H.dataset.theme=t;try{localStorage.setItem('omr_theme',t)}catch(e){}if(window.__rebuild)window.__rebuild()});
 
 /* ---------- 요금제: 개발자 탭 「요금제」(site_config 의 pricing). 못 읽으면 HTML 기본값 그대로 ---------- */
 var plansEl=$('#plans'),PL=null;
@@ -31,7 +35,7 @@ $$('.need button').forEach(function(b){b.addEventListener('click',function(){b.s
  var U='https://airejqudbqfsfhadvwqp.supabase.co',K='sb_publishable_YPbHe6NNnV5eQT0u1SZiCg_JLvrM7IV';
  fetch(U+'/rest/v1/site_config?key=eq.pricing&select=value',{headers:{apikey:K}}).then(function(r){return r.ok?r.json():null}).then(function(j){
   var v=j&&j[0]&&j[0].value;if(!v||!v.plans||!v.plans.length)return;PL=v.plans;
-  var ct=String(v.contact||'').trim(),ctHref=/^https?:\/\//i.test(ct)?ct:/^[^\s:@]+@[^\s@]+\.[^\s@]+$/.test(ct)?'mailto:'+ct:'',top=topIdx(PL.length,PL);
+  var ct=String(v.contact||'').trim(),ctHref=/^https?:\/\//i.test(ct)?ct:'contact.html',top=topIdx(PL.length,PL);
   var who=['학생 최대 30명','학생 최대 50명 · 이후 1명당 추가 요금','학생 수 제한 없음'];
   plansEl.innerHTML=PL.map(function(x,i){var p=String(x.price||'').trim(),num=/^[\d,]+$/.test(p),ask=/문의/.test(x.cta||'')&&ctHref,isTop=i===top;
    var n0=num?+p.replace(/,/g,''):-1,price=p?(n0===0?'무료':num?n0.toLocaleString('ko-KR')+'원':esc(p)):'';num=num&&n0>0;
@@ -39,7 +43,7 @@ $$('.need button').forEach(function(b){b.addEventListener('click',function(){b.s
     (PL.length===3?'<p class="who">'+who[i]+'</p>':'')+((x.items||[]).length?'<ul>'+x.items.map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ul>':'<ul></ul>')+
     '<a class="btn '+(isTop?'yel':'line')+'" href="'+(ask?esc(ctHref):'index.html?app=1#login')+'"'+(ask?'':' data-app')+'>'+esc(x.cta||'무료로 시작하기')+'</a></article>'}).join('');
   var note=$('#prNote');if(note)note.textContent=v.note||'';
-  if(ctHref){var fm=$('#fMail');if(fm)fm.href=ctHref}
+  
   needUpd()}).catch(function(){})})();
 
 /* ---------- 밝은 면(요금제 · 질문 · 바닥글, 정적 모드의 마지막 장면) 위에서는 머리글도 밝게 ---------- */
@@ -187,11 +191,12 @@ function timeline(){
  var pos=tiles.map(function(t,i){var c=i%cols,r=Math.floor(i/cols);return {x:-gw/2+c*(S.tw+S.gap),y:-gh/2+r*(S.th+S.gap)}});
  tiles.forEach(function(t,i){gsap.set(t,{x:-qX-S.tw/2+(i%cols-cols/2)*14,y:P(-.1,-.2)*vh-qY-S.th/2,z:-420,scale:.3,autoAlpha:0});
   tl.to(t,{x:pos[i].x,y:pos[i].y,z:0,scale:1,autoAlpha:1,duration:34,ease:'power2.out'},296+i*1.6)});
- var on=function(sp,t){tl.to(sp,{backgroundColor:'#ffffff',color:'#111111',duration:6},t)};
+ var ACC=cssv('--acc'),AINK=cssv('--acc-ink'),INK=cssv('--ink-d'),MUTE=cssv('--mute-d');
+ var on=function(sp,t){tl.to(sp,{backgroundColor:ACC,color:AINK,duration:6},t)};
  on(qf[0],330);on(qf[2],350);on(qf[4],372);on(qf[5],374);
  var unitIV=function(i){return QS[i][1].charAt(0)==='Ⅳ'},sel=[];
  tiles.forEach(function(t,i){if(!unitIV(i))tl.to(t,{autoAlpha:.14,scale:.94,z:-60,duration:12},352);else if(QS[i][3]==='하')tl.to(t,{autoAlpha:.14,scale:.94,z:-60,duration:12},375);else sel.push(t)});
- sel.forEach(function(t){tl.to(t,{boxShadow:'0 0 0 3px #fdc62d',duration:8},384)});
+ sel.forEach(function(t){tl.to(t,{boxShadow:'0 0 0 3px '+ACC,duration:8},384)});
  at(388,qcount,{opacity:1},8);
  /* 고른 문항이 학습지 한 장으로 모인다 */
  var sw2=S.sheet,shH=sw2*1.414;
@@ -223,7 +228,7 @@ function timeline(){
  at(832,book,{rotationY:0,rotationX:4,z:0,ease:'sine.inOut'},24);
  leafTo(L0,0,858,18);leafTo(L1,0,866,18);leafTo(LC,0,874,20);
  at(874,book,{x:bX-bw/2},20);
- var pg=$$('.pages span',cps.book),pgOn=function(i,a,b){tl.to(pg[i],{color:'#f5f5f7',duration:6},a);tl.to(pg[i],{color:'#a1a1a6',duration:6},b)};
+ var pg=$$('.pages span',cps.book),pgOn=function(i,a,b){tl.to(pg[i],{color:INK,duration:6},a);tl.to(pg[i],{color:MUTE,duration:6},b)};
  pgOn(0,560,640);pgOn(1,650,722);pgOn(2,650,722);pgOn(3,724,782);pgOn(4,724,782);pgOn(5,784,860);pgOn(6,784,860);
  /* 책이 닫히고 여러 권이 한 줄로 정돈된다 */
  var sR=P(.6,.4),step=bw*sR*1.1,slots=[-2,-1,1,2];
@@ -258,7 +263,7 @@ function timeline(){
  copyIn('omr',1186,1410);
  gsap.set(scan,{opacity:1});gsap.set(line,{y:0});gsap.set(lab,{opacity:0});
  at(1226,line,{y:phH*.86},30);
- at(1254,fr4,{boxShadow:'0 0 0 3px #fdc62d'},6);at(1254,lab,{opacity:1},6);
+ at(1254,fr4,{boxShadow:'0 0 0 3px '+ACC},6);at(1254,lab,{opacity:1},6);
  at(1266,scan,{opacity:0},14);
  at(1290,fs[1],{opacity:1},10);
  burst.forEach(function(d,i){var a=i/burst.length*Math.PI*2,r=S.phone*(.34+.08*(i%3));gsap.set(d,{x:0,y:0,scale:.5});tl.to(d,{opacity:1,duration:3},1298);tl.to(d,{x:Math.cos(a)*r,y:Math.sin(a)*r,scale:1,duration:20,ease:'power2.out'},1298);tl.to(d,{opacity:0,duration:10},1310)});
@@ -312,7 +317,7 @@ function timeline(){
  var c0={x:vw/2,y:vh/2},cx=function(o,dy){return {x:c0.x+o.x*vw,y:c0.y+o.y*vh+(dy||0)}};
  var xdrS=L8.x.s*vw/S.xdr*P(.74,1),xc=cx(L8.x),mc=cx(L8.m,-S.mac*.32*L8.m.s),pc=cx(L8.p),fc=cx(L8.f);
  var path=function(a,b){var mx=(a.x+b.x)/2,my=Math.min(a.y,b.y)-40;return 'M'+a.x.toFixed(1)+' '+a.y.toFixed(1)+' Q'+mx.toFixed(1)+' '+my.toFixed(1)+' '+b.x.toFixed(1)+' '+b.y.toFixed(1)};
- links.innerHTML=[[xc,mc],[xc,pc],[xc,fc],[mc,fc]].map(function(p){return '<path d="'+path(p[0],p[1])+'"/><path class="flow" d="'+path(p[0],p[1])+'" style="stroke:#fdc62d;stroke-width:2;stroke-dasharray:3 14"/>'}).join('');
+ links.innerHTML=[[xc,mc],[xc,pc],[xc,fc],[mc,fc]].map(function(p){return '<path d="'+path(p[0],p[1])+'"/><path class="flow" d="'+path(p[0],p[1])+'" style="stroke:'+ACC+';stroke-width:2;stroke-dasharray:3 14"/>'}).join('');
  var lp=$$('path',links);lp.forEach(function(p){if(!p.classList.contains('flow')){var L=p.getTotalLength();gsap.set(p,{strokeDasharray:L,strokeDashoffset:L})}else gsap.set(p,{opacity:0})});
  lp.forEach(function(p,i){if(p.classList.contains('flow')){tl.to(p,{opacity:1,duration:8},1770);tl.to(p,{strokeDashoffset:-170,duration:170},1770);tl.to(p,{opacity:0,duration:10},1900)}else{tl.to(p,{strokeDashoffset:0,duration:26},1742+i*3);tl.to(p,{opacity:0,duration:10},1900)}});
  var tagAt=function(t,pt,dx,dy){gsap.set(t,{x:pt.x+dx,y:pt.y+dy})};
@@ -320,7 +325,7 @@ function timeline(){
  tagAt(tags.x0,xTop,P(-60,-40),P(-18,-48));tagAt(tags.x1,xTop,P(-60,-40),P(-18,-48));tagAt(tags.x2,xTop,P(-60,-40),P(-18,-48));
  tagAt(tags.m,mc,P(-150,-60),P(-S.mac*.5*L8.m.s,-S.mac*.42*L8.m.s));tagAt(tags.p,pc,P(-80,-56),P(-S.pad*.5*L8.p.s-36,-S.pad*.5*L8.p.s-30));tagAt(tags.f,fc,P(-40,-80),S.phone*1.02*L8.f.s+P(10,6));
  [tags.m,tags.p,tags.f].forEach(function(t,i){tl.fromTo(t,{opacity:0,y:'+=10'},{opacity:1,y:'-=10',duration:10,immediateRender:false},1752+i*8);tl.to(t,{opacity:0,duration:10},1900)});
- var lis=$$('.ops-list li',cps.academy),liOn=function(i,a,b){tl.to(lis[i],{color:'#fdc62d',duration:6},a);tl.to(lis[i],{color:'#f5f5f7',duration:6},b)};
+ var lis=$$('.ops-list li',cps.academy),liOn=function(i,a,b){tl.to(lis[i],{color:ACC,duration:6},a);tl.to(lis[i],{color:INK,duration:6},b)};
  tl.fromTo(tags.x0,{opacity:0},{opacity:1,duration:8,immediateRender:false},1790);at(1830,tags.x0,{opacity:0},8);
  at(1790,xs[4],{opacity:1},12);liOn(0,1790,1830);
  at(1830,xs[5],{opacity:1},12);tl.fromTo(tags.x1,{opacity:0},{opacity:1,duration:8,immediateRender:false},1832);at(1868,tags.x1,{opacity:0},8);liOn(1,1830,1868);
@@ -342,7 +347,7 @@ function timeline(){
  /* SCENE 10: 밝은 마지막 장면 */
  at(2140,rig,{y:vh*.22,autoAlpha:0,ease:'power2.in'},50);
  at(2140,floor,{opacity:0},30);
- at(2160,filmBg,{backgroundColor:'#f5f5f7'},44);
+ at(2160,filmBg,{backgroundColor:cssv('--end')},44);
  copyIn('end',2196,null);
  tl.to({},{duration:total-2230},2230);
 
@@ -351,7 +356,7 @@ function timeline(){
  var frame=function(t){leaves.forEach(function(L){var v=0;(L.k||[]).forEach(function(k){if(t>=k[0])v=t>=k[0]+k[1]?k[2]:(1-k[2])+(k[2]-(1-k[2]))*ease((t-k[0])/k[1])});if(v!==L.t)setLeaf(L,v)});
   cnt.forEach(function(c){var p=Math.max(0,Math.min(1,(t-c.a)/16)),v=Math.round(c.n*(1-Math.pow(1-p,2)));if(v!==c.last){c.last=v;c.dd.textContent=v+c.u}})};
  S.frame=frame;frame(0);
- tl.eventCallback('onUpdate',function(){var t=tl.time(),s=0;frame(t);for(var i=0;i<sceneAt.length;i++)if(t>=sceneAt[i]-120)s=i;loadUpTo(s+1);var lf=t>=2186;if(lf!==lightFilm){lightFilm=lf;theme()}});
+ tl.eventCallback('onUpdate',function(){var t=tl.time(),s=0;frame(t);for(var i=0;i<sceneAt.length;i++)if(t>=sceneAt[i]-120)s=i;loadUpTo(s+1);var lf=t>=2186&&H.dataset.theme!=='light';if(lf!==lightFilm){lightFilm=lf;theme()}});
  S.labels={hero:0,ops:200,bank:330,book:600,device:1040,omr:1230,wrong:1500,academy:1760,eco:2040,end:total};
 
  /* 들어오는 순간: 어둠 속에서 디스플레이가 드러나고, 테두리를 따라 빛이 지난다 */
@@ -369,11 +374,12 @@ function timeline(){
 
 function start(){
  sizes();build();loadUpTo(1);timeline();
- trig=ST.create({trigger:film,start:'top top',end:function(){return '+='+Math.round(total/100*vh*(M?.78:.9))},pin:true,scrub:.7,anticipatePin:1,animation:tl});
+ trig=ST.create({trigger:film,start:'top top',end:function(){return '+='+Math.round(total/100*vh*(M?1.25:1.5))},pin:true,scrub:1.2,anticipatePin:1,animation:tl});
  ST.refresh()}
 function rebuild(){var p=trig?trig.progress:0;if(trig){trig.kill(true)}if(tl)tl.kill();if(S.intro)S.intro.progress(1).kill();
  gsap.set($$('.cp,.cp h1,.cp p,.cue,.score > div,.pages span,.ops-list li,.film-bg'),{clearProps:'all'});
  start();var y=trig.start+p*(trig.end-trig.start);scrollTo(0,y)}
+window.__rebuild=function(){rebuild()};
 var lastW=innerWidth,lastH=innerHeight,rt;
 addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){var w=innerWidth,hh=innerHeight;if(w===lastW&&(Math.abs(hh-lastH)<160||w<861))return;lastW=w;lastH=hh;rebuild()},250)});
 
