@@ -2,6 +2,17 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-10-30 · Claude Code · claude/intro-scroll-story · PR #103 (https://github.com/minchan012309-spec/omr/pull/103)
+- 시작: `claude/motion-mobile-native`(PR #102, 아직 열림 · 인트로 파일을 고침) 151e5f5 위에서 새 브랜치. main 에는 「캡처만 인트로」가 아직 없어서 PR #102 위에 쌓음 → **PR #102 를 먼저 병합해야 함.**
+- 요청: `/emil-design-eng` 으로 인트로 전면 개편. 애플 · 토스식 스크롤 인터랙션, 근거는 Codex 가 만든 `intro-audience-search-intent.json`(이상적 고객 · 고객 문제 · 검색 의도). 기기 목업 · 3D 금지(메모리)는 지킴.
+- 이야기 순서(JSON `recommended_story_sequence`): 히어로 「점수 말고, 유형이 남는 수업.」(취약 유형 지도 캡처) → 문제 제기 문장(`#why`) → 핵심 흐름 5단계 `#bank` 고르기 · `#book` 만들기 · `#omr` 채점 · `#wrong` 분석 · `#next` 다시 학습(새 장면) → `#device` 선생님 · 학생 · 학부모 같은 기록 → `#academy` 학원 운영 → `#eco` 지원 과목 4개 → `#start` 무료 체험 신청 + 로그인. 요금제 · 질문 · 바닥글은 그대로, 질문 2개 추가(ERP와 차이 · 학생별 학습지).
+- 연출(`intro.js`, 라이브러리 없음): 스크롤 위치에서 바로 계산(지연 · 관성 · 스냅 · 스크롤 가로채기 없음), transform · opacity 만. 히어로 캡처 0.9→1 확대, 문제 제기 문장이 낱말 단위로 밝아짐(가운데 고정, 읽기 프로그램은 aria-label 로 문장), 캡처 묶음 아래에서 올라오며 층마다 다른 속도(`data-lag`), 교재 다섯 쪽이 한 묶음에서 부채꼴로 펼쳐짐, 5단계 진행 막대(`.rail`, 머리글 아래 고정, `aria-current=step`), 학원 운영 화면 4장이 세로 스크롤만큼 옆으로 지나감(`.strip`, 바깥은 잘라서 가로 넘침 없음), 예시 채점 숫자 0부터 세기. 히어로 제목만 처음 한 번 300ms 올라옴. 문구(.cp)는 움직이지 않음(스크롤과 1:1).
+- 동작 줄이기 · 스크립트 없음: `<head>`에서 `html.fx`를 붙이지 않으면 모든 연출 없이 완성된 배치(띠는 2열 격자).
+- SEO: title · description · og 를 「고등 과학 · 국어 문제은행 · 학습지 · QR 채점 · 학생별 유형관리」로.
+- 바뀐 파일: `intro.html`, `intro.css`(`?v=12`), `intro.js`(`?v=12`), `sw.js`(VER `solvi-v163`, 미리 받는 히어로 캡처 xdr-dash → xdr-weak), `tests/intro-regression.cjs`(장면 `next` 추가, 띠 캡처는 화면 밖 검사 제외, 히어로 확대 · 낱말 · 진행 막대 · 띠 1:1 · 동작 줄이기 검사 추가), `AGENTS.md` 인트로 설명, `WORKLOG.md`.
+- 확인: 1440(다크 · 라이트) · 820 · 390(다크 · 라이트) 장면별 캡처를 직접 봄, 스크립트 없음 전체 캡처. `tests/intro-scroll.cjs`(휠 · 키 · 터치 1:1) 그대로 통과, `npm test` 전체 통과(exit 0).
+- 남은 일 · 주의: 실제 Mac 트랙패드 · iPhone · iPad 에서 만져 보지 못함. 숫자 세기는 700ms(장식). 안 쓰는 캡처 일부와 `lib/gsap/` 는 그대로. PR #102 를 먼저 병합해야 #103 차이가 인트로만 남음.
+
 ## 2026-10-30 · Claude Code · claude/motion-mobile-native · PR #102 (https://github.com/minchan012309-spec/omr/pull/102)
 - 시작: `origin/main` c90ea8c(PR #101 병합). 열린 PR 없음. 작업 폴더가 Codex 의 `codex/frontend-system-audit`(main 과 같은 커밋, 새 커밋 없음)에 있어서 거기는 건드리지 않고 새 브랜치. 사용자가 설치한 스킬(`.agents/skills/` · `.claude/skills/` · `skills-lock.json`)은 커밋하지 않음(`skills-lock.json` 변경은 git stash 「skills-lock」에 보관).
 - 요청: `/review-animations` 결과(Block)와 `/mobile-native` 를 「다 고치고 pr」. main 에 빠진 「캡처만 인트로」 커밋도 함께(cherry-pick, 바로 아래 기록).

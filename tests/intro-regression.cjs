@@ -1,4 +1,4 @@
-/* Browser regressions for the intro page (문구 + 실제 앱 캡처, 기기 목업 없음). Run with BASE=http://127.0.0.1:8765 node tests/intro-regression.cjs */
+/* Browser regressions for the intro page (문구 + 실제 앱 캡처, 기기 목업 없음, 스크롤 위치에 맞춘 캡처 연출). Run with BASE=http://127.0.0.1:8765 node tests/intro-regression.cjs */
 const assert = require("node:assert/strict");
 const { chromium, browserOptions } = require("./runtime.cjs");
 const fs = require("node:fs");
@@ -19,7 +19,7 @@ const go = async (page, id) => {
   await page.evaluate((id) => document.getElementById(id).scrollIntoView({ block: "start" }), id);
   await page.waitForTimeout(500);
 };
-const SCENES = ["bank", "book", "device", "omr", "wrong", "academy", "eco"];
+const SCENES = ["bank", "book", "omr", "wrong", "next", "device", "academy", "eco"];
 (async () => {
   const browser = await chromium.launch(browserOptions());
   try {
@@ -77,7 +77,8 @@ const SCENES = ["bank", "book", "device", "omr", "wrong", "academy", "eco"];
           for (const img of sec.querySelectorAll("img.shot")) {
             const r = img.getBoundingClientRect();
             if (r.width < 40) out.push(id + " capture too small " + Math.round(r.width));
-            if (r.left < -1 || r.right > innerWidth + 1) out.push(id + " capture off-screen");
+            /* 학원 운영 띠는 옆으로 지나가는 것이 의도(띠 바깥은 .strip-pin 이 잘라 페이지 가로 넘침은 없다) */
+            if (!img.closest(".strip") && (r.left < -1 || r.right > innerWidth + 1)) out.push(id + " capture off-screen");
             for (const c of text) if (r.left < c.right - 1 && r.right > c.left + 1 && r.top < c.bottom - 1 && r.bottom > c.top + 1) out.push(id + " capture covers copy");
           }
         }
@@ -101,6 +102,31 @@ const SCENES = ["bank", "book", "device", "omr", "wrong", "academy", "eco"];
     await page.waitForTimeout(600);
     assert.ok(await page.evaluate(() => Math.abs(document.getElementById("bank").getBoundingClientRect().top - parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)) < 2), "nav is a plain anchor to the question bank section");
     assert.equal(await page.locator('.nav a[href="#bank"]').getAttribute("aria-current"), "true", "nav marks the section in view");
+    /* 스크롤 연출: 위치에서 바로 계산(문구는 그대로), 핵심 흐름 진행 막대, 학원 운영 띠 */
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.waitForTimeout(300);
+    const heroScale = () => page.locator("#hero .shot").evaluate((e) => new DOMMatrix(getComputedStyle(e).transform).a);
+    assert.ok((await heroScale()) < 0.95, "hero capture starts slightly smaller");
+    await page.evaluate(() => scrollTo(0, innerHeight * 0.7));
+    await page.waitForTimeout(300);
+    assert.ok((await heroScale()) > 0.99, "hero capture grows to full size with the scroll");
+    assert.ok((await page.locator("#why .w").count()) > 20, "problem statement is split into words");
+    assert.match(await page.locator("#h-why").getAttribute("aria-label"), /^학생마다 틀리는 곳은 다릅니다\./, "screen readers get the sentence, not words");
+    for (const [i, id] of ["bank", "book", "omr", "wrong", "next"].entries()) {
+      await go(page, id);
+      assert.equal(await page.locator(".rail a").nth(i).getAttribute("aria-current"), "step", "rail marks step " + id);
+      assert.equal(await page.locator(".rail a[aria-current]").count(), 1);
+    }
+    const strip = await page.evaluate(async () => {
+      const s = document.querySelector("#academy .strip"), t = s.querySelector(".strip-track");
+      const top = s.getBoundingClientRect().top + scrollY - document.querySelector(".hd").offsetHeight;
+      const x = () => new DOMMatrix(getComputedStyle(t).transform).m41;
+      scrollTo(0, top); await new Promise((r) => setTimeout(r, 300)); const a = x();
+      scrollTo(0, top + 400); await new Promise((r) => setTimeout(r, 300)); const b = x();
+      return { a, b, overflow: document.documentElement.scrollWidth - innerWidth };
+    });
+    assert.ok(Math.abs(strip.a) < 2 && Math.abs(strip.a - strip.b - 400) < 4, "academy strip moves sideways 1:1 with the vertical scroll: " + JSON.stringify(strip));
+    assert.ok(strip.overflow <= 0, "strip never widens the page");
     const assets = await page.evaluate(() => [...new Set([...document.querySelectorAll("img")].map((i) => i.getAttribute("src") || i.dataset.src).concat([...document.querySelectorAll(".leaf")].flatMap((l) => [l.dataset.f, l.dataset.k])).concat([...document.querySelectorAll("[data-bg]")].map((e) => e.dataset.bg)).filter(Boolean))]);
     for (const src of assets) assert.equal((await page.request.get(BASE + "/" + src)).ok(), true, "asset exists: " + src);
     assert.equal((await page.request.get(BASE + "/policy.html")).ok(), true);
@@ -140,6 +166,9 @@ const SCENES = ["bank", "book", "device", "omr", "wrong", "academy", "eco"];
     const rp = await reduced.newPage();
     await rp.goto(BASE + "/intro.html");
     await rp.waitForTimeout(600);
+    assert.equal(await rp.evaluate(() => document.documentElement.classList.contains("fx")), false, "no scroll effects with reduced motion");
+    assert.equal(await rp.locator("#why .w").count(), 0);
+    assert.equal(await rp.locator("#hero .shot").evaluate((e) => getComputedStyle(e).transform), "none");
     assert.equal(await rp.locator("#book .shots").isVisible(), true);
     assert.equal(await rp.locator("#omr .shots").isVisible(), true);
     await rp.locator("#book").scrollIntoViewIfNeeded();
@@ -166,7 +195,7 @@ const SCENES = ["bank", "book", "device", "omr", "wrong", "academy", "eco"];
     assert.match(await fallback.locator("#plans .plan h3").first().innerText(), /솔비 라이트/);
     assert.equal(await fallback.locator("#plans .plan").count(), 3);
     await fallbackContext.close();
-    console.log("PASS: pricing, captures only (no mockup/3D/GSAP), captures load with alt, no copy overlap at 5 sizes, app destinations, keyboard menu, light end, reduced motion, no JS. Screenshots: " + OUT);
+    console.log("PASS: pricing, captures only (no mockup/3D/GSAP), scroll-linked hero · words · rail · strip, captures load with alt, no copy overlap at 5 sizes, app destinations, keyboard menu, light end, reduced motion, no JS. Screenshots: " + OUT);
   } finally {
     await browser.close();
   }
