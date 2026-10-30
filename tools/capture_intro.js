@@ -2,7 +2,7 @@
 // 개인정보가 담기지 않게 가짜 선생님·학생(이름은 「솔비 학생」처럼 지어낸 것)과 지어낸 채점 기록으로 찍는다.
 // 찍은 PNG 는 tools/intro_webp.py 로 intro/*.webp 로 바꾼다.
 //  PW=<playwright 경로>  CHANNEL=chrome(설치된 크롬으로 찍기)  BASE=<주소>
-// 크기 규칙: display = 앱 전체(메뉴 포함) 1600×900 · app-* = 본문만 1280×800(모두 같은 비율 · 크기) · phone-* = 390×844 · book-*/mock-* = A4 한 쪽
+// 크기 규칙: phone-* = 390×844 · book-*/mock-* = A4 한 쪽. 디스플레이 · 노트북 · 태블릿 화면과 표지는 tools/capture_cine.js 가 찍는다
 const {chromium}=require(process.env.PW||'/opt/node-tools/node_modules/playwright');const fs=require('fs');
 const OUT=process.argv[2]||'intro_png';fs.mkdirSync(OUT,{recursive:true});
 const BASE=process.env.BASE||'http://localhost:8765/';
@@ -25,18 +25,6 @@ const FAKE=`sess={access_token:'x',user:{id:'demo',email:'demo@solvi.kr'}};STU=[
   hist=[];for(let d=9;d>=1;d--){for(const sid of ['s1','s2','s3','s4']){const pick=[];for(let k=0;k<12;k++)pick.push(qs[Math.floor(rnd()*qs.length)]);
    hist.push({t:Date.now()-d*3*864e5,set:'book',sub:'me-t:'+(10+d),sid,items:pick.map(q=>{const r=weak.has(q.type)?rnd()<.35+0.04*(9-d):rnd()<.82;return {c:q.code,a:r?String(q.ans):String(q.ans%5+1),r:r?1:0}})})}}
   try{localStorage.setItem(LS,JSON.stringify(hist))}catch(e){}})()`);
- // 1) 모니터 속 앱 전체(메뉴 포함, 16:9): 취약 유형 지도에서 약한 유형을 자동으로 고른 모습
- await pg.evaluate(quiet+";CUR_S='s1';tab='weak';render()");await pg.waitForTimeout(1500);await pg.evaluate("try{autoPick()}catch(e){}");await pg.waitForTimeout(900);await pg.evaluate(quiet);await shot('display');
- // 2) 본문만(1280×800): 창 너비 = 메뉴 + 1280
- await pg.setViewportSize({width:(await sbw())+1280,height:800});await pg.waitForTimeout(400);await pg.setViewportSize({width:(await sbw())+1280,height:800});
- await pg.evaluate(quiet+";CUR_S='s1';tab='weak';render()");await pg.waitForTimeout(1200);await pg.evaluate(quiet);await shot('app-weak','body');
- await pg.evaluate(quiet+";WRM='note';tab='wrong';render()");await pg.waitForTimeout(1200);await pg.evaluate(quiet);await shot('app-wrong','body');
- await pg.evaluate(quiet+";WRM='diag';tab='wrong';render()");await pg.waitForTimeout(1500);await pg.evaluate(quiet);await shot('app-diag','body');
- await pg.evaluate(quiet+";WRM='note';CUR_S='';tab='stat';render()");await pg.waitForTimeout(1500);await pg.evaluate(quiet);await shot('app-stat','body');
- await pg.evaluate(quiet+";CUR_S='';tab='stu';render()");await pg.waitForTimeout(1000);await pg.evaluate(quiet);await shot('app-stu','body');
- await pg.evaluate(quiet+";tab='ws';render()");await pg.waitForTimeout(800);await pg.evaluate("try{resetW&&resetW()}catch(e){};tab='build';render()");await pg.waitForTimeout(1500);await pg.evaluate(quiet);await shot('app-build','body');
- await pg.evaluate(quiet+";tab='mock';render()");await pg.waitForTimeout(1500);await pg.evaluate(quiet);await shot('app-mock','body');
- await pg.evaluate(quiet+";bkLoad&&bkLoad();tab='books';render()");await pg.waitForTimeout(2000);await pg.evaluate(quiet);await shot('app-books','body');
  // 3) 휴대폰(390×844): 채점 화면 · 결과 · 학생 홈 · 학부모 홈
  await pg.setViewportSize({width:390,height:844});await pg.waitForTimeout(500);
  await pg.evaluate(`(async()=>{${quiet};CUR_S='s1';const qs=DATA.filter(q=>q.set==='mc').slice(40,52);await ensureCodes(qs.map(q=>q.code));newCur(qs,{});cur.mark=false;qs.forEach((q,i)=>cur.ans[i]=(i%4===2)?String(q.ans%5+1):String(q.ans));render()})()`);
@@ -63,14 +51,8 @@ const FAKE=`sess={access_token:'x',user:{id:'demo',email:'demo@solvi.kr'}};STU=[
  const has=s=>`(x.cols||[]).flat().join('').includes('${s}')`;
  await book('me-c',`const f=k=>p.pages.findIndex(k);r.cover=0;r.concept=f(x=>x.k==='cn'&&x.kind==='c');r.ox=f(x=>x.k==='pr'&&x.kind==='ox');r.basic=f(x=>x.k==='pr'&&x.kind==='mc')`);
  await book('me-t',`const f=k=>p.pages.findIndex(k);r.toc=1;r.problem=f(x=>x.k==='pr'&&${has('class="u q"')})`);
- // 6) 전범위 모의고사(물질과 에너지 1회) 표지 · 첫 쪽
+ // 6) 전범위 모의고사(물질과 에너지 1회) 표지
  const mh=await pg.evaluate(`(async()=>{await bkInit();const p=await bkPlan('me-xe20r1');return bkDocHtml(p,true)})()`);
  await bp.setContent(mh.replace('<head>','<head><base href="'+BASE+'">'),{waitUntil:'load'});await bp.evaluate('document.fonts.ready');await bp.waitForTimeout(600);
- const me=await bp.$$('body>.bp');if(me[0])await me[0].screenshot({path:OUT+'/mock-cover.png'});if(me[1])await me[1].screenshot({path:OUT+'/mock-page.png'});console.log('mock');
- // 7) 출결 단말(학원 입구 태블릿, 가로) — 디자인 확인용
- await pg.setViewportSize({width:1180,height:820});await pg.evaluate(quiet);
- pg.removeAllListeners('dialog');pg.on('dialog',d=>d.accept('2580'));
- await pg.evaluate("lazyLoad('acad').then(()=>{kioskOpen()})");await pg.waitForTimeout(1200);
- await pg.evaluate("KIO.pin='123';kioskDraw()");await shot('kiosk-input');
- await pg.evaluate("kioskHi('in','솔비','15:42');clearTimeout(KIO.rt)");await shot('kiosk-ok');
+ const me=await bp.$$('body>.bp');if(me[0])await me[0].screenshot({path:OUT+'/mock-cover.png'});console.log('mock');
  await b.close()})()
