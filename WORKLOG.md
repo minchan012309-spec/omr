@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-01 · Copilot · minchan012309-spec-book-writing-margins / PR 예정
+- 한 일: 교재 개념 쪽을 일반 문제집처럼 양면 제본 기준으로 정리. 짝수 쪽은 왼쪽, 홀수 쪽은 오른쪽에 필기공간을 남기고, 본문·머리말·바닥글을 안쪽으로 줄였으며 필기 줄을 표시.
+- 바뀐 파일: `books.js`, `index.html`, `sw.js`, `tests/book-pdf.cjs`.
+- 확인: `node scripts/verify-static.cjs`, `BASE=http://127.0.0.1:8765 node tests/book-pdf.cjs`, `npm test` 통과.
+- 남은 일 · 주의: 실제 인쇄기·제본 상태는 확인하지 못함. 새 PR을 생성할 예정.
+
 ## 2026-11-01 · Codex · codex/book-access-local (PR #108)
 - 한 일: 교재함에 표시되는 선생님 소유 로컬 교재를 열 때 미배포·실패한 `book_access` RPC를 다시 요구해 「교재 접근 상태를 확인하지 못했습니다」로 막히던 문제 수정. 로컬 삭제·휴지통 검사를 통과한 내 교재는 바로 열고, 배포받은 교재는 기존 서버 접근 검사를 유지.
 - 바뀐 파일: `books.js`, `index.html`, `sw.js`, `tests/trash-regression.test.cjs`.
