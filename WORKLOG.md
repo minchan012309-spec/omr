@@ -2,6 +2,24 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-01 · Copilot · minchan012309-spec-book-writing-space / PR #110
+- 한 일: 요청에 따라 개념 교재의 필기공간 추가 변경을 전부 롤백해 여백 추가 전 상태로 복원.
+- 바뀐 파일: `books.js`, `index.html`, `sw.js`, `tests/book-pdf.cjs`.
+- 확인: 롤백 후 정적 검사와 기존 회귀 테스트를 실행할 예정.
+- 남은 일 · 주의: PR #110에 롤백 커밋을 반영.
+
+## 2026-11-01 · Copilot · minchan012309-spec-book-writing-space / PR #110
+- 한 일: 요청에 맞춰 개념 쪽 바깥 필기공간을 32mm로 조정. 짝수는 왼쪽, 홀수는 오른쪽 방향을 유지.
+- 바뀐 파일: `books.js`, `tests/book-pdf.cjs`, `WORKLOG.md`.
+- 확인: 개념서 인쇄/PDF 회귀와 정적 검사를 다시 실행.
+- 남은 일 · 주의: 실제 인쇄기·제본 상태는 확인하지 못함.
+
+## 2026-11-01 · Copilot · minchan012309-spec-book-writing-space / PR 예정
+- 한 일: 기존 개념 쪽 필기 여백을 수정. 짝수 쪽은 왼쪽, 홀수 쪽은 오른쪽에 더 넓은 공간을 확보하고, 교과 색과 회색을 섞은 옅은 배경 및 필기 줄을 표시.
+- 바뀐 파일: `books.js`, `index.html`, `sw.js`, `tests/book-pdf.cjs`.
+- 확인: 개념서 인쇄 회귀와 전체 회귀를 다시 실행할 예정.
+- 남은 일 · 주의: 실제 인쇄기·제본 상태는 확인하지 못함. 새 PR을 생성할 예정.
+
 ## 2026-11-01 · Copilot · minchan012309-spec-book-writing-margins / PR 예정
 - 한 일: 교재 개념 쪽을 일반 문제집처럼 양면 제본 기준으로 정리. 짝수 쪽은 왼쪽, 홀수 쪽은 오른쪽에 필기공간을 남기고, 본문·머리말·바닥글을 안쪽으로 줄였으며 필기 줄을 표시.
 - 바뀐 파일: `books.js`, `index.html`, `sw.js`, `tests/book-pdf.cjs`.
