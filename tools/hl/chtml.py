@@ -86,7 +86,13 @@ def tone(s):
             for rx, fn in _TONE:
                 part = rx.sub(fn, part)
         out.append(part)
-    return ''.join(out)
+    # 개념 노트는 문장형 설명보다 핵심을 바로 읽는 메모체를 쓴다.
+    # 인용문·예문은 위에서 보호했으므로 이 변환 대상이 아니다.
+    text = ''.join(out)
+    for before, after in (('아니다.', '아님.'), ('이다.', '임.'), ('있다.', '있음.'),
+                          ('없다.', '없음.'), ('된다.', '됨.'), ('한다.', '함.')):
+        text = text.replace(before, after)
+    return text
 
 
 def inline(s, raw=False):
