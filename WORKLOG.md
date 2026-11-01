@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-02 · Codex · codex/loading-bar
+- 한 일: 전역 처리 로딩 화면의 원형 SVG 스피너를 제거하고, 기존 흰색 계열을 유지한 얇고 둥근 가로 막대가 좌우로 빠르게 왕복하도록 변경.
+- 바뀐 파일: `index.html`, `styles/legacy.css`, `sw.js`, `WORKLOG.md`.
+- 확인: 로딩 막대 계약 검사와 정적 스크립트 파싱 통과. 1440 · 820 · 390 화면에서 원형 SVG가 없고 96×4px 트랙 안의 34×4px 막대가 0.68초 왕복하는 것을 직접 확인.
+- 남은 일 · 주의: 실제 기기에서는 확인하지 못함.
+
 ## 2026-11-01 · Codex · codex/concept-heading-note-space (PR #112)
 - 한 일: 개념 쪽 단원명 카드를 좌우 12mm 안의 전체 폭으로 분리하고, 카드 아래부터 홀수 오른쪽·짝수 왼쪽에 40mm의 선·테두리·라운딩 없는 과목색 필기 공간을 배치. 개념 본문은 140mm·11px로 다시 조판하고 이어지는 쪽에도 필기 공간이 유지되게 함.
 - 바뀐 파일: `books.js`, `books/heights.json`, `index.html`, `sw.js`, `tests/book-pdf.cjs`, `tools/measure_books.js`, 관련 설계·계획 문서.
