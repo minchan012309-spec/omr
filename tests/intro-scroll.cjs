@@ -69,7 +69,7 @@ const wheel = async (page, dy) => {
         assert.ok(Math.abs(start + d - top) > 8, tag + " not aligned to #" + id + " start");
         /* 화면 아래에서 들어오는 다음 장면 문구는 스크롤한 만큼만 올라온다 */
         await at(page, top - height * 0.7);
-        const cpTop = () => page.locator("#" + id + " .cp").evaluate((e) => e.getBoundingClientRect().top);
+        const cpTop = () => page.locator("#" + id + " .cp,#" + id + " .eco-head").first().evaluate((e) => e.getBoundingClientRect().top);
         const c0 = await cpTop();
         const dc = await wheel(page, 80);
         assert.ok(Math.abs(c0 - (await cpTop()) - dc) <= 2, tag + " #" + id + " copy enters 1:1 with the scroll");
@@ -134,7 +134,7 @@ const wheel = async (page, dy) => {
       /* 섹션 중간에서 멈출 수 있고, 긴 문구도 끝까지 화면에 들어온다 */
       for (const id of ["book", "device", "eco", "start"]) {
         await at(page, (await secTop(page, id)) + 1);
-        const r = await page.locator("#" + id + " .cp").evaluate((e) => { const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom }; });
+        const r = await page.locator("#" + id + " .cp,#" + id + " .eco-head").first().evaluate((e) => { const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom }; });
         assert.ok(r.top >= 0 && r.bottom <= height + 1, tag + " #" + id + " copy fits on screen while its section is in view");
       }
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), tag + " no horizontal page overflow");

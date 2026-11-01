@@ -19,7 +19,7 @@ const go = async (page, id) => {
   await page.evaluate((id) => document.getElementById(id).scrollIntoView({ block: "start" }), id);
   await page.waitForTimeout(500);
 };
-const SCENES = ["book", "device", "academy", "eco"];
+const SCENES = ["book", "device", "academy"];
 /* sticky 장면(run)의 진행도 p 로 스크롤 */
 const runTo = async (page, id, p) => {
   await page.evaluate(([id, p]) => { const r = document.getElementById(id), pin = r.firstElementChild, hd = document.querySelector(".hd").offsetHeight; scrollTo(0, r.getBoundingClientRect().top + scrollY - hd + (r.offsetHeight - pin.offsetHeight) * p); }, [id, p]);
@@ -54,6 +54,14 @@ const runTo = async (page, id, p) => {
     assert.equal(await page.locator("#stage,.stage,.film-bg,.xdr,.mac,.slab,.rig,.obj").count(), 0, "no device mockup or 3D stage");
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType), "none", "no forced scroll");
     assert.equal(await page.locator("#h1").isVisible(), true);
+    assert.equal(await page.getByText("Solvi(솔비)는", { exact: false }).count(), 0, "generic platform sentence removed");
+    assert.equal(await page.locator("#tmap").count(), 0, "main-app type map is not duplicated in the hero");
+    assert.equal(await page.locator(".hero-logo").count(), 1, "hero uses one aligned logo lockup");
+    const logoCenters = await page.locator(".hero-logo svg").evaluateAll((els) => els.map((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; }));
+    assert.equal(logoCenters.length, 2);
+    assert.ok(Math.abs(logoCenters[0] - logoCenters[1]) <= 2, "symbol and wordmark share a visual center");
+    assert.deepEqual(await page.locator("#systemMap .sys-node b").allTextContents(), ["QR 채점", "취약 개념", "다음 학습지", "수업 배정", "상담 기록", "학부모 알림"]);
+    assert.equal(await page.locator("#systemMap .sys-path").count(), 5, "six actions are visibly connected");
     await page.screenshot({ path: OUT + "/desktop-hero.png" });
     for (const id of SCENES) {
       await go(page, id);
@@ -119,17 +127,15 @@ const runTo = async (page, id, p) => {
     await page.waitForTimeout(600);
     assert.ok(await page.evaluate(() => Math.abs(document.getElementById("flow").getBoundingClientRect().top - parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)) < 2), "nav is a plain anchor to the core-flow section");
     assert.equal(await page.locator('.nav a[href="#flow"]').getAttribute("aria-current"), "true", "nav marks the section in view");
-    /* 히어로: 살아 있는 취약 유형 지도(실제 앱의 상태 6단계). 처음에 칠해지고 약한 유형이 골라진 뒤, 눌러서 고를 수 있다 */
+    const internalNav = await page.locator('.nav a[href^="#"]').evaluateAll((links) => links.map((a) => a.getAttribute("href").slice(1)));
+    assert.ok(internalNav.length >= 6, "header exposes the major intro sections");
+    for (const id of internalNav) assert.equal(await page.locator("#" + id).count(), 1, "nav target exists: " + id);
+    /* 히어로: 학습과 운영이 한 학생 기록에서 순서대로 이어진다 */
     await page.evaluate(() => scrollTo(0, 0));
-    const lg = () => page.evaluate(() => Object.fromEntries([...document.querySelectorAll(".tm-lg li")].map((l) => [l.dataset.lv, +l.querySelector("b").textContent])));
-    assert.equal(await page.locator("#tmap .tt").count(), 15);
-    assert.deepEqual(await lg(), { skull: 2, red: 3, yellow: 3, gray: 2, green: 3, star: 2 }, "type map painted: skull · red · yellow …");
-    assert.equal(await page.locator('#tmap .tt[aria-pressed="true"]').count(), 5, "weak types picked");
-    assert.equal(await page.locator("#tmQ").innerText(), "25");
-    await page.locator('#tmap .tt[data-lv="gray"]').first().click();
-    assert.equal(await page.locator("#tmN").innerText(), "6", "tapping a type adds it");
-    assert.equal(await page.locator("#tmQ").innerText(), "30");
-    assert.match(await page.locator('#tmap .tt[data-lv="skull"]').first().getAttribute("aria-label"), /해골 · 거의 못 맞힘 · 정답률 25%/);
+    assert.equal(await page.locator("#systemMap .sys-core").isVisible(), true);
+    await page.evaluate(() => scrollTo(0, innerHeight * 0.62));
+    await page.waitForTimeout(100);
+    assert.equal(await page.locator("#systemMap .sys-node.on").count(), 6, "scroll reveals the complete connected system");
     /* 한 바퀴: 진행도마다 단계 · 설명 · 무대가 바뀐다(스크롤 위치에서 바로 계산) */
     for (const [i, p] of [0.1, 0.3, 0.5, 0.7, 0.9].entries()) {
       await runTo(page, "flowRun", p);
@@ -163,16 +169,40 @@ const runTo = async (page, id, p) => {
       assert.equal(await page.locator(".day-steps li.on").getAttribute("data-i"), String(i), "day step " + i);
       assert.equal(await page.locator(".dd.on").getAttribute("id"), "day-" + i);
     }
+    for (const i of [0, 4, 8]) {
+      await page.locator(".day-steps a").nth(i).click();
+      await page.waitForTimeout(450);
+      assert.equal(await page.locator(".day-steps li.on").getAttribute("data-i"), String(i), "clicking day step opens " + i);
+      assert.equal(await page.locator(".dd.on").getAttribute("id"), "day-" + i, "clicking day step reveals copy " + i);
+    }
     const dayImgs = await page.locator(".day-frame .shot").evaluateAll((l) => l.map((i) => ({ ok: i.complete && i.naturalWidth > 0, src: i.getAttribute("src") })));
     for (const d of dayImgs) assert.ok(d.ok, "academy capture loads: " + d.src);
     /* 기능 전체: 분야를 누르면 그 분야 카드만 */
+    const specLayout = await page.locator(".spec-shell").evaluate((e) => { const n = e.querySelector(".spec-nav").getBoundingClientRect(), p = e.querySelector(".spec-panel").getBoundingClientRect(); return { side: n.right <= p.left, nav: n.width, panel: p.width }; });
+    assert.ok(specLayout.side && specLayout.panel > specLayout.nav * 1.65, "feature directory uses an asymmetric desktop split");
     const total = await page.locator(".spec-g .sp").count();
     assert.ok(total >= 30, "detailed feature catalog: " + total);
     await page.locator('.cats button[data-cat="grade"]').click();
     assert.equal(await page.locator(".spec-g .sp:visible").count(), await page.locator('.spec-g .sp[data-cat="grade"]').count());
     assert.equal(await page.locator("#catN").innerText(), String(await page.locator('.spec-g .sp[data-cat="grade"]').count()));
+    assert.equal(await page.locator("#catTitle").innerText(), "채점");
+    assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.id), "catTitle", "chosen category moves focus to its results");
     await page.locator('.cats button[data-cat="all"]').click();
     assert.equal(await page.locator(".spec-g .sp:visible").count(), total);
+    /* 지원 과목: 앱 과목 선택의 지원 4개와 준비 중 23개를 모두 보여 준다 */
+    const subjectNames = await page.locator("#eco .subject-item b").allTextContents();
+    assert.equal(subjectNames.length, 27, "complete subject roadmap");
+    assert.equal(await page.locator('#eco .subject-item[data-status="active"]').count(), 4);
+    assert.equal(await page.locator('#eco .subject-item[data-status="soon"]').count(), 23);
+    assert.deepEqual(await page.locator("#eco .subject-group>h3").allTextContents(), ["과학", "국어", "사회", "수능 맞춤형"]);
+    const appSource = fs.readFileSync("index.html", "utf8");
+    for (const name of subjectNames) assert.ok(appSource.includes(name), "intro subject also exists in app picker: " + name);
+    for (const [width, height, label] of [[1440, 900, "desktop"], [820, 1180, "tablet"], [390, 844, "mobile"]]) {
+      await page.setViewportSize({ width, height });
+      await go(page, "eco");
+      await page.screenshot({ path: OUT + "/" + label + "-subjects.png" });
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
     /* 요금제별 비교: 서버 요금제(시험용)의 이름 · 가격으로 맞춰진다 */
     assert.equal(await page.locator("#cmp thead th[data-i]").count(), 3);
     assert.equal(await page.locator('#cmp thead th[data-i="2"]').innerText(), "테스트 플래티넘");
@@ -233,6 +263,8 @@ const runTo = async (page, id, p) => {
     }
     await mp.locator("#cmp").scrollIntoViewIfNeeded();
     assert.ok(await mp.evaluate(() => { const s = document.querySelector(".cmp-scroll"); return s.scrollWidth <= s.clientWidth + 1; }), "plan comparison fits a phone without sideways scrolling");
+    await mp.locator("#spec").scrollIntoViewIfNeeded();
+    assert.ok(await mp.locator(".spec-shell").evaluate((e) => { const n = e.querySelector(".spec-nav").getBoundingClientRect(), p = e.querySelector(".spec-panel").getBoundingClientRect(); return p.top >= n.bottom - 1; }), "feature directory stacks on a phone");
     await mob.close();
 
     /* 동작 줄이기: 같은 문서 그대로(움직이는 연출이 원래 없다) */
@@ -244,7 +276,8 @@ const runTo = async (page, id, p) => {
     assert.equal(await rp.locator("#book .shots").isVisible(), true);
     assert.equal(await rp.locator(".fd:visible").count(), 5, "all five steps readable without motion");
     assert.equal(await rp.locator("#lb .ln:visible").count(), 12);
-    assert.equal(await rp.locator('#tmap .tt[aria-pressed="true"]').count(), 5, "type map already painted");
+    assert.equal(await rp.locator("#systemMap .sys-node:visible").count(), 6, "connected system is complete with reduced motion");
+    assert.equal(await rp.locator("#eco .subject-item:visible").count(), 27, "all subjects remain visible with reduced motion");
     await rp.locator("#book").scrollIntoViewIfNeeded();
     await rp.screenshot({ path: OUT + "/reduced-motion.png" });
     await reduced.close();
@@ -255,7 +288,8 @@ const runTo = async (page, id, p) => {
     await staticPage.waitForTimeout(500);
     assert.equal(await staticPage.locator("#h1").isVisible(), true);
     assert.equal(await staticPage.locator("#book .shots").isVisible(), true);
-    assert.equal(await staticPage.locator("#tmap .tt").count(), 15);
+    assert.equal(await staticPage.locator("#systemMap .sys-node:visible").count(), 6);
+    assert.equal(await staticPage.locator("#eco .subject-item:visible").count(), 27);
     assert.equal(await staticPage.locator("#plans .plan").count(), 3);
     await staticPage.locator("details").first().locator("summary").click();
     assert.equal(await staticPage.locator("details").first().getAttribute("open"), "");
@@ -270,7 +304,7 @@ const runTo = async (page, id, p) => {
     assert.match(await fallback.locator("#plans .plan h3").first().innerText(), /솔비 라이트/);
     assert.equal(await fallback.locator("#plans .plan").count(), 3);
     await fallbackContext.close();
-    console.log("PASS: pricing, no mockup/3D/GSAP, live type map (paint · pick · tap), 5-step scroll stage (forward · back), QR scene, academy day (9 steps), feature catalog filter, plan comparison, link graph (draw · hover), mobile layout width, captures load with alt, no copy overlap at 5 sizes, app destinations, keyboard menu, light end, reduced motion, no JS. Screenshots: " + OUT);
+    console.log("PASS: pricing, connected-system hero, 5-step scroll stage (forward · back), QR scene, academy day (9 steps), readable feature catalog, 27-subject roadmap, plan comparison, link graph (draw · hover), mobile layout width, captures load with alt, no copy overlap at 5 sizes, app destinations, keyboard menu, light end, reduced motion, no JS. Screenshots: " + OUT);
   } finally {
     await browser.close();
   }
