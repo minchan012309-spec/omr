@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-01 · Codex · codex/concept-book-gutter (PR 생성 예정)
+- 한 일: 교재의 개념 정리 쪽만 148mm 본문으로 다시 조판하고, 홀수 쪽 오른쪽·짝수 쪽 왼쪽에 32mm의 선 없는 옅은 과목색 필기 면을 추가. 국어 지문·문제·해설·표지·차례·별도 노트는 기존 레이아웃을 유지하고, 화면 미리보기·eBook·인쇄·PDF가 같은 조판을 사용하게 함. 7mm 제본 설정이 개념 쪽의 고정 A4 안전 여백을 흔들지 않도록 제외함.
+- 바뀐 파일: `books.js`, `books/heights.json`, `index.html`, `sw.js`, `tests/book-pdf.cjs`, `tools/measure_books.js`, 개념 필기 여백 설계·구현 문서.
+- 확인: 수정 전 실제 화법과 언어 개념 쪽 계약 테스트 실패를 확인하고 수정 후 통과. 전 과목 높이 7,317개 재측정, 인쇄 회귀·실제 네이티브 A4 PDF·앱 PDF 통과. p.3 오른쪽·p.4 왼쪽 과목색 면과 본문 잘림 없음을 캡처로 직접 확인. `node scripts/verify-static.cjs && npm test` 전체 통과(`PASS all isolated verification commands`).
+- 남은 일 · 주의: 실제 프린터와 iPhone·iPad 인쇄 대화상자에서는 확인하지 못함.
+
 ## 2026-11-01 · Codex · codex/book-access-local (PR #108)
 - 한 일: 교재함에 표시되는 선생님 소유 로컬 교재를 열 때 미배포·실패한 `book_access` RPC를 다시 요구해 「교재 접근 상태를 확인하지 못했습니다」로 막히던 문제 수정. 로컬 삭제·휴지통 검사를 통과한 내 교재는 바로 열고, 배포받은 교재는 기존 서버 접근 검사를 유지.
 - 바뀐 파일: `books.js`, `index.html`, `sw.js`, `tests/trash-regression.test.cjs`.
