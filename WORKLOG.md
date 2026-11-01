@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-01 · Copilot · minchan012309-spec-book-writing-space / PR 예정
+- 한 일: 기존 개념 쪽 필기 여백을 수정. 짝수 쪽은 왼쪽, 홀수 쪽은 오른쪽에 더 넓은 공간을 확보하고, 교과 색과 회색을 섞은 옅은 배경 및 필기 줄을 표시.
+- 바뀐 파일: `books.js`, `index.html`, `sw.js`, `tests/book-pdf.cjs`.
+- 확인: 개념서 인쇄 회귀와 전체 회귀를 다시 실행할 예정.
+- 남은 일 · 주의: 실제 인쇄기·제본 상태는 확인하지 못함. 새 PR을 생성할 예정.
+
 ## 2026-11-01 · Copilot · minchan012309-spec-book-writing-margins / PR 예정
 - 한 일: 교재 개념 쪽을 일반 문제집처럼 양면 제본 기준으로 정리. 짝수 쪽은 왼쪽, 홀수 쪽은 오른쪽에 필기공간을 남기고, 본문·머리말·바닥글을 안쪽으로 줄였으며 필기 줄을 표시.
 - 바뀐 파일: `books.js`, `index.html`, `sw.js`, `tests/book-pdf.cjs`.

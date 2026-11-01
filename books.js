@@ -86,10 +86,10 @@ const BKCSS=`
 .bkdoc .hd2 b{color:#111;font-weight:600}.bkdoc .hd2 .lb2{color:var(--pd);font-weight:600}
 .bkdoc .hd2 .lb2:before{content:"";display:inline-block;width:1.6mm;height:1.6mm;border-radius:50%;background:var(--y);margin-right:1.6mm;vertical-align:.05mm}
 .bkdoc .fb{position:absolute;left:12mm;right:12mm;bottom:7mm;height:18mm;border-top:.25mm solid var(--line);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:9.5px;color:#555;line-height:1}
-.bkdoc .bp.note-l .hd2,.bkdoc .bp.note-l .bd,.bkdoc .bp.note-l .fb{right:27mm}
-.bkdoc .bp.note-r .hd2,.bkdoc .bp.note-r .bd,.bkdoc .bp.note-r .fb{left:27mm}
-.bkdoc .bp.note-l:after,.bkdoc .bp.note-r:after{content:"";position:absolute;top:24mm;bottom:27mm;width:11mm;pointer-events:none;opacity:.72;background:repeating-linear-gradient(to bottom,transparent 0,transparent 7mm,#dfe5eb 7mm,#dfe5eb 7.25mm)}
-.bkdoc .bp.note-l:after{left:13mm}.bkdoc .bp.note-r:after{right:13mm}
+.bkdoc .bp.note-l .hd2,.bkdoc .bp.note-l .bd,.bkdoc .bp.note-l .fb{right:38mm}
+.bkdoc .bp.note-r .hd2,.bkdoc .bp.note-r .bd,.bkdoc .bp.note-r .fb{left:38mm}
+.bkdoc .bp.note-l:after,.bkdoc .bp.note-r:after{content:"";position:absolute;top:21mm;bottom:27mm;width:23mm;pointer-events:none;opacity:.92;border:1px solid var(--line);background:repeating-linear-gradient(to bottom,transparent 0,transparent 7mm,var(--line) 7mm,var(--line) 7.25mm),linear-gradient(90deg,var(--pl),#f5f6f7)}
+.bkdoc .bp.note-l:after{left:12mm}.bkdoc .bp.note-r:after{right:12mm}
 .bkdoc .fb .pn{color:var(--p);font-weight:700;font-size:13.5px;min-width:12mm;display:inline-flex;align-items:center;gap:2mm}.bkdoc .fb .pn.r{justify-content:flex-end}.bkdoc .fb .pn:before{content:"";width:1.5mm;height:1.5mm;border-radius:50%;background:var(--y)}.bkdoc .fb .pn.r:before{order:2}.bkdoc .fb .pn.r{text-align:right}.bkdoc .fb>:first-child{justify-self:start}.bkdoc .fb>:last-child{justify-self:end}.bkdoc .bp[data-gut]>*{transform:translateX(var(--gx))}
 .bkdoc .fq{position:absolute;bottom:25.6mm;width:9mm;height:9mm;z-index:2}.bkdoc .fq.o-l{left:12mm}.bkdoc .fq.o-r{right:12mm}.bkdoc .fq .qq{width:100%;height:100%;border:0;padding:0;background:none}.bkdoc .fq svg{width:100%;height:100%;display:block}
 .bkdoc .fb .qrb{display:flex;align-items:center;gap:2.8mm}
