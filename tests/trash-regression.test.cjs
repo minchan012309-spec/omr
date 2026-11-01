@@ -30,6 +30,31 @@ test('QR access rejects local trash and server rejected IDs', async () => {
   assert.ok(notices.length >= 2);
 });
 
+test('a newly saved local teacher book opens before cloud sync finishes', async () => {
+  let calls=0;
+  const ctx = {
+    bkBare:x=>x,bkxGone:()=>new Set(),bkxTrash:()=>[],
+    bkxAll:()=>[{id:'me-xb1',owner:'u'}],toast:()=>{},cloud:()=>true,
+    BKXNEW:new Set(['me-xb1']),sess:{user:{id:'u'}},rpc:async()=>{calls++;return {ok:false}}
+  };
+  vm.runInNewContext(part(books, 'async function bkxAccess(', 'async function bkxCheckAssigned('), ctx);
+  assert.equal(await ctx.bkxAccess('me-xb1'), true);
+  assert.equal(calls, 0);
+});
+
+test('source-specific book parts are restricted to speech and language', () => {
+  const source = part(books, 'const BKFP=', 'const BKFLV=')+
+    part(books, 'const BKFLV=', '/* 국어(화법과 언어)')+
+    part(books, 'function bkfOrder(', 'function bkfRead()');
+  const make = subj => {
+    const ctx={SUBJ:subj};
+    vm.runInNewContext(source, ctx);
+    return Array.from(ctx.bkfParts({order:['c','q','o'],on:{c:1,q:1,o:1},cm:{},lv:{q:15}}), x=>x.k);
+  };
+  assert.deepEqual(make('me'), ['c','o']);
+  assert.deepEqual(make('hl'), ['c','q','o']);
+});
+
 test('worksheet cloud metadata carries trash state', () => {
   const ctx = {};
   vm.runInNewContext(part(page, 'const wsMeta=', 'const wsPost='), ctx);

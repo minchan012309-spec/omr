@@ -9,8 +9,9 @@ var esc=function(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){r
 /* ---------- 머리글 · 목차 · 오른쪽 아래 버튼 ---------- */
 var hd=$('.hd'),menu=$('#menu'),nav=$('#nav'),dock=$('#dock');
 function navOpen(on){nav.classList.toggle('open',on);menu.setAttribute('aria-expanded',String(on));menu.setAttribute('aria-label',on?'목차 닫기':'목차 열기')}
+function goSection(id){var t=D.getElementById(id);if(!t)return;var pad=parseFloat(getComputedStyle(H).scrollPaddingTop)||((hd&&hd.offsetHeight)||64);scrollTo({top:t.getBoundingClientRect().top+scrollY-pad,left:0,behavior:'auto'});try{history.replaceState(null,'','#'+id)}catch(ignore){}}
 menu.addEventListener('click',function(){navOpen(menu.getAttribute('aria-expanded')!=='true')});
-nav.addEventListener('click',function(e){if(e.target.closest('a'))navOpen(false)});
+nav.addEventListener('click',function(e){var a=e.target.closest('a');if(!a)return;navOpen(false);var h=a.getAttribute('href')||'';if(h.charAt(0)==='#'){e.preventDefault();goSection(h.slice(1))}});
 D.addEventListener('keydown',function(e){if(e.key==='Escape'&&menu.getAttribute('aria-expanded')==='true'){navOpen(false);menu.focus()}});
 D.addEventListener('click',function(e){if(!e.target.closest('.hd'))navOpen(false);if(e.target.closest('[data-app]')){try{localStorage.setItem('omr_app','1')}catch(ignore){}}});
 var lightSecs=0,scrollQ=false;
@@ -70,7 +71,7 @@ function watchLight(){if(!('IntersectionObserver' in window))return;
  var io=new IntersectionObserver(function(es){es.forEach(function(e){seen[e.target.id]=e.isIntersecting});var cur=null;links.forEach(function(a){if(seen[a.getAttribute('href').slice(1)])cur=a});links.forEach(function(a){if(a===cur)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current')})},{rootMargin:'-45% 0px -45% 0px'});
  links.forEach(function(a){var t=D.getElementById(a.getAttribute('href').slice(1));if(t)io.observe(t)})})();
 
-/* ---------- 히어로: 살아 있는 취약 유형 지도(누르면 고르기 · 처음 한 번 채점 결과가 칠해진다) ---------- */
+/* ---------- 이전 취약 유형 지도 호환(히어로에서 제거됨) ---------- */
 (function(){var map=$('#tmap');if(!map)return;
  var tiles=$$('.tt',map),lg={},nE=$('#tmN'),qE=$('#tmQ'),live=$('.tm-live',map),PER=5,timers=[],done=false;
  $$('.tm-lg li',map).forEach(function(li){lg[li.dataset.lv]=$('b',li)});
@@ -151,6 +152,12 @@ var FLOW=(function(){var run=$('#flowRun'),fb=$('#fb');if(!run||!fb)return null;
  var lastP=-1,upd=update;update=function(p,e){lastP=p;upd(p,e)};
  return {run:run,update:function(p,e){update(p,e)}}})();
 
+/* ---------- 히어로: 한 학생 기록에서 학습과 운영이 이어지는 순서 ---------- */
+var SYS=(function(){var map=$('#systemMap');if(!map)return null;var nodes=$$('.sys-node',map),paths=$$('.sys-path',map),last=-1;
+ function update(p){p=cl(p);if(Math.abs(p-last)<.002)return;last=p;var n=Math.min(nodes.length,Math.max(1,Math.ceil(p*nodes.length/.62)));nodes.forEach(function(node){node.classList.toggle('on',+node.dataset.step<n)});paths.forEach(function(path){path.classList.toggle('on',+path.dataset.step<n)})}
+ if(!H.classList.contains('fx'))update(1);else update(0);
+ return {map:map,update:update}})();
+
 /* ---------- 연결 그래프: 가운데 기록에서 열두 기능으로 선이 그려지고, 그 위로 기록이 흐른다 ---------- */
 var LINK=(function(){var run=$('#linkRun'),lb=$('#lb');if(!run||!lb)return null;
  var svg=$('.lsvg',lb),nodes=$$('.ln',lb),C={x:360,y:280},NS='http://www.w3.org/2000/svg',paths=[],dots=[],gli=$$('.link-g li');
@@ -227,13 +234,16 @@ var DAY=(function(){var run=$('#dayRun');if(!run)return null;
    var tin=s===0?1:io2(cl((d+1)/.72)),tout=s===N-1?0:io2(cl((d-.28)/.72)),o=cl(tin*1.4-.2)*(1-cl(tout*1.4-.4));
    var m=tout>0?mix(ID,v.X,tout):mix(v.E,ID,tin);if(kio)m=mix([0,40,0,0,0,0,.9],ID,tin);
    im.style.opacity=o.toFixed(3);im.style.visibility=o<.01?'hidden':'visible';im.style.zIndex=String(Math.round(10-Math.abs(d)*4));im.style.transform=tf(m)})}
+ function go(i){i=Math.max(0,Math.min(N-1,+i||0));var pin=run.firstElementChild,space=Math.max(0,run.offsetHeight-pin.offsetHeight),top=run.getBoundingClientRect().top+scrollY-((hd&&hd.offsetHeight)||64)+space*((i+.5)/N);scrollTo({top:top,left:0,behavior:'auto'});update((i+.5)/N)}
+ $$('.day-steps a',run).forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();var i=+a.dataset.i;go(i);try{history.replaceState(null,'','#day-'+i)}catch(ignore){}})});
  if(!H.classList.contains('fx'))update(0);
- return {run:run,update:update}})();
+ return {run:run,update:update,go:go}})();
 
-/* ---------- 기능 전체: 분야 고르기 ---------- */
-(function(){var bs=$$('.cats button'),cards=$$('.spec-g .sp'),n=$('#catN');if(!bs.length)return;
- function set(c){bs.forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.cat===c))});var k=0;cards.forEach(function(a){var on=c==='all'||a.dataset.cat===c;a.hidden=!on;if(on){k++;a.classList.add('in')}});n.textContent=k}
- bs.forEach(function(b){b.addEventListener('click',function(){set(b.dataset.cat)})});set('all')})();
+/* ---------- 기능 전체: 분야별 디렉터리 ---------- */
+var setSpecCategory;
+(function(){var bs=$$('.cats button'),cards=$$('.spec-g .sp'),n=$('#catN'),title=$('#catTitle');if(!bs.length)return;
+ setSpecCategory=function(c,focus){var active=null,k=0;bs.forEach(function(b){var on=b.dataset.cat===c;b.setAttribute('aria-pressed',String(on));if(on)active=b});cards.forEach(function(a){var on=c==='all'||a.dataset.cat===c;a.hidden=!on;if(on)k++});n.textContent=k;if(title){title.textContent=c==='all'?'전체 기능':active.textContent.trim();if(focus)title.focus({preventScroll:true})}};
+ bs.forEach(function(b){b.addEventListener('click',function(){setSpecCategory(b.dataset.cat,true)})});setSpecCategory('all',false)})();
 
 /* ---------- 스크롤 → 진행도. 매 프레임 읽기를 먼저, 쓰기는 나중에 ---------- */
 (function(){
@@ -244,7 +254,7 @@ var DAY=(function(){var run=$('#dayRun');if(!run)return null;
   $$('[data-count]').forEach(function(el){el.textContent='0'+(el.dataset.unit||'');cio.observe(el)});
   var sio=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');sio.unobserve(en.target)}})},{threshold:.35});$$('.sp').forEach(function(s){sio.observe(s)})}
  if(!H.classList.contains('fx')||!window.requestAnimationFrame)return;
- var vh=innerHeight,hdH=64,items=[],q=false;var tmap=$('#tmap');
+ var vh=innerHeight,hdH=64,items=[],q=false;
  $$('[data-fx]').forEach(function(el){var k=el.dataset.fx,it={el:el,k:k,last:-1};
   if(k==='rise')it.kids=$$('[data-lag]',el);
   if(k==='fly'||k==='flip')it.kids=Array.prototype.slice.call(el.children);
@@ -265,7 +275,7 @@ var DAY=(function(){var run=$('#dayRun');if(!run)return null;
    else if(it.k==='strip')p=it.run?cl((hdH-r.top)/it.run):0;
    else p=cl((vh-r.top)/(vh*.62));
    st.push(p)});
-  if(tmap&&scrollY<vh*1.4){var hk=out(cl(scrollY/(vh*.55))),sm=innerWidth<861?.45:1;tmap.style.transform='rotateX('+(9*(1-hk)*sm).toFixed(2)+'deg) rotateY('+(-15*(1-hk)*sm).toFixed(2)+'deg) scale('+(.95+.05*hk).toFixed(4)+')'}
+  if(SYS&&scrollY<vh*1.4)SYS.update(cl(scrollY/(vh*.58)));
   if(fp&&fp.near)FLOW.update(fp.p,fp.e);
   var qp=QRS&&runP(QRS.run),dp=DAY&&runP(DAY.run);if(qp&&qp.near)QRS.update(qp.p,qp.e);if(dp&&dp.near)DAY.update(dp.p);
   if(lp&&lp.near)LINK.update(lp.p);
