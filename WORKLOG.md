@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-01 · Codex · codex/book-access-local (PR #108)
+- 한 일: 교재함에 표시되는 선생님 소유 로컬 교재를 열 때 미배포·실패한 `book_access` RPC를 다시 요구해 「교재 접근 상태를 확인하지 못했습니다」로 막히던 문제 수정. 로컬 삭제·휴지통 검사를 통과한 내 교재는 바로 열고, 배포받은 교재는 기존 서버 접근 검사를 유지.
+- 바뀐 파일: `books.js`, `index.html`, `sw.js`, `tests/trash-regression.test.cjs`.
+- 확인: 기존 로컬 교재 + 실패한 RPC 재현 테스트가 수정 전 실패하고 수정 후 통과. `node --test tests/trash-regression.test.cjs` 8개, 정적 파싱, 최종 `npm test` 전체 통과(`PASS all isolated verification commands`).
+- 남은 일 · 주의: 실제 배포 환경에서 사용자 계정의 교재 열기는 배포 후 확인 필요. 사용자 설치 스킬과 `skills-lock.json` 변경은 이 작업과 무관해 커밋하지 않음.
+
 ## 2026-11-01 · Codex · codex/intro-navigation-motion (PR #107)
 - 한 일: 교재 만들기의 「출처별 문제」를 화법과 언어에만 남기고, 과목 전환 뒤 남은 편집 상태에서도 다른 과목 교재 정의에 들어가지 않게 차단. 새 교재 저장 직후 클라우드 동기화 전에 eBook·인쇄를 누르면 접근 확인이 실패하던 문제를 로컬 소유 교재 우선 확인으로 수정. 인트로는 연결형 운영체제 히어로(QR 채점 → 취약 개념 → 다음 학습지 → 수업 배정 → 상담 기록 → 학부모 알림), 상단 섹션 이동, 기능 전체 좌우 탐색 레이아웃, 지원 4 + 준비 중 23과목 로드맵으로 정리.
 - 바뀐 파일: `books.js`, `index.html`, `intro.html`, `intro.css`, `intro.js`, `sw.js`, `AGENTS.md`, `tests/intro-regression.cjs`, `tests/intro-scroll.cjs`, `tests/trash-regression.test.cjs`, `docs/superpowers/specs/2026-11-01-intro-connected-system-design.md`, `docs/superpowers/plans/2026-11-01-intro-connected-system.md`.

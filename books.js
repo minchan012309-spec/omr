@@ -705,7 +705,7 @@ function bkPlanMain(id){
 
 /* ---------- 내 교재 : 직접 만든 책 · 전범위 모의고사 ---------- */
 const BKXK='omr_books_v1',BKXF={concept:1,ox:2,bl:4,basic:8,type:16,essay:32,all:64,last:128};
-const BKXBLOCK=new Set(),BKXREMOTE=new Map(),BKXNEW=new Set();
+const BKXBLOCK=new Set(),BKXREMOTE=new Map();
 function bkxLocal(){try{return JSON.parse(localStorage.getItem(BKXK)||'[]')}catch(e){return[]}}
 function bkxGone(){try{return new Set(JSON.parse(localStorage.getItem('omr_books_del_v1')||'[]'))}catch(e){return new Set()}}
 function bkAsgRecs(){const o=[];(typeof BKASG!=='undefined'?BKASG:[]).forEach(a=>{try{const n=JSON.parse(a.note||'{}');if(n&&n.bk&&n.bk.id&&!o.some(x=>x.id===n.bk.id))o.push({...n.bk,asg:1,due:a.due||''})}catch(e){}});return o}
@@ -720,15 +720,15 @@ async function bkxSync(force){if(!bkxCloudOk())return false;if(_bkxBusy)return _
  return _bkxBusy=(async()=>{try{_bkxT=Date.now();const d=await tsRaw();if(d===null)return false;const del=new Set([...(d.booksDel||[]),...bkxGone()]);try{localStorage.setItem('omr_books_del_v1',JSON.stringify([...del]))}catch(e){}const loc=bkxLocal(),cl=d.books||[];const merged=bkxMerge(cl,loc,del);
   const changedLocal=JSON.stringify(merged)!==JSON.stringify(loc);
   if(changedLocal)try{localStorage.setItem(BKXK,JSON.stringify(merged))}catch(e){}
-  if(JSON.stringify(merged)!==JSON.stringify(cl)){d.books=merged;if(await bkxWrite(d))BKXNEW.clear()}
+  if(JSON.stringify(merged)!==JSON.stringify(cl)){d.books=merged;await bkxWrite(d)}
   return changedLocal}catch(e){return false}finally{_bkxBusy=null}})()}
 function bkxPushSoon(){if(!bkxCloudOk())return;clearTimeout(_bkxP);_bkxP=setTimeout(async()=>{try{const d=await tsRaw();if(d===null)return;const del=new Set([...(d.booksDel||[]),...bkxGone()]);d.books=bkxMerge(d.books,bkxLocal(),del);
-  if(await bkxWrite(d))BKXNEW.clear()}catch(e){}},600)}
+  await bkxWrite(d)}catch(e){}},600)}
 async function bkxTomb(id){if(!bkxCloudOk())return;try{if(_bkxBusy)await _bkxBusy;const d=await tsRaw();if(d===null)return;d.books=bkxMerge(d.books,bkxLocal(),new Set(d.booksDel||[]));await bkxWrite(d)}catch(e){}}
 function bkxTrash(){return bkxLocal().filter(b=>b.deletedAt)}
 async function bkxAccess(id,owner){const base=bkBare(id).replace(/r\d+$/,'');if(!/^(me|cm|ph|hl)-x/.test(base))return true;
  if(bkxGone().has(base)||bkxTrash().some(b=>b.id===base)){toast('삭제된 교재입니다');return false}
- const local=bkxAll().find(b=>b.id===base);if(local&&!local.asg&&BKXNEW.has(base))return true;
+ const local=bkxAll().find(b=>b.id===base);if(local&&!local.asg)return true;
  const who=owner||(typeof sess!=='undefined'&&sess&&sess.user&&sess.user.id)||(local||{}).owner||null;
  if(typeof cloud==='function'&&cloud()){try{const r=await rpc('book_access',{p_book:base,p_owner:who});if(r.ok){const ok=await r.json();if(!ok){toast('등록되지 않았거나 삭제된 교재입니다');return false}return true}}catch(e){}
   toast('교재 접근 상태를 확인하지 못했습니다');return false}
@@ -1909,11 +1909,11 @@ function bkxSaveBook(){bkxRead();const d=BKV.d;let nm=(d.name||'').trim();if(!nm
  if(d.kind==='free'){const pts=bkfParts(d);if(!pts.length){toast('넣을 구성을 하나 이상 고르세요');return}
   if(d.pre==='part'&&!(d.subs||[]).length){toast('파고들 소단원을 하나 이상 고르세요');return}
   const pl0=d.pl&&d.pl.on?d.pl:null;let id=bkxId(SUBJ,{...d,parts:pts,pl:pl0}),cp=0;const ex=new Set([...bkxLocal().map(b=>b.id),...bkxGone()]);while(ex.has(id)&&cp<500){cp++;id=bkxId(SUBJ,{...d,parts:pts,pl:pl0,copy:cp.toString(36)})}if(ex.has(id)){toast('교재 번호를 만들지 못했습니다');return}
-  const a=bkxAll();a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:'free',gut:d.gut||0,color:d.color||'',cover:d.cover|0,noqr:d.noqr?1:0,font:d.font||'',lf:d.lf||'solvi',lfp:d.lfp||'br',lb:d.lb||'solvi',lbp:d.lbp||'bc',back:d.back?1:0,cx:d.cx||null,t:Date.now()});BKXNEW.add(id);bkxStore(a);
+  const a=bkxAll();a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:'free',gut:d.gut||0,color:d.color||'',cover:d.cover|0,noqr:d.noqr?1:0,font:d.font||'',lf:d.lf||'solvi',lfp:d.lfp||'br',lb:d.lb||'solvi',lbp:d.lbp||'bc',back:d.back?1:0,cx:d.cx||null,t:Date.now()});bkxStore(a);
   delete BKP[id];BKV={v:'shelf',id:null};toast('교재를 만들었어요');render();scrollTo(0,0);return id}
  if(d.kind!=='full'){if(!Object.keys(d.inc||{}).length){toast('넣을 구성을 하나 이상 고르세요');return}
   if(d.kind==='part'&&!d.subs.length){toast('파고들 소단원을 하나 이상 고르세요');return}}
- const id=bkxId(SUBJ,d);if(bkxGone().has(id)){toast('영구 삭제된 교재 번호입니다. 구성을 바꿔 새 교재를 만들어 주세요');return}const a=bkxAll().filter(b=>b.id!==id);if(d.kind==='full'&&(d.subs||[]).length&&nm===BKK.full[0])nm='범위 모의고사';a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:d.kind==='last'?'std':d.kind,rounds:d.rounds||20,gut:d.gut||0,t:Date.now()});BKXNEW.add(id);bkxStore(a);
+ const id=bkxId(SUBJ,d);if(bkxGone().has(id)){toast('영구 삭제된 교재 번호입니다. 구성을 바꿔 새 교재를 만들어 주세요');return}const a=bkxAll().filter(b=>b.id!==id);if(d.kind==='full'&&(d.subs||[]).length&&nm===BKK.full[0])nm='범위 모의고사';a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:d.kind==='last'?'std':d.kind,rounds:d.rounds||20,gut:d.gut||0,t:Date.now()});bkxStore(a);
  delete BKP[id];Object.keys(BKP).forEach(k=>{if(k.startsWith(id+'r'))delete BKP[k]});
  BKV={v:'shelf',id:null};toast('교재를 만들었어요');render();scrollTo(0,0)}
 function bkxDel(id){const b=bkxAll().find(x=>x.id===id);if(!b||b.asg||!confirm('「'+b.name+'」 교재를 휴지통으로 옮길까요?'))return;
