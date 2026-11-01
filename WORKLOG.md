@@ -2,7 +2,7 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
-## 2026-11-01 · Codex · codex/concept-heading-note-space (PR 생성 예정)
+## 2026-11-01 · Codex · codex/concept-heading-note-space (PR #112)
 - 한 일: 개념 쪽 단원명 카드를 좌우 12mm 안의 전체 폭으로 분리하고, 카드 아래부터 홀수 오른쪽·짝수 왼쪽에 40mm의 선·테두리·라운딩 없는 과목색 필기 공간을 배치. 개념 본문은 140mm·11px로 다시 조판하고 이어지는 쪽에도 필기 공간이 유지되게 함.
 - 바뀐 파일: `books.js`, `books/heights.json`, `index.html`, `sw.js`, `tests/book-pdf.cjs`, `tools/measure_books.js`, 관련 설계·계획 문서.
 - 확인: 새 레이아웃 계약이 수정 전 실패하고 수정 후 통과. 실제 화법과 언어 개념서 PNG에서 단원명 전체 폭·카드 아래 필기 면·개념 내용 표시를 확인. 전 과목 높이 7,317개 재측정, 교재 PDF·인쇄 회귀·정적 파싱 통과.
