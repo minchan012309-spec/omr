@@ -74,6 +74,7 @@ const run = (args, env) =>
       ["tests/print-regression.cjs"],
       ["tests/korean-browser.cjs"],
       ["tests/book-pdf.cjs"],
+      ["tests/hl-concept-regression.cjs"],
       ["tests/admin-regression.cjs"],
       ["tests/intro-regression.cjs"],
       ["tests/intro-scroll.cjs"],
