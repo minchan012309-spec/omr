@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-01 · Copilot · minchan012309-spec-book-writing-space / PR #110
+- 한 일: 요청에 맞춰 개념 쪽 바깥 필기공간을 32mm로 조정. 짝수는 왼쪽, 홀수는 오른쪽 방향을 유지.
+- 바뀐 파일: `books.js`, `tests/book-pdf.cjs`, `WORKLOG.md`.
+- 확인: 개념서 인쇄/PDF 회귀와 정적 검사를 다시 실행.
+- 남은 일 · 주의: 실제 인쇄기·제본 상태는 확인하지 못함.
+
 ## 2026-11-01 · Copilot · minchan012309-spec-book-writing-space / PR 예정
 - 한 일: 기존 개념 쪽 필기 여백을 수정. 짝수 쪽은 왼쪽, 홀수 쪽은 오른쪽에 더 넓은 공간을 확보하고, 교과 색과 회색을 섞은 옅은 배경 및 필기 줄을 표시.
 - 바뀐 파일: `books.js`, `index.html`, `sw.js`, `tests/book-pdf.cjs`.
