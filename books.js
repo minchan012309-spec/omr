@@ -1,7 +1,7 @@
 /* Solvi 교재 — 개념서 · 유형서 · 실전 모의고사
    index.html 의 전역(DATA, CONC, byCode, SUBJ …)을 그대로 사용하는 보조 스크립트입니다. 교재 탭을 처음 열 때 불러옵니다.
    쪽 나눔은 books/heights.json 에 저장된 문항 높이로 계산하므로 어느 기기에서나 같은 쪽 번호가 나옵니다(QR 쪽 채점용). */
-const BK_MM=96/25.4,BK_BODY=240,BK_COLW=89,BK_FULLW=186,BK_CONCEPTW=140,BK_CONCEPT_NOTE=40;
+const BK_MM=96/25.4,BK_BODY=240,BK_COLW=89,BK_FULLW=186,BK_CONCEPTW=132,BK_CONCEPT_NOTE=48;
 const BKP={},BKSELC={},BKH={};let BKHT=null,BKREADY=null;
 const BKCIR='①②③④⑤⑥⑦⑧⑨⑩';
 const bkLv=q=>q.lv0||q.lv||'';
@@ -35,7 +35,7 @@ const BKCSS=`
 .bkdoc .hd .t2 b{display:inline-block;background:#111;color:#fff;padding:1px 9px;border-radius:2px;margin-left:6px;font-weight:700}
 .bkdoc .bd{position:absolute;left:12mm;right:12mm;top:27mm;height:${BK_BODY}mm}
 .bkdoc .bd.one{overflow:hidden}
-.bkdoc .cnmeasure,.bkdoc .bk.cnp .cnbody{font-size:11px!important;line-height:1.5}
+.bkdoc .cnmeasure,.bkdoc .bk.cnp .cnbody{font-size:9.5px!important;line-height:1.8}
 .bkdoc .cnp .cntop{position:absolute;left:12mm;right:12mm;top:27mm}.bkdoc .cnp .cntop .sbn{margin-bottom:0}
 .bkdoc .bk.cnp .cnbody{top:calc(27mm + var(--cnt));height:calc(${BK_BODY}mm - var(--cnt));width:${BK_CONCEPTW}mm;right:auto}
 .bkdoc .cnp.note-r .cnbody{left:12mm}.bkdoc .cnp.note-l .cnbody{left:auto;right:12mm}
@@ -875,9 +875,9 @@ function bkLPU(q,qq,no){if(!/class="bogi lp"/.test(q.q))return null;return bkU('
 const BKFP=[['c','개념 정리'],['o','OX'],['b','빈칸'],['m','기초 5지선다'],['t','유형 문제'],['e','서술형'],['q','출처별 문제']],BKFN=Object.fromEntries(BKFP);
 const BKFLV=new Set(['t','e','q']);
 /* 국어(화법과 언어) 출처별 문제: 소단원마다 출처별 문항 수 (0 = 넣지 않음, 999 = 전부). 지문 문항은 지문 단위로 담는다 */
-const BKQS=[['h','화법.pdf (원본 + 변형)','2026 화법과 언어 모의고사 지문과 그 변형·파생 문제','Ⅰ'],['w','국어의 원리 기출','국어의 원리 · 학교 교재의 평가원·교육청 기출','Ⅱ'],['v','국어의 원리 파생','기출 유형을 바꿔 만든 파생(변형) 문제','Ⅱ'],['s','수능특강','EBS 수능특강 화법·언어 (맛보기용)','Ⅰ'],['j','제작 지문 세트','한 편의 지문 + 3문항 세트(화법)','Ⅰ']];
+const BKQS=[['h','화법.pdf 변형','2026 화법과 언어 모의고사 지문을 바탕으로 만든 변형 문제만','Ⅰ'],['w','국어의 원리 기출','국어의 원리 · 학교 교재의 평가원·교육청 기출','Ⅱ'],['v','국어의 원리 파생','기출 유형을 바꿔 만든 파생(변형) 문제','Ⅱ'],['s','수능특강','EBS 수능특강 화법·언어 (맛보기용)','Ⅰ'],['j','제작 지문 세트','한 편의 지문 + 3문항 세트(화법)','Ⅰ']];
 const BKQDEF={h:999,w:999,v:6,s:3,j:3};
-const bkSrcOf=q=>{const c=q.code||'';if(/^(H26|HV)-/.test(c))return 'h';if(/^(EW|EL)\d/.test(c))return 's';if(/^KJ-/.test(c))return 'j';if(/^(N|P|KS)-/.test(c))return 'w';if(q.set==='bank')return 'v';return ''};
+const bkSrcOf=q=>{const c=q.code||'';if(/^HV-/.test(c))return 'h';if(/^(EW|EL)\d/.test(c))return 's';if(/^KJ-/.test(c))return 'j';if(/^(N|P|KS)-/.test(c))return 'w';if(q.set==='bank')return 'v';return ''};
 function bkfParse(str){const d={kind:'free',parts:[],subs:[],sort:0,grp:0,ans:0,brk:0},seen={};
  for(const t of String(str).split('_')){let m;
   if((m=t.match(/^([cobmteq])(a|\d{1,3})?(?:v([1-9a-f]))?$/))){if(seen[m[1]])return null;seen[m[1]]=1;d.parts.push({k:m[1],all:m[2]==='a',cap:/^\d/.test(m[2]||'')?+m[2]:0,lv:m[3]?parseInt(m[3],16):15})}

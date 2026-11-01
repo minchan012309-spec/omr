@@ -2,6 +2,18 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-02 · Codex · codex/hl-concept-revision
+- 한 일: 개념 본문 글자를 11px에서 9.5px로 낮추고 줄간격을 1.5에서 1.8로 넓힘.
+- 바뀐 파일: `books.js`, `books/heights.json`, `index.html`, `sw.js`, `tests/book-pdf.cjs`.
+- 확인: 수정 전 A4 글꼴 계약이 의도대로 실패한 것을 확인한 뒤, `node tools/measure_books.js hl`로 화법과 언어 높이 4,812개를 재측정. A4 PDF·다운로드, 정적 파싱, 개념·출처 회귀 통과. 렌더 PNG에서 본문과 48mm 필기 여백을 직접 확인.
+- 남은 일 · 주의: 실제 프린터 및 모바일 인쇄 대화상자는 확인하지 못함.
+
+## 2026-11-02 · Codex · codex/hl-concept-revision
+- 한 일: OCR 처리된 핑크 교재(`yh.pdf`)의 맞춤법 핵심 범위를 대조해 개념서의 메모체 문장을 정리하고, `원리 더하기` 보조 설명은 유지함. 개념 쪽 필기 여백을 48mm로 넓히고 본문 폭을 132mm로 조정. 교재 만들기의 `화법.pdf 변형` 출처 옵션은 원본(`H26`)을 제외하고 변형(`HV`) 문제만 고르게 변경.
+- 바뀐 파일: `tools/hl/chtml.py`, `hl/concept.json`, `books.js`, `index.html`, `sw.js`, 개념·출처·A4 조판 회귀 테스트.
+- 확인: `python3 tools/hl/make_hl.py --skip-bank`, `python3 tools/hl/audit.py --all`, 개념·출처 단위 회귀, 정적 파싱 통과. 브라우저 A4 PDF 테스트에서 132mm 본문·48mm 필기 공간과 PDF 저장을 확인. `npm test`는 환경 세션 출력이 마지막 완료 문구 전에 닫혔으나, 출력된 정적·단위·DB·인쇄·국어·관리 회귀는 모두 통과.
+- 남은 일 · 주의: 실제 프린터 및 모바일 인쇄 대화상자는 확인하지 못함. 핑크 교재의 OCR 원문은 저장소에 넣지 않았으며 원본은 `/Users/minchan/Downloads/yh.pdf`에 있음.
+
 ## 2026-11-01 · Codex · codex/concept-heading-note-space (PR #112)
 - 한 일: 개념 쪽 단원명 카드를 좌우 12mm 안의 전체 폭으로 분리하고, 카드 아래부터 홀수 오른쪽·짝수 왼쪽에 40mm의 선·테두리·라운딩 없는 과목색 필기 공간을 배치. 개념 본문은 140mm·11px로 다시 조판하고 이어지는 쪽에도 필기 공간이 유지되게 함.
 - 바뀐 파일: `books.js`, `books/heights.json`, `index.html`, `sw.js`, `tests/book-pdf.cjs`, `tools/measure_books.js`, 관련 설계·계획 문서.
