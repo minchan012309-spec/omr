@@ -35,11 +35,25 @@ test('a newly saved local teacher book opens before cloud sync finishes', async 
   const ctx = {
     bkBare:x=>x,bkxGone:()=>new Set(),bkxTrash:()=>[],
     bkxAll:()=>[{id:'me-xb1',owner:'u'}],toast:()=>{},cloud:()=>true,
-    BKXNEW:new Set(['me-xb1']),sess:{user:{id:'u'}},rpc:async()=>{calls++;return {ok:false}}
+    sess:{user:{id:'u'}},rpc:async()=>{calls++;return {ok:false}}
   };
   vm.runInNewContext(part(books, 'async function bkxAccess(', 'async function bkxCheckAssigned('), ctx);
   assert.equal(await ctx.bkxAccess('me-xb1'), true);
   assert.equal(calls, 0);
+});
+
+test('an existing local teacher book opens when the access RPC is unavailable', async () => {
+  let calls=0;
+  const notices=[];
+  const ctx = {
+    bkBare:x=>x,bkxGone:()=>new Set(),bkxTrash:()=>[],
+    bkxAll:()=>[{id:'me-xb1'}],toast:x=>notices.push(x),cloud:()=>true,
+    sess:{user:{id:'u'}},rpc:async()=>{calls++;return {ok:false}}
+  };
+  vm.runInNewContext(part(books, 'async function bkxAccess(', 'async function bkxCheckAssigned('), ctx);
+  assert.equal(await ctx.bkxAccess('me-xb1'), true);
+  assert.equal(calls, 0);
+  assert.deepEqual(notices, []);
 });
 
 test('source-specific book parts are restricted to speech and language', () => {
