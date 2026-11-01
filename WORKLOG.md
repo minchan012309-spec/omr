@@ -3,6 +3,12 @@
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
 ## 2026-11-01 · Copilot · minchan012309-spec-book-writing-space / PR #110
+- 한 일: 요청에 따라 개념 교재의 필기공간 추가 변경을 전부 롤백해 여백 추가 전 상태로 복원.
+- 바뀐 파일: `books.js`, `index.html`, `sw.js`, `tests/book-pdf.cjs`.
+- 확인: 롤백 후 정적 검사와 기존 회귀 테스트를 실행할 예정.
+- 남은 일 · 주의: PR #110에 롤백 커밋을 반영.
+
+## 2026-11-01 · Copilot · minchan012309-spec-book-writing-space / PR #110
 - 한 일: 요청에 맞춰 개념 쪽 바깥 필기공간을 32mm로 조정. 짝수는 왼쪽, 홀수는 오른쪽 방향을 유지.
 - 바뀐 파일: `books.js`, `tests/book-pdf.cjs`, `WORKLOG.md`.
 - 확인: 개념서 인쇄/PDF 회귀와 정적 검사를 다시 실행.
