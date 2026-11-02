@@ -17,16 +17,29 @@ const { chromium, browserOptions } = require("./runtime.cjs");
       await setSubject("hl");
       await bkLoad();
       const plan = await bkPlan("hl-c");
-      const notes = plan.pages.filter((p) => p.k === "nt");
-      if (notes.length !== 10 || plan.noteStart !== 3)
-        throw new Error("Missing ten lined note pages before Korean concepts");
-      if (!notes.every((p, i) => p.st === "lined" && p.note === i + 1))
+      const checkNotes = (book, label) => {
+        const subs = [...new Set(book.pages.filter((p) => p.k === "cn").map((p) => p.sub.k))];
+        const notes = book.pages.filter((p) => p.k === "nt");
+        if (notes.length !== subs.length * 10)
+          throw new Error(`${label} needs ten note pages before every concept subsection`);
+        for (const sub of subs) {
+          const first = book.pages.findIndex((p) => p.k === "cn" && p.sub.k === sub);
+          const before = book.pages.slice(first - 10, first);
+          if (before.length !== 10 || !before.every((p, i) => p.k === "nt" && p.sub.k === sub && p.note === i + 1))
+            throw new Error(`${label} is missing ten note pages immediately before ${sub}`);
+        }
+        return notes;
+      };
+      const notes = checkNotes(plan, "Default Korean concept book");
+      if (plan.noteStart !== 3)
+        throw new Error("The first Korean concept note section must start on page 3");
+      if (!notes.every((p, i) => p.st === "lined" && p.note === (i % 10) + 1))
         throw new Error("Korean concept note pages must be numbered lined notes");
       const free = bkPlanFree("preview", {
         kind: "free",
         name: "화법과 언어 개념서",
         parts: [{ k: "c", all: false, cap: 0, lv: 15 }],
-        subs: [0],
+        subs: [0, 1, 2],
         sort: 0,
         grp: 0,
         ans: 2,
@@ -34,10 +47,10 @@ const { chromium, browserOptions } = require("./runtime.cjs");
         dz: {},
       });
       free.pages.forEach((p, i) => (p.n = i + 1));
-      const freeNotes = free.pages.filter((p) => p.k === "nt");
+      const freeNotes = checkNotes(free, "Custom Korean concept book");
       const firstFreeConcept = free.pages.findIndex((p) => p.k === "cn");
-      if (freeNotes.length !== 10 || firstFreeConcept !== 12)
-        throw new Error("Custom Korean concept books need ten note pages before concepts");
+      if (freeNotes.length !== 30 || firstFreeConcept !== 12)
+        throw new Error("Custom Korean concept books need ten note pages per selected subsection");
       const freeHtml = bkDocHtml(free, true);
       if ((freeHtml.match(/class="bp bk"/g) || []).length < 10)
         throw new Error("Printed custom Korean concept books must include the note pages");
