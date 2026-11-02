@@ -437,7 +437,7 @@ const focusedId = (page) => page.evaluate(() => document.activeElement && docume
         const links = [...document.querySelectorAll('link[rel="stylesheet"][href^="styles/"]')].map((l) => "/" + l.getAttribute("href"));
         return { v, keys, links };
       });
-      assert.deepEqual(r.links, ["/styles/tokens.css?v=4", "/styles/legacy.css?v=4", "/styles/base.css?v=4", "/styles/shell.css?v=4", "/styles/components.css?v=4", "/styles/screens.css?v=4"]);
+      assert.deepEqual(r.links, ["/styles/tokens.css?v=4", "/styles/legacy.css?v=5", "/styles/base.css?v=4", "/styles/shell.css?v=4", "/styles/components.css?v=4", "/styles/screens.css?v=5"]);
       for (const l of r.links) assert.ok(r.keys.includes(l), "cached " + l);
       await page.reload();
       await page.waitForTimeout(800);
