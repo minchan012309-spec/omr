@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-02 · Codex · codex/pi-bank-auto-backup
+- 한 일: 운영 도메인에서는 문제은행 JSON·초기 `bank/data.js`를 `bank.solvi.win` Pi SSD에서 읽도록 분리하고, CasaOS용 정적 데이터·Supabase 인증 자동 백업 API Compose 배포물을 추가. 선생님 로그인 뒤와 15분 간격에 로컬 `omr_` 데이터를 인증 토큰과 함께 자동 전송하도록 추가했으며 수동 내려받기는 유지.
+- 바뀐 파일: `index.html`, `bank-origin.js`, `sw.js`, `pi/question-bank/`, `tools/deploy-question-bank.sh`, 배포 확인 문서·회귀 테스트·설계 문서.
+- 확인: 문제 원점·자동 백업·gzip 저장 경로 단위 테스트 6개 및 `node scripts/verify-static.cjs` 통과.
+- 남은 일 · 주의: 실제 Pi CasaOS 배포, Cloudflare `bank.solvi.win` route, GitHub Pages의 `solvi.win` 전환은 사용자 환경에서 단계별로 해야 함. 문제 데이터는 새 흐름 검증 전까지 Git에서 삭제하지 않음.
+
 ## 2026-11-02 · Codex · codex/hl-note-loading-fix / PR #118
 - 한 일: 화법과 언어 교재에서 개념 정리를 선택하면 교재에 포함된 모든 소단원(Ⅰ-A부터 Ⅲ-C와 종합까지)의 개념 바로 앞마다 5장(10쪽)의 연한 줄 필기 노트를 반복해 넣도록 수정.
 - 바뀐 파일: `books.js`, `tests/book-pdf.cjs`, `WORKLOG.md`.
