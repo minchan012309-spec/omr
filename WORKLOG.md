@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-02 · Codex · codex/hl-note-preface / PR #115
+- 한 일: 화법과 언어 개념서 표지·차례 뒤에 1단 구성의 연한 줄 필기 노트 10쪽을 넣고, 줄 간격을 6.6mm로 조정함. 개념 본문은 개조식 표식을 적용했고, 표의 이어지는 범주는 빈칸 대신 반복 표기, 맞춤법 구성은 목록형으로 전환, 반복 구조 표기는 실제 내용으로 풀어 씀.
+- 바뀐 파일: `books.js`, `books/heights.json`, `hl/concept.json`, `tools/hl/chtml.py`, 화법과 언어 개념 원본·회귀 테스트, `index.html`, `sw.js`.
+- 확인: `python3 tools/hl/make_hl.py --skip-bank`, `python3 tools/hl/audit.py --all`, `node tests/hl-concept-regression.cjs`, `node scripts/verify-static.cjs`, `node tools/measure_books.js hl`, `node tests/book-pdf.cjs`, `node --test tests/trash-regression.test.cjs` 통과. A4 렌더 PNG에서 개조식 본문과 표 조판을 직접 확인.
+- 남은 일 · 주의: 실제 프린터 및 모바일 인쇄 대화상자는 확인하지 못함.
+
 ## 2026-11-02 · Codex · codex/hl-concept-revision
 - 한 일: 개념 본문 글자를 11px에서 9.5px로 낮추고 줄간격을 1.5에서 1.8로 넓힘.
 - 바뀐 파일: `books.js`, `books/heights.json`, `index.html`, `sw.js`, `tests/book-pdf.cjs`.
