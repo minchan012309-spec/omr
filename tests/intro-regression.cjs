@@ -55,13 +55,13 @@ const runTo = async (page, id, p) => {
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType), "none", "no forced scroll");
     assert.equal(await page.locator("#h1").isVisible(), true);
     assert.equal(await page.getByText("Solvi(솔비)는", { exact: false }).count(), 0, "generic platform sentence removed");
-    assert.equal(await page.locator("#tmap").count(), 0, "main-app type map is not duplicated in the hero");
+    assert.equal(await page.locator("#tmap").count(), 1, "type map is the hero focal point");
+    assert.equal(await page.locator("#tmap .tt").count(), 15, "type map has the complete set of example types");
+    assert.equal(await page.locator("#why").isVisible(), true, "hero is followed by the learning-purpose message");
     assert.equal(await page.locator(".hero-logo").count(), 1, "hero uses one aligned logo lockup");
     const logoCenters = await page.locator(".hero-logo svg").evaluateAll((els) => els.map((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; }));
     assert.equal(logoCenters.length, 2);
     assert.ok(Math.abs(logoCenters[0] - logoCenters[1]) <= 2, "symbol and wordmark share a visual center");
-    assert.deepEqual(await page.locator("#systemMap .sys-node b").allTextContents(), ["QR 채점", "취약 개념", "다음 학습지", "수업 배정", "상담 기록", "학부모 알림"]);
-    assert.equal(await page.locator("#systemMap .sys-path").count(), 5, "six actions are visibly connected");
     await page.screenshot({ path: OUT + "/desktop-hero.png" });
     for (const id of SCENES) {
       await go(page, id);
@@ -130,12 +130,10 @@ const runTo = async (page, id, p) => {
     const internalNav = await page.locator('.nav a[href^="#"]').evaluateAll((links) => links.map((a) => a.getAttribute("href").slice(1)));
     assert.ok(internalNav.length >= 6, "header exposes the major intro sections");
     for (const id of internalNav) assert.equal(await page.locator("#" + id).count(), 1, "nav target exists: " + id);
-    /* 히어로: 학습과 운영이 한 학생 기록에서 순서대로 이어진다 */
+    /* 히어로: 유형 지도를 눌러 다음 학습지에 넣을 유형을 고른다 */
     await page.evaluate(() => scrollTo(0, 0));
-    assert.equal(await page.locator("#systemMap .sys-core").isVisible(), true);
-    await page.evaluate(() => scrollTo(0, innerHeight * 0.62));
-    await page.waitForTimeout(100);
-    assert.equal(await page.locator("#systemMap .sys-node.on").count(), 6, "scroll reveals the complete connected system");
+    await page.locator("#tmap .tt").nth(2).click();
+    assert.equal(await page.locator("#tmap .tt").nth(2).getAttribute("aria-pressed"), "true");
     /* 한 바퀴: 진행도마다 단계 · 설명 · 무대가 바뀐다(스크롤 위치에서 바로 계산) */
     for (const [i, p] of [0.1, 0.3, 0.5, 0.7, 0.9].entries()) {
       await runTo(page, "flowRun", p);
@@ -276,7 +274,7 @@ const runTo = async (page, id, p) => {
     assert.equal(await rp.locator("#book .shots").isVisible(), true);
     assert.equal(await rp.locator(".fd:visible").count(), 5, "all five steps readable without motion");
     assert.equal(await rp.locator("#lb .ln:visible").count(), 12);
-    assert.equal(await rp.locator("#systemMap .sys-node:visible").count(), 6, "connected system is complete with reduced motion");
+    assert.equal(await rp.locator("#tmap .tt:visible").count(), 15, "type map remains complete with reduced motion");
     assert.equal(await rp.locator("#eco .subject-item:visible").count(), 27, "all subjects remain visible with reduced motion");
     await rp.locator("#book").scrollIntoViewIfNeeded();
     await rp.screenshot({ path: OUT + "/reduced-motion.png" });
@@ -288,7 +286,7 @@ const runTo = async (page, id, p) => {
     await staticPage.waitForTimeout(500);
     assert.equal(await staticPage.locator("#h1").isVisible(), true);
     assert.equal(await staticPage.locator("#book .shots").isVisible(), true);
-    assert.equal(await staticPage.locator("#systemMap .sys-node:visible").count(), 6);
+    assert.equal(await staticPage.locator("#tmap .tt:visible").count(), 15);
     assert.equal(await staticPage.locator("#eco .subject-item:visible").count(), 27);
     assert.equal(await staticPage.locator("#plans .plan").count(), 3);
     await staticPage.locator("details").first().locator("summary").click();
