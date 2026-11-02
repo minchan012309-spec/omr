@@ -6,6 +6,12 @@ const pages = concept.secs.map((section) => section.html).join("\n");
 
 assert.match(
   pages,
+  /<p class="kp">/,
+  "개념 본문은 긴 줄글 대신 짧은 개조식 항목으로 표시해야 한다",
+);
+
+assert.match(
+  pages,
   /원리 더하기/,
   "원리 더하기 보조 설명은 개념서에서 유지해야 한다",
 );
@@ -13,6 +19,11 @@ assert.doesNotMatch(
   pages,
   /\[\[[^\]]+\]\]|_{3,}|<span class="bk">\s*<\/span>/,
   "개념서 본문에는 채워지지 않은 빈칸이 남으면 안 된다",
+);
+assert.doesNotMatch(
+  pages,
+  /<td[^>]*>\s*<\/td>|〃|\/\//,
+  "표의 반복 항목은 비우거나 기호로 줄이지 말고 내용을 적어야 한다",
 );
 
 const spelling = concept.secs
