@@ -15,6 +15,7 @@ for (const f of [
   "lazy/omr-report.js",
   "lib/academy-core.js",
   "lib/korean-editor.js",
+  "bank-origin.js",
   "sw.js",
 ]) {
   const s = fs.readFileSync(f, "utf8");
