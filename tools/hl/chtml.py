@@ -86,7 +86,13 @@ def tone(s):
             for rx, fn in _TONE:
                 part = rx.sub(fn, part)
         out.append(part)
-    return ''.join(out)
+    # 개념 노트는 문장형 설명보다 핵심을 바로 읽는 메모체를 쓴다.
+    # 인용문·예문은 위에서 보호했으므로 이 변환 대상이 아니다.
+    text = ''.join(out)
+    for before, after in (('아니다.', '아님.'), ('이다.', '임.'), ('있다.', '있음.'),
+                          ('없다.', '없음.'), ('된다.', '됨.'), ('한다.', '함.')):
+        text = text.replace(before, after)
+    return text
 
 
 def inline(s, raw=False):
@@ -101,7 +107,7 @@ def inline(s, raw=False):
 
 
 def P(t):
-    return '<p>%s</p>' % inline(t)
+    return '<p class="kp">%s</p>' % inline(t)
 
 
 def H(t):
@@ -136,10 +142,12 @@ def EX(*sentences, note=None, label=None):
 
 
 def TB(head, rows, cls='tb', left=()):
-    """head: 머리 칸 목록, rows: 줄 목록(칸 목록).  칸 앞에 '~' 를 붙이면 굵게, '<' 를 붙이면 왼쪽 정렬.
-    left: 왼쪽 정렬할 열 번호."""
+    """head: 머리 칸 목록, rows: 줄 목록(칸 목록). 빈 칸은 바로 앞 행의 같은 항목을 반복한다.
+    칸 앞에 '~' 를 붙이면 굵게, '<' 를 붙이면 왼쪽 정렬. left: 왼쪽 정렬할 열 번호."""
     t = '<table class="%s"><thead><tr>%s</tr></thead><tbody>' % (cls, ''.join('<th>%s</th>' % inline(h) for h in head))
+    prev = []
     for r in rows:
+        r = [prev[j] if c == '' and j < len(prev) else c for j, c in enumerate(r)]
         t += '<tr>'
         for j, c in enumerate(r):
             k = ''
@@ -148,6 +156,7 @@ def TB(head, rows, cls='tb', left=()):
             if j in left and not k: k = 'l'
             t += '<td%s>%s</td>' % (' class="%s"' % k if k else '', inline(c))
         t += '</tr>'
+        prev = r
     return t + '</tbody></table>'
 
 

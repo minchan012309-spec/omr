@@ -69,6 +69,15 @@ test('source-specific book parts are restricted to speech and language', () => {
   assert.deepEqual(make('hl'), ['c','q','o']);
 });
 
+test('speech PDF source option selects transformed questions only', () => {
+  const source = part(books, 'const BKQS=', 'function bkfParse(');
+  const result = vm.runInNewContext(`${source}; ({ label: BKQS.find(([key]) => key === 'h')[1], variant: bkSrcOf({code:'HV-001'}), original: bkSrcOf({code:'H26-001'}) })`, {});
+  assert.match(result.label, /변형/);
+  assert.doesNotMatch(result.label, /원본/);
+  assert.equal(result.variant, 'h');
+  assert.equal(result.original, '');
+});
+
 test('worksheet cloud metadata carries trash state', () => {
   const ctx = {};
   vm.runInNewContext(part(page, 'const wsMeta=', 'const wsPost='), ctx);
