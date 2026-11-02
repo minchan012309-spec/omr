@@ -292,6 +292,10 @@ html[data-theme=dark] .tt[aria-pressed=true]::after{background-image:url("data:i
 .tm-go{display:inline-flex;align-items:center;min-height:40px;padding:8px 16px;border-radius:999px;background:var(--acc);color:var(--acc-ink);font-size:14px;font-weight:700;text-decoration:none}
 .tm-note{margin-top:10px;font-size:12px;color:var(--mute-d)}
 
+/* 유형 지도를 본 뒤, 다음 학습지가 왜 달라져야 하는지 한 번 숨 고르는 문장 */
+.why{padding:clamp(84px,14vh,168px) var(--g);background:var(--soft)}
+.why-in{max-width:980px;margin-inline:auto;text-align:center}.why h2{font-size:clamp(32px,4.6vw,68px);letter-spacing:-.055em}.why p{max-width:38em;margin:22px auto 0;color:var(--mute-d);font-size:clamp(16px,1.35vw,20px);line-height:1.7}
+
 /* 한 바퀴: 왼쪽 다섯 단계, 오른쪽 무대. 무대(.fb)는 72×54 단위(1em)로 그려 어느 화면에서나 같은 비율로 줄어든다 */
 .flow-head{max-width:880px;margin:0 auto;padding:clamp(72px,12vh,140px) var(--g) clamp(24px,5vh,56px);text-align:center}
 .flow-head h2,.spec-h h2{font-size:clamp(32px,4.2vw,64px)}
@@ -314,7 +318,7 @@ html:not(.fx) .fd+.fd{margin-top:36px}
 .fx .flow-run{height:calc(var(--len,6) * 100vh);height:calc(var(--len,6) * 100svh)}
 .fx .flow-pin{position:sticky;top:var(--hd);height:calc(100vh - var(--hd));height:calc(100svh - var(--hd));padding-bottom:0}
 .fx .flow-desc{display:grid}
-.fx .fd{grid-area:1/1;opacity:0;transform:translateY(10px);transition:opacity .22s var(--ease),transform .22s var(--ease);pointer-events:none}
+.fx .fd{grid-area:1/1;opacity:0;transform:translateY(10px);transition:opacity .28s var(--ease),transform .28s var(--ease);pointer-events:none}
 .fx .fd.on{opacity:1;transform:none;pointer-events:auto}
 html:not(.fx) .flow-stage{display:none}
 .flow-stage{width:min(100%,calc((100vh - var(--hd) - 72px) * 72 / 54));width:min(100%,calc((100svh - var(--hd) - 72px) * 72 / 54));justify-self:center;container-type:inline-size}
@@ -607,7 +611,7 @@ html:not(.fx) .dd+.dd{margin-top:28px}
 html:not(.fx) .day-frame .shot:not(:first-child){display:none}
 .fx .day-run{height:calc(8.4 * 100vh);height:calc(8.4 * 100svh);overflow-x:clip}
 .fx .day-pin{position:sticky;top:var(--hd);height:calc(100vh - var(--hd));height:calc(100svh - var(--hd));padding-block:16px;align-content:center}
-.fx .day-desc{display:grid}.fx .dd{grid-area:1/1;opacity:0;transform:translateY(10px);transition:opacity .22s var(--ease),transform .22s var(--ease)}.fx .dd.on{opacity:1;transform:none}
+.fx .day-desc{display:grid}.fx .dd{grid-area:1/1;opacity:0;transform:translateY(10px);transition:opacity .28s var(--ease),transform .28s var(--ease)}.fx .dd.on{opacity:1;transform:none}
 .fx .day-frame .shot{opacity:0;will-change:transform,opacity}
 @supports not (overflow:clip){.fx .day-stage{overflow:hidden;padding:2%}}
 .day-roles{list-style:none;margin:0 auto;padding-top:clamp(28px,5vh,56px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
