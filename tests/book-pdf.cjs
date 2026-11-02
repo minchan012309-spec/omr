@@ -22,6 +22,25 @@ const { chromium, browserOptions } = require("./runtime.cjs");
         throw new Error("Missing ten lined note pages before Korean concepts");
       if (!notes.every((p, i) => p.st === "lined" && p.note === i + 1))
         throw new Error("Korean concept note pages must be numbered lined notes");
+      const free = bkPlanFree("preview", {
+        kind: "free",
+        name: "화법과 언어 개념서",
+        parts: [{ k: "c", all: false, cap: 0, lv: 15 }],
+        subs: [0],
+        sort: 0,
+        grp: 0,
+        ans: 2,
+        brk: 0,
+        dz: {},
+      });
+      free.pages.forEach((p, i) => (p.n = i + 1));
+      const freeNotes = free.pages.filter((p) => p.k === "nt");
+      const firstFreeConcept = free.pages.findIndex((p) => p.k === "cn");
+      if (freeNotes.length !== 10 || firstFreeConcept !== 12)
+        throw new Error("Custom Korean concept books need ten note pages before concepts");
+      const freeHtml = bkDocHtml(free, true);
+      if ((freeHtml.match(/class="bp bk"/g) || []).length < 10)
+        throw new Error("Printed custom Korean concept books must include the note pages");
       const note = bkPageHtml(plan, plan.pages.indexOf(notes[0]));
       const pages = plan.pages.filter((p) => p.k === "cn").slice(0, 2);
       if (pages.length !== 2)
