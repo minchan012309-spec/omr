@@ -17,12 +17,18 @@ const { chromium, browserOptions } = require("./runtime.cjs");
       await setSubject("hl");
       await bkLoad();
       const plan = await bkPlan("hl-c");
+      const notes = plan.pages.filter((p) => p.k === "nt");
+      if (notes.length !== 10 || plan.noteStart !== 3)
+        throw new Error("Missing ten lined note pages before Korean concepts");
+      if (!notes.every((p, i) => p.st === "lined" && p.note === i + 1))
+        throw new Error("Korean concept note pages must be numbered lined notes");
+      const note = bkPageHtml(plan, plan.pages.indexOf(notes[0]));
       const pages = plan.pages.filter((p) => p.k === "cn").slice(0, 2);
       if (pages.length !== 2)
         throw new Error("Missing real Korean concept pages");
       BKP["hl-c"] = { ...plan, pages, aStart: 3 };
       const main = await bkPlan("hl-hs"), passage = main.pages.findIndex((p) => p.k === "cn" && p.kind === "p");
-      return { nums: pages.map((p) => p.n), passage: bkPageHtml(main, passage) };
+      return { nums: pages.map((p) => p.n), note, passage: bkPageHtml(main, passage) };
     });
     assert.doesNotMatch(concept.passage, /class="cnnote"/);
     const nativeHtml = await page.evaluate(() => bkDocHtml(BKP["hl-c"], true));
@@ -32,20 +38,33 @@ const { chromium, browserOptions } = require("./runtime.cjs");
     await native.evaluate(() => document.fonts.ready);
     const layout = await native.locator(".bp.cnp").evaluateAll((pages) => pages.map((p) => {
       const top = p.querySelector(".cntop"), body = p.querySelector(".cnbody"), note = p.querySelector(".cnnote"), pr = p.getBoundingClientRect(), br = body.getBoundingClientRect(), nr = note.getBoundingClientRect();
-      return { hasTitle: !!top, titleWidth: top ? top.getBoundingClientRect().width : 0, titleBottom: top ? top.getBoundingClientRect().bottom : 0, bodyTop: br.top, bodyCssTop:getComputedStyle(body).top, bodyWidth: br.width, noteTop: nr.top, noteCssTop:getComputedStyle(note).top, noteWidth: nr.width, noteHeight:nr.height, side: note.dataset.side, font: getComputedStyle(body).fontSize, radius: getComputedStyle(note).borderRadius, border: getComputedStyle(note).borderTopWidth, pageLeft: pr.left, pageRight: pr.right, style:p.getAttribute('style') };
+      return { hasTitle: !!top, titleWidth: top ? top.getBoundingClientRect().width : 0, titleBottom: top ? top.getBoundingClientRect().bottom : 0, bodyTop: br.top, bodyCssTop:getComputedStyle(body).top, bodyWidth: br.width, noteTop: nr.top, noteCssTop:getComputedStyle(note).top, noteWidth: nr.width, noteHeight:nr.height, side: note.dataset.side, font: getComputedStyle(body).fontSize, lineHeight: getComputedStyle(body).lineHeight, radius: getComputedStyle(note).borderRadius, border: getComputedStyle(note).borderTopWidth, pageLeft: pr.left, pageRight: pr.right, style:p.getAttribute('style') };
     }));
     assert.equal(layout.length, 2);
     const mm = 96 / 25.4, close = (a, b) => assert.ok(Math.abs(a - b) < 1.6, `${a} != ${b}`);
     close(layout[0].titleWidth, 186 * mm);
-    close(layout[0].bodyWidth, 140 * mm);
-    close(layout[0].noteWidth, 40 * mm);
+    close(layout[0].bodyWidth, 132 * mm);
+    close(layout[0].noteWidth, 48 * mm);
     assert.ok(layout[0].bodyTop >= layout[0].titleBottom, JSON.stringify(layout[0]));
     assert.ok(layout[0].noteTop >= layout[0].titleBottom, JSON.stringify(layout[0]));
-    assert.equal(layout[0].font, "11px");
+    assert.equal(layout[0].font, "9.5px");
+    assert.equal(layout[0].lineHeight, "17.1px");
     assert.equal(layout[0].radius, "0px");
     assert.equal(layout[0].border, "0px");
     assert.ok(layout[1].noteHeight > 800);
     layout.forEach((v, i) => assert.equal(v.side, concept.nums[i] % 2 ? "right" : "left"));
+    const nativeNote = await browser.newPage();
+    const nativeNoteCss = await page.evaluate(() => BKCSS);
+    await nativeNote.setContent(`<style>${nativeNoteCss}</style><div class="bkdoc">${concept.note}</div>`, { waitUntil: "domcontentloaded" });
+    const noteLayout = await nativeNote.locator(".ntp.lined").evaluate((note) => ({
+      count: note.querySelectorAll(".ntb").length,
+      size: getComputedStyle(note.querySelector(".ntb")).backgroundSize,
+      label: note.querySelector(".nth").textContent,
+    }));
+    assert.equal(noteLayout.count, 1);
+    assert.match(noteLayout.size, /^100% 24\.9\d+px$/);
+    assert.match(noteLayout.label, /NOTE 01 \/ 10/);
+    await nativeNote.close();
     await native.pdf({
       path: "/tmp/solvi-concept-native.pdf",
       format: "A4",
