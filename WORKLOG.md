@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-02 · Codex · codex/fix-onboarding-passkey-intro
+- 한 일: 쌍둥이 문제를 담으면 하단 바에서 바로 학습지 만들기를 제안하도록 바꾸고, 로그인 첫 화면의 여백·카드 밀도를 정리. 소개 첫 화면을 취약 유형 지도로 되돌리고 아래에 학습의 의미를 말하는 문장을 추가했으며, 스크롤 장면은 진행도를 짧게 보간해 단계 전환이 덜 끊기게 조정.
+- 바뀐 파일: `index.html`, `styles/legacy.css`, `styles/screens.css`, `intro.html`, `intro.css`, `intro.js`, `sw.js`, 운영 주소·패스키 함수 템플릿·SEO 문서·회귀 테스트.
+- 확인: 새 동작 계약 테스트 4개, 정적 스크립트 파싱 17개 통과. Chrome 인트로 회귀에서 데스크톱 히어로·유형 지도 캡처를 생성해 확인.
+- 남은 일 · 주의: 배포 뒤 Supabase에 `SITE_URL=https://solvi.win` 비밀값을 설정하고 `passkey` 함수를 재배포해야 한다. WebAuthn 보안 정책상 이전 주소에서 등록한 패스키는 새 주소에서 다시 등록해야 한다.
+
 ## 2026-11-02 · Codex · codex/pi-bank-auto-backup
 - 한 일: 운영 도메인에서는 문제은행 JSON·초기 `bank/data.js`를 `bank.solvi.win` Pi SSD에서 읽도록 분리하고, CasaOS용 정적 데이터·Supabase 인증 자동 백업 API Compose 배포물을 추가. 선생님 로그인 뒤와 15분 간격에 로컬 `omr_` 데이터를 인증 토큰과 함께 자동 전송하도록 추가했으며 수동 내려받기는 유지.
 - 바뀐 파일: `index.html`, `bank-origin.js`, `sw.js`, `pi/question-bank/`, `tools/deploy-question-bank.sh`, 배포 확인 문서·회귀 테스트·설계 문서.

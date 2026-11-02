@@ -3,4 +3,4 @@ Allow: /
 Disallow: /supabase/
 Disallow: /tools/
 
-Sitemap: https://solvi.p-e.kr/sitemap.xml
+Sitemap: https://solvi.win/sitemap.xml
