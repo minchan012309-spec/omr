@@ -17,12 +17,18 @@ const { chromium, browserOptions } = require("./runtime.cjs");
       await setSubject("hl");
       await bkLoad();
       const plan = await bkPlan("hl-c");
+      const notes = plan.pages.filter((p) => p.k === "nt");
+      if (notes.length !== 10 || plan.noteStart !== 3)
+        throw new Error("Missing ten lined note pages before Korean concepts");
+      if (!notes.every((p, i) => p.st === "lined" && p.note === i + 1))
+        throw new Error("Korean concept note pages must be numbered lined notes");
+      const note = bkPageHtml(plan, plan.pages.indexOf(notes[0]));
       const pages = plan.pages.filter((p) => p.k === "cn").slice(0, 2);
       if (pages.length !== 2)
         throw new Error("Missing real Korean concept pages");
       BKP["hl-c"] = { ...plan, pages, aStart: 3 };
       const main = await bkPlan("hl-hs"), passage = main.pages.findIndex((p) => p.k === "cn" && p.kind === "p");
-      return { nums: pages.map((p) => p.n), passage: bkPageHtml(main, passage) };
+      return { nums: pages.map((p) => p.n), note, passage: bkPageHtml(main, passage) };
     });
     assert.doesNotMatch(concept.passage, /class="cnnote"/);
     const nativeHtml = await page.evaluate(() => bkDocHtml(BKP["hl-c"], true));
@@ -47,6 +53,18 @@ const { chromium, browserOptions } = require("./runtime.cjs");
     assert.equal(layout[0].border, "0px");
     assert.ok(layout[1].noteHeight > 800);
     layout.forEach((v, i) => assert.equal(v.side, concept.nums[i] % 2 ? "right" : "left"));
+    const nativeNote = await browser.newPage();
+    const nativeNoteCss = await page.evaluate(() => BKCSS);
+    await nativeNote.setContent(`<style>${nativeNoteCss}</style><div class="bkdoc">${concept.note}</div>`, { waitUntil: "domcontentloaded" });
+    const noteLayout = await nativeNote.locator(".ntp.lined").evaluate((note) => ({
+      count: note.querySelectorAll(".ntb").length,
+      size: getComputedStyle(note.querySelector(".ntb")).backgroundSize,
+      label: note.querySelector(".nth").textContent,
+    }));
+    assert.equal(noteLayout.count, 1);
+    assert.match(noteLayout.size, /^100% 24\.9\d+px$/);
+    assert.match(noteLayout.label, /NOTE 01 \/ 10/);
+    await nativeNote.close();
     await native.pdf({
       path: "/tmp/solvi-concept-native.pdf",
       format: "A4",
