@@ -484,11 +484,12 @@ function bkQrPg(pages,k,kind,sub,label,pgs,extra){pgs.forEach(p=>{pages.push({k,
 function bkSbn(s,extra){return '<div class="u sbn"><b><i>'+esc(s.k)+'</i>'+esc(s.name)+'</b>'+(s.goal?'<span class="g">'+esc(s.goal)+'</span>':'')+(extra||'')+'</div>'}
 const bkConceptHead=(key,s,extra)=>bkU(key,bkSbn(s,extra),{w:BK_FULLW,span:'brk',keep:true,cls:'bk cnmeasure'});
 const bkConceptPage=(p,meta)=>({...meta,k:'cn',kind:'c',cols:[p.cols[0].map(bkUH)],top:(p.top||[]).map(bkUH),topH:p.topH||0});
+const bkConceptNotePages=()=>Array.from({length:10},(_,i)=>({k:'nt',kind:'n',label:'개념 필기 노트',st:'lined',note:i+1,total:10}));
 const bkScope=S=>{const sc=(CONC[SUBJ]||{}).scope;const a=sc&&sc.length?S.subs.filter(s=>sc.includes(s.k)):S.subs;return a.length?a:S.subs};
 function bkPlanConcept(id){
  const S=bkSel(),C=CONC[SUBJ]||{secs:[]};const pages=[{k:'cover'},{k:'toc'}];const toc=[];
  const noteStart=SUBJ==='hl'?pages.length+1:0;
- if(noteStart)for(let i=1;i<=10;i++)pages.push({k:'nt',kind:'n',label:'개념 필기 노트',st:'lined',note:i,total:10});
+ if(noteStart)pages.push(...bkConceptNotePages());
  bkScope(S).forEach(s=>{
   const row={sub:s,c:null,ox:null,bl:null,mc:null};
   const secs=(C.secs||[]).filter(x=>x.sub===s.k);
@@ -1019,7 +1020,7 @@ function bkfBlocks(d){const S=bkSel(),base=DATA.filter(q=>q.sub&&q.set!=='bank'&
  return {S,subs,blocks,base,typeOrder}}
 function bkPlanFree(id,d){
  const {S,subs,blocks,typeOrder}=bkfBlocks(d),C=CONC[SUBJ]||{secs:[]};
- const pages=[{k:'cover'},{k:'toc'}],nums=new Map(),tocM=new Map();let no=0,total=0,buf=[];const hdKey=new Map();
+ const pages=[{k:'cover'},{k:'toc'}],nums=new Map(),tocM=new Map();let no=0,total=0,buf=[],noteStart=0;const hdKey=new Map();
  const bi=new Map();blocks.forEach((b,i)=>bi.set(b,i));
  const flush=()=>{if(!buf.length)return;const u=buf;buf=[];
   bkPack(u,2,BK_BODY).forEach(p=>{const pg={k:'pr',kind:'f',label:'문제',...bkCI(p),codes:p.cols.flat().map(x=>x.code).filter(Boolean)};pages.push(pg);
@@ -1028,6 +1029,7 @@ function bkPlanFree(id,d){
  blocks.forEach((b,i)=>{const s=b.s,nm=BKFN[b.k];
   const item={name:nm,p:0};const row=tocM.get(s.k)||(tocM.set(s.k,{sub:s,items:[]}),tocM.get(s.k));row.items.push(item);
   if(b.k==='c'){flush();
+   if(SUBJ==='hl'&&!noteStart){noteStart=pages.length+1;pages.push(...bkConceptNotePages())}
    const cu=[bkConceptHead('sb:'+s.k+':c'+i,s)];
    (C.secs||[]).filter(x=>x.sub===s.k).forEach(sec=>{
     cu.push(...bkCbUnits(sec,BK_CONCEPTW))});
@@ -1072,7 +1074,7 @@ function bkPlanFree(id,d){
  toc.forEach(r=>r.items=r.items.map(it=>[it.name,it.p||1]));
  const parts=d.parts.map(p=>BKFN[p.k]);
  if(d.dz&&d.dz.back)pages.push({k:'back'});
- return {kind:'x',free:1,dz:d.dz||null,title:d.name,short:d.name,sub:d.subt||'',pages,toc,aStart,total,parts,subs,drill:false,last:false,def:d}}
+ return {kind:'x',free:1,dz:d.dz||null,title:d.name,short:d.name,sub:d.subt||'',pages,toc,aStart,noteStart,total,parts,subs,drill:false,last:false,def:d}}
 
 /* ---------- 쪽 HTML ---------- */
 const BKCAP=BK_BODY;
