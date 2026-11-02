@@ -229,7 +229,7 @@ async function devPk(){const el=document.getElementById('devb');el.innerHTML=`<d
  add(r.ok,'함수 호출','HTTP '+r.status+' ('+ms+'ms)',txt.slice(0,120));if(!j||!j.ok)return;
  add(j.rpID===location.hostname,'rpID(도메인)',j.rpID+' / 현재 '+location.hostname,'함수의 SITE_URL 이 지금 주소와 달라요. 값을 '+location.origin+' 로 바꾸세요. 주소를 바꿨다면 이전 패스키는 다시 등록해야 해요');
  add((j.origins||[]).includes(location.origin),'허용 주소(origin)',(j.origins||[]).join(', ')+' / 현재 '+location.origin,'SITE_URL 환경변수를 확인하세요(끝에 / 없이)');
- Object.entries(j.checks||{}).forEach(([k,v])=>{if(k==='SITE_URL')add(!/기본값/.test(v)||v.startsWith(location.origin),'SITE_URL',v,'환경변수가 없어 기본값(solvi.p-e.kr)을 써요. 다른 주소를 쓴다면 설정하세요');else add(v==='ok','DB · '+k,v,'setup.sql 10번을 실행했는지 확인하세요')})}
+ Object.entries(j.checks||{}).forEach(([k,v])=>{if(k==='SITE_URL')add(!/기본값/.test(v)||v.startsWith(location.origin),'SITE_URL',v,'환경변수가 없어 기본값(solvi.win)을 써요. 다른 주소를 쓴다면 설정하세요');else add(v==='ok','DB · '+k,v,'setup.sql 10번을 실행했는지 확인하세요')})}
 /* --- 서버 점검 · 연결 · 저장소 · 도구 · 버전 --- */
 function devSrv(){document.getElementById('devb').innerHTML=`<div class="card"><h3 style="margin-top:0">서버 설정 점검</h3><div class="m">setup.sql 로 만든 테이블·함수가 서버에 있는지 확인해요.</div><div class="row" style="margin-top:8px"><button class="p" onclick="srvCheck()">점검 시작</button></div><div id="srvck" class="srvck" style="margin-top:10px"></div></div>`;srvCheck()}
 async function devHealth(){const el=document.getElementById('devb');el.innerHTML='<div class="card"><h3 style="margin-top:0">연결 · 성능</h3><div id="hl2" class="srvck"></div><div class="row" style="margin-top:10px;gap:8px"><button class="s" onclick="devHealth()">다시 측정</button><button class="s" onclick="healthView()">전체 시스템 점검 창</button></div></div>';
