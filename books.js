@@ -484,14 +484,14 @@ function bkQrPg(pages,k,kind,sub,label,pgs,extra){pgs.forEach(p=>{pages.push({k,
 function bkSbn(s,extra){return '<div class="u sbn"><b><i>'+esc(s.k)+'</i>'+esc(s.name)+'</b>'+(s.goal?'<span class="g">'+esc(s.goal)+'</span>':'')+(extra||'')+'</div>'}
 const bkConceptHead=(key,s,extra)=>bkU(key,bkSbn(s,extra),{w:BK_FULLW,span:'brk',keep:true,cls:'bk cnmeasure'});
 const bkConceptPage=(p,meta)=>({...meta,k:'cn',kind:'c',cols:[p.cols[0].map(bkUH)],top:(p.top||[]).map(bkUH),topH:p.topH||0});
-const bkConceptNotePages=()=>Array.from({length:10},(_,i)=>({k:'nt',kind:'n',label:'개념 필기 노트',st:'lined',note:i+1,total:10}));
+const bkConceptNotePages=s=>Array.from({length:10},(_,i)=>({k:'nt',kind:'n',sub:s,label:(s?s.k+' '+s.name+' · ':'')+'개념 필기 노트',st:'lined',note:i+1,total:10}));
 const bkScope=S=>{const sc=(CONC[SUBJ]||{}).scope;const a=sc&&sc.length?S.subs.filter(s=>sc.includes(s.k)):S.subs;return a.length?a:S.subs};
 function bkPlanConcept(id){
  const S=bkSel(),C=CONC[SUBJ]||{secs:[]};const pages=[{k:'cover'},{k:'toc'}];const toc=[];
- const noteStart=SUBJ==='hl'?pages.length+1:0;
- if(noteStart)pages.push(...bkConceptNotePages());
+ let noteStart=0;const noteStarts={};
  bkScope(S).forEach(s=>{
   const row={sub:s,c:null,ox:null,bl:null,mc:null};
+  if(SUBJ==='hl'){row.note=pages.length+1;noteStarts[s.k]=row.note;if(!noteStart)noteStart=row.note;pages.push(...bkConceptNotePages(s))}
   const secs=(C.secs||[]).filter(x=>x.sub===s.k);
   const cu=[bkConceptHead('sb:'+s.k+':c',s,'<div class="rf">[[REF:'+s.k+']]</div>')];
   secs.forEach(sec=>{
@@ -525,7 +525,7 @@ function bkPlanConcept(id){
  // 소단원 머리글의 「확인 문제」 쪽 안내
  const ref=r=>[r.ox?'OX p.'+r.ox:'',r.bl?'빈칸 p.'+r.bl:'',r.mc?'기초 5지선다 p.'+r.mc:''].filter(Boolean).map(t=>'<em>'+t+'</em>').join('');
  toc.forEach(r=>pages.forEach(pg=>{if(pg.cols)pg.cols=pg.cols.map(c=>c.map(h=>h.replace('[[REF:'+r.sub.k+']]',ref(r))));if(pg.top)pg.top=pg.top.map(h=>h.replace('[[REF:'+r.sub.k+']]',ref(r)))}));
- return {kind:'c',title:SNAME[SUBJ]+' 개념서',short:'개념서',pages,toc,aStart,noteStart,sel:S}}
+ return {kind:'c',title:SNAME[SUBJ]+' 개념서',short:'개념서',pages,toc,aStart,noteStart,noteStarts,sel:S}}
 
 /* 유형서: 같은 지문(grp)의 문항을 맨 앞 문항 자리로 모은다 */
 function bkTypeOrder(qs){const first=new Map();qs.forEach((q,i)=>{if(q.grp&&!first.has(q.grp))first.set(q.grp,i)});
@@ -1020,22 +1020,23 @@ function bkfBlocks(d){const S=bkSel(),base=DATA.filter(q=>q.sub&&q.set!=='bank'&
  return {S,subs,blocks,base,typeOrder}}
 function bkPlanFree(id,d){
  const {S,subs,blocks,typeOrder}=bkfBlocks(d),C=CONC[SUBJ]||{secs:[]};
- const pages=[{k:'cover'},{k:'toc'}],nums=new Map(),tocM=new Map();let no=0,total=0,buf=[],noteStart=0;const hdKey=new Map();
+ const pages=[{k:'cover'},{k:'toc'}],nums=new Map(),tocM=new Map();let no=0,total=0,buf=[],noteStart=0;const noteStarts={},hdKey=new Map();
  const bi=new Map();blocks.forEach((b,i)=>bi.set(b,i));
  const flush=()=>{if(!buf.length)return;const u=buf;buf=[];
   bkPack(u,2,BK_BODY).forEach(p=>{const pg={k:'pr',kind:'f',label:'문제',...bkCI(p),codes:p.cols.flat().map(x=>x.code).filter(Boolean)};pages.push(pg);
    p.cols.flat().forEach(x=>{if(hdKey.has(x.key)&&!hdKey.get(x.key).p)hdKey.get(x.key).p=pages.length})})};
  let lastSub=null;
  blocks.forEach((b,i)=>{const s=b.s,nm=BKFN[b.k];
-  const item={name:nm,p:0};const row=tocM.get(s.k)||(tocM.set(s.k,{sub:s,items:[]}),tocM.get(s.k));row.items.push(item);
+  const item={name:nm,p:0};const row=tocM.get(s.k)||(tocM.set(s.k,{sub:s,items:[]}),tocM.get(s.k));
   if(b.k==='c'){flush();
-   if(SUBJ==='hl'&&!noteStart){noteStart=pages.length+1;pages.push(...bkConceptNotePages())}
+   if(SUBJ==='hl'){const ns=pages.length+1;if(!noteStart)noteStart=ns;noteStarts[s.k]=ns;row.items.push({name:'필기 노트 (10쪽)',p:ns});pages.push(...bkConceptNotePages(s))}
+   row.items.push(item);
    const cu=[bkConceptHead('sb:'+s.k+':c'+i,s)];
    (C.secs||[]).filter(x=>x.sub===s.k).forEach(sec=>{
     cu.push(...bkCbUnits(sec,BK_CONCEPTW))});
    item.p=pages.length+1;
    bkPack(cu,1,BK_BODY).forEach(p=>pages.push(bkConceptPage(p,{sub:s,label:'개념 정리'})));lastSub=s.k;return}
-  const newSub=d.grp!==1&&lastSub!==s.k;
+  row.items.push(item);const newSub=d.grp!==1&&lastSub!==s.k;
   if(newSub&&d.brk)flush();
   if(d.grp===1&&i>0&&blocks[i-1].k!==b.k&&d.brk)flush();
   const units=[];
@@ -1074,7 +1075,7 @@ function bkPlanFree(id,d){
  toc.forEach(r=>r.items=r.items.map(it=>[it.name,it.p||1]));
  const parts=d.parts.map(p=>BKFN[p.k]);
  if(d.dz&&d.dz.back)pages.push({k:'back'});
- return {kind:'x',free:1,dz:d.dz||null,title:d.name,short:d.name,sub:d.subt||'',pages,toc,aStart,noteStart,total,parts,subs,drill:false,last:false,def:d}}
+ return {kind:'x',free:1,dz:d.dz||null,title:d.name,short:d.name,sub:d.subt||'',pages,toc,aStart,noteStart,noteStarts,total,parts,subs,drill:false,last:false,def:d}}
 
 /* ---------- 쪽 HTML ---------- */
 const BKCAP=BK_BODY;
@@ -1140,7 +1141,7 @@ function bkToc(plan){
  let h='<div class="toc"><h3>차 례</h3>';
  if(plan.kind==='x'||plan.kind==='h'){return bkTocX(plan)}
  if(plan.kind==='c'){
-  h+='<table><tr><th>소단원</th><th>개념 정리</th><th>OX</th><th>빈칸</th><th>기초 5지선다</th></tr>'+(plan.noteStart?'<tr><td class="s">개념 필기 노트 (10쪽)</td><td class="n" colspan="4">'+plan.noteStart+'</td></tr>':'')+plan.toc.map(r=>'<tr><td class="s">'+esc(r.sub.k)+' '+esc(r.sub.name)+'</td><td class="n">'+(r.c||'')+'</td><td class="n">'+(r.ox||'')+'</td><td class="n">'+(r.bl||'')+'</td><td class="n">'+(r.mc||'')+'</td></tr>').join('')+'<tr><td class="s">정답 · 해설</td><td class="n" colspan="4">'+plan.aStart+'</td></tr></table>';
+  h+='<table><tr><th>소단원</th><th>개념 정리</th><th>OX</th><th>빈칸</th><th>기초 5지선다</th></tr>'+(plan.noteStart?'<tr><td class="s">소단원별 개념 필기 노트 (각 10쪽)</td><td class="n" colspan="4">'+plan.noteStart+'부터</td></tr>':'')+plan.toc.map(r=>'<tr><td class="s">'+esc(r.sub.k)+' '+esc(r.sub.name)+'</td><td class="n">'+(r.c||'')+'</td><td class="n">'+(r.ox||'')+'</td><td class="n">'+(r.bl||'')+'</td><td class="n">'+(r.mc||'')+'</td></tr>').join('')+'<tr><td class="s">정답 · 해설</td><td class="n" colspan="4">'+plan.aStart+'</td></tr></table>';
   h+='<div class="how"><h4>이 책의 활용법</h4>① 개념 정리를 읽고 <b>굵은 글씨와 표시된 부분</b>을 중심으로 정리한다.<br>② OX와 빈칸으로 개념을 바로 확인한다.<br>③ 기초 5지선다로 기본 문항을 풀고 맨 뒤 해설로 확인한다.<br>④ 문제 쪽 아래 <b>QR을 스캔</b>하거나 솔비 앱의 「교재」 탭에서 쪽을 골라 채점한다.</div>'}
  else{
   h+='<table><tr><th>소단원</th><th>문항 수</th><th>쪽</th></tr>'+plan.toc.map(r=>'<tr><td class="s">'+esc(r.sub.k)+' '+esc(r.sub.name)+'</td><td class="n">'+r.n+'</td><td class="n">'+r.p+'</td></tr>').join('')+(plan.toc.es?'<tr><td class="s">서술형</td><td class="n">'+plan.toc.es.n+'</td><td class="n">'+plan.toc.es.p+'</td></tr>':'')+'<tr><td class="s">정답 · 해설</td><td class="n"></td><td class="n">'+plan.aStart+'</td></tr></table>';
@@ -1269,7 +1270,7 @@ async function bkReader(id){
  id=bkPid(id);
  const m=$('#main');m.innerHTML='<div class="card">'+ldg('책을 펴는 중…')+'</div>';
  const plan=await bkPlan(id);if(!plan){bkClose();return}
- const jumps=[];if(plan.kind==='c'){if(plan.noteStart)jumps.push(['개념 필기 노트',plan.noteStart]);plan.toc.forEach(r=>{jumps.push([r.sub.k+' '+r.sub.name+' · 개념',r.c]);if(r.ox)jumps.push(['　'+r.sub.k+' OX',r.ox]);if(r.bl)jumps.push(['　'+r.sub.k+' 빈칸',r.bl]);if(r.mc)jumps.push(['　'+r.sub.k+' 기초 5지선다',r.mc])})}
+ const jumps=[];if(plan.kind==='c'){plan.toc.forEach(r=>{if(r.note)jumps.push([r.sub.k+' '+r.sub.name+' · 필기 노트',r.note]);jumps.push([r.sub.k+' '+r.sub.name+' · 개념',r.c]);if(r.ox)jumps.push(['　'+r.sub.k+' OX',r.ox]);if(r.bl)jumps.push(['　'+r.sub.k+' 빈칸',r.bl]);if(r.mc)jumps.push(['　'+r.sub.k+' 기초 5지선다',r.mc])})}
  else if(plan.kind==='t'){plan.toc.forEach(r=>jumps.push([r.sub.k+' '+r.sub.name,r.p]));if(plan.toc.es)jumps.push(['서술형',plan.toc.es.p])}
  else if(plan.kind==='x'||plan.kind==='h'){plan.toc.forEach(r=>r.items.forEach(([n,p])=>jumps.push([r.sub.k+' '+n,p])));if(plan.toc.es)jumps.push(['서술형',plan.toc.es.p])}
  else{jumps.push(['문제지',2],['정답 및 해설',plan.aStart])}
@@ -1306,7 +1307,7 @@ async function bkEbook(id){
  Object.assign(EBK,{id,plan,N,marks:st.marks||[],p:Math.min(N,Math.max(1,st.last||1)),z:1,rev:[],pen:ebkPenGet(id),view:st.view||'auto',tool:'none',proj:0,wh:0,undo:[],tex:new Map(),txq:Promise.resolve(),busy:0,np:0,cs:null,G:null,noclick:0});
  let el=document.getElementById('ebk');if(el)el.remove();
  el=document.createElement('div');el.id='ebk';
- const J=[['표지',1]];if(plan.kind==='c'){if(plan.noteStart)J.push(['개념 필기 노트',plan.noteStart]);plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.c]))}else if(plan.kind==='t')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.p]));else if(plan.kind==='x'||plan.kind==='h')plan.toc.forEach(r=>r.items.forEach(([n,p])=>J.push([r.sub.k+' '+n,p])));if(plan.aStart)J.push(['정답 · 해설',plan.aStart]);
+ const J=[['표지',1]];if(plan.kind==='c')plan.toc.forEach(r=>{if(r.note)J.push([r.sub.k+' '+r.sub.name+' · 필기 노트',r.note]);J.push([r.sub.k+' '+r.sub.name,r.c])});else if(plan.kind==='t')plan.toc.forEach(r=>J.push([r.sub.k+' '+r.sub.name,r.p]));else if(plan.kind==='x'||plan.kind==='h')plan.toc.forEach(r=>r.items.forEach(([n,p])=>J.push([r.sub.k+' '+n,p])));if(plan.aStart)J.push(['정답 · 해설',plan.aStart]);
  const seen=new Set();EBK.J=J.filter(j=>j[1]&&!seen.has(j[1])&&seen.add(j[1]));
  el.innerHTML=`<style>
 /* eBook 화면(2026-10-30 개편): 밝은 종이 바탕 + 과목 색 강조. 위 막대 하나, 필기 도구는 「필기」를 켰을 때만 아래에 뜬다 */
