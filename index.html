@@ -2755,7 +2755,7 @@ if(isIOS||isAndroid)setTimeout(instBanner,6000);
 let BUSYN=0,BUSYP=0,BUSYT=null,BUSYREAL=false;
 function busyPaint(){const o=document.getElementById('busy');if(!o)return;const p=Math.round(BUSYP);const c=o.querySelector('.bring .pr');if(c)c.style.strokeDashoffset=String(264*(1-BUSYP/100));const n=document.getElementById('busyp');if(n)n.textContent=p+'%'}
 function busyPct(p){if(!BUSYN)return;BUSYREAL=true;BUSYP=Math.max(BUSYP,Math.min(99,p));busyPaint()}
-function busyShow(label){let o=document.getElementById('busy');if(!o){o=document.createElement('div');o.id='busy';o.innerHTML='<div class="bx"><div class="bring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" class="bg"/><circle cx="50" cy="50" r="42" class="pr" transform="rotate(-90 50 50)" style="stroke-dasharray:264;stroke-dashoffset:264"/></svg><svg viewBox="0 0 100 100" class="bsp"><circle cx="50" cy="50" r="42" class="fg" transform="rotate(-90 50 50)" style="stroke-dasharray:62 202"/></svg><span id="busyp">0%</span></div><b id="busyt"></b><small>잠시만 기다려 주세요</small></div>';document.body.appendChild(o)}
+function busyShow(label){let o=document.getElementById('busy');if(!o){o=document.createElement('div');o.id='busy';o.innerHTML='<div class="bx"><div class="bring"><i></i></div><b id="busyt"></b><small>잠시만 기다려 주세요</small></div>';document.body.appendChild(o)}
  document.getElementById('busyt').textContent=label||'처리 중…';BUSYP=0;BUSYREAL=false;busyPaint();o.classList.remove('on');void o.offsetWidth;o.classList.add('on');
  clearInterval(BUSYT);BUSYT=setInterval(()=>{if(!BUSYREAL)BUSYP+=(94-BUSYP)*.07;busyPaint()},120)}
 function busyKill(){clearInterval(BUSYT);BUSYN=0;const o=document.getElementById('busy');if(o)o.classList.remove('on')}
