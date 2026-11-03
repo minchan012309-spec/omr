@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-03 · Codex · codex/revert-pi-question-bank
+- 한 일: Raspberry Pi SSD 문제은행 원점·자동 JSON 업로드 백업·CasaOS 컨테이너 배포물을 제거하고, GitHub Pages 안의 기존 문제은행 파일과 수동 JSON 백업 내려받기 방식으로 복원.
+- 바뀐 파일: `index.html`, `sw.js`, Pi 전용 배포물·문서·테스트를 삭제하고 기존 문제은행 원점 회귀 테스트를 추가.
+- 확인: Pi 원점 제거 회귀 테스트와 정적 스크립트 파싱 통과.
+- 남은 일 · 주의: Pi와 Cloudflare Tunnel은 이 변경 뒤 서비스에 필요하지 않다. 전체 회귀와 PR CI 확인 뒤 병합하면 새 배포부터 기존 방식으로 전환된다.
+
 ## 2026-11-03 · Codex · codex/login-loading-apple-intro / PR #122
 - 한 일: 선생님 로그인에서 제목과 설명을 한 묶음, 각 라벨과 입력칸을 한 묶음으로 바꿔 관련 요소 사이의 과한 간격을 줄였다. 제목–설명은 6px, 라벨–입력칸은 7px 리듬으로 정리했다.
 - 바뀐 파일: `index.html`, `styles/screens.css`, `sw.js`, `tests/app-ui.cjs`, `WORKLOG.md`.
@@ -25,12 +31,6 @@
 - 바뀐 파일: `index.html`, `styles/legacy.css`, `styles/screens.css`, `intro.html`, `intro.css`, `intro.js`, `sw.js`, 운영 주소·패스키 함수 템플릿·SEO 문서·회귀 테스트.
 - 확인: 새 동작 계약 테스트 4개, 정적 스크립트 파싱 17개 통과. Chrome 인트로 회귀에서 데스크톱 히어로·유형 지도 캡처를 생성해 확인.
 - 남은 일 · 주의: 배포 뒤 Supabase에 `SITE_URL=https://solvi.win` 비밀값을 설정하고 `passkey` 함수를 재배포해야 한다. WebAuthn 보안 정책상 이전 주소에서 등록한 패스키는 새 주소에서 다시 등록해야 한다.
-
-## 2026-11-02 · Codex · codex/pi-bank-auto-backup
-- 한 일: 운영 도메인에서는 문제은행 JSON·초기 `bank/data.js`를 `bank.solvi.win` Pi SSD에서 읽도록 분리하고, CasaOS용 정적 데이터·Supabase 인증 자동 백업 API Compose 배포물을 추가. 선생님 로그인 뒤와 15분 간격에 로컬 `omr_` 데이터를 인증 토큰과 함께 자동 전송하도록 추가했으며 수동 내려받기는 유지.
-- 바뀐 파일: `index.html`, `bank-origin.js`, `sw.js`, `pi/question-bank/`, `tools/deploy-question-bank.sh`, 배포 확인 문서·회귀 테스트·설계 문서.
-- 확인: 문제 원점·자동 백업·gzip 저장 경로 단위 테스트 6개 및 `node scripts/verify-static.cjs` 통과.
-- 남은 일 · 주의: 실제 Pi CasaOS 배포, Cloudflare `bank.solvi.win` route, GitHub Pages의 `solvi.win` 전환은 사용자 환경에서 단계별로 해야 함. 문제 데이터는 새 흐름 검증 전까지 Git에서 삭제하지 않음.
 
 ## 2026-11-02 · Codex · codex/hl-note-loading-fix / PR #118
 - 한 일: 화법과 언어 교재에서 개념 정리를 선택하면 교재에 포함된 모든 소단원(Ⅰ-A부터 Ⅲ-C와 종합까지)의 개념 바로 앞마다 5장(10쪽)의 연한 줄 필기 노트를 반복해 넣도록 수정.

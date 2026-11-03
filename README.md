@@ -252,7 +252,3 @@ python3 tools/hl/audit.py --all
 - **학생 탭** 새 화면(요약 · 탭 · 한 줄 목록 · 「⋯」 메뉴 · 일괄 작업), 메뉴의 홈 아래 **통합검색**, 로그인 화면의 솔비 · 학원 로고, **eBook** 새 화면(밝은 종이 바탕 · 과목 색 · 필기 도구는 필요할 때만).
 - **무료 체험 신청**(`trial.html`) · **문의**(`contact.html`)는 서버 표 `site_leads`에 남고 개발자 탭 「체험 신청 · 문의」에서 봅니다. **`supabase/sql_26_site_leads.sql`을 Supabase SQL 편집기에서 한 번 실행**해야 저장됩니다(실행 전에는 제출이 실패 안내를 띄웁니다).
 - 소개 페이지는 시스템 설정을 따르는 라이트(물질과 에너지 파랑) · 다크 테마와 전환 버튼을 지원합니다. 작업 규칙과 최근 기록은 [AGENTS.md](AGENTS.md) · [WORKLOG.md](WORKLOG.md)를 보세요.
-
-# Raspberry Pi 문제은행·자동 백업
-
-문제은행 JSON을 Pi SSD에서 제공하고, 선생님 브라우저 데이터는 15분마다 SSD에 자동 백업하는 CasaOS 배포 절차는 [docs/verification/pi-question-bank.md](docs/verification/pi-question-bank.md)에 있습니다.
