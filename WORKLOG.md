@@ -3,6 +3,12 @@
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
 ## 2026-11-03 · Codex · codex/login-loading-apple-intro / PR #122
+- 한 일: 선생님 로그인에서 제목과 설명을 한 묶음, 각 라벨과 입력칸을 한 묶음으로 바꿔 관련 요소 사이의 과한 간격을 줄였다. 제목–설명은 6px, 라벨–입력칸은 7px 리듬으로 정리했다.
+- 바뀐 파일: `index.html`, `styles/screens.css`, `sw.js`, `tests/app-ui.cjs`, `WORKLOG.md`.
+- 확인: 수정 전 1440·390 로그인 간격 회귀 실패를 확인하고, 수정 후 같은 두 화면과 전체 앱 UI 브라우저 회귀 통과.
+- 남은 일 · 주의: 실제 모바일 기기에서는 확인하지 못했다.
+
+## 2026-11-03 · Codex · codex/login-loading-apple-intro / PR #122
 - 한 일: 「학원의 하루」 스크롤 장면에서 이전·다음 캡처가 겹쳐 보이던 연출을 제거하고, 각 단계에 화면 한 장만 선명하게 보이게 했다. 학생 · 선생님 · 학부모별로 같은 기록에서 어떤 다음 행동을 받는지 설명하는 인트로 섹션을 추가했다.
 - 바뀐 파일: `intro.html`, `intro.css`, `intro.js`, `sw.js`, `tests/intro-regression.cjs`, `WORKLOG.md`.
 - 확인: `node scripts/verify-static.cjs`, 인트로 Playwright 회귀(데스크톱·태블릿·휴대폰 포함 5개 화면 크기) 통과. 각 학원의 하루 단계마다 표시되는 캡처가 정확히 한 장인지 검사했다.
