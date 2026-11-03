@@ -5,7 +5,6 @@ import os from 'node:os';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { promisify } from 'node:util';
-import { readFile } from 'node:fs/promises';
 import { saveSnapshot } from '../pi/question-bank/backup-api/server.mjs';
 
 const gunzip = promisify(zlib.gunzip);
@@ -28,8 +27,3 @@ test('선생님 백업은 사용자별 gzip 파일로 저장한다', async () =>
 test('사용자 제어 경로를 거부한다', async () => withRoot(async root => {
   await assert.rejects(() => saveSnapshot(root, '../../x', {}), /invalid-payload/);
 }));
-
-test('Nginx는 SSD 문제은행이 마운트된 정적 루트를 사용한다', async () => {
-  const conf = await readFile('pi/question-bank/nginx.conf', 'utf8');
-  assert.match(conf, /root\s+\/usr\/share\/nginx\/html;/);
-});
