@@ -2,6 +2,24 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-03 · Codex · codex/login-loading-apple-intro / PR #122
+- 한 일: 선생님 로그인에서 제목과 설명을 한 묶음, 각 라벨과 입력칸을 한 묶음으로 바꿔 관련 요소 사이의 과한 간격을 줄였다. 제목–설명은 6px, 라벨–입력칸은 7px 리듬으로 정리했다.
+- 바뀐 파일: `index.html`, `styles/screens.css`, `sw.js`, `tests/app-ui.cjs`, `WORKLOG.md`.
+- 확인: 수정 전 1440·390 로그인 간격 회귀 실패를 확인하고, 수정 후 같은 두 화면과 전체 앱 UI 브라우저 회귀 통과.
+- 남은 일 · 주의: 실제 모바일 기기에서는 확인하지 못했다.
+
+## 2026-11-03 · Codex · codex/login-loading-apple-intro / PR #122
+- 한 일: 「학원의 하루」 스크롤 장면에서 이전·다음 캡처가 겹쳐 보이던 연출을 제거하고, 각 단계에 화면 한 장만 선명하게 보이게 했다. 학생 · 선생님 · 학부모별로 같은 기록에서 어떤 다음 행동을 받는지 설명하는 인트로 섹션을 추가했다.
+- 바뀐 파일: `intro.html`, `intro.css`, `intro.js`, `sw.js`, `tests/intro-regression.cjs`, `WORKLOG.md`.
+- 확인: `node scripts/verify-static.cjs`, 인트로 Playwright 회귀(데스크톱·태블릿·휴대폰 포함 5개 화면 크기) 통과. 각 학원의 하루 단계마다 표시되는 캡처가 정확히 한 장인지 검사했다.
+- 남은 일 · 주의: 실제 모바일 기기와 실제 Supabase 청구 전송은 확인하지 못했다.
+
+## 2026-11-03 · Codex · codex/login-loading-apple-intro
+- 한 일: 전역 로딩 막대에 선 위 진행률과 남은 예상 시간을 표시하고, 로그인 화면의 「번호로 바로 채점」 보조 행동을 제거했다. 로그인·패스키 행동을 각각 여백 있는 한 줄 버튼으로 정리했다. 인트로는 Pretendard를 유지한 채 전시형 네이비·파란 포인트로 다듬고, 학습 결과가 학생·수업·운영으로 이어지는 장면과 「따로 처리할 때 / Solvi로 이어질 때」 학원의 하루 비교를 추가했다. 수납·운영 지연 화면은 `AcademyCore`가 없으면 공통 모듈을 먼저 복구해 청구 오류가 나지 않게 했다.
+- 바뀐 파일: `index.html`, `styles/legacy.css`, `styles/screens.css`, `intro.html`, `intro.css`, `sw.js`, 로그인·인트로·공통 모듈 회귀 테스트, 디자인 명세·계획 문서.
+- 확인: `node scripts/verify-static.cjs`, 공통 모듈 단위 테스트, 수납·운영 브라우저 fixture, 인트로 Playwright 캡처(1440), 앱 UI 회귀(로그인·로딩 포함, 1440·390) 통과. `npm test`는 현재 환경에 `/tmp/solvi-db-tests`의 `@electric-sql/pglite`가 없어 DB 단계에서만 중단됐다.
+- 남은 일 · 주의: 실제 모바일 기기와 실제 Supabase 청구 전송은 확인하지 못했다.
+
 ## 2026-11-02 · Codex · codex/fix-onboarding-passkey-intro
 - 한 일: 쌍둥이 문제를 담으면 하단 바에서 바로 학습지 만들기를 제안하도록 바꾸고, 로그인 첫 화면의 여백·카드 밀도를 정리. 소개 첫 화면을 취약 유형 지도로 되돌리고 아래에 학습의 의미를 말하는 문장을 추가했으며, 스크롤 장면은 진행도를 짧게 보간해 단계 전환이 덜 끊기게 조정.
 - 바뀐 파일: `index.html`, `styles/legacy.css`, `styles/screens.css`, `intro.html`, `intro.css`, `intro.js`, `sw.js`, 운영 주소·패스키 함수 템플릿·SEO 문서·회귀 테스트.
