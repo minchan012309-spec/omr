@@ -54,10 +54,17 @@ const runTo = async (page, id, p) => {
     assert.equal(await page.locator("#stage,.stage,.film-bg,.xdr,.mac,.slab,.rig,.obj").count(), 0, "no device mockup or 3D stage");
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).scrollSnapType), "none", "no forced scroll");
     assert.equal(await page.locator("#h1").isVisible(), true);
+    assert.equal(await page.locator(".hero[data-gallery='apple']").count(), 1, "hero uses the refined gallery surface");
+    const heroSurface = await page.locator(".hero[data-gallery='apple']").evaluate((el) => ({ background: getComputedStyle(el).backgroundColor, radius: getComputedStyle(el.querySelector(".tmap")).borderRadius }));
+    assert.match(heroSurface.background, /^rgb\(/, "hero has a deliberate surface color");
+    assert.equal(heroSurface.radius, "18px", "hero record surface uses the tighter gallery radius");
     assert.equal(await page.getByText("Solvi(솔비)는", { exact: false }).count(), 0, "generic platform sentence removed");
     assert.equal(await page.locator("#tmap").count(), 1, "type map is the hero focal point");
     assert.equal(await page.locator("#tmap .tt").count(), 15, "type map has the complete set of example types");
     assert.equal(await page.locator("#why").isVisible(), true, "hero is followed by the learning-purpose message");
+    assert.equal(await page.locator("#proof[data-fx='rise']").count(), 1, "a concrete learning-result scene follows the purpose message");
+    assert.equal(await page.locator("#proof .proof-card").count(), 3, "result scene explains the three connected records");
+    assert.deepEqual(await page.locator("#proof .proof-card h3").allTextContents(), ["학생에게 남는 기록", "다음 수업으로 가는 기준", "학원 운영까지 이어지는 알림"]);
     assert.equal(await page.locator(".hero-logo").count(), 1, "hero uses one aligned logo lockup");
     const logoCenters = await page.locator(".hero-logo svg").evaluateAll((els) => els.map((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; }));
     assert.equal(logoCenters.length, 2);
@@ -175,6 +182,9 @@ const runTo = async (page, id, p) => {
     }
     const dayImgs = await page.locator(".day-frame .shot").evaluateAll((l) => l.map((i) => ({ ok: i.complete && i.naturalWidth > 0, src: i.getAttribute("src") })));
     for (const d of dayImgs) assert.ok(d.ok, "academy capture loads: " + d.src);
+    assert.equal(await page.locator("#academy .academy-compare").count(), 1, "academy day includes an operational comparison");
+    assert.deepEqual(await page.locator("#academy .academy-compare h3").allTextContents(), ["따로 처리할 때", "Solvi로 이어질 때"]);
+    assert.equal(await page.locator("#academy .academy-compare li").count(), 6, "comparison explains three concrete workflow differences");
     /* 기능 전체: 분야를 누르면 그 분야 카드만 */
     const specLayout = await page.locator(".spec-shell").evaluate((e) => { const n = e.querySelector(".spec-nav").getBoundingClientRect(), p = e.querySelector(".spec-panel").getBoundingClientRect(); return { side: n.right <= p.left, nav: n.width, panel: p.width }; });
     assert.ok(specLayout.side && specLayout.panel > specLayout.nav * 1.65, "feature directory uses an asymmetric desktop split");
