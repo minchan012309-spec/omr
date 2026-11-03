@@ -147,6 +147,15 @@ const focusedId = (page) => page.evaluate(() => document.activeElement && docume
       });
       await check(tag + ": login actions are full-width rows with breathing room", async () => {
         await page.click("#er-tab-teacher");
+        const rhythm = await page.evaluate(() => {
+          const heading = document.querySelector("#stbody > .entry-heading"), fields = [...document.querySelectorAll("#stbody > .entry-field")];
+          if (!heading || fields.length !== 2) return null;
+          const title = heading.querySelector("h2").getBoundingClientRect(), copy = heading.querySelector("p").getBoundingClientRect();
+          return { titleCopy: copy.top - title.bottom, labelInputs: fields.map((field) => { const label = field.querySelector("label").getBoundingClientRect(), input = field.querySelector("input").getBoundingClientRect(); return input.top - label.bottom; }) };
+        });
+        assert.ok(rhythm, "teacher heading and fields form explicit visual groups");
+        assert.ok(rhythm.titleCopy >= 4 && rhythm.titleCopy <= 10, "teacher title and explanation stay associated");
+        assert.ok(rhythm.labelInputs.every((gap) => gap >= 6 && gap <= 9), "each label stays close to its input");
         const actions = page.locator("#stbody > .btns");
         const layout = await actions.evaluate((el) => ({ display: getComputedStyle(el).display, gap: parseFloat(getComputedStyle(el).gap), widths: [...el.querySelectorAll("button")].map((b) => ({ width: b.getBoundingClientRect().width, top: b.getBoundingClientRect().top })) }));
         assert.equal(layout.display, "grid");
@@ -450,7 +459,7 @@ const focusedId = (page) => page.evaluate(() => document.activeElement && docume
         const links = [...document.querySelectorAll('link[rel="stylesheet"][href^="styles/"]')].map((l) => "/" + l.getAttribute("href"));
         return { v, keys, links };
       });
-      assert.deepEqual(r.links, ["/styles/tokens.css?v=4", "/styles/legacy.css?v=7", "/styles/base.css?v=4", "/styles/shell.css?v=4", "/styles/components.css?v=4", "/styles/screens.css?v=7"]);
+      assert.deepEqual(r.links, ["/styles/tokens.css?v=4", "/styles/legacy.css?v=7", "/styles/base.css?v=4", "/styles/shell.css?v=4", "/styles/components.css?v=4", "/styles/screens.css?v=8"]);
       for (const l of r.links) assert.ok(r.keys.includes(l), "cached " + l);
       await page.reload();
       await page.waitForTimeout(800);

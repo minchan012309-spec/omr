@@ -4,6 +4,7 @@
 .entry-card{background:var(--ui-surface);border:0;border-radius:20px;padding:clamp(24px,4vw,40px);box-shadow:none}
 .entry-card h1{font-size:24px;margin:18px 0 4px}.entry-roles{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--ui-raised);padding:4px;border:1px solid var(--ui-border);border-radius:12px}.entry-roles button{border:0;background:transparent;border-radius:8px;min-height:42px}.entry-roles button[aria-selected=true]{background:var(--ui-surface);color:var(--ui-accent);font-weight:800}
 .entry-card .stth{box-shadow:none!important}.entry-card .sgjoin{border:0!important}.entry-card #stbody{display:grid;gap:18px;margin-top:16px}
+.entry-card .entry-heading,.entry-card .entry-field{display:grid}.entry-card .entry-heading{gap:6px}.entry-card .entry-heading h2,.entry-card .entry-heading p{margin:0}.entry-card .entry-field{gap:7px}
 .entry-card #stbody>.btns{display:grid;grid-template-columns:1fr;gap:8px;margin-top:2px}.entry-card #stbody>.btns>button{width:100%;justify-content:center}
 .workflow-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px}.workflow-list{display:grid;gap:12px}.workflow-choice{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:16px;text-align:left;padding:18px;border:1px solid var(--ui-border);border-radius:14px;background:var(--ui-surface)}
 .student-list{display:grid;gap:8px}
@@ -84,6 +85,7 @@ html[data-theme=dark] .entry-brand{color:#f3f6f9}
 /* 로그인 입력 이름표: 자리표시자만으로 두지 않는다 */
 .entry-card .ent-l,.stl .ent-l{display:block;margin:10px 0 4px;font-size:13px;font-weight:600;color:var(--ui-muted)}
 .entry-card .ent-l+.stin,.stl .ent-l+.stin{margin-top:0}
+.entry-card .entry-field .ent-l,.entry-card .entry-field .stin{margin:0}
 .entry-roles button:focus-visible{outline:3px solid color-mix(in srgb,var(--ui-accent) 40%,transparent);outline-offset:1px}
 @media(max-width:600px){.entry-roles button{min-width:0;padding-inline:4px;white-space:nowrap}}
 /* 문항 신고 */
