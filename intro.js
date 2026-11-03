@@ -230,10 +230,8 @@ var DAY=(function(){var run=$('#dayRun');if(!run)return null;
  function update(p){var f=p*N,i=Math.max(0,Math.min(N-1,Math.floor(f)));
   if(i!==cur){cur=i;steps.forEach(function(li,k){li.classList.toggle('on',k===i);li.classList.toggle('past',k<i);var a=$('a',li);if(k===i)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current')});descs.forEach(function(d,k){d.classList.toggle('on',k===i)});var ck=$('#dayClock'),nw=$('#dayNow');if(ck)ck.textContent=$('time',steps[i]).textContent;if(nw)nw.textContent=i+1}
   var fr=$('.day-frame'),fi=f-i,sw=Math.sin(fi*Math.PI);if(fr)fr.style.transform='rotateY('+((fi-.5)*-7).toFixed(2)+'deg) rotateX('+(sw*2.2).toFixed(2)+'deg)';
-  imgs.forEach(function(im,k){var s=MAP[k],v=V[s],d=f-(s+.5),kio=im.classList.contains('kio');if(kio)d-=.12;
-   var tin=s===0?1:io2(cl((d+1)/.72)),tout=s===N-1?0:io2(cl((d-.28)/.72)),o=cl(tin*1.4-.2)*(1-cl(tout*1.4-.4));
-   var m=tout>0?mix(ID,v.X,tout):mix(v.E,ID,tin);if(kio)m=mix([0,40,0,0,0,0,.9],ID,tin);
-   im.style.opacity=o.toFixed(3);im.style.visibility=o<.01?'hidden':'visible';im.style.zIndex=String(Math.round(10-Math.abs(d)*4));im.style.transform=tf(m)})}
+  imgs.forEach(function(im,k){var s=MAP[k],show=s===i&&!im.classList.contains('kio');
+   im.style.opacity=show?'1':'0';im.style.visibility=show?'visible':'hidden';im.style.zIndex='1';im.style.transform=show?'translate3d(0,0,0) scale(1)':'translate3d(0,8%,0) scale(.98)'})}
  function go(i){i=Math.max(0,Math.min(N-1,+i||0));var pin=run.firstElementChild,space=Math.max(0,run.offsetHeight-pin.offsetHeight),top=run.getBoundingClientRect().top+scrollY-((hd&&hd.offsetHeight)||64)+space*((i+.5)/N);scrollTo({top:top,left:0,behavior:'auto'});update((i+.5)/N)}
  $$('.day-steps a',run).forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();var i=+a.dataset.i;go(i);try{history.replaceState(null,'','#day-'+i)}catch(ignore){}})});
  if(!H.classList.contains('fx'))update(0);

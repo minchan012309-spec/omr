@@ -65,6 +65,8 @@ const runTo = async (page, id, p) => {
     assert.equal(await page.locator("#proof[data-fx='rise']").count(), 1, "a concrete learning-result scene follows the purpose message");
     assert.equal(await page.locator("#proof .proof-card").count(), 3, "result scene explains the three connected records");
     assert.deepEqual(await page.locator("#proof .proof-card h3").allTextContents(), ["학생에게 남는 기록", "다음 수업으로 가는 기준", "학원 운영까지 이어지는 알림"]);
+    assert.equal(await page.locator("#handoff[data-fx='rise'] .handoff-grid article").count(), 3, "intro explains the next action for each role");
+    assert.deepEqual(await page.locator("#handoff .handoff-grid h3").allTextContents(), ["오늘 풀 문제를 바로 봐요.", "다음 수업의 기준을 잡아요.", "묻기 전에 학습을 확인해요."]);
     assert.equal(await page.locator(".hero-logo").count(), 1, "hero uses one aligned logo lockup");
     const logoCenters = await page.locator(".hero-logo svg").evaluateAll((els) => els.map((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; }));
     assert.equal(logoCenters.length, 2);
@@ -173,6 +175,7 @@ const runTo = async (page, id, p) => {
       await runTo(page, "dayRun", (i + 0.5) / 9);
       assert.equal(await page.locator(".day-steps li.on").getAttribute("data-i"), String(i), "day step " + i);
       assert.equal(await page.locator(".dd.on").getAttribute("id"), "day-" + i);
+      assert.equal(await page.locator(".day-frame .shot").evaluateAll((shots) => shots.filter((shot) => +getComputedStyle(shot).opacity > .99).length), 1, "one academy capture stays readable at day step " + i);
     }
     for (const i of [0, 4, 8]) {
       await page.locator(".day-steps a").nth(i).click();
@@ -183,7 +186,7 @@ const runTo = async (page, id, p) => {
     const dayImgs = await page.locator(".day-frame .shot").evaluateAll((l) => l.map((i) => ({ ok: i.complete && i.naturalWidth > 0, src: i.getAttribute("src") })));
     for (const d of dayImgs) assert.ok(d.ok, "academy capture loads: " + d.src);
     assert.equal(await page.locator("#academy .academy-compare").count(), 1, "academy day includes an operational comparison");
-    assert.deepEqual(await page.locator("#academy .academy-compare h3").allTextContents(), ["따로 처리할 때", "Solvi로 이어질 때"]);
+    assert.deepEqual(await page.locator("#academy .academy-compare-grid h3").allTextContents(), ["따로 처리할 때", "Solvi로 이어질 때"]);
     assert.equal(await page.locator("#academy .academy-compare li").count(), 6, "comparison explains three concrete workflow differences");
     /* 기능 전체: 분야를 누르면 그 분야 카드만 */
     const specLayout = await page.locator(".spec-shell").evaluate((e) => { const n = e.querySelector(".spec-nav").getBoundingClientRect(), p = e.querySelector(".spec-panel").getBoundingClientRect(); return { side: n.right <= p.left, nav: n.width, panel: p.width }; });

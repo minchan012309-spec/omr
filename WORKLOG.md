@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-03 · Codex · codex/login-loading-apple-intro / PR #122
+- 한 일: 「학원의 하루」 스크롤 장면에서 이전·다음 캡처가 겹쳐 보이던 연출을 제거하고, 각 단계에 화면 한 장만 선명하게 보이게 했다. 학생 · 선생님 · 학부모별로 같은 기록에서 어떤 다음 행동을 받는지 설명하는 인트로 섹션을 추가했다.
+- 바뀐 파일: `intro.html`, `intro.css`, `intro.js`, `sw.js`, `tests/intro-regression.cjs`, `WORKLOG.md`.
+- 확인: `node scripts/verify-static.cjs`, 인트로 Playwright 회귀(데스크톱·태블릿·휴대폰 포함 5개 화면 크기) 통과. 각 학원의 하루 단계마다 표시되는 캡처가 정확히 한 장인지 검사했다.
+- 남은 일 · 주의: 실제 모바일 기기와 실제 Supabase 청구 전송은 확인하지 못했다.
+
 ## 2026-11-03 · Codex · codex/login-loading-apple-intro
 - 한 일: 전역 로딩 막대에 선 위 진행률과 남은 예상 시간을 표시하고, 로그인 화면의 「번호로 바로 채점」 보조 행동을 제거했다. 로그인·패스키 행동을 각각 여백 있는 한 줄 버튼으로 정리했다. 인트로는 Pretendard를 유지한 채 전시형 네이비·파란 포인트로 다듬고, 학습 결과가 학생·수업·운영으로 이어지는 장면과 「따로 처리할 때 / Solvi로 이어질 때」 학원의 하루 비교를 추가했다. 수납·운영 지연 화면은 `AcademyCore`가 없으면 공통 모듈을 먼저 복구해 청구 오류가 나지 않게 했다.
 - 바뀐 파일: `index.html`, `styles/legacy.css`, `styles/screens.css`, `intro.html`, `intro.css`, `sw.js`, 로그인·인트로·공통 모듈 회귀 테스트, 디자인 명세·계획 문서.
