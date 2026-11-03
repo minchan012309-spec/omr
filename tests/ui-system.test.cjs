@@ -22,6 +22,13 @@ test('external UI styles are linked in a stable cascade and cached', () => {
   }
 });
 
+test('수납·운영 지연 화면은 공통 AcademyCore가 없으면 먼저 복구해 불러온다', () => {
+  const app = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(app, /function academyCoreLoad\(\)/, 'lazy screen has an explicit shared-core recovery path');
+  assert.match(app, /\['acad','admin'\]\.includes\(f\)\?academyCoreLoad\(\):Promise\.resolve\(\)/, 'billing and operations wait for the shared core');
+  assert.match(app, /lib\/academy-core\.js\?v=2/, 'shared core cache revision is advanced');
+});
+
 test('tokens and shared components expose the rebuild contract', () => {
   const css = files.map(file => fs.readFileSync(path.join(root, 'styles', file), 'utf8')).join('\n');
   for (const token of ['--ui-ground', '--ui-surface', '--ui-raised', '--ui-border', '--ui-text', '--ui-muted', '--ui-accent', '--ui-accent-soft', '--ui-radius-panel', '--ui-radius-control']) {

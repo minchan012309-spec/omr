@@ -141,15 +141,28 @@ const focusedId = (page) => page.evaluate(() => document.activeElement && docume
         assert.ok(calls.some((c) => c.path.endsWith("/rpc/pa_login") && JSON.parse(c.body).p_login === "pa01"));
         assert.equal(await entryMode(page), true, "failed login stays on the login screen");
       });
-      await check(tag + ": number grading entry asks for the number then for login", async () => {
-        dialogs.length = 0;
-        await page.getByRole("button", { name: "번호로 바로 채점" }).click();
-        await page.waitForTimeout(400);
-        assert.match(dialogs.join("|"), /prompt:학습지 번호/);
-        /* 앱의 alert 는 토스트로 바뀌어 있다: 로그인 화면에서도 안내가 보여야 한다 */
-        assert.match(await page.locator("#toast").innerText(), /로그인/);
-        assert.equal(await shown(page, "#toast"), true);
+      await check(tag + ": login stays focused on account access", async () => {
+        assert.equal(await page.getByRole("button", { name: "번호로 바로 채점" }).count(), 0);
         assert.equal(await entryMode(page), true);
+      });
+      await check(tag + ": login actions are full-width rows with breathing room", async () => {
+        await page.click("#er-tab-teacher");
+        const actions = page.locator("#stbody > .btns");
+        const layout = await actions.evaluate((el) => ({ display: getComputedStyle(el).display, gap: parseFloat(getComputedStyle(el).gap), widths: [...el.querySelectorAll("button")].map((b) => ({ width: b.getBoundingClientRect().width, top: b.getBoundingClientRect().top })) }));
+        assert.equal(layout.display, "grid");
+        assert.ok(layout.gap >= 8);
+        assert.ok(layout.widths.every((b) => Math.abs(b.width - layout.widths[0].width) < 1), "all login actions share one clear width");
+        assert.ok(layout.widths.every((b, i) => i === 0 || b.top - layout.widths[i - 1].top >= 40), "login actions are separate rows");
+        await page.click("#er-tab-student");
+      });
+      await check(tag + ": loading gives percent and an estimated remaining time", async () => {
+        await page.evaluate(() => { void busyRun("학습지를 불러오는 중…", () => new Promise(() => {})); busyPct(42); });
+        assert.equal(await page.locator("#busy [data-busy-pct]").innerText(), "42%");
+        assert.match(await page.locator("#busy [data-busy-eta]").innerText(), /^약 [1-9]\d*초 남음$/);
+        const progress = await page.locator("#busy .bring").evaluate((bar) => { const p = bar.querySelector("[data-busy-pct]").getBoundingClientRect(), b = bar.getBoundingClientRect(); return { centered: Math.abs((p.left + p.width / 2) - (b.left + b.width / 2)) < 2, above: p.bottom <= b.top }; });
+        assert.equal(progress.centered && progress.above, true, "percent is above the loading line, not beside it");
+        await page.evaluate(() => busyKill());
+        await page.waitForTimeout(220);
       });
       await check(tag + ": tabs fit, no page overflow, nothing covers the form", async () => {
         assert.equal(await noOverflow(page), true);
@@ -437,7 +450,7 @@ const focusedId = (page) => page.evaluate(() => document.activeElement && docume
         const links = [...document.querySelectorAll('link[rel="stylesheet"][href^="styles/"]')].map((l) => "/" + l.getAttribute("href"));
         return { v, keys, links };
       });
-      assert.deepEqual(r.links, ["/styles/tokens.css?v=4", "/styles/legacy.css?v=4", "/styles/base.css?v=4", "/styles/shell.css?v=4", "/styles/components.css?v=4", "/styles/screens.css?v=4"]);
+      assert.deepEqual(r.links, ["/styles/tokens.css?v=4", "/styles/legacy.css?v=7", "/styles/base.css?v=4", "/styles/shell.css?v=4", "/styles/components.css?v=4", "/styles/screens.css?v=7"]);
       for (const l of r.links) assert.ok(r.keys.includes(l), "cached " + l);
       await page.reload();
       await page.waitForTimeout(800);
