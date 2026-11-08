@@ -2,6 +2,30 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-08 · Claude Code · claude/ui-redesign / PR #124 (승인 디자인 탑재)
+- 한 일: 사용자가 승인한 학습지 디자인 19종(W02·W03·W07·S01·S02·S05·K01·K05·K06·K07·M01·M03·M04·M06·P01·P02·P03·X04·X08)을 실제 학습지 엔진 `DZ_LIST`에 `sv-*` 키로 추가(기존 18종은 그대로). 모두 2단. 새 머리글 종류 `pub`(왼쪽 위 큰 숫자)은 `rec.bno`를 쓰고, 디자인 패널에 「머리 숫자」 입력칸(해당 디자인일 때만) 추가 — 저장·복사 경로(`saveW`, `wsOpts`, `wsMeta`, 재출제 등)에 `bno` 전달. S01은 반·번호·이름을 머리글 표 안에 넣음. 한 줄 제목은 넘치면 글자 크기를 줄여 맞춤(두 줄 금지). P03 난이도 점은 문항 번호의 `data-lv`(하·중·상).
+- 바뀐 파일: `index.html`, `sw.js`(v193), `design/worksheet-templates/templates.js`(미리보기도 전부 2단), `tests/ws-approved-styles.cjs`(새), `tests/run.cjs`.
+- 확인: 새 `ws-approved-styles`(19종 × 실제 문항: 2단, 머리글 쪽 안, 아주 긴 제목도 한 줄, 정보 줄·QR 겹침 없음, 머리 숫자 반영), 19종 첫 쪽 캡처 직접 확인, `worksheet-templates`·`print-regression`·`book-range`·`book-navigation`(단독 실행)·`app-ui` 42개·정적 검사 통과.
+- 남은 일 · 주의: 명조 디자인(K01·K05·K06·K07)은 기존 `myeong` 글꼴 설정을 따른다. 실제 프린터 출력·태블릿/휴대폰 PDF 저장은 확인하지 못함. 답안지·해설 쪽은 기존 공통 스타일을 그대로 쓴다.
+
+## 2026-11-08 · Claude Code · claude/ui-redesign / PR #124 (후속)
+- 한 일: 교재 목차 경로 표시가 `<nav>`라서 휴대폰에서 전역 `nav` 규칙 때문에 화면 아래에 고정되고, 책 이름이 두 줄로 넘치던 문제 수정(`div role=navigation`으로 바꿈). 데스크톱은 글자 링크 한 줄, 휴대폰은 「‹ 상위 단계」 하나만 표시. 목록 제목·설명은 한 줄 말줄임과 전체 이름 툴팁. 학습지 시안: 선지는 5칸 → 3칸 → 세로 순으로 한 줄에 들어가는 배치를 고르고, 배점은 앞 어절과 붙이고, 「(단, …)」 조건은 별도 줄로, 머리말·라벨은 한 줄로.
+- 바뀐 파일: `books.js`(v77), `styles/screens.css`(v11), `index.html`, `sw.js`(v192), `design/worksheet-templates/*`, `tests/worksheet-templates.cjs`(새), `tests/app-ui.cjs`, `tests/run.cjs`.
+- 확인: 새 `worksheet-templates` 회귀(시안 43개 × 1440·390, 두 줄 넘침·문장 끝 외톨이 글자·단 넘침 0건), 교재 화면 390·820·1440 줄넘김 검사 0건, `book-navigation`·`book-range`·`app-ui` 42개·정적 검사 통과.
+- 남은 일 · 주의: 시안은 여전히 승인 대기(제품 미연결). 실제 기기 미확인.
+
+## 2026-11-08 · Claude Code · claude/ui-redesign
+- 한 일: (1) 커밋되지 않았던 Codex의 교재 목록·목차 탐색·쪽 범위 채점·인쇄 빈 쪽 수정 작업을 이어받아 함께 올림. (2) 채점 범위를 여러 단원·여러 쪽 선택, 「이 단원 전체」, 쪽 번호 입력(`12-15, 18`), 한 쪽의 문항 번호 지정(`1-3, 5`, 연습 기록으로 채점)으로 확장하고 없는 쪽·문항 번호를 검증. 여러 쪽은 차례로 채점하며 결과 화면에서 남은 쪽을 이어 준다(`BKQ`). 채점 기록 형식은 그대로. (3) 「제출하기」 중복 실행 수정: `finish()`가 처리 중 같은 작업을 돌려주고 버튼을 잠그며, 저장 중 로딩 표시·저장 실패 시 다시 제출 안내. (4) 오답 해설: 「옳지 않은 것」 문항에서 내 판단이 반대로 표시되던 논리 오류(`diagnose`의 `believed`) 수정, 전역 `.fl` 스타일이 배지에 섞여 커지던 문제를 없애고 「내 판단 → 실제」 한 줄로 정리, 판단이 어긋난 선지만 강조. (5) 학습지·시험지 디자인 시안 43개를 `design/worksheet-templates/`에 미리보기 전용 갤러리로 추가(설정값 + 공통 렌더러, 자동 쪽 나누기, 흑백 보기, A4 인쇄). 참고 HWP 3개(평가원 국어 · 과탐 표지 · 지필평가)의 구조를 반영.
+- 바뀐 파일: `books.js`(v76), `index.html`, `styles/screens.css`(v10), `sw.js`(v191), `tests/book-range.cjs`(새), `tests/book-navigation.cjs`, `tests/app-ui.cjs`, `tests/run.cjs`, `design/worksheet-templates/*`.
+- 확인: `verify-static`, `book-entry` 단위, `book-navigation`(1440·820·390 가로 넘침 없음), 새 `book-range`(없는 쪽·문항 검증, 두 번 제출해도 기록 1개·결과 화면 1번), `app-ui` 42개, `print-regression` 7개 통과. 갤러리는 1440·390 캡처와 상세 보기 쪽 나누기(3~5쪽) 확인, 오답 해설은 1440·390 캡처로 확인.
+- 남은 일 · 주의: 시안은 **승인 전까지 제품 인쇄에 연결하지 않음**(sw.js SHELL에도 넣지 않음). 갤러리의 명조체는 시스템 글꼴(AppleMyungjo 등)이라 기기마다 다르게 보일 수 있음. 전체 `npm test`(DB 단계 포함), 실제 태블릿·휴대폰 기기는 확인하지 못함. 오답 해설의 실제 문항 데이터 대조는 표본 1건만 확인.
+
+## 2026-11-08 · Codex · codex/fix-blank-print
+- 한 일: 학습지 새 인쇄 창이 앱 공통 인쇄 CSS를 가져오면서 본문까지 `display:none!important`로 숨겨 빈 종이 1장만 나오던 오류 수정. 새 창의 `body>#paper`만 인쇄 시 표시하도록 하고 서비스 워커를 v189로 갱신.
+- 바뀐 파일: `index.html`, `sw.js`, `tests/print-regression.cjs`, `WORKLOG.md`.
+- 확인: 실제 학습지 새 창을 여는 회귀 테스트가 수정 전 `none !== block`으로 실패하고 수정 후 통과. 인쇄 회귀 7개·정적 스크립트 16개 파싱·diff 공백 검사 통과. 여러 쪽 PDF 생성 및 1440px 인쇄 모드 캡처에서 문제·그림·쪽 번호 표시 직접 확인.
+- 남은 일 · 주의: 실제 HP 프린터·브라우저 시스템 인쇄 대화상자·태블릿/휴대폰 실기기 및 820/390 화면은 확인하지 않음. 전체 npm test는 실행하지 않음. 커밋·푸시·배포하지 않음. 기존 스킬 설치 파일과 작업 기록 변경은 보존했으며, 브랜치 이동 중 보존용 stash도 남겨 둠.
+
 ## 2026-11-03 · Codex · codex/revert-pi-question-bank
 - 한 일: Raspberry Pi SSD 문제은행 원점·자동 JSON 업로드 백업·CasaOS 컨테이너 배포물을 제거하고, GitHub Pages 안의 기존 문제은행 파일과 수동 JSON 백업 내려받기 방식으로 복원.
 - 바뀐 파일: `index.html`, `sw.js`, Pi 전용 배포물·문서·테스트를 삭제하고 기존 문제은행 원점 회귀 테스트를 추가.
@@ -31,6 +55,18 @@
 - 바뀐 파일: `index.html`, `styles/legacy.css`, `styles/screens.css`, `intro.html`, `intro.css`, `intro.js`, `sw.js`, 운영 주소·패스키 함수 템플릿·SEO 문서·회귀 테스트.
 - 확인: 새 동작 계약 테스트 4개, 정적 스크립트 파싱 17개 통과. Chrome 인트로 회귀에서 데스크톱 히어로·유형 지도 캡처를 생성해 확인.
 - 남은 일 · 주의: 배포 뒤 Supabase에 `SITE_URL=https://solvi.win` 비밀값을 설정하고 `passkey` 함수를 재배포해야 한다. WebAuthn 보안 정책상 이전 주소에서 등록한 패스키는 새 주소에서 다시 등록해야 한다.
+
+## 2026-11-02 · Codex · codex/install-web-design-guidelines
+- 한 일: Vercel `web-design-guidelines` 최신 규칙으로 앱 본체·소개·문의/체험·지연 로드 운영 화면을 읽기 전용 점검.
+- 바뀐 파일: `WORKLOG.md`.
+- 확인: 최신 가이드라인을 받아 정적 규칙 검색을 수행했고, `node scripts/verify-static.cjs`는 통과. 전체 회귀는 로컬 서버 권한 제한 뒤 권한 확장 환경에서 시작해 다수의 정적·DB·브라우저 계약 검사가 통과했으나, 실행 세션 종료 상태를 최종 확인하지 못함.
+- 남은 일 · 주의: 키보드 접근성·시맨틱 요소·모달 포커스 관리는 별도 수정이 필요하며, 이번 요청에서는 코드 변경·커밋·푸시를 하지 않음.
+
+## 2026-11-02 · Codex · codex/install-web-design-guidelines
+- 한 일: `vercel-labs/agent-skills`의 `web-design-guidelines` 스킬을 설치.
+- 바뀐 파일: `.agents/skills/web-design-guidelines/`, `skills-lock.json`, `WORKLOG.md`.
+- 확인: `npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines`가 완료됐고 설치 경로 및 잠금 파일 항목을 확인.
+- 남은 일 · 주의: 설치된 스킬은 다음 대화부터 자동으로 사용할 수 있으며, 사용자가 요청하지 않아 커밋·푸시는 하지 않음.
 
 ## 2026-11-02 · Codex · codex/hl-note-loading-fix / PR #118
 - 한 일: 화법과 언어 교재에서 개념 정리를 선택하면 교재에 포함된 모든 소단원(Ⅰ-A부터 Ⅲ-C와 종합까지)의 개념 바로 앞마다 5장(10쪽)의 연한 줄 필기 노트를 반복해 넣도록 수정.
