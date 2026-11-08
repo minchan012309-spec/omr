@@ -168,11 +168,12 @@ const BKCSS=`
 .bkdoc .cbk .an{display:inline-block;text-align:center;line-height:1.1;vertical-align:bottom;margin:0 .3mm}.bkdoc .cbk .an u{display:block;text-decoration:none;border-bottom:.4mm solid var(--p);padding:0 .3mm}
 .bkdoc .cbk .an i{display:block;font-style:normal;font-size:8px;color:var(--pd);font-weight:700;line-height:1.35;letter-spacing:0;white-space:nowrap}
 .bkdoc .cbk ol.n,.bkdoc .cbk ol.st{margin:.8mm 0 2.2mm;padding-left:5mm}.bkdoc .cbk ol.st>li{margin:.9mm 0}
-.bkdoc .u.q .psg.sp{letter-spacing:.06em;line-height:2.45;margin-bottom:2mm}.bkdoc .u.q .psg.sp p{margin:0 0 1.4mm}
+.bkdoc .u.q .psg.sp{letter-spacing:.06em;line-height:2.45;margin-bottom:2mm}
+.bkdoc .u.q .psg{border:.25mm solid #222;padding:1.75mm 2.4mm;margin:0 0 2mm}.bkdoc .u.q .psg.sp p{margin:0 0 1.4mm}
 .bkdoc .u.q .bogi.lp p{line-height:1.8;letter-spacing:.01em;margin:0 0 1.4mm}.bkdoc .u.q.lw .bogi.lp{column-count:2;column-gap:6mm;column-rule:.2mm solid var(--line)}.bkdoc .u.q.lw .bogi.lp p{break-inside:avoid-column}.bkdoc .u.q.lw .bogi.lp .bt{column-span:all}.bkdoc .u.q .bogi.lp{padding-top:1.6mm}
 .bkdoc .psg .hd{position:static;height:auto;border-bottom:0;margin:0 0 2.4mm;letter-spacing:0;line-height:1.7}.bkdoc .psg .hd:after{display:none}
 .bkdoc .psgu .psg:not(.sp){font-size:12.2px;line-height:1.8;background:#fff}.bkdoc .psgu .psg:not(.sp) p{margin:0;text-indent:.7em}
-.bkdoc .psgu:not(.hdu) .psg:not(.sp){border-left:.25mm solid #222;border-right:.25mm solid #222;padding:0 2.4mm}.bkdoc .psgu.bt .psg:not(.sp){border-top:.25mm solid #222;padding-top:1.75mm}.bkdoc .psgu.bb .psg:not(.sp){border-bottom:.25mm solid #222;padding-bottom:1.75mm}
+.bkdoc .psgu:not(.hdu) .psg{border-left:.25mm solid #222;border-right:.25mm solid #222;padding:0 2.4mm}.bkdoc .psgu.bt .psg{border-top:.25mm solid #222;padding-top:1.75mm}.bkdoc .psgu.bb .psg{border-bottom:.25mm solid #222;padding-bottom:1.75mm}
 .bkdoc .psgu.hdu .psg p.hd{text-indent:0;margin:0 0 1.6mm;font-weight:700;line-height:1.6}.bkdoc .psgu .clp{overflow:hidden}
 /* 대화·토론 발화: 화자 열 | 내용 열, 둘째 줄부터 내용 열에 맞춤 */
 .bkdoc .dl:not(.bogi){display:grid;grid-template-columns:var(--spw,4.5em) 1fr;padding-bottom:.9mm;text-indent:0}.bkdoc .bogi.dl .dl:last-child{padding-bottom:0}.bkdoc .dl .sp{font-weight:700}.bkdoc .dl .sp:after{content:" :";font-weight:400}
@@ -295,7 +296,7 @@ function bkInit(){
  BKREADY=(async()=>{
   if(!document.getElementById('bkcss')){const s=document.createElement('style');s.id='bkcss';s.textContent=bkFontCss('')+BKSCR;document.head.appendChild(s)}
   try{await Promise.all([400,600,700,800].map(w=>document.fonts.load(w+' 12px Pretendard','가A1')).concat(document.fonts.load('400 12px YetHangul','\u1109\u119e')).concat(document.fonts.load('700 12px YetHangul','\u1109\u119e')))}catch(e){}
-  try{const r=await fetch('books/heights.json?v=5');if(r.ok)BKHT=await r.json()}catch(e){}
+  try{const r=await fetch('books/heights.json?v=6');if(r.ok)BKHT=await r.json()}catch(e){}
   if(!BKHT)BKHT={};
  })();
  return BKREADY;
@@ -575,9 +576,9 @@ function bkPsgUnits(key,psg,gc,o){o=o||{};const kids=[];
  const pc=o.note?'u psgu wd':'u psgu',ic=o.note?'psg sp':'psg',w=o.note?BK_FULLW:BK_COLW;
  return kids.map((el,i)=>{const hd=el.classList.contains('hd');let h=el.outerHTML;if(hd&&o.note)h=h.replace(/<b>\[[\d~\s]+\]<\/b>\s*/,''); // 필기용 지문은 원본 문항 번호 표시를 뗀다
   const tx=el.tagName==='P'&&!hd,dl=el.classList.contains('dl')&&!el.classList.contains('bogi');
-  const u=bkU('xp:'+key+':'+i,'<div class="'+pc+(hd?' hdu':'')+'"><div class="'+ic+'">'+h+'</div></div>',{w,keep:hd,pid:hd?null:key,nobox:!!o.note,lh:tx||dl?(o.note?BK_NLH:BK_PLH):0,ex:o.note?BK_NGAP:dl?BK_DLGAP:0});
+  const u=bkU('xp:'+key+':'+i,'<div class="'+pc+(hd?' hdu':'')+'"><div class="'+ic+'">'+h+'</div></div>',{w,keep:hd,pid:hd?null:key,nobox:false,lh:tx||dl?(o.note?BK_NLH:BK_PLH):0,ex:o.note?BK_NGAP:dl?BK_DLGAP:0});
   if(hd){u.hd=1;u.hdOf=key;u.gc=gc}return u}).map((u,i,a)=>{if(!u.hd){u.pf=!a.slice(0,i).some(x=>!x.hd);u.pl=i===a.length-1}return u})}
-function bkFixPsgNo(units,nums){units.forEach(u=>{if(u.gc){const ns=u.gc.map(c=>nums.get(c)).filter(Boolean).sort((a,b)=>a-b);if(ns.length)u.html=u.html.replace(/\[\d+(?:~\d+)?\]/,'['+(ns.length>1?ns[0]+'~'+ns[ns.length-1]:ns[0])+']')}})}
+function bkFixPsgNo(units,nums){units.forEach(u=>{if(u.gc){const ns=u.gc.map(c=>nums.get(c)).filter(Boolean).sort((a,b)=>a-b);if(ns.length)u.html=u.html.replace(/\[[^\]<]{1,12}\]/,'['+(ns.length>1?ns[0]+'~'+ns[ns.length-1]:ns[0])+']')}})}
 function bkStripPsg(q){const r=bkDoc(q.q);const ps=r.querySelector('.psg');const pg=ps?ps.outerHTML:'';if(ps)ps.remove();return {psg:pg,q:{...q,q:r.innerHTML}}}
 const bkMainSubs=(S,part)=>{const a=bkScope(S).filter(s=>part==='s'||part==='c'?s.k[0]==='Ⅰ':part==='g'||part==='o'?s.k[0]!=='Ⅰ':true);return part==='mg'?[...a.filter(s=>s.k[0]!=='Ⅰ'),...a.filter(s=>s.k[0]==='Ⅰ')]:a}; // 화법편(Ⅰ) · 언어편(Ⅱ·Ⅲ·종합) · 혼합(m: 단원 번호순, mg: 언어 먼저)
 const BKHM=[['hl-hs','화법편','화법만 · 지문 옆 필기 쪽'],['hl-hg','언어편','언어만 · 필기 없이 개념 + 문제 2단'],['hl-hm','화법+언어','혼합 · 화법 먼저(단원 번호순)'],['hl-hmg','화법+언어','혼합 · 언어 먼저']];
@@ -798,7 +799,12 @@ function bkPlanFull(id,d,rd){
  const used=[...new Set(qs.map(q=>q.sub))];
  const M={title:d.name,round:rd,sname:SNAME[SUBJ],codes:qs.map(q=>q.code),pts,tot:100,time:Math.max(30,Math.round(d.count*2.2/5)*5)+'분',range:subs.filter(s=>used.includes(s.k)).map(s=>s.k+' '+s.name)};
  const pages=[{k:'mcv'}];
- const us=qs.map((q,i)=>bkU('mq:'+q.code,bkQHtml(q,i+1,{pt:pts[q.code]}),{code:q.code,cls:'mk'}));
+ const us=[],nums=new Map(); // 지문 조각은 높이표 대신 지금 브라우저에서 재서(키 m:) 기기마다 글꼴 차이가 있어도 열 밖으로 넘치지 않게qs.forEach((q,i)=>nums.set(q.code,i+1));
+ qs.forEach((q,i)=>{const f=bkStripPsg(q),prev=qs[i-1];
+  if(f.psg&&!(q.grp&&prev&&prev.grp===q.grp)){const gc=[q.code];for(let j=i+1;q.grp&&qs[j]&&qs[j].grp===q.grp;j++)gc.push(qs[j].code);us.push(...bkPsgUnits('m:'+(q.grp||q.code),f.psg,gc))}
+  const h=bkQHtml(f.q,i+1,{pt:pts[q.code]});
+  us.push(/class="bogi lp"/.test(q.q)?bkU('mq:'+q.code+':lw',h.replace('class="u q"','class="u q lw"'),{code:q.code,cls:'mk',w:BK_FULLW,span:'brk'}):bkU('mq:'+q.code+(f.psg?':s':''),h,{code:q.code,cls:'mk'}))});
+ bkFixPsgNo(us,nums);
  const pp=bkPack(us,2,BK_BODY,BK_BODY-19);const nq=pp.length;
  pp.forEach((p,i)=>pages.push({k:'mq',kind:'q',label:'문제지',idx:i+1,of:nq,first:i===0,...bkCI(p),gaps:p.cols.map(c=>c.reduce((m,u)=>Math.max(m,u.pad||0),0)),codes:p.cols.flat().map(u=>u.code).filter(Boolean)}));
  const au=[bkU('fa:'+rd,'<div class="u ct"><span>정답표</span><small>'+d.count+'문항 · 100점</small></div>',{keep:true}),

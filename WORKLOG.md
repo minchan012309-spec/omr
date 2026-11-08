@@ -2,6 +2,18 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-09 · Claude Code · claude/worksheet-v2 / PR #125 (후속)
+- 한 일: 전범위 모의고사(`bkPlanFull`)에서 지문 딸린 국어 문항을 한 덩어리로 넣어 열보다 길면 최대 43cm까지 잘리던 문제 수정 — 지문을 `bkPsgUnits` 조각으로 나눠 열·쪽을 넘기고, 지시문 번호를 모의고사 번호로 바꿈(`bkFixPsgNo`가 [06-A] 같은 원본 번호도 처리), 긴 보기(lp)는 전폭. 모의고사 지문 조각은 높이표(맥에서 잰 값) 대신 보는 브라우저에서 직접 잼(키 `m:`) — CI(리눅스)에서 높이표 값으로는 12mm 넘침이 났음. 지문·보기 상자 누락 수정: 앱 풀이 화면·학습지의 `.q .psg`에 상자, 교재 문항 안 지문(`.u.q .psg`) 상자, 화법 필기용 지문(`psg sp`)도 상자(`nobox:false`). 화법과 언어 교재 높이 재측정(바뀐 값 2개, 다른 과목 그대로), `heights.json?v=6`.
+- 바뀐 파일: `books.js`(v78), `index.html`, `sw.js`(v195), `books/heights.json`, `tests/book-mock-passage.cjs`(새), `tests/run.cjs`.
+- 확인: 수정 전 국어 1~3회에서 잘림 10건 재현 → 0건. 새 `book-mock-passage`(국어·과학 1~3회 잘림 없음, 학습지·화면 지문·보기 상자), `book-pdf`·`print-regression`·`ws-approved-styles`·`book-range`·`book-navigation`·`hl-concept-regression`·`app-ui`·정적 검사 통과. 이어지는 지문 쪽을 캡처로 확인.
+- 남은 일 · 주의: 화법 필기용 지문 상자 때문에 화법편 주교재 일부 쪽 나눔이 달라질 수 있음(높이 2개 변경). 실제 인쇄물 미확인.
+
+## 2026-11-09 · Claude Code · claude/worksheet-v2
+- 한 일: 학습지 디자인을 전부 교체. 기존 37종(예전 17종 + 1차 승인 19종)을 지우고, 2차 시안에서 사용자가 고른 13종(수능형 · 학교 지필 표/간결 · 모의고사 회차 · 단원평가 칸 · 교재 정통/모던 · 문제집 · 명조 교과서 · 에디토리얼 · 노트형 · 학원 프린트 · 회색 정보줄)과 장식 없는 「기본」(`w-simple`, 새 기본값)만 `DZ_LIST`에 둠. 모두 2단·문항 번호는 숫자만·<보기>는 검은 실선 상자. 예전 키는 `STYLE_LEGACY`로 가장 비슷한 새 디자인에 연결(이미 만든 학습지도 열림). 수능형은 디자인 패널에서 「영역」「교시」를 직접 입력(`rec.karea`·`rec.kper`, 저장·복사 경로에 전달). 국어 학습지 수능형 기본 영역을 「국어 영역」·1교시로, 문단형 보기의 내어쓰기 제거(`.bogi p.pr`), 세로 선지 ① 뒤 간격.
+- 바뀐 파일: `index.html`, `sw.js`(v194), `tests/ws-approved-styles.cjs`(14종용으로 다시 씀), `tests/run.cjs`, `tools/worksheet_previews.cjs`(디자인 첫 쪽 캡처 도구). 1차 시안 갤러리 `design/worksheet-templates/`와 그 테스트는 삭제.
+- 확인: `ws-approved-styles`(14종 × 실제 문항: 2단, 머리글 쪽 안, 긴 제목·QR 번호 한 줄, 정보 줄·QR 겹침 없음, 번호 장식 없음, 수능형 영역·교시 반영, 예전 키 연결), 14종 국어·과학 첫 쪽 캡처 직접 확인, `print-regression`·`book-range`·`app-ui` 42개·정적 검사 통과.
+- 남은 일 · 주의: 실제 프린터 출력·태블릿/휴대폰 PDF 저장 미확인. 예전 디자인 보조 코드(DZH·DZQ 등 일부)는 새 디자인이 재사용하므로 남겨 둠.
+
 ## 2026-11-08 · Claude Code · claude/ui-redesign / PR #124 (승인 디자인 탑재)
 - 한 일: 사용자가 승인한 학습지 디자인 19종(W02·W03·W07·S01·S02·S05·K01·K05·K06·K07·M01·M03·M04·M06·P01·P02·P03·X04·X08)을 실제 학습지 엔진 `DZ_LIST`에 `sv-*` 키로 추가(기존 18종은 그대로). 모두 2단. 새 머리글 종류 `pub`(왼쪽 위 큰 숫자)은 `rec.bno`를 쓰고, 디자인 패널에 「머리 숫자」 입력칸(해당 디자인일 때만) 추가 — 저장·복사 경로(`saveW`, `wsOpts`, `wsMeta`, 재출제 등)에 `bno` 전달. S01은 반·번호·이름을 머리글 표 안에 넣음. 한 줄 제목은 넘치면 글자 크기를 줄여 맞춤(두 줄 금지). P03 난이도 점은 문항 번호의 `data-lv`(하·중·상).
 - 바뀐 파일: `index.html`, `sw.js`(v193), `design/worksheet-templates/templates.js`(미리보기도 전부 2단), `tests/ws-approved-styles.cjs`(새), `tests/run.cjs`.
