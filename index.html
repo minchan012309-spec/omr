@@ -1061,7 +1061,7 @@ async function finish0(force){
  scrollTo(0,0);render()}
 /* ---------- 교재 탭 (books.js 를 처음 열 때 불러옴) ---------- */
 let _bkp=null;
-function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=77';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
+function bkLoad(){if(window.bkShow)return Promise.resolve();return _bkp||(_bkp=new Promise((res,rej)=>{const s=document.createElement('script');s.src='books.js?v=78';s.onload=res;s.onerror=()=>{_bkp=null;rej(new Error('books'))};document.head.appendChild(s)}))}
 function booksView(){$('#main').innerHTML='<div class="card">'+ldg('교재를 불러오는 중…')+'</div>';bkLoad().then(()=>{if(tab==='books')return bkShow()}).then(()=>{if(tab==='books'&&typeof BKV!=='undefined'&&BKV.v==='shelf'&&!$('#bkstbar'))$('#main').insertAdjacentHTML('afterbegin','<div class="hint" id="bkstbar" style="margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span>교재를 얼마나 채점했는지, 어느 쪽이 남았는지 한눈에 볼 수 있어요.</span><button class="p sm" style="margin-left:auto" onclick="REC.m=\'book\';tab=\'rec\';render()">교재 현황 보기</button></div>')}).catch(()=>{$('#main').innerHTML='<div class="card"><h2>교재</h2><p>교재를 불러오지 못했습니다. 인터넷 연결을 확인하고 다시 눌러 주세요.</p><button class="p" onclick="render()">다시 시도</button></div>'})}
 function bkPageSolve(){const id=$('#bpb').value,n=parseInt($('#bp').value);if(!n){alert('쪽 번호를 입력하세요.');return}bkLoad().then(()=>bkSolve(id,n)).catch(()=>alert('교재를 불러오지 못했습니다.'))}
 function bkPageGo(){const g=+($('#bpgap')||{value:0}).value;const id=$('#bpb').value+(g?'~g'+g:''),n=parseInt($('#bp').value);if(!n){alert('쪽 번호를 입력하세요.');return}bkLoad().then(()=>bkGradePage(id,n)).catch(()=>alert('교재를 불러오지 못했습니다.'))}
@@ -2881,6 +2881,8 @@ const CBCSS=`.cbk{--p:#2f9d66;--pd:#1f7d4e;--pl:#eefcf5;--pl2:#d9f8e8;--line:#b0
 .cbk .an i{display:block;font-style:normal;font-size:.66em;color:var(--pd);font-weight:700;line-height:1.35;letter-spacing:0;white-space:nowrap}
 .cbk ol.n,.cbk ol.st{margin:.3em 0 .8em;padding-left:1.7em}.cbk ol.st>li{margin:.3em 0;padding-left:.2em}.cbk ol.st>li::marker{color:var(--pd);font-weight:700}
 .cbk .psg.sp,.q .psg.sp{letter-spacing:.06em;line-height:2.5}.q .bogi.lp p{line-height:2;letter-spacing:.03em;margin:0 0 .6em}.q .psg.sp p{margin:0 0 .5em}
+.q .psg{border:.3mm solid var(--ink,#1a1a1a);padding:2.6mm 3mm;margin:2mm 0 3mm}
+.q .psg .hd{margin:0 0 1.6mm}
 `;
 function cbTheme(css){const pl=(CONC[SUBJ]||{}).pal;if(!pl)return css;return css.replace(/#2f9d66/g,pl.p).replace(/#1f7d4e/g,pl.pd).replace(/#eefcf5/g,pl.pl).replace(/#d9f8e8/g,pl.pl2).replace(/#b0e3c9/g,pl.line)}
 async function cbLoad(){await conceptLoad();const C=CONC[SUBJ];if(C&&!CB.cur)CB.cur=C.secs[0].id;return C}
