@@ -23,19 +23,19 @@ const SAMPLE=[
 const T=[
  // 기본 학습지
  {id:'W01',cat:'기본 학습지',name:'클린 2단',head:'minimal',num:'bold',cols:2,rule:1,ac:'#2f7fd0',font:'sans',fs:13,lh:1.7,foot:'simple'},
- {id:'W02',cat:'기본 학습지',name:'번호 원형 1단',head:'tab',num:'circle',cols:1,ac:'#1f6f5c',font:'sans',fs:13.5,lh:1.75,ch:'row',qsep:'line',memo:'lines',foot:'brand'},
+ {id:'W02',cat:'기본 학습지',name:'번호 원형 1단',head:'tab',num:'circle',cols:2,rule:1,ac:'#1f6f5c',font:'sans',fs:13.5,lh:1.75,ch:'row',qsep:'line',memo:'lines',foot:'brand'},
  {id:'W03',cat:'기본 학습지',name:'두 자리 번호',head:'publisher',num:'two',cols:2,rule:0,ac:'#334155',font:'sans',fs:12.8,lh:1.7,foot:'simple'},
  {id:'W04',cat:'기본 학습지',name:'카드 문항',head:'card',num:'pill',cols:2,ac:'#6741d9',font:'sans',fs:12.6,lh:1.65,qsep:'card',foot:'brand'},
- {id:'W05',cat:'기본 학습지',name:'풀이 공간 넉넉',head:'minimal',num:'square',cols:1,ac:'#0b7285',font:'sans',fs:13.5,lh:1.75,memo:'grid',qsep:'line',foot:'simple'},
+ {id:'W05',cat:'기본 학습지',name:'풀이 공간 넉넉',head:'minimal',num:'square',cols:2,rule:1,ac:'#0b7285',font:'sans',fs:13.5,lh:1.75,memo:'grid',qsep:'line',foot:'simple'},
  {id:'W06',cat:'기본 학습지',name:'숙제 확인형',head:'check',num:'plain',cols:2,rule:1,ac:'#c2410c',font:'sans',fs:12.8,lh:1.7,foot:'brand'},
  {id:'W07',cat:'기본 학습지',name:'점선 구분',head:'center',num:'under',cols:2,rule:1,dash:1,ac:'#1e3a8a',font:'sans',fs:12.8,lh:1.7,qsep:'dot',foot:'simple'},
  // 학교 지필평가
  {id:'S01',cat:'학교 지필평가',name:'지필평가 표준',head:'school',num:'plain',cols:2,rule:1,ac:'#111',font:'serif',fs:13,lh:1.7,foot:'school',gray:1},
  {id:'S02',cat:'학교 지필평가',name:'지필평가 요약표',head:'schoolTable',num:'plain',cols:2,rule:1,ac:'#111',font:'serif',fs:12.8,lh:1.65,foot:'school',gray:1},
- {id:'S03',cat:'학교 지필평가',name:'서술형 답란 포함',head:'school',num:'plain',cols:1,ac:'#111',font:'serif',fs:13.5,lh:1.75,memo:'box',foot:'school',gray:1},
+ {id:'S03',cat:'학교 지필평가',name:'서술형 답란 포함',head:'school',num:'plain',cols:2,rule:1,ac:'#111',font:'serif',fs:13.5,lh:1.75,memo:'box',foot:'school',gray:1},
  {id:'S04',cat:'학교 지필평가',name:'배점 오른쪽 정렬',head:'schoolLine',num:'plain',cols:2,rule:1,ac:'#222',font:'serif',fs:12.8,lh:1.7,ptRight:1,foot:'school',gray:1},
  {id:'S05',cat:'학교 지필평가',name:'단원평가',head:'unitTest',num:'square',cols:2,rule:1,ac:'#2f7fd0',font:'sans',fs:12.8,lh:1.7,foot:'school'},
- {id:'S06',cat:'학교 지필평가',name:'수행평가 기록지',head:'perf',num:'pill',cols:1,ac:'#2b8a3e',font:'sans',fs:13.5,lh:1.75,memo:'box',foot:'simple'},
+ {id:'S06',cat:'학교 지필평가',name:'수행평가 기록지',head:'perf',num:'pill',cols:2,rule:1,ac:'#2b8a3e',font:'sans',fs:13.5,lh:1.75,memo:'box',foot:'simple'},
  {id:'S07',cat:'학교 지필평가',name:'중간고사 대비',head:'schoolBand',num:'bold',cols:2,rule:1,ac:'#364fc7',font:'sans',fs:12.8,lh:1.7,foot:'school'},
  // 수능 · 평가원형
  {id:'K01',cat:'수능 · 평가원형',name:'평가원 국어형',head:'kice',num:'plain',cols:2,rule:1,ac:'#111',font:'serif',fs:13,lh:1.72,foot:'kice',gray:1,subj:'국어 영역',sess:'제1교시'},
@@ -47,8 +47,8 @@ const T=[
  {id:'K07',cat:'수능 · 평가원형',name:'파이널 봉투형',head:'final',num:'bold',cols:2,rule:1,ac:'#0f172a',font:'mix',fs:12.8,lh:1.68,foot:'kice',subj:'국어 영역'},
  // 미니멀
  {id:'M01',cat:'미니멀',name:'헤어라인',head:'hair',num:'plain',cols:2,rule:0,ac:'#111',font:'sans',fs:12.6,lh:1.8,foot:'tiny',light:1},
- {id:'M02',cat:'미니멀',name:'큰 여백 1단',head:'hair',num:'two',cols:1,ac:'#111',font:'sans',fs:13.5,lh:1.85,foot:'tiny',margin:[64,84],light:1},
- {id:'M03',cat:'미니멀',name:'왼쪽 번호 열',head:'minimal',num:'hang',cols:1,ac:'#475569',font:'sans',fs:13.5,lh:1.75,foot:'tiny'},
+ {id:'M02',cat:'미니멀',name:'큰 여백 1단',head:'hair',num:'two',cols:2,rule:1,ac:'#111',font:'sans',fs:13.5,lh:1.85,foot:'tiny',margin:[64,84],light:1},
+ {id:'M03',cat:'미니멀',name:'왼쪽 번호 열',head:'minimal',num:'hang',cols:2,rule:1,ac:'#475569',font:'sans',fs:13.5,lh:1.75,foot:'tiny'},
  {id:'M04',cat:'미니멀',name:'모노 그레이',head:'mono',num:'square',cols:2,rule:1,ac:'#52525b',font:'sans',fs:12.6,lh:1.7,foot:'tiny',gray:1},
  {id:'M05',cat:'미니멀',name:'세리프 에디토리얼',head:'center',num:'plain',cols:2,rule:0,ac:'#111',font:'serif',fs:13,lh:1.8,foot:'tiny'},
  {id:'M06',cat:'미니멀',name:'Q 표기',head:'hair',num:'q',cols:2,rule:0,ac:'#2f7fd0',font:'sans',fs:12.6,lh:1.75,foot:'tiny'},
@@ -58,7 +58,7 @@ const T=[
  {id:'P02',cat:'프리미엄 교재',name:'개념 요약 + 문제',head:'concept',num:'two',cols:2,rule:1,ac:'#1f6f5c',font:'sans',fs:12.6,lh:1.7,box:'top',foot:'brand'},
  {id:'P03',cat:'프리미엄 교재',name:'난이도 표시',head:'tab',num:'level',cols:2,rule:1,ac:'#6741d9',font:'sans',fs:12.6,lh:1.7,box:'fill',foot:'brand'},
  {id:'P04',cat:'프리미엄 교재',name:'유형 라벨',head:'band',num:'pill',cols:2,rule:0,ac:'#0b7285',font:'sans',fs:12.6,lh:1.7,typeLabel:1,foot:'brand'},
- {id:'P05',cat:'프리미엄 교재',name:'클래식 교과서',head:'center',num:'circle',cols:1,ac:'#7c2d12',font:'serif',fs:13.5,lh:1.8,box:'corner',memo:'lines',foot:'simple'},
+ {id:'P05',cat:'프리미엄 교재',name:'클래식 교과서',head:'center',num:'circle',cols:2,rule:1,ac:'#7c2d12',font:'serif',fs:13.5,lh:1.8,box:'corner',memo:'lines',foot:'simple'},
  {id:'P06',cat:'프리미엄 교재',name:'다크 머리 띠',head:'band',num:'square',cols:2,rule:1,ac:'#0f172a',font:'sans',fs:12.6,lh:1.7,box:'top',foot:'brand'},
  {id:'P07',cat:'프리미엄 교재',name:'목표 체크',head:'goal',num:'bold',cols:2,rule:1,ac:'#c2410c',font:'mix',fs:12.6,lh:1.7,box:'fill',foot:'brand'},
  // 과목별
@@ -66,8 +66,8 @@ const T=[
  {id:'X02',cat:'과목별',name:'국어 문법 판단',head:'minimal',num:'circle',cols:2,rule:0,ac:'#e67700',font:'sans',fs:12.8,lh:1.72,ox:1,foot:'brand'},
  {id:'X03',cat:'과목별',name:'과학 자료 해석',head:'concept',num:'square',cols:2,rule:1,ac:'#2f7fd0',font:'sans',fs:12.6,lh:1.68,box:'fill',figFrame:1,foot:'brand'},
  {id:'X04',cat:'과목별',name:'물리 공식 강조',head:'publisher',num:'two',cols:2,rule:1,ac:'#6741d9',font:'mix',fs:12.8,lh:1.75,formula:1,foot:'brand'},
- {id:'X05',cat:'과목별',name:'생명 탐구 기록',head:'perf',num:'pill',cols:1,ac:'#2b8a3e',font:'sans',fs:13.2,lh:1.75,memo:'lines',figFrame:1,foot:'simple'},
- {id:'X06',cat:'과목별',name:'오답 노트',head:'note',num:'square',cols:1,ac:'#c92a2a',font:'sans',fs:13,lh:1.7,memo:'split',foot:'simple'},
+ {id:'X05',cat:'과목별',name:'생명 탐구 기록',head:'perf',num:'pill',cols:2,rule:1,ac:'#2b8a3e',font:'sans',fs:13.2,lh:1.75,memo:'lines',figFrame:1,foot:'simple'},
+ {id:'X06',cat:'과목별',name:'오답 노트',head:'note',num:'square',cols:2,rule:1,ac:'#c92a2a',font:'sans',fs:13,lh:1.7,memo:'split',foot:'simple'},
  {id:'X07',cat:'과목별',name:'OX 개념 점검',head:'check',num:'bold',cols:2,rule:1,ac:'#0b7285',font:'sans',fs:12.6,lh:1.7,ox:1,foot:'brand'},
  {id:'X08',cat:'과목별',name:'주간 테스트',head:'weekly',num:'plain',cols:2,rule:1,ac:'#2f7fd0',font:'sans',fs:12.6,lh:1.68,foot:'school'}
 ];

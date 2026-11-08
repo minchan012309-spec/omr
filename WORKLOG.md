@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-08 · Claude Code · claude/ui-redesign / PR #124 (승인 디자인 탑재)
+- 한 일: 사용자가 승인한 학습지 디자인 19종(W02·W03·W07·S01·S02·S05·K01·K05·K06·K07·M01·M03·M04·M06·P01·P02·P03·X04·X08)을 실제 학습지 엔진 `DZ_LIST`에 `sv-*` 키로 추가(기존 18종은 그대로). 모두 2단. 새 머리글 종류 `pub`(왼쪽 위 큰 숫자)은 `rec.bno`를 쓰고, 디자인 패널에 「머리 숫자」 입력칸(해당 디자인일 때만) 추가 — 저장·복사 경로(`saveW`, `wsOpts`, `wsMeta`, 재출제 등)에 `bno` 전달. S01은 반·번호·이름을 머리글 표 안에 넣음. 한 줄 제목은 넘치면 글자 크기를 줄여 맞춤(두 줄 금지). P03 난이도 점은 문항 번호의 `data-lv`(하·중·상).
+- 바뀐 파일: `index.html`, `sw.js`(v193), `design/worksheet-templates/templates.js`(미리보기도 전부 2단), `tests/ws-approved-styles.cjs`(새), `tests/run.cjs`.
+- 확인: 새 `ws-approved-styles`(19종 × 실제 문항: 2단, 머리글 쪽 안, 아주 긴 제목도 한 줄, 정보 줄·QR 겹침 없음, 머리 숫자 반영), 19종 첫 쪽 캡처 직접 확인, `worksheet-templates`·`print-regression`·`book-range`·`book-navigation`(단독 실행)·`app-ui` 42개·정적 검사 통과.
+- 남은 일 · 주의: 명조 디자인(K01·K05·K06·K07)은 기존 `myeong` 글꼴 설정을 따른다. 실제 프린터 출력·태블릿/휴대폰 PDF 저장은 확인하지 못함. 답안지·해설 쪽은 기존 공통 스타일을 그대로 쓴다.
+
 ## 2026-11-08 · Claude Code · claude/ui-redesign / PR #124 (후속)
 - 한 일: 교재 목차 경로 표시가 `<nav>`라서 휴대폰에서 전역 `nav` 규칙 때문에 화면 아래에 고정되고, 책 이름이 두 줄로 넘치던 문제 수정(`div role=navigation`으로 바꿈). 데스크톱은 글자 링크 한 줄, 휴대폰은 「‹ 상위 단계」 하나만 표시. 목록 제목·설명은 한 줄 말줄임과 전체 이름 툴팁. 학습지 시안: 선지는 5칸 → 3칸 → 세로 순으로 한 줄에 들어가는 배치를 고르고, 배점은 앞 어절과 붙이고, 「(단, …)」 조건은 별도 줄로, 머리말·라벨은 한 줄로.
 - 바뀐 파일: `books.js`(v77), `styles/screens.css`(v11), `index.html`, `sw.js`(v192), `design/worksheet-templates/*`, `tests/worksheet-templates.cjs`(새), `tests/app-ui.cjs`, `tests/run.cjs`.
