@@ -799,9 +799,9 @@ function bkPlanFull(id,d,rd){
  const used=[...new Set(qs.map(q=>q.sub))];
  const M={title:d.name,round:rd,sname:SNAME[SUBJ],codes:qs.map(q=>q.code),pts,tot:100,time:Math.max(30,Math.round(d.count*2.2/5)*5)+'분',range:subs.filter(s=>used.includes(s.k)).map(s=>s.k+' '+s.name)};
  const pages=[{k:'mcv'}];
- const us=[],nums=new Map();qs.forEach((q,i)=>nums.set(q.code,i+1));
+ const us=[],nums=new Map(); // 지문 조각은 높이표 대신 지금 브라우저에서 재서(키 m:) 기기마다 글꼴 차이가 있어도 열 밖으로 넘치지 않게qs.forEach((q,i)=>nums.set(q.code,i+1));
  qs.forEach((q,i)=>{const f=bkStripPsg(q),prev=qs[i-1];
-  if(f.psg&&!(q.grp&&prev&&prev.grp===q.grp)){const gc=[q.code];for(let j=i+1;q.grp&&qs[j]&&qs[j].grp===q.grp;j++)gc.push(qs[j].code);us.push(...bkPsgUnits(q.grp||q.code,f.psg,gc))}
+  if(f.psg&&!(q.grp&&prev&&prev.grp===q.grp)){const gc=[q.code];for(let j=i+1;q.grp&&qs[j]&&qs[j].grp===q.grp;j++)gc.push(qs[j].code);us.push(...bkPsgUnits('m:'+(q.grp||q.code),f.psg,gc))}
   const h=bkQHtml(f.q,i+1,{pt:pts[q.code]});
   us.push(/class="bogi lp"/.test(q.q)?bkU('mq:'+q.code+':lw',h.replace('class="u q"','class="u q lw"'),{code:q.code,cls:'mk',w:BK_FULLW,span:'brk'}):bkU('mq:'+q.code+(f.psg?':s':''),h,{code:q.code,cls:'mk'}))});
  bkFixPsgNo(us,nums);
