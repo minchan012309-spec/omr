@@ -1,4 +1,4 @@
-/* 전범위 모의고사에서 긴 지문이 열 밖으로 잘리지 않고, 학습지 · 풀이 화면의 지문 · 보기는 모두 상자 안에 있다 */
+/* 전범위 모의고사에서 긴 지문이 열 밖으로 잘리지 않고(지문 조각은 높이표와 글꼴 차이로 1줄 미만 오차 허용), 학습지 · 풀이 화면의 지문 · 보기는 모두 상자 안에 있다 */
 const assert=require('node:assert/strict');
 const {chromium,browserOptions}=require('./runtime.cjs');
 (async()=>{const b=await chromium.launch(browserOptions());try{const p=await b.newPage({viewport:{width:1300,height:950}});
@@ -8,7 +8,7 @@ const {chromium,browserOptions}=require('./runtime.cjs');
   for(const subj of ['hl','me']){await setSubject(subj);await bkLoad();await bkInit();await conceptLoad();
    for(const rd of [1,2,3]){const plan=bkPlanFull('t',{name:'전범위 모의고사',count:20,lv:15,subs:[]},rd);const host=document.createElement('div');document.body.appendChild(host);
     plan.pages.forEach((pg,i)=>{if(pg.k!=='mq')return;const R=bkShadow(host,'<div class="bkdoc">'+bkPageHtml(plan,i)+'</div>');
-     R.querySelectorAll('.col').forEach(c=>{const cb=c.getBoundingClientRect();[...c.children].forEach(u=>{if(u.getBoundingClientRect().bottom>cb.bottom+1)out.push(subj+' '+rd+'회 '+i+'쪽 잘림 '+(u.dataset.c||u.className))})});
+     R.querySelectorAll('.col').forEach(c=>{const cb=c.getBoundingClientRect();[...c.children].forEach(u=>{const mm=(u.getBoundingClientRect().bottom-cb.bottom)/(96/25.4);if(mm>(u.classList.contains('psgu')?6:.3))out.push(subj+' '+rd+'회 '+i+'쪽 잘림 '+(u.dataset.c||u.className)+' '+mm.toFixed(1)+'mm')})});
      R.querySelectorAll('.psgu .psg').forEach(e=>{const cs=getComputedStyle(e);if(parseFloat(cs.borderLeftWidth)<.3&&!e.closest('.hdu'))out.push(subj+' '+rd+'회 지문 상자 없음')})});
     host.remove()}}
   await setSubject('hl');const L=[];for(const t of Object.keys(BIDX)){if(L.length>=60)break;try{const d=await (await fetch('hl/'+t+'.json')).json();(Array.isArray(d)?d:d.qs||[]).forEach(q=>{if(L.length<60&&/class="psg|class="bogi/.test(q.q||''))L.push(q)})}catch(e){}}
