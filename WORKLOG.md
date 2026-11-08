@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-08 · Claude Code · claude/ui-redesign / PR #124 (후속)
+- 한 일: 교재 목차 경로 표시가 `<nav>`라서 휴대폰에서 전역 `nav` 규칙 때문에 화면 아래에 고정되고, 책 이름이 두 줄로 넘치던 문제 수정(`div role=navigation`으로 바꿈). 데스크톱은 글자 링크 한 줄, 휴대폰은 「‹ 상위 단계」 하나만 표시. 목록 제목·설명은 한 줄 말줄임과 전체 이름 툴팁. 학습지 시안: 선지는 5칸 → 3칸 → 세로 순으로 한 줄에 들어가는 배치를 고르고, 배점은 앞 어절과 붙이고, 「(단, …)」 조건은 별도 줄로, 머리말·라벨은 한 줄로.
+- 바뀐 파일: `books.js`(v77), `styles/screens.css`(v11), `index.html`, `sw.js`(v192), `design/worksheet-templates/*`, `tests/worksheet-templates.cjs`(새), `tests/app-ui.cjs`, `tests/run.cjs`.
+- 확인: 새 `worksheet-templates` 회귀(시안 43개 × 1440·390, 두 줄 넘침·문장 끝 외톨이 글자·단 넘침 0건), 교재 화면 390·820·1440 줄넘김 검사 0건, `book-navigation`·`book-range`·`app-ui` 42개·정적 검사 통과.
+- 남은 일 · 주의: 시안은 여전히 승인 대기(제품 미연결). 실제 기기 미확인.
+
 ## 2026-11-08 · Claude Code · claude/ui-redesign
 - 한 일: (1) 커밋되지 않았던 Codex의 교재 목록·목차 탐색·쪽 범위 채점·인쇄 빈 쪽 수정 작업을 이어받아 함께 올림. (2) 채점 범위를 여러 단원·여러 쪽 선택, 「이 단원 전체」, 쪽 번호 입력(`12-15, 18`), 한 쪽의 문항 번호 지정(`1-3, 5`, 연습 기록으로 채점)으로 확장하고 없는 쪽·문항 번호를 검증. 여러 쪽은 차례로 채점하며 결과 화면에서 남은 쪽을 이어 준다(`BKQ`). 채점 기록 형식은 그대로. (3) 「제출하기」 중복 실행 수정: `finish()`가 처리 중 같은 작업을 돌려주고 버튼을 잠그며, 저장 중 로딩 표시·저장 실패 시 다시 제출 안내. (4) 오답 해설: 「옳지 않은 것」 문항에서 내 판단이 반대로 표시되던 논리 오류(`diagnose`의 `believed`) 수정, 전역 `.fl` 스타일이 배지에 섞여 커지던 문제를 없애고 「내 판단 → 실제」 한 줄로 정리, 판단이 어긋난 선지만 강조. (5) 학습지·시험지 디자인 시안 43개를 `design/worksheet-templates/`에 미리보기 전용 갤러리로 추가(설정값 + 공통 렌더러, 자동 쪽 나누기, 흑백 보기, A4 인쇄). 참고 HWP 3개(평가원 국어 · 과탐 표지 · 지필평가)의 구조를 반영.
 - 바뀐 파일: `books.js`(v76), `index.html`, `styles/screens.css`(v10), `sw.js`(v191), `tests/book-range.cjs`(새), `tests/book-navigation.cjs`, `tests/app-ui.cjs`, `tests/run.cjs`, `design/worksheet-templates/*`.

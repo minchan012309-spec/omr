@@ -11,10 +11,10 @@ const SAMPLE=[
  {psg:'[1～2] 다음 글을 읽고 물음에 답하시오.',body:['글을 읽는 사람은 문장을 하나씩 받아들이는 데 그치지 않고, 앞에서 읽은 내용과 지금 읽는 내용을 끊임없이 연결한다. 이처럼 독자가 글의 정보를 서로 관련지어 하나의 의미 구조로 만드는 과정을 통합적 이해라 한다.','통합적 이해가 잘 이루어지려면 독자는 글의 중심 화제를 먼저 파악하고, 세부 정보가 그 화제와 어떤 관계에 있는지 판단해야 한다. ㉠<u>세부 정보를 중심 화제에 비추어 재배열하는 일</u>은 처음에는 느리지만, 익숙해지면 긴 글에서도 흐름을 놓치지 않게 해 준다.','한편 배경지식이 풍부한 독자는 글에 드러나지 않은 정보를 스스로 채워 넣기도 한다. 그러나 이러한 추론이 글의 내용과 어긋나면 오히려 이해를 방해할 수 있으므로, 독자는 자신의 추론을 글의 근거에 비추어 점검해야 한다.']},
  {q:'윗글의 내용과 일치하지 <u>않는</u> 것은?',ch:['독자는 앞뒤 내용을 연결하며 글을 읽는다.','통합적 이해는 정보를 하나의 의미 구조로 만드는 과정이다.','중심 화제를 파악하는 일은 세부 정보 판단보다 먼저 이루어진다.','배경지식에 의한 추론은 항상 이해를 돕는다.','독자는 자신의 추론을 글의 근거로 점검해야 한다.']},
  {q:'㉠에 대한 설명으로 가장 적절한 것은?',pt:3,ch:['글의 흐름을 놓치지 않도록 돕는다.','배경지식이 없을 때만 필요하다.','짧은 글에서만 효과가 있다.','중심 화제를 정하기 전에 해야 한다.','추론을 대신하는 방법이다.']},
- {q:`그림은 직선 운동하는 물체의 속도 <i>v</i>를 시간 <i>t</i>에 따라 나타낸 것이다. 0부터 2<i>t</i><sub>1</sub>까지 물체의 이동 거리는? (단, <i>v</i><sub>0</sub>=2 m/s, <i>t</i><sub>1</sub>=4 s)`,fig:FIG_VT,ch:['16 m','20 m','24 m','28 m','32 m'],row:1},
- {q:`표는 A와 B가 반응하여 생성물이 만들어지는 실험 Ⅰ~Ⅲ의 결과이다. 이에 대한 설명으로 옳은 것만을 <보기>에서 있는 대로 고른 것은?`,fig:FIG_TBL,box:['ㄱ. 실험 Ⅰ에서 A는 모두 반응한다.','ㄴ. 반응 질량비는 A : B = 1 : 8이다.',`ㄷ. 실험 Ⅲ에서 남은 B의 질량은 ${fr('1','2')}×48 g보다 작다.`],ch:['ㄱ','ㄴ','ㄱ, ㄷ','ㄴ, ㄷ','ㄱ, ㄴ, ㄷ'],row:1,pt:3},
+ {q:`그림은 직선 운동하는 물체의 속도 <i>v</i>를 시간 <i>t</i>에 따라 나타낸 것이다. 0부터 2<i>t</i><sub>1</sub>까지 물체의 이동 거리는?<span class="cond">(단, <i>v</i><sub>0</sub>=2 m/s, <i>t</i><sub>1</sub>=4 s이다.)</span>`,fig:FIG_VT,ch:['16 m','20 m','24 m','28 m','32 m'],row:1},
+ {q:`표는 A와 B가 반응하여 생성물이 만들어지는 실험 Ⅰ~Ⅲ의 결과이다. 이에 대한 설명으로 옳은 것만을 <보기>에서 있는 대로 고른 것은?`,fig:FIG_TBL,box:['ㄱ. 실험 Ⅰ에서 A는 모두 반응한다.','ㄴ. 반응 질량비는 A : B = 1 : 8이다.',`ㄷ. 실험 Ⅲ에서 B는 ${fr('1','6')}만큼 남는다.`],ch:['ㄱ','ㄴ','ㄱ, ㄷ','ㄴ, ㄷ','ㄱ, ㄴ, ㄷ'],row:1,pt:3},
  {q:'다음은 세포 호흡에 대한 학생 A~C의 대화이다. 제시한 내용이 옳은 학생만을 있는 대로 고른 것은?',box:['A: 포도당이 분해되면서 방출된 에너지 일부가 ATP에 저장돼.','B: 세포 호흡 결과 이산화 탄소와 물이 생성돼.','C: ATP가 ADP로 분해될 때 에너지가 흡수돼.'],ch:['A','C','A, B','B, C','A, B, C'],row:1},
- {q:`2H<sub>2</sub>(<i>g</i>) + O<sub>2</sub>(<i>g</i>) → 2H<sub>2</sub>O(<i>l</i>) 반응에서 H<sub>2</sub> 4 g이 모두 반응할 때 생성되는 H<sub>2</sub>O의 질량은? (단, H, O의 원자량은 각각 1, 16이다.)`,ch:['18 g','27 g','36 g','45 g','54 g'],row:1},
+ {q:`2H<sub>2</sub>(<i>g</i>) + O<sub>2</sub>(<i>g</i>) → 2H<sub>2</sub>O(<i>l</i>) 반응에서 H<sub>2</sub> 4 g이 모두 반응할 때 생성되는 H<sub>2</sub>O의 질량은?<span class="cond">(단, H, O의 원자량은 각각 1, 16이다.)</span>`,ch:['18 g','27 g','36 g','45 g','54 g'],row:1},
  {q:`질량이 <i>m</i>인 물체에 크기가 <i>F</i>인 힘이 작용할 때 가속도의 크기는 <i>a</i> = ${fr('<i>F</i>','<i>m</i>')}이다. 질량이 2 kg인 물체에 6 N의 알짜힘이 작용할 때 가속도의 크기는?`,ch:['1 m/s²','2 m/s²','3 m/s²','4 m/s²','6 m/s²'],row:1},
  {q:'다음 중 이어진문장을 이루는 연결 어미가 쓰인 것은?',ch:['비가 와서 길이 미끄럽다.','동생이 읽은 책이 재미있다.','그는 조용히 웃었다.','하늘이 매우 푸르다.','나는 친구와 함께 갔다.']},
  {sv:1,q:'윗글을 바탕으로, 독자가 배경지식에 의한 추론을 점검해야 하는 까닭을 두 문장 이내로 서술하시오.',pt:5}
@@ -94,7 +94,7 @@ const HEAD={
  schoolBand:t=>`<header class="h-sband"><div class="bd"><b>중간고사 대비 ${t.course}</b><span>2학년 2학기 · 범위 Ⅰ-1 ~ Ⅱ-2</span></div><div class="meta">${fld('반',34)}${fld('이름',80)}${fld('점수',44)}</div></header>`,
  unitTest:t=>`<header class="h-unit"><span class="tb">단원평가</span><b>${t.unit}</b><div class="meta">${fld('반',34)}${fld('번호',34)}${fld('이름',80)}<span class="score">/ 100</span></div></header>`,
  kice:t=>`<header class="h-kice"><div class="yr">2027학년도 대학수학능력시험 대비 문제지</div><div class="row"><span class="ss">${t.sess}</span><b>${t.subj}</b><span class="odd">홀수형</span></div>${t.sub?`<div class="sub">${t.sub}</div>`:''}<div class="ids"><span><em>성명</em><i></i></span><span><em>수험 번호</em><i class="nb">${'<u></u>'.repeat(8)}</i></span></div></header>`,
- kiceCover:t=>`<header class="h-kcov"><div class="row"><span class="ss">${t.sess}</span><b>${t.subj}</b></div><div class="yr">2027학년도 대학수학능력시험 대비 모의평가 문제지</div><ul><li>자신이 선택한 과목의 문제지인지 확인하시오.</li><li>문제지의 해당란에 성명과 수험 번호를 정확히 쓰시오.</li><li>문항에 따라 배점이 다릅니다. 3점 문항에는 점수가 표시되어 있습니다. 점수 표시가 없는 문항은 모두 2점입니다.</li></ul><div class="ids"><span><em>성명</em><i></i></span><span><em>수험 번호</em><i class="nb">${'<u></u>'.repeat(8)}</i></span></div></header>`,
+ kiceCover:t=>`<header class="h-kcov"><div class="row"><span class="ss">${t.sess}</span><b>${t.subj}</b></div><div class="yr">2027학년도 대학수학능력시험 대비 모의평가 문제지</div><ul><li>자신이 선택한 과목의 문제지인지 확인하시오.</li><li>문제지의 해당란에 성명과 수험 번호를 정확히 쓰시오.</li><li>문항에 따라 배점이 다릅니다. 3점 문항에는 점수가 표시되어 있습니다.</li><li>점수 표시가 없는 문항은 모두 2점입니다.</li></ul><div class="ids"><span><em>성명</em><i></i></span><span><em>수험 번호</em><i class="nb">${'<u></u>'.repeat(8)}</i></span></div></header>`,
  kiceLine:t=>`<header class="h-kline"><span class="ss">${t.sess}</span><div><small>2026학년도 11월 고2 전국연합학력평가 대비</small><b>${t.subj}</b></div><span class="odd">홀수형</span></header>`,
  mock:t=>`<header class="h-mock"><div class="rd"><b>3</b><small>회</small></div><div><small>Solvi 모의평가</small><b>${t.subj}</b><span>${t.course}</span></div><div class="ids"><span><em>성명</em><i></i></span><span><em>학원</em><i></i></span></div></header>`,
  round:t=>`<header class="h-round"><b>FINAL</b><span class="no">12</span><div><b>${t.subj}</b><span>${t.course} · 실전 회차</span></div>${fld('성명',80)}</header>`,
@@ -117,7 +117,7 @@ const TYPES=['내용 일치','어휘 · 지시','그래프 해석','자료 해�
 function qHtml(t,q,n){
  if(q.psg)return `<div class="blk psg-h">${q.psg}</div>`;
  const pt=q.pt?`<span class="pt">[${q.pt}점]</span>`:'';
- const stem=`<div class="stem">${(NUM[t.num]||NUM.plain)(q.sv?'서술형 1':n)}<div class="qt">${t.typeLabel?`<span class="tl">${TYPES[(n-1)%TYPES.length]}</span>`:''}${q.q}${t.ptRight?'':' '+pt}</div>${t.ptRight?pt:''}</div>`;
+ const stem=`<div class="stem">${(NUM[t.num]||NUM.plain)(q.sv?'서술형 1':n)}<div class="qt">${t.typeLabel?`<span class="tl">${TYPES[(n-1)%TYPES.length]}</span>`:''}${t.ptRight||!pt?q.q:q.q.replace(/(\S+)$/,'<span class="nw">$1 '+pt+'</span>')}</div>${t.ptRight?pt:''}</div>`;
  const fig=q.fig?`<div class="figw${t.figFrame?' framed':''}">${q.fig}</div>`:'';
  const box=q.box?`<div class="bx bx-${t.box||'line'}"><span class="bt">&lt;보 기&gt;</span>${q.box.map(x=>`<p>${x}</p>`).join('')}</div>`:'';
  let ch='';
@@ -126,6 +126,11 @@ function qHtml(t,q,n){
  const memo=q.sv||t.memo==='box'?'<div class="memo memo-box"></div>':t.memo==='lines'?'<div class="memo memo-lines"></div>':t.memo==='grid'?'<div class="memo memo-grid"></div>':t.memo==='split'?'<div class="memo memo-split"><div><em>틀린 이유</em></div><div><em>다시 풀이</em></div></div>':'';
  return `<div class="blk q">${stem}${fig}${box}${ch}${memo}</div>`;
 }
+/* 선지 배치: 모든 선지가 한 줄에 들어가는 가장 넓은 칸 수(5 → 3)를 고르고, 아니면 한 줄에 하나씩 */
+function fitCh(node){const ch=node.querySelector&&node.querySelector('.ch-row');if(!ch)return;
+ const fits=()=>[...ch.children].every(x=>x.scrollWidth<=x.clientWidth+1&&x.getClientRects().length===1&&x.offsetHeight<parseFloat(getComputedStyle(x).lineHeight)*1.5);
+ for(const k of ['g5','g3']){ch.classList.remove('g5','g3');ch.classList.add(k);if(fits())return}
+ ch.classList.remove('g5','g3','ch-row');ch.classList.add('ch-stack')}
 /* ---------- 쪽 나누기: 블록을 단에 차례로 넣고, 넘치면 다음 단 · 다음 쪽으로. 긴 지문은 문단 단위로 나눠 이어 간다 ---------- */
 function build(t,host,opt){
  opt=opt||{};const meta={title:t.titleText||'통합적 이해와 자료 해석',unit:'Ⅰ. 독서와 탐구 · 1. 정보의 통합',series:'Solvi 학습지',n:SAMPLE.filter(q=>!q.psg).length,course:'통합과학',subj:t.subj||'과학탐구 영역',sess:t.sess||'제4교시',sub:t.sub};
@@ -143,6 +148,7 @@ function build(t,host,opt){
     if(k===0){c.removeChild(box);if(!c.children.length){box.innerHTML='<p>'+paras.shift()+'</p>';c.appendChild(box)}if(!next())return pages}else{paras=paras.slice(k);if(paras.length){box.classList.add('cut');if(!next())return pages}}}
    continue}
   const el=document.createElement('div');el.innerHTML=b.h;const node=el.firstChild;cols[ci].appendChild(node);
+  fitCh(node);
   if(over(cols[ci])&&cols[ci].children.length>1){cols[ci].removeChild(node);if(!next())break;cols[ci].appendChild(node)}
  }
  pages.forEach((pg,i)=>{pg.querySelector('.ft').outerHTML=(FOOT[t.foot]||FOOT.simple)(meta,i+1,pages.length)});

@@ -160,3 +160,10 @@ html[data-theme=dark] .dg .dgl{background:transparent}html[data-theme=dark] .dg 
 .bk-range-err{margin:8px 0 0;min-height:1em;font-size:13px;line-height:1.5;color:var(--ui-danger,#c92a2a)}.bk-range-err:empty{display:none}
 .bk-page-choice.bk-page-all{border-style:dashed}
 @media(max-width:600px){.bk-range-extra{grid-template-columns:1fr}}
+/* 경로: 데스크톱은 글자 링크 한 줄, 휴대폰은 바로 위 단계로 가는 「‹ 상위」 하나만(두 줄로 넘치지 않게) */
+.bk-crumb{flex-wrap:nowrap;min-width:0;gap:8px;color:var(--ui-text-muted,var(--m))}.bk-crumb>*{flex:none;white-space:nowrap}
+.bk-crumb button{white-space:nowrap;appearance:none;background:none;border:0;border-radius:4px;padding:4px 0;min-height:0;font:inherit;font-size:13px;font-weight:500;color:var(--ui-text-muted,var(--m));cursor:pointer;overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:100%;flex:0 1 auto;text-align:left}
+.bk-crumb [aria-current]{color:var(--ui-text,var(--t));font-weight:600;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+@media(hover:hover) and (pointer:fine){.bk-crumb button:hover{color:var(--ui-text,var(--t));text-decoration:underline;text-underline-offset:3px}}
+@media(max-width:600px){.bk-crumb>*{display:none}.bk-crumb button:last-of-type{display:block;flex:0 1 auto;padding:8px 0;min-height:36px}.bk-crumb button:last-of-type::before{content:'‹ '}}
+.bk-nav-row b,.bk-nav-row small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
