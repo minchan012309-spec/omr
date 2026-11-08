@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const {chromium,browserOptions}=require('./runtime.cjs');
 (async()=>{const b=await chromium.launch(browserOptions());
 for(const vw of [1440,390]){const p=await b.newPage({viewport:{width:vw,height:900}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
-await p.goto((process.env.BASE||'http://127.0.0.1:8765')+'/design/worksheet-templates/');await p.waitForTimeout(1500);
+await p.goto((process.env.BASE||'http://127.0.0.1:8765')+'/design/worksheet-templates/index.html');await p.waitForTimeout(1500);
 const r=await p.evaluate(async()=>{const out=[];
  const lines=el=>{const tops=new Map();const tw=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let n;const rs=[];while(n=tw.nextNode()){if(n.parentElement.closest('.cond,.fr'))continue;const rg=document.createRange();rg.selectNodeContents(n);rs.push(...rg.getClientRects())}const L=[];for(const r of rs.filter(r=>r.width>=1).sort((a,b)=>a.top-b.top)){const m=(r.top+r.bottom)/2;const l=L.find(x=>m>x.t&&m<x.b);if(l){l.w+=r.width;l.t=Math.min(l.t,r.top);l.b=Math.max(l.b,r.bottom)}else L.push({t:r.top,b:r.bottom,w:r.width})}return L.map(x=>x.w)};
  // 갤러리 이름
