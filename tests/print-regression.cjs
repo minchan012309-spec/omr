@@ -107,6 +107,33 @@ const { chromium, browserOptions } = require("./runtime.cjs");
         assert.equal(v.paper, "rgb(255, 255, 255)");
       },
     );
+    await check("worksheet popup keeps paper visible in print media", async () => {
+      const popupReady = page.waitForEvent("popup");
+      await page.evaluate(async () => {
+        await openWs({
+          id: "00000000", t: Date.now(), title: "인쇄 회귀 검사",
+          codes: DATA.filter(q => q.set === "mc").slice(0, 4).map(q => q.code),
+          style: "basic", color: "teal", font: "paper", per: 2, cols: 2,
+        });
+      });
+      const popup = await popupReady;
+      try {
+        await popup.waitForLoadState("load");
+        assert.ok(await popup.locator("#paper .pg").count() >= 2);
+        await popup.emulateMedia({ media: "print" });
+        assert.equal(await popup.locator("#paper").evaluate(e => getComputedStyle(e).display), "block");
+        assert.ok(await popup.locator("#paper .pg").first().isVisible());
+        for (const selector of ["#pbar", "#spanel"])
+          assert.equal(await popup.locator(selector).isVisible(), false);
+        const pdf = await popup.pdf({ preferCSSPageSize: true });
+        assert.ok((pdf.toString("latin1").match(/\/Type\s*\/Page\b/g) || []).length >= 2,
+          "Printed PDF must contain the worksheet pages, not one blank sheet");
+        require("node:fs").writeFileSync("/tmp/solvi-worksheet-print.pdf", pdf);
+        await popup.screenshot({path:"/tmp/solvi-worksheet-print.png", fullPage:true});
+      } finally {
+        await popup.close();
+      }
+    });
     await page.evaluate(() => bkLoad());
     await page.waitForFunction(() => typeof bkCbUnits === "function");
     await check(
