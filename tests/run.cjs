@@ -67,11 +67,15 @@ const run = (args, env) =>
     const env = { BASE: "http://127.0.0.1:" + server.address().port };
     for (const args of [
       ["scripts/verify-static.cjs"],
-      ["--test", "tests/academy-core.test.cjs", "tests/korean-editor.test.cjs", "tests/ui-system.test.cjs", "tests/ui-rebuild-contract.test.cjs", "tests/loading-bar-regression.test.cjs", "tests/domain-login-intro.test.cjs"],
+      ["--test", "tests/academy-core.test.cjs", "tests/korean-editor.test.cjs", "tests/ui-system.test.cjs", "tests/ui-rebuild-contract.test.cjs", "tests/loading-bar-regression.test.cjs", "tests/domain-login-intro.test.cjs", "tests/book-entry.test.cjs"],
       ["tests/operations-db.cjs"],
       ["tests/full-schema-db.cjs"],
       ["tests/leads-db.cjs"],
       ["tests/print-regression.cjs"],
+      ["tests/book-navigation.cjs"],
+      ["tests/book-range.cjs"],
+      ["tests/worksheet-templates.cjs"],
+      ["tests/ws-approved-styles.cjs"],
       ["tests/korean-browser.cjs"],
       ["tests/book-pdf.cjs"],
       ["tests/hl-concept-regression.cjs"],
