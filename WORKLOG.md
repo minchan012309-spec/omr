@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-11 · Claude Code · claude/fix-login-spacing-2 (#126 위에 쌓음)
+- 한 일: 학생·학부모 로그인과 회원가입 폼의 간격 수정. 원인: 새 로그인 화면 본문 `#stbody`가 자식마다 18px 간격(grid gap)을 주는데, 선생님 로그인과 달리 학생·학부모 로그인(`stLoginBody`)과 가입 폼 제목은 「제목+설명」 · 「라벨+입력칸」을 묶지 않아 라벨↔입력칸까지 18px+마진씩 벌어졌음(제목↔설명 30px, 라벨↔입력칸 33px). `.entry-heading` · `.entry-field` 묶음으로 바꾸고 체크박스 · 회원가입 줄의 따로 준 여백, `.fld` 자체 여백을 정리 → 라벨↔입력칸 7px, 묶음 사이 18px(선생님 로그인과 같은 리듬).
+- 바뀐 파일: `index.html`, `styles/screens.css`(v13), `sw.js`(v201), `tests/student-signup.cjs`(간격 검사 추가), `tests/app-ui.cjs`.
+- 확인: `student-signup`(수정 전 실패 · 후 통과, 1440·390), `app-ui` 42개, 정적 검사, 390 · 1440 캡처.
+- 주의: `claude/fix-student-signup`(#126) 위에 쌓은 브랜치라 #126을 먼저 병합해야 diff가 이 변경만 남음. `sw.js` VER · `screens.css` 버전 줄이 다른 PR과 겹쳐 충돌.
+
 ## 2026-11-10 · Claude Code · claude/fix-student-signup (긴급)
 - 한 일: 학생 「회원가입」을 눌러도 아무 화면이 안 뜨던 오류 수정. 원인: 로그인 화면 개편(#122) 뒤 로그인 본문을 그리는 `stLoginBody()`가 가입 모드(`SGU.mode==='signup'`)와 승인 대기(`sgPend()`)를 보지 않아, 버튼이 모드만 바꾸고 화면은 그대로였음(예전 `stLoginCard()`만 확인). 가입 폼·승인 대기 화면을 카드 없는 본문(`sgFormBody`·`sgPendBody`)으로 나눠 새 로그인 화면 안에 그림.
 - 바뀐 파일: `index.html`, `sw.js`(v196), `tests/student-signup.cjs`(새), `tests/run.cjs`.
