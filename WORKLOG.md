@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-10 · Claude Code · claude/ws-number-box
+- 한 일: 학습지 문항 번호를 더 크게(「번호.」 형식 11.5pt→15pt, 굵은 번호 12.5→16pt, 번호와 배점 사이 간격). 「본문에 네모박스가 안 쳐진다」는 제보는 재현하지 못함 — 화법과 언어 문항 데이터 11,950개 전수 검사(상자 없는 지문 · 화자 대화 · 긴 글 · 해설) 0건, 학습지 · 교재 · 풀이 화면 · 전범위 모의고사를 실제 렌더링해 확인, 실제 사이트(solvi.win)에서도 같은 검사 통과. 제보 화면(어느 문항 · 어느 화면)을 받아야 함.
+- 바뀐 파일: `index.html`, `sw.js`(v197), `WORKLOG.md`.
+- 확인: `ws-approved-styles`·`print-regression` 통과, 두 디자인 캡처로 번호 크기 확인.
+- 남은 일 · 주의: 상자 누락 제보 화면 확인. `claude/fix-student-signup`(#126, `sw.js` v196)과 `sw.js` VER 줄이 겹쳐 충돌할 수 있음.
+
 ## 2026-11-09 · Claude Code · claude/worksheet-v2 / PR #125 (후속)
 - 한 일: 전범위 모의고사(`bkPlanFull`)에서 지문 딸린 국어 문항을 한 덩어리로 넣어 열보다 길면 최대 43cm까지 잘리던 문제 수정 — 지문을 `bkPsgUnits` 조각으로 나눠 열·쪽을 넘기고, 지시문 번호를 모의고사 번호로 바꿈(`bkFixPsgNo`가 [06-A] 같은 원본 번호도 처리), 긴 보기(lp)는 전폭. 모의고사 지문 조각은 높이표(맥에서 잰 값) 대신 보는 브라우저에서 직접 잼(키 `m:`) — CI(리눅스)에서 높이표 값으로는 12mm 넘침이 났음. 지문·보기 상자 누락 수정: 앱 풀이 화면·학습지의 `.q .psg`에 상자, 교재 문항 안 지문(`.u.q .psg`) 상자, 화법 필기용 지문(`psg sp`)도 상자(`nobox:false`). 화법과 언어 교재 높이 재측정(바뀐 값 2개, 다른 과목 그대로), `heights.json?v=6`.
 - 바뀐 파일: `books.js`(v78), `index.html`, `sw.js`(v195), `books/heights.json`, `tests/book-mock-passage.cjs`(새), `tests/run.cjs`.
