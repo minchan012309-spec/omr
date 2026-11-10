@@ -80,6 +80,7 @@ const run = (args, env) =>
       ["tests/ws-spacing.cjs"],
       ["tests/sidebar-state.cjs"],
       ["tests/passage-bracket.cjs"],
+      ["tests/delight.cjs"],
       ["tests/korean-browser.cjs"],
       ["tests/book-pdf.cjs"],
       ["tests/hl-concept-regression.cjs"],
