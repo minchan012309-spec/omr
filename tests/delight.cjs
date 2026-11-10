@@ -18,10 +18,10 @@ const SESS={access_token:'x',refresh_token:'y',expires_at:Math.floor(Date.now()/
  const sc=await p.evaluate(()=>new DOMMatrix(getComputedStyle(document.querySelector('#sprog i')).transform).a);assert.equal(p0,'1');assert.ok(sc>.95,'맨 아래에서 진행바가 가득 참 '+sc);
  // 스테퍼
  await p.evaluate(()=>{scrollTo(0,0);document.getElementById('main').innerHTML='<div id="t">'+numStepper(4,1,60,'bulkN',1)+'</div>';window.__v=[];window.bulkN=v=>window.__v.push(v)});
- await p.locator('.stp button').nth(1).click();await p.locator('.stp button').nth(1).click();await p.locator('.stp button').nth(0).click();
- assert.deepEqual(await p.evaluate(()=>window.__v),[5,6,5]);assert.equal(await p.locator('.stp input').inputValue(),'5');
- await p.fill('.stp input','999');await p.press('.stp input','Tab');assert.equal(await p.locator('.stp input').inputValue(),'60','상한을 넘으면 상한으로');
- assert.ok((await p.locator('.stp button').first().boundingBox()).height>=44,'터치 크기 44px');
+ await p.locator('.numstp button').nth(1).click();await p.locator('.numstp button').nth(1).click();await p.locator('.numstp button').nth(0).click();
+ assert.deepEqual(await p.evaluate(()=>window.__v),[5,6,5]);assert.equal(await p.locator('.numstp input').inputValue(),'5');
+ await p.fill('.numstp input','999');await p.press('.numstp input','Tab');assert.equal(await p.locator('.numstp input').inputValue(),'60','상한을 넘으면 상한으로');
+ assert.ok((await p.locator('.numstp button').first().boundingBox()).height>=44,'터치 크기 44px');
  // 당겨서 새로고침
  const touch=(type,y)=>p.evaluate(([type,y])=>{const t=new Touch({identifier:1,target:document.body,clientX:195,clientY:y});document.body.dispatchEvent(new TouchEvent(type,{touches:type==='touchend'?[]:[t],changedTouches:[t],bubbles:true,cancelable:true}))},[type,y]);
  await p.evaluate(()=>{window.__rf=0;window.hardRefresh=async()=>{window.__rf++}});
