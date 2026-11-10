@@ -167,3 +167,6 @@ html[data-theme=dark] .dg .dgl{background:transparent}html[data-theme=dark] .dg 
 @media(hover:hover) and (pointer:fine){.bk-crumb button:hover{color:var(--ui-text,var(--t));text-decoration:underline;text-underline-offset:3px}}
 @media(max-width:600px){.bk-crumb>*{display:none}.bk-crumb button:last-of-type{display:block;flex:0 1 auto;padding:8px 0;min-height:36px}.bk-crumb button:last-of-type::before{content:'‹ '}}
 .bk-nav-row b,.bk-nav-row small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
+
+/* 왼쪽 메뉴 상태별 본문 여백: 변수(--sbw) 갱신에만 기대지 않고 직접 지정한다 */
+@media(min-width:721px){html[data-sb=hide] body{padding-left:0}html[data-sb=mini] body{padding-left:68px}html.noauth[data-sb] body{padding-left:0}}
