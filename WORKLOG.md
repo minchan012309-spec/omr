@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-10 · Claude Code · claude/fix-student-signup (긴급)
+- 한 일: 학생 「회원가입」을 눌러도 아무 화면이 안 뜨던 오류 수정. 원인: 로그인 화면 개편(#122) 뒤 로그인 본문을 그리는 `stLoginBody()`가 가입 모드(`SGU.mode==='signup'`)와 승인 대기(`sgPend()`)를 보지 않아, 버튼이 모드만 바꾸고 화면은 그대로였음(예전 `stLoginCard()`만 확인). 가입 폼·승인 대기 화면을 카드 없는 본문(`sgFormBody`·`sgPendBody`)으로 나눠 새 로그인 화면 안에 그림.
+- 바뀐 파일: `index.html`, `sw.js`(v196), `tests/student-signup.cjs`(새), `tests/run.cjs`.
+- 확인: 새 `student-signup`(회원가입 → 폼 → 신청 → 승인 대기 → 로그인, 1440·390, 서버 호출은 가짜로 막음)이 수정 전 실패 · 수정 후 통과, `app-ui` 42개·정적 검사 통과. 가입 서버 함수(`st_signup`)는 정상 응답(잘못된 코드에 `bad_code`).
+- 남은 일 · 주의: 실제 가입 → 선생님 승인 전체 흐름을 실제 서버로 끝까지 해 보지는 않음(테스트 계정이 생기므로).
+
 ## 2026-11-09 · Claude Code · claude/worksheet-v2 / PR #125 (후속)
 - 한 일: 전범위 모의고사(`bkPlanFull`)에서 지문 딸린 국어 문항을 한 덩어리로 넣어 열보다 길면 최대 43cm까지 잘리던 문제 수정 — 지문을 `bkPsgUnits` 조각으로 나눠 열·쪽을 넘기고, 지시문 번호를 모의고사 번호로 바꿈(`bkFixPsgNo`가 [06-A] 같은 원본 번호도 처리), 긴 보기(lp)는 전폭. 모의고사 지문 조각은 높이표(맥에서 잰 값) 대신 보는 브라우저에서 직접 잼(키 `m:`) — CI(리눅스)에서 높이표 값으로는 12mm 넘침이 났음. 지문·보기 상자 누락 수정: 앱 풀이 화면·학습지의 `.q .psg`에 상자, 교재 문항 안 지문(`.u.q .psg`) 상자, 화법 필기용 지문(`psg sp`)도 상자(`nobox:false`). 화법과 언어 교재 높이 재측정(바뀐 값 2개, 다른 과목 그대로), `heights.json?v=6`.
 - 바뀐 파일: `books.js`(v78), `index.html`, `sw.js`(v195), `books/heights.json`, `tests/book-mock-passage.cjs`(새), `tests/run.cjs`.
