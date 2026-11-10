@@ -179,9 +179,10 @@ const BKCSS=`
 .bkdoc .dl:not(.bogi){display:grid;grid-template-columns:var(--spw,4.5em) 1fr;padding-bottom:.9mm;text-indent:0}.bkdoc .bogi.dl .dl:last-child{padding-bottom:0}.bkdoc .dl .sp{font-weight:700}.bkdoc .dl .sp:after{content:" :";font-weight:400}
 .bkdoc .dl.mod{background:#f1f2f4;background-clip:content-box}.bkdoc .dl.pro .sp{color:#1d5ca6}.bkdoc .dl.con .sp{color:#b23a3a}.bkdoc .psgu .psg.sp .dl:not(.bogi){padding-bottom:3.2mm}
 /* [A] 범위: 라벨 칩 + 옅은 바탕 + 점선 밑줄 + 닫는 표지 */
-.bkdoc .rng{background:var(--pl);border-bottom:.3mm dotted var(--pd);-webkit-box-decoration-break:clone;box-decoration-break:clone}
-.bkdoc .rng .rk{display:inline-block;min-width:3.4mm;padding:0 .7mm;margin-right:1mm;border:.25mm solid var(--pd);border-radius:.6mm;background:#fff;color:var(--pd);font-size:.76em;font-weight:800;line-height:1.3;text-align:center;text-indent:0;vertical-align:.08em;letter-spacing:0}
-.bkdoc .rng .re{display:inline-block;width:1.5mm;height:1.5mm;margin:0 .3mm 0 .8mm;border-right:.3mm solid var(--pd);border-bottom:.3mm solid var(--pd);vertical-align:.02em}
+.bkdoc .bk-s,.bkdoc .bk-m,.bkdoc .bk-e,.bkdoc .bk-o{position:relative;padding-right:7mm!important}
+.bkdoc .bk-s::after,.bkdoc .bk-m::after,.bkdoc .bk-e::after,.bkdoc .bk-o::after{content:'';position:absolute;right:4mm;top:0;bottom:0;width:1.8mm;border-right:.3mm solid #111;pointer-events:none}
+.bkdoc .bk-s::after,.bkdoc .bk-o::after{border-top:.3mm solid #111}.bkdoc .bk-e::after,.bkdoc .bk-o::after{border-bottom:.3mm solid #111}
+.bkdoc [data-bk]::before{content:'['attr(data-bk)']';position:absolute;right:0;top:50%;transform:translateY(-50%);font-size:.8em;font-weight:700;color:#111;white-space:nowrap}
 /* 원문자 배지 */
 .bkdoc .psgu .psg.sp{letter-spacing:.06em;line-height:2.5;font-size:12.6px}.bkdoc .psgu .psg.sp p{margin:0 0 2.2mm}
 .bkdoc .psgu.wd .psg.sp{letter-spacing:.1em;line-height:2.75;font-size:13px;word-spacing:.1em}.bkdoc .psgu.wd .psg.sp p{margin:0 0 3.2mm}.bkdoc .psgu .psg.sp .hd{letter-spacing:0;line-height:1.7}
@@ -296,7 +297,7 @@ function bkInit(){
  BKREADY=(async()=>{
   if(!document.getElementById('bkcss')){const s=document.createElement('style');s.id='bkcss';s.textContent=bkFontCss('')+BKSCR;document.head.appendChild(s)}
   try{await Promise.all([400,600,700,800].map(w=>document.fonts.load(w+' 12px Pretendard','가A1')).concat(document.fonts.load('400 12px YetHangul','\u1109\u119e')).concat(document.fonts.load('700 12px YetHangul','\u1109\u119e')))}catch(e){}
-  try{const r=await fetch('books/heights.json?v=6');if(r.ok)BKHT=await r.json()}catch(e){}
+  try{const r=await fetch('books/heights.json?v=7');if(r.ok)BKHT=await r.json()}catch(e){}
   if(!BKHT)BKHT={};
  })();
  return BKREADY;
