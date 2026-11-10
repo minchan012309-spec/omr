@@ -2,6 +2,11 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-11 · Claude Code · claude/combined-1111 (PR #126~#131 통합)
+- 한 일: 따로 올라가 있던 PR 6개(#126 학생 회원가입 긴급 수정, #131 로그인 간격, #127 학습지 번호 크기, #128 문제 간격 = 쪽당 문항 수, #129 최근 기록 · 왼쪽 메뉴 · 지문 [A] 괄호 · 필기용 지문 상자, #130 스켈레톤 · 진행바 · 당겨서 새로고침 · 스테퍼 · 완료 연출 · 인트로 요금제 위로)를 `main`에서 한 브랜치로 합침. 합치는 순서는 #126 → #131 → #127 → #128 → #129 → #130. 충돌은 `sw.js` · `WORKLOG.md` · `tests/run.cjs` · `styles/screens.css`(양쪽 CSS를 모두 남김) · `index.html`/`tests/app-ui.cjs`(`screens.css?v=` 한 줄)뿐이었고 모두 양쪽 내용을 살려 풂. 버전은 `sw.js` VER v202, `screens.css` v14, `books.js` v79, `heights.json` v7, `intro.css` v23, `intro.js` v19로 통일(`sw.js` SHELL의 인트로 버전이 예전 값이던 것도 바로잡음). 개별 변경 내용은 아래 각 기록 참고.
+- 확인: **테스트는 돌리지 않음**(사용자 요청). 충돌 표시 없음 · 버전 번호 일치 · 최상위 중복 선언 없음(`wsDup`은 `main`에 원래 있던 것)만 글자로 확인. 각 PR은 합치기 전에 개별로 테스트를 통과했지만, 합친 결과 전체는 CI에서 처음 돌아감.
+- 남은 일 · 주의: 합친 뒤 CI 결과를 확인할 것. 특히 같은 파일(`index.html` · `styles/screens.css` · `books.js`)을 여러 PR이 고쳤으므로 CI가 실패하면 먼저 거기를 볼 것.
+
 ## 2026-11-11 · Claude Code · claude/fix-login-spacing-2 (#126 위에 쌓음)
 - 한 일: 학생·학부모 로그인과 회원가입 폼의 간격 수정. 원인: 새 로그인 화면 본문 `#stbody`가 자식마다 18px 간격(grid gap)을 주는데, 선생님 로그인과 달리 학생·학부모 로그인(`stLoginBody`)과 가입 폼 제목은 「제목+설명」 · 「라벨+입력칸」을 묶지 않아 라벨↔입력칸까지 18px+마진씩 벌어졌음(제목↔설명 30px, 라벨↔입력칸 33px). `.entry-heading` · `.entry-field` 묶음으로 바꾸고 체크박스 · 회원가입 줄의 따로 준 여백, `.fld` 자체 여백을 정리 → 라벨↔입력칸 7px, 묶음 사이 18px(선생님 로그인과 같은 리듬).
 - 바뀐 파일: `index.html`, `styles/screens.css`(v13), `sw.js`(v201), `tests/student-signup.cjs`(간격 검사 추가), `tests/app-ui.cjs`.
