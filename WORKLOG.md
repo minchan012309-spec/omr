@@ -26,6 +26,12 @@
 - 확인: `ws-spacing`(짧은 국어 문항 24개: 기본 3+3, 조금 넓게 3+2, 넓게 2+2, 아주 넓게 2+1, 숫자 2 → 1+1, 1단 4), `ws-approved-styles`·`print-regression`·`book-mock-passage`·`app-ui` 42개·정적 검사 통과. 기본 · 넓게 캡처 확인.
 - 남은 일 · 주의: 지문이 긴 문항은 단에 3개가 안 들어가 자연히 적게 들어감. 이미 저장된 학습지의 「한 쪽 최대 문항」이 숫자면 그 숫자가 우선(팝업에서 문제 간격을 바꾸면 자동으로 풀림). `sw.js` VER 줄이 #126(v196)·#127(v197)과 충돌할 수 있음.
 
+## 2026-11-10 · Claude Code · claude/fix-recent-sidebar-bracket
+- 한 일: (1) 최근 기록에 교재 ID(`hl-xfq_xh0_…`)가 그대로 뜨던 것: `bookLbl()`이 `_`가 든 자유 구성 교재 ID를 못 읽어서였음 → 만든 이름 + 쪽(없으면 「맞춤 교재」). (2) 왼쪽 메뉴: UI 개편(f36bf32)에서 빠진 부팅 복원을 되살림(`<head>` 스크립트로 `omr_sb`의 상태·너비·`mtab`을 첫 그리기 전에 적용 — 지금까지 새로고침하면 상태가 사라졌고, `data-sb`가 비어 「접기」 첫 클릭이 먹지 않았음), `sbToggle` 기본값 open, 상태가 바뀌면 resize를 알려 폭에 맞춰 그리는 요소가 다시 맞춤, 본문 왼쪽 여백은 `--sbw` 변수에만 기대지 않고 상태별로 직접 지정(`screens.css`). 태블릿 세로(820·744)에서는 「바 닫으면 빈칸」을 재현하지 못했고(모든 탭 측정), 위 결함들을 고침 — 같은 증상이 남으면 화면·기기를 받아야 함. (3) 국어 지문 범위: 색칠 · `A` 상자 대신 오른쪽 긴 괄호 + `[A]` 이름표(`rngBracket()` — `ovApply`에서 문항 데이터가 들어올 때 변환: 줄마다 `bk-s/m/e/o` 클래스, 이름표는 가운데 줄). 데이터는 줄마다 같은 이름의 `rng`가 따로 있고 시작(`rk`)은 첫 줄, 끝(`re`)은 마지막 줄에만 있어 이어지는 줄을 하나로 묶음. (4) **PR #125의 지문 상자 규칙이 `QCSS`가 아니라 개념 인쇄용 `CBCSS`에 들어가 있던 실수 수정** — 필기용 지문(`psg sp`)이 앱·학습지에서 상자가 없던 이유. QCSS로 옮김.
+- 바뀐 파일: `index.html`, `books.js`(v79 · 색칠 규칙 → 괄호), `books/heights.json`(v7, 화법과 언어 56개 변경 · 다른 과목 그대로), `styles/screens.css`, `sw.js`(v199), `tests/sidebar-state.cjs`·`tests/passage-bracket.cjs`·`tests/book-label.test.cjs`(새), `tests/run.cjs`.
+- 확인: 새 테스트 3개 통과(`passage-bracket`·`sidebar-state`는 수정 전 실패 확인), `book-mock-passage`·`ws-approved-styles`·`print-regression`·`book-pdf`·`hl-concept-regression`·`app-ui` 42개·정적 검사 통과, 학습지·교재 캡처로 괄호 확인.
+- 남은 일 · 주의: `sw.js` VER 줄이 #126(v196)·#127(v197)·#128(v198)과 겹쳐 병합 때 충돌. 교재 안 괄호 때문에 화법 지문 줄 바꿈이 조금 달라질 수 있음. 괄호 이름표는 쪽이 나뉘면 가운데 줄이 있는 쪽에만 보임.
+
 ## 2026-11-09 · Claude Code · claude/worksheet-v2 / PR #125 (후속)
 - 한 일: 전범위 모의고사(`bkPlanFull`)에서 지문 딸린 국어 문항을 한 덩어리로 넣어 열보다 길면 최대 43cm까지 잘리던 문제 수정 — 지문을 `bkPsgUnits` 조각으로 나눠 열·쪽을 넘기고, 지시문 번호를 모의고사 번호로 바꿈(`bkFixPsgNo`가 [06-A] 같은 원본 번호도 처리), 긴 보기(lp)는 전폭. 모의고사 지문 조각은 높이표(맥에서 잰 값) 대신 보는 브라우저에서 직접 잼(키 `m:`) — CI(리눅스)에서 높이표 값으로는 12mm 넘침이 났음. 지문·보기 상자 누락 수정: 앱 풀이 화면·학습지의 `.q .psg`에 상자, 교재 문항 안 지문(`.u.q .psg`) 상자, 화법 필기용 지문(`psg sp`)도 상자(`nobox:false`). 화법과 언어 교재 높이 재측정(바뀐 값 2개, 다른 과목 그대로), `heights.json?v=6`.
 - 바뀐 파일: `books.js`(v78), `index.html`, `sw.js`(v195), `books/heights.json`, `tests/book-mock-passage.cjs`(새), `tests/run.cjs`.

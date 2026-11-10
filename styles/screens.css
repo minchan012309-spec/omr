@@ -171,3 +171,5 @@ html[data-theme=dark] .dg .dgl{background:transparent}html[data-theme=dark] .dg 
 /* 로그인 본문: 묶음 사이 간격(18px)만 쓰고, 체크박스 · 회원가입 줄의 따로 준 여백은 없앤다 */
 .entry-card #stbody .chk{margin:0!important}.entry-card #stbody .sgjoin{margin-top:0}
 .entry-card #stbody .fld{display:grid;gap:7px;margin:0!important}.entry-card #stbody .fld label,.entry-card #stbody .fld .stin{margin:0!important}
+/* 왼쪽 메뉴 상태별 본문 여백: 변수(--sbw) 갱신에만 기대지 않고 직접 지정한다 */
+@media(min-width:721px){html[data-sb=hide] body{padding-left:0}html[data-sb=mini] body{padding-left:68px}html.noauth[data-sb] body{padding-left:0}}
