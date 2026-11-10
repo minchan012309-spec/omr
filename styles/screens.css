@@ -167,3 +167,7 @@ html[data-theme=dark] .dg .dgl{background:transparent}html[data-theme=dark] .dg 
 @media(hover:hover) and (pointer:fine){.bk-crumb button:hover{color:var(--ui-text,var(--t));text-decoration:underline;text-underline-offset:3px}}
 @media(max-width:600px){.bk-crumb>*{display:none}.bk-crumb button:last-of-type{display:block;flex:0 1 auto;padding:8px 0;min-height:36px}.bk-crumb button:last-of-type::before{content:'‹ '}}
 .bk-nav-row b,.bk-nav-row small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
+
+/* 로그인 본문: 묶음 사이 간격(18px)만 쓰고, 체크박스 · 회원가입 줄의 따로 준 여백은 없앤다 */
+.entry-card #stbody .chk{margin:0!important}.entry-card #stbody .sgjoin{margin-top:0}
+.entry-card #stbody .fld{display:grid;gap:7px;margin:0!important}.entry-card #stbody .fld label,.entry-card #stbody .fld .stin{margin:0!important}
