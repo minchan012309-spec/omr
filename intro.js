@@ -34,6 +34,14 @@ function needUpd(){var cards=$$('.plan',plansEl),n=cards.length,sel=$$('.need [a
  if(!cards[lv])return;var nm=$('h3',cards[lv]).firstChild.textContent.trim();out.innerHTML='고른 '+sel.length+'가지가 모두 들어 있는 요금제는 <b>'+esc(nm)+'</b>예요.'+(n===3&&lv===1?' 학생은 50명까지 등록할 수 있어요.':'')}
 function bindNeed(b){b.addEventListener('click',function(){b.setAttribute('aria-pressed',String(b.getAttribute('aria-pressed')!=='true'));needUpd()})}
 $$('.need button').forEach(bindNeed);
+/* 요금제 카드마다 「1명당」 비용: 화면에 적힌 가격과 최대 학생 수에서 계산한다(서버 값으로 카드가 다시 그려져도 맞도록 관찰해서 다시 채움). 후기 · 고객 수 같은 숫자는 쓰지 않는다 */
+function perStu(){if(!plansEl)return;$$('.plan',plansEl).forEach(function(c){var old=$('.per',c);if(old)old.remove();var pr=$('.price b',c),who=$('.who',c);if(!pr||!who)return;
+ var price=+String(pr.textContent).replace(/[^\d]/g,''),m=String(who.textContent).match(/최대\s*(\d+)\s*명/),t=String(who.textContent),line='';
+ if(price>0&&m&&+m[1]>0)line='학생 '+m[1]+'명을 채우면 1명당 월 약 '+Math.round(price/+m[1]).toLocaleString('ko-KR')+'원';else if(price>0&&/제한 없음/.test(t))line='학생이 늘수록 1명당 비용은 내려가요';
+ if(line)who.insertAdjacentHTML('afterend','<p class="per">'+line+'</p>')})}
+if(plansEl){perStu();if(window.MutationObserver)new MutationObserver(function(){if(!plansEl._pp){plansEl._pp=1;perStu();plansEl._pp=0}}).observe(plansEl,{childList:true})}
+/* 스크롤 진행바 */
+(function(){var w=$('#sprog');if(!w)return;var bar=w.firstChild,raf=0;function upd(){raf=0;var m=document.documentElement.scrollHeight-innerHeight;bar.style.transform='scaleX('+(m>8?Math.max(0,Math.min(1,scrollY/m)):0).toFixed(4)+')'}addEventListener('scroll',function(){if(!raf)raf=requestAnimationFrame(upd)},{passive:true});addEventListener('resize',upd);upd()})();
 /* 요금제별 비교표: 개발자 탭이 보낸 줄(g=묶음 제목, t=기능, v=요금제별 칸). O · 빈칸(—) · 글자 */
 function cmpCell(c,top){c=String(c==null?'':c).trim();var y=/^(o|○|◯|포함|ㅇ)$/i.test(c),n=!c||/^(x|×|-|—|없음)$/i.test(c),cls=(y?'y':n?'n':'')+(top?' top':'');
  var parts=c.split(';'),h=y?'O':n?'—':esc(parts[0].trim())+(parts[1]?'<small>'+esc(parts.slice(1).join(';').trim())+'</small>':'');return '<td'+(cls?' class="'+cls.trim()+'"':'')+'>'+h+'</td>'}

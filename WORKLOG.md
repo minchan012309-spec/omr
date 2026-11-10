@@ -32,6 +32,12 @@
 - 확인: 새 테스트 3개 통과(`passage-bracket`·`sidebar-state`는 수정 전 실패 확인), `book-mock-passage`·`ws-approved-styles`·`print-regression`·`book-pdf`·`hl-concept-regression`·`app-ui` 42개·정적 검사 통과, 학습지·교재 캡처로 괄호 확인.
 - 남은 일 · 주의: `sw.js` VER 줄이 #126(v196)·#127(v197)·#128(v198)과 겹쳐 병합 때 충돌. 교재 안 괄호 때문에 화법 지문 줄 바꿈이 조금 달라질 수 있음. 괄호 이름표는 쪽이 나뉘면 가운데 줄이 있는 쪽에만 보임.
 
+## 2026-11-10 · Claude Code · claude/delight-pack
+- 한 일: 사이트 만족감용 가벼운 다듬기(예산 10달러 이내). (1) 로딩을 막대 대신 스켈레톤으로(`ldg()`). 전역 작업 로딩 오버레이(`busyRun`)는 그대로. (2) 맨 위 스크롤 진행바(앱 `#sprog`, 인트로 같은 이름). (3) 당겨서 새로고침(터치 기기, 맨 위에서만, 채점 중 · 열린 창 · 안쪽 스크롤 영역에서는 안 씀 → `hardRefresh()`). (4) 문항 수 입력을 스테퍼로(`numStepper` — 유형별 문항 수 · 총 문항 수; 기존 `stepper`는 단계 표시라 이름을 달리 함). (5) 채점 완료 연출(`celebrate`): 체크 표시 · 점수 올라가기 · 90% 이상 46개/60% 이상 30개 색종이, 움직임 줄이기 설정이면 색종이 생략. (6) 인트로: 요금제를 「핵심 흐름」 앞(네 번째 구역)으로 올리고 목차 맨 앞에 둠, 요금제 위에 틀 잡기 문장 + 실제 수치(4과목 · 문항 40,000개 이상 — 데이터에서 센 고유 문항 코드 41,159개) + 카드마다 「1명당 월 약 …원」(화면의 가격과 최대 학생 수에서 JS가 계산, 서버 값으로 카드가 다시 그려져도 `MutationObserver`가 다시 채움).
+- 바뀐 파일: `index.html`, `styles/screens.css`(v12), `intro.html`·`intro.css`(v23)·`intro.js`(v19), `sw.js`(v200), `AGENTS.md`(완료 축하 예외 · 스켈레톤 · 수치 규칙), `tests/delight.cjs`(새), `tests/app-ui.cjs`, `tests/run.cjs`.
+- 확인: `delight`(스켈레톤 · 진행바 · 스테퍼 · 당겨서 새로고침 4가지 조건 · 완료 연출 · 움직임 줄이기), `app-ui` 42개, `intro-regression`, `print-regression`, `ws-approved-styles`, 정적 검사 통과. 스테퍼 · 스켈레톤 · 완료 · 인트로 요금제 1440 · 390 캡처 확인.
+- 남은 일 · 주의: **사회적 증거(후기 · 고객 수)는 규칙상 만들지 않음** — 실제 후기나 도입 학원 수를 받으면 넣을 수 있음. 요청 중 푸시 알림 · 모달/바텀시트 · 카드 확장 · 탭↔세그먼트 전환 확대는 이번에 하지 않음(다음 묶음). 당겨서 새로고침은 실제 기기(iOS Safari · 안드로이드)에서 확인하지 못함. `sw.js` VER 줄이 #126~#129와 겹쳐 병합 때 충돌.
+
 ## 2026-11-09 · Claude Code · claude/worksheet-v2 / PR #125 (후속)
 - 한 일: 전범위 모의고사(`bkPlanFull`)에서 지문 딸린 국어 문항을 한 덩어리로 넣어 열보다 길면 최대 43cm까지 잘리던 문제 수정 — 지문을 `bkPsgUnits` 조각으로 나눠 열·쪽을 넘기고, 지시문 번호를 모의고사 번호로 바꿈(`bkFixPsgNo`가 [06-A] 같은 원본 번호도 처리), 긴 보기(lp)는 전폭. 모의고사 지문 조각은 높이표(맥에서 잰 값) 대신 보는 브라우저에서 직접 잼(키 `m:`) — CI(리눅스)에서 높이표 값으로는 12mm 넘침이 났음. 지문·보기 상자 누락 수정: 앱 풀이 화면·학습지의 `.q .psg`에 상자, 교재 문항 안 지문(`.u.q .psg`) 상자, 화법 필기용 지문(`psg sp`)도 상자(`nobox:false`). 화법과 언어 교재 높이 재측정(바뀐 값 2개, 다른 과목 그대로), `heights.json?v=6`.
 - 바뀐 파일: `books.js`(v78), `index.html`, `sw.js`(v195), `books/heights.json`, `tests/book-mock-passage.cjs`(새), `tests/run.cjs`.
