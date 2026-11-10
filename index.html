@@ -1229,7 +1229,7 @@ function startWs(id,info){const cs=info.codes.filter(c=>byCode[c]);if(!cs.length
 const LVS=['하','중','상','최'];
 const PRI_DEF=['wrong','twin','unseen','seen'];
 const PRI_NAME={wrong:'틀린 문제 원본',twin:'쌍둥이 변형 문제 (틀린 문제와 같은 유형·같은 틀)',unseen:'아직 안 푼 문제',seen:'이미 맞힌 문제'};
-const WDEF={mono:0,sect:0,expPos:'end',fs:100,part:'both',hdr:'qr',ab2:0,sets:{mc:1,top:1,ox:0,blank:0,essay:0,bank:1},n:4,ans:1,qr:1,per:4,cols:2,style:'w-simple',color:'teal',tags:{type:0,lv:1,sub:0,src:0,code:0},title:'취약 유형 학습지',subt:'',name:'',academy:'',pri:PRI_DEF.slice(),on:{wrong:1,twin:1,unseen:1,seen:1},cap:{},twinPer:1,lvr:{'하':2,'중':5,'상':3,'최':0},order:'type',wrongAnyLv:1,mode:'total',total:20,dist:'weak',view:'grid',bankPct:50,font:'paper',p100:0,ab:0,essay:0,exam:{school:'',year:'',term:''}};
+const WDEF={mono:0,sect:0,expPos:'end',fs:100,part:'both',hdr:'qr',ab2:0,sets:{mc:1,top:1,ox:0,blank:0,essay:0,bank:1},n:4,ans:1,qr:1,per:'auto',cols:2,style:'w-simple',color:'teal',tags:{type:0,lv:1,sub:0,src:0,code:0},title:'취약 유형 학습지',subt:'',name:'',academy:'',pri:PRI_DEF.slice(),on:{wrong:1,twin:1,unseen:1,seen:1},cap:{},twinPer:1,lvr:{'하':2,'중':5,'상':3,'최':0},order:'type',wrongAnyLv:1,mode:'total',total:20,dist:'weak',view:'grid',bankPct:50,font:'paper',p100:0,ab:0,essay:0,exam:{school:'',year:'',term:''}};
 prefApply();
 let W=Object.assign({},WDEF,jget(LWS,{}));
 W.sel=new Map(Object.entries(W.selMap||{}));W.sets=Object.assign({},WDEF.sets,W.sets||{});W.pri=(W.pri&&W.pri.length===4)?W.pri:PRI_DEF.slice();W.on=Object.assign({},WDEF.on,W.on||{});W.lvr=Object.assign({},WDEF.lvr,W.lvr||{});W.cap=W.cap||{};W.tags=Object.assign({},WDEF.tags,W.tags||{});
@@ -2539,7 +2539,8 @@ async function openWs(rec,pv,opt){
  try{const fam=((wsFont(rec)||FONTS.paper)[1]||'').split(',')[0].replace(/['"]/g,'').trim();await Promise.all([400,500,700].flatMap(w=>[document.fonts.load(w+' 14px Pretendard'),fam?document.fonts.load(w+' 14px "'+fam+'"'):0]));await document.fonts.ready}catch(e){}
  const qs=rec.codes.map(c=>byCode[c]).filter(Boolean);
  const style=STYLE_CSS[rec.style]!==undefined?rec.style:({exam:'naesin',academy:'band',mono:'naesin'}[rec.style||rec.theme])||'w-simple',color=rec.color||'blue';
- const cols=rec.cols||2,per=(rec.per===undefined||rec.per==='auto')?0:+rec.per;
+ const cols=rec.cols||2,gapx=+rec.gapmm||0,perAuto=rec.per===undefined||rec.per==='auto';
+ const per=perAuto?(cols==1?[4,3,3,2]:[6,5,4,3])[gapx>=14?3:gapx>=8?2:gapx>=4?1:0]:+rec.per; // 자동: 「문제 간격」이 쪽당 문항 수를 정한다. 숫자를 고르면 그 문항 수가 최대
  const base=(CF.pub||location.href).split('#')[0].split('?')[0];
  const url=base+'#ws='+rec.id;const date=new Date(rec.t).toLocaleDateString('ko-KR');
  const nm=rec.name||(STU.find(s=>s.id===rec.sid)||{}).name||'';
@@ -2573,8 +2574,9 @@ async function openWs(rec,pv,opt){
    const cap=sol?999:cp[ci];const have=col.querySelectorAll('.wq').length;
    const lim=cols==1&&ci>0;
    if(lim||(!sol&&per&&have>=cap)){ci++;if(ci>1||(cols==1&&ci>0)){pg=newPage(false,sol);ci=0}continue}
-   if(!sol&&per&&!el.dataset.nomin){const h=mm(col.getBoundingClientRect().height);el.style.minHeight=Math.max(30,(h/cap)-5.5)+'mm'}else if(!sol&&!el.dataset.nomin)el.style.minHeight='70mm';
    col.appendChild(el);
+   if(!sol&&gapx&&!el._gx){el._gx=1;el.style.marginBottom=(mm(parseFloat(getComputedStyle(el).marginBottom)||0)+gapx)+'mm'}
+   if(!sol&&per&&!el.dataset.nomin){const h=mm(col.getBoundingClientRect().height),mb=mm(parseFloat(getComputedStyle(el).marginBottom)||0);el.style.minHeight=Math.max(30,(h/cap)-mb-.6)+'mm'}else if(!sol&&!el.dataset.nomin)el.style.minHeight='70mm';
    if(el.getBoundingClientRect().bottom+(parseFloat(getComputedStyle(el).marginBottom)||0)<=col.getBoundingClientRect().bottom-1)break;
    if(col.children.length===1){el.style.minHeight='';const eh=el.getBoundingClientRect().height,chh=col.getBoundingClientRect().height;if(eh>chh-14){let z=Math.max(.5,(chh-20)/eh);const ap=()=>{el.style.width=(100/z)+'%';el.style.transform='scale('+z.toFixed(4)+')';el.style.transformOrigin='top left';el.style.marginBottom='0px';el.style.marginBottom=(-(el.offsetHeight*(1-z)))+'px'};ap();for(let k=0;k<4;k++){const bt=el.getBoundingClientRect().bottom-col.getBoundingClientRect().top;if(bt<=chh-6||z<=.5)break;z=Math.max(.5,z*(chh-10)/bt);ap()}}break}col.removeChild(el);ci++;if(ci>1||(cols==1&&ci>0)){pg=newPage(false,sol);ci=0}}})}
  {let base=null;if(rec.p100&&qs.length){const b=Math.floor(100/qs.length),ex=100-b*qs.length;base=qs.map((q,i)=>b+(i>=qs.length-ex?1:0))}
@@ -2585,7 +2587,7 @@ async function openWs(rec,pv,opt){
   const note=rec.notes&&rec.notes[q.code];if(note)html=`<div class="wnote">${esc(note)}</div>`+html;
   if(rec.sect&&secOf(q)!==lastSec){lastSec=secOf(q);html=`<div class="wsec">${NUMR[secNo++]}. ${SECN[lastSec]} <em>(${secCnt[lastSec]}문항)</em></div>`+html}
   if(after)html+=`<div class="sb xa"><div class="h">정답 ${fmt(String(q.ans).slice(0,30))}</div>${q.exp}</div>`;
-  d.innerHTML=html;d.querySelectorAll('.bogi p').forEach(p=>{if(!/^\s*([ㄱ-ㅎ][.)]|[A-Ea-e가-하][.):]|\([가-하A-Ea-e]\)|[①-⑩㉠-㉭]|[-·•]|학생\s*\d|[A-Z]\s*:)/.test(p.textContent))p.classList.add('pr')});if(rec.brk&&rec.brk[q.code])d.dataset.brk='1';const sp=rec.space&&rec.space[q.code];if(sp)d.style.paddingBottom=sp+'mm';else if(rec.gapmm)d.style.marginBottom=rec.gapmm+'mm';return d});
+  d.innerHTML=html;d.querySelectorAll('.bogi p').forEach(p=>{if(!/^\s*([ㄱ-ㅎ][.)]|[A-Ea-e가-하][.):]|\([가-하A-Ea-e]\)|[①-⑩㉠-㉭]|[-·•]|학생\s*\d|[A-Z]\s*:)/.test(p.textContent))p.classList.add('pr')});if(rec.brk&&rec.brk[q.code])d.dataset.brk='1';const sp=rec.space&&rec.space[q.code];if(sp)d.style.paddingBottom=sp+'mm';;return d});
  const sols=(ans==1||ans===true)&&!after?qs.map((q,i)=>{const d=document.createElement('div');d.className='sb wq';d.innerHTML=`<div class="h">${i+1}번 · ${q.code} · 정답 ${fmt(String(q.ans).slice(0,30))}</div>${q.exp}`;return d}):[];
  const stage=document.createElement('div');stage.style.cssText='position:absolute;left:-9999px;width:90mm';root.appendChild(stage);
  [...qEls,...sols].forEach(e=>stage.appendChild(e));
@@ -3054,7 +3056,7 @@ function wsPopFill(win,rec){
  const faces=[[400,'Regular'],[500,'Medium'],[600,'SemiBold'],[700,'Bold'],[800,'ExtraBold']].map(([w,n])=>`@font-face{font-family:PretendardLocal;font-weight:${w};src:url(${abs('fonts/Pretendard-'+n+'.woff2')}) format('woff2')}`).join('')+`@font-face{font-family:YetHangul;src:url(${abs('fonts/KoPubDotum-Medium.subset.woff2')}) format('woff2');unicode-range:U+1100-11FF,U+A960-A97F,U+D7B0-D7FF,U+3165-318E,U+302E-302F}`;
  const links=[...document.querySelectorAll('head link[rel=stylesheet]')].map(l=>'<link rel="stylesheet" href="'+l.href+'">').join('');
  const sh=$('#wsPaper').shadowRoot;if(!sh)return;
- const gapOpts=[[0,'기본'],[4,'조금 넓게'],[8,'넓게'],[14,'아주 넓게']].map(([v,t])=>`<option value="${v}" ${(rec.gapmm||0)===v?'selected':''}>${t}</option>`).join('');
+ const gapOpts=[[0,'기본 (쪽당 6문항)'],[4,'조금 넓게 (5문항)'],[8,'넓게 (4문항)'],[14,'아주 넓게 (3문항)']].map(([v,t])=>`<option value="${v}" ${(rec.gapmm||0)===v?'selected':''}>${t}</option>`).join('');
  const bar=popBarHtml(tbS('pgap','','쪽 안 문제 간격','gap','문제 간격',gapOpts)+tbT('pdup','','양면 인쇄: 답안이 뒷면에서 시작하지 않게 빈 쪽을 채워요','duplex','양면 인쇄',dupGet()?'on':''));
  const d=win.document;
  let keep={st:0,id:'',ss:0,pz:1};try{const op=d.getElementById('spanel');if(op)keep.st=op.scrollTop;const ae=d.activeElement;if(ae&&ae.id&&/^bdf_/.test(ae.id)){keep.id=ae.id;keep.ss=ae.selectionStart}}catch(e){}
@@ -3063,7 +3065,7 @@ function wsPopFill(win,rec){
  d.getElementById('paper').attachShadow({mode:'open'}).innerHTML=sh.innerHTML;
  Object.keys(BDAPI).forEach(n=>{win[n]=(...a)=>BDAPI[n](...a)});
  try{const sp=d.getElementById('spanel');sp.scrollTop=keep.st;if(keep.id){const n=d.getElementById(keep.id);if(n){n.focus();n.setSelectionRange(keep.ss,keep.ss)}}}catch(e){}
- popWire(win,dd=>{dd.getElementById('pgap').onchange=e=>wsPopSet({gapmm:+e.target.value});dd.getElementById('pdup').onclick=()=>{dupSet(!dupGet());wsPopSet({})}})}
+ popWire(win,dd=>{dd.getElementById('pgap').onchange=e=>wsPopSet({gapmm:+e.target.value,per:'auto'});dd.getElementById('pdup').onclick=()=>{dupSet(!dupGet());wsPopSet({})}})}
 async function wsPopSet(o){if(!WSP.rec||!WSP.win||WSP.win.closed)return;Object.assign(WSP.rec,o);await openWs(WSP.rec,null,{win:WSP.win})}
 function cbPrint(id){const C=CONC[SUBJ];const ids=id?[id]:[...CB.print];if(!ids.length){toast('인쇄할 개념을 체크하거나 「이 개념 인쇄」를 눌러 주세요');return}
  const secs=C.secs.filter(s=>ids.includes(s.id));const pw=popOpen('인쇄 문서를 만드는 중…');busyRun('인쇄 문서를 만드는 중…',async()=>{await ensureCodes([...secs.flatMap(s=>[...s.ox,...s.blank])]);cbPrintHtml(cbPrintDoc(secs,true,secs.length===1?secs[0].title+' 개념 학습지':SNAME[SUBJ]+' 개념 학습지'),pw)})}
