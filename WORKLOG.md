@@ -2,6 +2,47 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-11 · Claude Code · claude/combined-1111 (PR #126~#131 통합)
+- 한 일: 따로 올라가 있던 PR 6개(#126 학생 회원가입 긴급 수정, #131 로그인 간격, #127 학습지 번호 크기, #128 문제 간격 = 쪽당 문항 수, #129 최근 기록 · 왼쪽 메뉴 · 지문 [A] 괄호 · 필기용 지문 상자, #130 스켈레톤 · 진행바 · 당겨서 새로고침 · 스테퍼 · 완료 연출 · 인트로 요금제 위로)를 `main`에서 한 브랜치로 합침. 합치는 순서는 #126 → #131 → #127 → #128 → #129 → #130. 충돌은 `sw.js` · `WORKLOG.md` · `tests/run.cjs` · `styles/screens.css`(양쪽 CSS를 모두 남김) · `index.html`/`tests/app-ui.cjs`(`screens.css?v=` 한 줄)뿐이었고 모두 양쪽 내용을 살려 풂. 버전은 `sw.js` VER v202, `screens.css` v14, `books.js` v79, `heights.json` v7, `intro.css` v23, `intro.js` v19로 통일(`sw.js` SHELL의 인트로 버전이 예전 값이던 것도 바로잡음). 개별 변경 내용은 아래 각 기록 참고.
+- 확인: **테스트는 돌리지 않음**(사용자 요청). 충돌 표시 없음 · 버전 번호 일치 · 최상위 중복 선언 없음(`wsDup`은 `main`에 원래 있던 것)만 글자로 확인. 각 PR은 합치기 전에 개별로 테스트를 통과했지만, 합친 결과 전체는 CI에서 처음 돌아감.
+- 남은 일 · 주의: 합친 뒤 CI 결과를 확인할 것. 특히 같은 파일(`index.html` · `styles/screens.css` · `books.js`)을 여러 PR이 고쳤으므로 CI가 실패하면 먼저 거기를 볼 것.
+
+## 2026-11-11 · Claude Code · claude/fix-login-spacing-2 (#126 위에 쌓음)
+- 한 일: 학생·학부모 로그인과 회원가입 폼의 간격 수정. 원인: 새 로그인 화면 본문 `#stbody`가 자식마다 18px 간격(grid gap)을 주는데, 선생님 로그인과 달리 학생·학부모 로그인(`stLoginBody`)과 가입 폼 제목은 「제목+설명」 · 「라벨+입력칸」을 묶지 않아 라벨↔입력칸까지 18px+마진씩 벌어졌음(제목↔설명 30px, 라벨↔입력칸 33px). `.entry-heading` · `.entry-field` 묶음으로 바꾸고 체크박스 · 회원가입 줄의 따로 준 여백, `.fld` 자체 여백을 정리 → 라벨↔입력칸 7px, 묶음 사이 18px(선생님 로그인과 같은 리듬).
+- 바뀐 파일: `index.html`, `styles/screens.css`(v13), `sw.js`(v201), `tests/student-signup.cjs`(간격 검사 추가), `tests/app-ui.cjs`.
+- 확인: `student-signup`(수정 전 실패 · 후 통과, 1440·390), `app-ui` 42개, 정적 검사, 390 · 1440 캡처.
+- 주의: `claude/fix-student-signup`(#126) 위에 쌓은 브랜치라 #126을 먼저 병합해야 diff가 이 변경만 남음. `sw.js` VER · `screens.css` 버전 줄이 다른 PR과 겹쳐 충돌.
+
+## 2026-11-10 · Claude Code · claude/fix-student-signup (긴급)
+- 한 일: 학생 「회원가입」을 눌러도 아무 화면이 안 뜨던 오류 수정. 원인: 로그인 화면 개편(#122) 뒤 로그인 본문을 그리는 `stLoginBody()`가 가입 모드(`SGU.mode==='signup'`)와 승인 대기(`sgPend()`)를 보지 않아, 버튼이 모드만 바꾸고 화면은 그대로였음(예전 `stLoginCard()`만 확인). 가입 폼·승인 대기 화면을 카드 없는 본문(`sgFormBody`·`sgPendBody`)으로 나눠 새 로그인 화면 안에 그림.
+- 바뀐 파일: `index.html`, `sw.js`(v196), `tests/student-signup.cjs`(새), `tests/run.cjs`.
+- 확인: 새 `student-signup`(회원가입 → 폼 → 신청 → 승인 대기 → 로그인, 1440·390, 서버 호출은 가짜로 막음)이 수정 전 실패 · 수정 후 통과, `app-ui` 42개·정적 검사 통과. 가입 서버 함수(`st_signup`)는 정상 응답(잘못된 코드에 `bad_code`).
+- 남은 일 · 주의: 실제 가입 → 선생님 승인 전체 흐름을 실제 서버로 끝까지 해 보지는 않음(테스트 계정이 생기므로).
+
+## 2026-11-10 · Claude Code · claude/ws-number-box
+- 한 일: 학습지 문항 번호를 더 크게(「번호.」 형식 11.5pt→15pt, 굵은 번호 12.5→16pt, 번호와 배점 사이 간격). 「본문에 네모박스가 안 쳐진다」는 제보는 재현하지 못함 — 화법과 언어 문항 데이터 11,950개 전수 검사(상자 없는 지문 · 화자 대화 · 긴 글 · 해설) 0건, 학습지 · 교재 · 풀이 화면 · 전범위 모의고사를 실제 렌더링해 확인, 실제 사이트(solvi.win)에서도 같은 검사 통과. 제보 화면(어느 문항 · 어느 화면)을 받아야 함.
+- 바뀐 파일: `index.html`, `sw.js`(v197), `WORKLOG.md`.
+- 확인: `ws-approved-styles`·`print-regression` 통과, 두 디자인 캡처로 번호 크기 확인.
+- 남은 일 · 주의: 상자 누락 제보 화면 확인. `claude/fix-student-signup`(#126, `sw.js` v196)과 `sw.js` VER 줄이 겹쳐 충돌할 수 있음.
+
+## 2026-11-10 · Claude Code · claude/ws-spacing
+- 한 일: 학습지 「문제 간격」이 쪽당 문항 수를 정하게 함. 「한 쪽 최대 문항」이 자동이면 기본 6 · 조금 넓게 5 · 넓게 4 · 아주 넓게 3문항(1단은 4·3·3·2). 원인: 새 학습지 기본 `per`가 4(또는 사용자가 고른 2)라 단마다 문항 높이를 `h/cap−5.5mm`로 늘리고, 거기에 간격(`gapmm`)을 inline margin으로 따로 덮어써서 「넓게」를 고르면 오히려 단당 1문항만 남았음. 이제 간격은 디자인 기본 간격에 더하는 값이고 높이 계산(`minHeight`)에 포함됨. 새 학습지 기본 `per`는 자동. 팝업 「문제 간격」 선택지에 쪽당 문항 수를 표시하고, 바꾸면 쪽당 문항 수도 자동으로 되돌림(숫자로 고른 값이 간격 조절을 막지 않게).
+- 바뀐 파일: `index.html`, `sw.js`(v198), `tests/ws-spacing.cjs`(새), `tests/run.cjs`.
+- 확인: `ws-spacing`(짧은 국어 문항 24개: 기본 3+3, 조금 넓게 3+2, 넓게 2+2, 아주 넓게 2+1, 숫자 2 → 1+1, 1단 4), `ws-approved-styles`·`print-regression`·`book-mock-passage`·`app-ui` 42개·정적 검사 통과. 기본 · 넓게 캡처 확인.
+- 남은 일 · 주의: 지문이 긴 문항은 단에 3개가 안 들어가 자연히 적게 들어감. 이미 저장된 학습지의 「한 쪽 최대 문항」이 숫자면 그 숫자가 우선(팝업에서 문제 간격을 바꾸면 자동으로 풀림). `sw.js` VER 줄이 #126(v196)·#127(v197)과 충돌할 수 있음.
+
+## 2026-11-10 · Claude Code · claude/fix-recent-sidebar-bracket
+- 한 일: (1) 최근 기록에 교재 ID(`hl-xfq_xh0_…`)가 그대로 뜨던 것: `bookLbl()`이 `_`가 든 자유 구성 교재 ID를 못 읽어서였음 → 만든 이름 + 쪽(없으면 「맞춤 교재」). (2) 왼쪽 메뉴: UI 개편(f36bf32)에서 빠진 부팅 복원을 되살림(`<head>` 스크립트로 `omr_sb`의 상태·너비·`mtab`을 첫 그리기 전에 적용 — 지금까지 새로고침하면 상태가 사라졌고, `data-sb`가 비어 「접기」 첫 클릭이 먹지 않았음), `sbToggle` 기본값 open, 상태가 바뀌면 resize를 알려 폭에 맞춰 그리는 요소가 다시 맞춤, 본문 왼쪽 여백은 `--sbw` 변수에만 기대지 않고 상태별로 직접 지정(`screens.css`). 태블릿 세로(820·744)에서는 「바 닫으면 빈칸」을 재현하지 못했고(모든 탭 측정), 위 결함들을 고침 — 같은 증상이 남으면 화면·기기를 받아야 함. (3) 국어 지문 범위: 색칠 · `A` 상자 대신 오른쪽 긴 괄호 + `[A]` 이름표(`rngBracket()` — `ovApply`에서 문항 데이터가 들어올 때 변환: 줄마다 `bk-s/m/e/o` 클래스, 이름표는 가운데 줄). 데이터는 줄마다 같은 이름의 `rng`가 따로 있고 시작(`rk`)은 첫 줄, 끝(`re`)은 마지막 줄에만 있어 이어지는 줄을 하나로 묶음. (4) **PR #125의 지문 상자 규칙이 `QCSS`가 아니라 개념 인쇄용 `CBCSS`에 들어가 있던 실수 수정** — 필기용 지문(`psg sp`)이 앱·학습지에서 상자가 없던 이유. QCSS로 옮김.
+- 바뀐 파일: `index.html`, `books.js`(v79 · 색칠 규칙 → 괄호), `books/heights.json`(v7, 화법과 언어 56개 변경 · 다른 과목 그대로), `styles/screens.css`, `sw.js`(v199), `tests/sidebar-state.cjs`·`tests/passage-bracket.cjs`·`tests/book-label.test.cjs`(새), `tests/run.cjs`.
+- 확인: 새 테스트 3개 통과(`passage-bracket`·`sidebar-state`는 수정 전 실패 확인), `book-mock-passage`·`ws-approved-styles`·`print-regression`·`book-pdf`·`hl-concept-regression`·`app-ui` 42개·정적 검사 통과, 학습지·교재 캡처로 괄호 확인.
+- 남은 일 · 주의: `sw.js` VER 줄이 #126(v196)·#127(v197)·#128(v198)과 겹쳐 병합 때 충돌. 교재 안 괄호 때문에 화법 지문 줄 바꿈이 조금 달라질 수 있음. 괄호 이름표는 쪽이 나뉘면 가운데 줄이 있는 쪽에만 보임.
+
+## 2026-11-10 · Claude Code · claude/delight-pack
+- 한 일: 사이트 만족감용 가벼운 다듬기(예산 10달러 이내). (1) 로딩을 막대 대신 스켈레톤으로(`ldg()`). 전역 작업 로딩 오버레이(`busyRun`)는 그대로. (2) 맨 위 스크롤 진행바(앱 `#sprog`, 인트로 같은 이름). (3) 당겨서 새로고침(터치 기기, 맨 위에서만, 채점 중 · 열린 창 · 안쪽 스크롤 영역에서는 안 씀 → `hardRefresh()`). (4) 문항 수 입력을 스테퍼로(`numStepper` — 유형별 문항 수 · 총 문항 수; 기존 `stepper`는 단계 표시라 이름을 달리 함). (5) 채점 완료 연출(`celebrate`): 체크 표시 · 점수 올라가기 · 90% 이상 46개/60% 이상 30개 색종이, 움직임 줄이기 설정이면 색종이 생략. (6) 인트로: 요금제를 「핵심 흐름」 앞(네 번째 구역)으로 올리고 목차 맨 앞에 둠, 요금제 위에 틀 잡기 문장 + 실제 수치(4과목 · 문항 40,000개 이상 — 데이터에서 센 고유 문항 코드 41,159개) + 카드마다 「1명당 월 약 …원」(화면의 가격과 최대 학생 수에서 JS가 계산, 서버 값으로 카드가 다시 그려져도 `MutationObserver`가 다시 채움).
+- 바뀐 파일: `index.html`, `styles/screens.css`(v12), `intro.html`·`intro.css`(v23)·`intro.js`(v19), `sw.js`(v200), `AGENTS.md`(완료 축하 예외 · 스켈레톤 · 수치 규칙), `tests/delight.cjs`(새), `tests/app-ui.cjs`, `tests/run.cjs`.
+- 확인: `delight`(스켈레톤 · 진행바 · 스테퍼 · 당겨서 새로고침 4가지 조건 · 완료 연출 · 움직임 줄이기), `app-ui` 42개, `intro-regression`, `print-regression`, `ws-approved-styles`, 정적 검사 통과. 스테퍼 · 스켈레톤 · 완료 · 인트로 요금제 1440 · 390 캡처 확인.
+- 남은 일 · 주의: **사회적 증거(후기 · 고객 수)는 규칙상 만들지 않음** — 실제 후기나 도입 학원 수를 받으면 넣을 수 있음. 요청 중 푸시 알림 · 모달/바텀시트 · 카드 확장 · 탭↔세그먼트 전환 확대는 이번에 하지 않음(다음 묶음). 당겨서 새로고침은 실제 기기(iOS Safari · 안드로이드)에서 확인하지 못함. `sw.js` VER 줄이 #126~#129와 겹쳐 병합 때 충돌.
+
 ## 2026-11-09 · Claude Code · claude/worksheet-v2 / PR #125 (후속)
 - 한 일: 전범위 모의고사(`bkPlanFull`)에서 지문 딸린 국어 문항을 한 덩어리로 넣어 열보다 길면 최대 43cm까지 잘리던 문제 수정 — 지문을 `bkPsgUnits` 조각으로 나눠 열·쪽을 넘기고, 지시문 번호를 모의고사 번호로 바꿈(`bkFixPsgNo`가 [06-A] 같은 원본 번호도 처리), 긴 보기(lp)는 전폭. 모의고사 지문 조각은 높이표(맥에서 잰 값) 대신 보는 브라우저에서 직접 잼(키 `m:`) — CI(리눅스)에서 높이표 값으로는 12mm 넘침이 났음. 지문·보기 상자 누락 수정: 앱 풀이 화면·학습지의 `.q .psg`에 상자, 교재 문항 안 지문(`.u.q .psg`) 상자, 화법 필기용 지문(`psg sp`)도 상자(`nobox:false`). 화법과 언어 교재 높이 재측정(바뀐 값 2개, 다른 과목 그대로), `heights.json?v=6`.
 - 바뀐 파일: `books.js`(v78), `index.html`, `sw.js`(v195), `books/heights.json`, `tests/book-mock-passage.cjs`(새), `tests/run.cjs`.
