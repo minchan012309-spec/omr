@@ -3281,7 +3281,7 @@ let _sgT=0;function sgPollStart(){clearInterval(_sgT);_sgT=setInterval(()=>{if(!
 async function sgLogin(){const p=sgPend();if(!p)return;
  try{const r=await rpc('st_login',{p_login:p.login,p_pw:p.pw});const j=r.ok?await r.json():null;if(!j){alert('로그인하지 못했어요. 아이디와 비밀번호로 직접 로그인해 보세요.');try{localStorage.removeItem(SGK)}catch(e){}enterView();return}
   try{localStorage.removeItem(SGK)}catch(e){}await stSetSession(p.login,p.pw);tab='home';await load()}catch(e){alert('로그인하지 못했어요. 인터넷을 확인하세요.')}}
-function sgFormCard(){return `<div class="card enter stl"><div class="stbrand"><i></i>Solvi</div><h2>학생 회원가입</h2><div class="m" style="margin-bottom:12px">계정 하나로 모든 과목(물질과 에너지·세포와 물질대사 등 앞으로 추가되는 과목 포함)을 쓸 수 있어요. 가입을 신청하면 선생님이 확인한 뒤 승인해요.</div>
+function sgFormBody(){return `<h2>학생 회원가입</h2><div class="m" style="margin-bottom:12px">계정 하나로 모든 과목(물질과 에너지·세포와 물질대사 등 앞으로 추가되는 과목 포함)을 쓸 수 있어요. 가입을 신청하면 선생님이 확인한 뒤 승인해요.</div>
  <div class="fld"><label>선생님 코드</label><input id="sgc" class="stin" type="text" value="${esc(SGU.code)}" autocapitalize="characters" autocomplete="off" placeholder="선생님께 받은 코드 6자리" maxlength="12"></div>
  <div class="fld"><label>이름</label><input id="sgn" class="stin" type="text" maxlength="20" autocomplete="name" placeholder="예) 김민찬"></div>
  <div class="fld"><label>학년·반 (선택)</label><input id="sgg" class="stin" type="text" maxlength="20" placeholder="예) 해원고2"></div>
@@ -3289,11 +3289,13 @@ function sgFormCard(){return `<div class="card enter stl"><div class="stbrand"><
  <div class="fld"><label>비밀번호 (4자 이상)</label><input id="sgp" class="stin" type="password" autocomplete="new-password"></div>
  <div class="fld"><label>비밀번호 확인</label><input id="sgp2" class="stin" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')sgSubmit()"></div>
  <div id="sgerr" class="hint" style="color:var(--no);margin-top:8px" ${SGU.err?'':'hidden'}>${esc(SGU.err)}</div>
- <div class="btns" style="margin-top:12px"><button id="sgbtn" class="p" onclick="sgSubmit()">가입 신청</button><button class="s" onclick="sgOpen('login')">로그인으로 돌아가기</button></div></div>`}
-function sgPendCard(){const p=sgPend();const s=p.st||'pending';
- return `<div class="card enter stl sgw ${s}"><div class="stbrand"><i></i>Solvi</div>${s==='approved'?`<h2>가입이 승인됐어요!</h2><div class="m" style="margin:6px 0 14px">${esc(p.name)}님, 이제 로그인해서 학습을 시작할 수 있어요.</div><div class="btns"><button class="p" onclick="sgLogin()">바로 로그인하기</button></div>`
+ <div class="btns" style="margin-top:12px"><button id="sgbtn" class="p" onclick="sgSubmit()">가입 신청</button><button class="s" onclick="sgOpen('login')">로그인으로 돌아가기</button></div>`}
+function sgFormCard(){return `<div class="card enter stl"><div class="stbrand"><i></i>Solvi</div>${sgFormBody()}</div>`}
+function sgPendBody(){const p=sgPend();const s=p.st||'pending';
+ return `${s==='approved'?`<h2>가입이 승인됐어요!</h2><div class="m" style="margin:6px 0 14px">${esc(p.name)}님, 이제 로그인해서 학습을 시작할 수 있어요.</div><div class="btns"><button class="p" onclick="sgLogin()">바로 로그인하기</button></div>`
   :s==='rejected'?`<h2>가입이 승인되지 않았어요</h2><div class="m" style="margin:6px 0 14px">선생님께 문의한 뒤 다시 신청해 주세요.</div><div class="btns"><button class="p" onclick="try{localStorage.removeItem(SGK)}catch(e){};sgOpen('signup')">다시 신청하기</button><button class="s" onclick="try{localStorage.removeItem(SGK)}catch(e){};enterView()">닫기</button></div>`
-  :`<h2>승인 대기 중이에요</h2><div class="m" style="margin:6px 0 4px"><b>${esc(p.name)}</b>님의 가입 신청이 접수됐어요. 선생님이 승인하면 알림으로 알려 드릴게요.</div><div class="m" style="margin-bottom:14px">이 화면을 열어 두면 승인되는 즉시 알려 드려요. 아이디: <b>${esc(p.login)}</b></div><div class="sgdots" aria-hidden="true"><i></i><i></i><i></i></div><div class="btns"><button class="s" onclick="sgCheck(true)">승인됐는지 확인</button><button class="s" onclick="sgCancel()">닫기</button></div>`}</div>`}
+  :`<h2>승인 대기 중이에요</h2><div class="m" style="margin:6px 0 4px"><b>${esc(p.name)}</b>님의 가입 신청이 접수됐어요. 선생님이 승인하면 알림으로 알려 드릴게요.</div><div class="m" style="margin-bottom:14px">이 화면을 열어 두면 승인되는 즉시 알려 드려요. 아이디: <b>${esc(p.login)}</b></div><div class="sgdots" aria-hidden="true"><i></i><i></i><i></i></div><div class="btns"><button class="s" onclick="sgCheck(true)">승인됐는지 확인</button><button class="s" onclick="sgCancel()">닫기</button></div>`}`}
+function sgPendCard(){const p=sgPend();return `<div class="card enter stl sgw ${p.st||'pending'}"><div class="stbrand"><i></i>Solvi</div>${sgPendBody()}</div>`}
 if(sgPend())setTimeout(sgPollStart,1200);
 const LOGO_RE=/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]{20,}$/;
 function acCfg(){const P=(TSET&&TSET.perms)||{},Q=(STUD&&PERM)||{},C=jget('omr_ac',{});const has=o=>o.logo!==undefined||o.logoDark!==undefined||o.acname!==undefined||o.acmode!==undefined;const src=has(P)?P:has(Q)?Q:C;
@@ -3355,7 +3357,7 @@ async function acSave(patch){const P=TSET.perms=TSET.perms||{},old={logo:P.logo,
 
 
 const SLOGOHTML=lgStack('currentColor','slg');
-function stLoginBody(){return `<h2>${PRL?'학부모 로그인':'학생 로그인'}</h2><div class="m" style="margin-bottom:12px">${PRL?'선생님께 받은 학부모 아이디와 비밀번호를 입력하세요. 자녀의 학습 현황을 볼 수 있어요.':'선생님께 받은 아이디와 비밀번호를 입력하세요.'}</div>
+function stLoginBody(){if(!PRL){if(sgPend())return `<div class="sgw ${sgPend().st||'pending'}">${sgPendBody()}</div>`;if(SGU.mode==='signup')return sgFormBody()}return `<h2>${PRL?'학부모 로그인':'학생 로그인'}</h2><div class="m" style="margin-bottom:12px">${PRL?'선생님께 받은 학부모 아이디와 비밀번호를 입력하세요. 자녀의 학습 현황을 볼 수 있어요.':'선생님께 받은 아이디와 비밀번호를 입력하세요.'}</div>
  <label class="ent-l" for="stid">아이디</label><input id="stid" class="stin" type="text" placeholder="아이디" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" autocomplete="username" onkeydown="if(event.key==='Enter')stLogin()"><label class="ent-l" for="stpw">비밀번호</label><input id="stpw" class="stin" type="password" placeholder="비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')stLogin()">
  <label class="chk" style="margin:8px 0"><input type="checkbox" ${autoOn()?'checked':''} onchange="autoSet(this.checked)"> 자동 로그인</label>
  <div class="btns"><button type="button" class="p" onclick="stLogin()">로그인</button>${!PRL&&pkOK()?'<button type="button" class="s" onclick="pkLogin()">패스키로 로그인</button>':''}</div>${PRL?'':`<div class="sgjoin"><span>아직 계정이 없나요?</span><button type="button" class="s" onclick="sgOpen('signup')">회원가입</button></div>${acctQuick()}`}`}
