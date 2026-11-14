@@ -1,6 +1,7 @@
 """Rebuild the type-sharded AI mathematics bank with stable question IDs."""
 import json
 import random
+import re
 from collections import Counter
 from fractions import Fraction
 from html import escape
@@ -8,6 +9,8 @@ from itertools import combinations
 from pathlib import Path
 
 from problems import scenario
+from build_exam import add_exam_items
+from build_rewrite import add_rewrite
 from explain import explanation, math
 
 ROOT = Path(__file__).resolve().parents[2] / 'aim'
@@ -161,7 +164,10 @@ def main():
                     if hit is None:
                         continue
                     stem, answer, exp, foils = hit
-                    body = figure(s,LABELS[:len(s.rows)]) + math(s.metric+' '+stem)
+                    rule = s.metric
+                    if topic == 7:
+                        rule = re.sub(r'\(R\+(\d+)G\+B\)/(\d+)',r'{{R+\1G+B|\2}}',rule)
+                    body = figure(s,LABELS[:len(s.rows)]) + '<p>'+math(rule)+'</p><p>'+math(stem)+'</p>'
                     if body not in seen:
                         break
                 seen.add(body)
@@ -194,11 +200,13 @@ def main():
                         q['blanks'] = [answer]
                 q['model'] = {'rows':s.rows,'rule':s.metric,'constraint':s.constraint,'stem':stem}
                 q['exp'] = explanation(topic,stem,exp,s.values,s.eligible,q['model'],opts,answer)
-                q['q'] = f'<div class="q"><div class="qh"><b class="qn">{no}</b></div><div class="qs">{body}</div>{choices}</div>'
+                q['q'] = f'<div class="q"><div class="qh"><b class="qn">{no}</b></div><div class="qs">{body}{choices}</div></div>'
                 questions.append(q)
             index[tag] = dict(label=sec['title'],sub=sec['sub'],subname=questions[0]['subname'],
                 sec=topic,set=kind,n=len(questions),lv=dict(Counter(q['lv'] for q in questions)))
             write(ROOT/(tag+'.json'),questions)
+    add_exam_items(index,concept)
+    add_rewrite(index,concept)
     (ROOT/'index.json').write_text(json.dumps(index,ensure_ascii=False,indent=2)+'\n')
 
 
