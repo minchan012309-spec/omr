@@ -200,12 +200,12 @@ const runTo = async (page, id, p) => {
     assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.id), "catTitle", "chosen category moves focus to its results");
     await page.locator('.cats button[data-cat="all"]').click();
     assert.equal(await page.locator(".spec-g .sp:visible").count(), total);
-    /* 지원 과목: 앱 과목 선택의 지원 4개와 준비 중 23개를 모두 보여 준다 */
+    /* 지원 과목: 앱 과목 선택의 지원 5개와 준비 중 26개를 모두 보여 준다 */
     const subjectNames = await page.locator("#eco .subject-item b").allTextContents();
-    assert.equal(subjectNames.length, 27, "complete subject roadmap");
-    assert.equal(await page.locator('#eco .subject-item[data-status="active"]').count(), 4);
-    assert.equal(await page.locator('#eco .subject-item[data-status="soon"]').count(), 23);
-    assert.deepEqual(await page.locator("#eco .subject-group>h3").allTextContents(), ["과학", "국어", "사회", "수능 맞춤형"]);
+    assert.equal(subjectNames.length, 31, "complete subject roadmap");
+    assert.equal(await page.locator('#eco .subject-item[data-status="active"]').count(), 5);
+    assert.equal(await page.locator('#eco .subject-item[data-status="soon"]').count(), 26);
+    assert.deepEqual(await page.locator("#eco .subject-group>h3").allTextContents(), ["과학", "국어", "사회", "정보", "수능 맞춤형"]);
     const appSource = fs.readFileSync("index.html", "utf8");
     for (const name of subjectNames) assert.ok(appSource.includes(name), "intro subject also exists in app picker: " + name);
     for (const [width, height, label] of [[1440, 900, "desktop"], [820, 1180, "tablet"], [390, 844, "mobile"]]) {
@@ -288,7 +288,7 @@ const runTo = async (page, id, p) => {
     assert.equal(await rp.locator(".fd:visible").count(), 5, "all five steps readable without motion");
     assert.equal(await rp.locator("#lb .ln:visible").count(), 12);
     assert.equal(await rp.locator("#tmap .tt:visible").count(), 15, "type map remains complete with reduced motion");
-    assert.equal(await rp.locator("#eco .subject-item:visible").count(), 27, "all subjects remain visible with reduced motion");
+    assert.equal(await rp.locator("#eco .subject-item:visible").count(), 31, "all subjects remain visible with reduced motion");
     await rp.locator("#book").scrollIntoViewIfNeeded();
     await rp.screenshot({ path: OUT + "/reduced-motion.png" });
     await reduced.close();
@@ -300,7 +300,7 @@ const runTo = async (page, id, p) => {
     assert.equal(await staticPage.locator("#h1").isVisible(), true);
     assert.equal(await staticPage.locator("#book .shots").isVisible(), true);
     assert.equal(await staticPage.locator("#tmap .tt:visible").count(), 15);
-    assert.equal(await staticPage.locator("#eco .subject-item:visible").count(), 27);
+    assert.equal(await staticPage.locator("#eco .subject-item:visible").count(), 31);
     assert.equal(await staticPage.locator("#plans .plan").count(), 3);
     await staticPage.locator("details").first().locator("summary").click();
     assert.equal(await staticPage.locator("details").first().getAttribute("open"), "");
@@ -315,7 +315,7 @@ const runTo = async (page, id, p) => {
     assert.match(await fallback.locator("#plans .plan h3").first().innerText(), /솔비 라이트/);
     assert.equal(await fallback.locator("#plans .plan").count(), 3);
     await fallbackContext.close();
-    console.log("PASS: pricing, connected-system hero, 5-step scroll stage (forward · back), QR scene, academy day (9 steps), readable feature catalog, 27-subject roadmap, plan comparison, link graph (draw · hover), mobile layout width, captures load with alt, no copy overlap at 5 sizes, app destinations, keyboard menu, light end, reduced motion, no JS. Screenshots: " + OUT);
+    console.log("PASS: pricing, connected-system hero, 5-step scroll stage (forward · back), QR scene, academy day (9 steps), readable feature catalog, 31-subject roadmap, plan comparison, link graph (draw · hover), mobile layout width, captures load with alt, no copy overlap at 5 sizes, app destinations, keyboard menu, light end, reduced motion, no JS. Screenshots: " + OUT);
   } finally {
     await browser.close();
   }
