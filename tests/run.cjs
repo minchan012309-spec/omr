@@ -79,6 +79,8 @@ const run = (args, env) =>
       ["tests/student-signup.cjs"],
       ["tests/ws-spacing.cjs"],
       ["tests/sidebar-state.cjs"],
+      ["tests/ai-math-subject.cjs"],
+      ["tests/ai-math-print.cjs"],
       ["tests/passage-bracket.cjs"],
       ["tests/delight.cjs"],
       ["tests/korean-browser.cjs"],
