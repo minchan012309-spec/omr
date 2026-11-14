@@ -43,14 +43,11 @@ const {chromium, browserOptions} = require('./runtime.cjs');
       if (width < 720) await page.getByRole('button', {name:'메뉴 열기', exact:true}).click();
       await page.locator('#nav').getByRole('button', {name:'개념학습', exact:true}).click();
       await page.getByRole('heading', {name:/인공지능의 개념/}).waitFor();
-      await page.getByRole('heading', {name:'풀이 예제'}).waitFor();
+      await page.getByRole('heading', {name:'지도학습·비지도학습·강화학습'}).waitFor();
       if (process.env.AI_MATH_SHOTS) await page.screenshot({path:process.env.AI_MATH_SHOTS+'/lesson-'+width+'.png', animations:'disabled'});
       await page.getByRole('button', {name:'다음 연습'}).click();
       await page.getByText('추가 연습 2 / 24쪽', {exact:true}).waitFor();
-      const blank = page.locator('#cbb_G-aim013-0007');
-      await blank.locator('input').fill(await page.evaluate(() => byCode['G-aim013-0007'].ans));
-      await blank.getByRole('button', {name:'확인', exact:true}).click();
-      await blank.locator('input.okb').waitFor();
+      assert.equal(await page.getByRole('heading',{name:/빈칸 채우기/}).count(),0);
       if (process.env.AI_MATH_SHOTS) await page.screenshot({path:process.env.AI_MATH_SHOTS+'/concept-'+width+'.png'});
       if (width === 1440) {
         await page.locator('#nav').getByRole('button', {name:'문항 검색', exact:true}).click();
@@ -60,7 +57,7 @@ const {chromium, browserOptions} = require('./runtime.cjs');
 
       if (width === 1440) {
         const bank = await page.evaluate(async () => {
-          const label = '인공지능의 개념';
+          const label = '혼동행렬과 분류 지표';
           const typeKey = 'Ⅰ|' + label;
           const counts = {};
           for (const kind of ['mc', 'ox', 'blank']) {
@@ -70,12 +67,24 @@ const {chromium, browserOptions} = require('./runtime.cjs');
             const before = typeRows().find(t => t.k === typeKey).pool;
             const codes = await pickCodes();
             const after = typeRows().find(t => t.k === typeKey).pool;
-            counts[kind] = [before, after, codes.length, codes.every(c => byCode[c].set === kind), codes.some(c => c.startsWith('G-aim'))];
+            counts[kind] = [before, after, codes.length, codes.every(c => byCode[c].set === 'mc'), codes.some(c => c.startsWith('G-aim'))];
           }
+          const types = typeRows().filter(t=>t.pool>0);
+          if(types.length!==40||types.some(t=>t.pool!==250))throw new Error('40개 유형 각 250문항 미연결');
+          const versions = ['aim-xe20r1','aim-xev20r1','aim-xen20r1'].map(id=>bkParts(id).def.revised);
+          if(versions.join()!=='0,1,2')throw new Error('모의고사 버전 식별 실패');
+          const plan = await bkPlan('aim-xen20r1');
+          const questions = plan.M.codes.map(c=>byCode[c]);
+          if(questions.length!==20||!questions.every(q=>q.revised&&q.set==='mc')||new Set(questions.map(q=>q.type)).size!==20){
+            throw new Error('재출제 모의고사 문항 또는 범위 오류');
+          }
+          mkEns();
+          const modern = await mockPick(['Ⅰ'],10,{'Ⅰ':10},new Set());
+          if(modern.length!==10||!modern.every(q=>q.revised&&q.set==='mc'))throw new Error('시험지 만들기에 이전 문제 혼입');
           return counts;
         });
         assert.deepEqual(bank, {
-          mc:[676,676,8,true,true], ox:[145,145,8,true,true], blank:[144,144,8,true,true],
+          mc:[250,250,8,true,true], ox:[250,250,8,true,true], blank:[250,250,8,true,true],
         });
       }
       await page.evaluate(() => practice(['AM-035'], '인공지능 수학'));
