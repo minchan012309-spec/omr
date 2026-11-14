@@ -8,36 +8,87 @@ FORMULAE = {
     1:'E = 3(P − TP) + 2FP',
     2:'ŷ = 1[ax + by ≥ t], E = Σ 1[ŷ ≠ y]',
     3:'p = w × p갑 + (1 − w) × p을',
-    4:'D = Σ |rᵢ − cᵢ|, rᵢ = fᵢ / Σf',
-    5:'D = 1 − |A ∩ B| / |A ∪ B|',
+    4:'D = Σ |rᵢ − cᵢ|, rᵢ = {{fᵢ|Σf}}',
+    5:'D = 1 − {{n(A∩B)|n(A∪B)}}',
     6:'E = |p(a − 2c) − nb|',
-    7:'D = |(R + wG + B) / (w + 2) − T|',
-    8:'I′ = min(255, I + s), D = |(I′₁₁ + I′₁₂) / 2 − T|',
+    7:'D = |{{R+wG+B|w+2}} − T|',
+    8:'I′ = min(255, I + s), D = |{{I′₁₁+I′₁₂|2}} − T|',
     9:'D = Σ wᵢ × 1[xᵢ ≠ yᵢ]',
-    10:'P(정상 | 양성) = FP / (TP + FP)',
+    10:'P(정상 | 양성) = {{FP|TP+FP}}',
     11:'E = |ax₁ + b − y₁| + |ax₂ + b − y₂|',
-    12:'MSE = (e₁² + we₂² + e₃²) / (w + 2)',
+    12:'MSE = {{e₁²+we₂²+e₃²|w+2}}',
     13:'Lₖ = u₀²(1 − 2η)²ᵏ + cv₀²(1 − 2cη)²ᵏ',
     14:'E = C − pB',
-    15:'D = |(a₁ + a₂ + a₃) / 3 − T|',
+    15:'D = |{{a₁+a₂+a₃|3}} − T|',
 }
 
 
+def symbols(value):
+    tokens = re.findall(r'&(?:amp|lt|gt|quot|#x27);|\d+(?:\.\d+)?|[A-Za-zΑ-ω]+|\s+|.',value)
+    operators = set('=+−-×÷<>≤≥∩∪Σ|‖(),[]′')
+    xml = []
+    for token in tokens:
+        if token.isspace():
+            continue
+        if token in '₀₁₂₃₄₅₆₇₈₉' and xml:
+            xml[-1] = f'<msub>{xml[-1]}<mn>{"₀₁₂₃₄₅₆₇₈₉".index(token)}</mn></msub>'
+            continue
+        if token in '²³⁴':
+            if xml:
+                xml[-1] = f'<msup>{xml[-1]}<mn>{"²³⁴".index(token)+2}</mn></msup>'
+            continue
+        tag = 'mn' if token[0].isdigit() else 'mo' if token in operators or token.startswith('&') else 'mi'
+        xml.append(f'<{tag}>{token}</{tag}>')
+    return '<mrow>'+''.join(xml)+'</mrow>'
+
+
+def fraction(a, b):
+    return (f'<math class="mfrac" aria-label="{a}/{b}"><mfrac>'
+            f'{symbols(a)}{symbols(b)}</mfrac></math>')
+
+
+def equation(value):
+    parts = re.split(r'(\{\{[^{}]+\}\})',escape(value))
+    xml = []
+    for i,part in enumerate(parts):
+        if i%2:
+            a,b = part[2:-2].split('|',1)
+            xml.append(f'<mfrac>{symbols(a)}{symbols(b)}</mfrac>')
+        else:
+            xml.append(symbols(part))
+    return '<math display="block">'+''.join(xml)+'</math>'
+
+
 def math(text):
-    """Render unambiguous numeric fractions as accessible, dependency-free HTML."""
+    """Render explicit symbolic fractions, numeric fractions and exponents."""
     safe = escape(str(text))
-    def fraction(m):
-        a,b = m.groups()
-        return (f'<span class="mfrac" style="display:inline-grid;vertical-align:middle;text-align:center;line-height:1.05;margin-inline:.13em" role="math" aria-label="{a}/{b}">'
-                f'<span style="border-bottom:1px solid currentColor;padding-inline:.15em">{a}</span><span>{b}</span></span>')
-    return re.sub(r'\^(\d+)',r'<sup>\1</sup>',FRACTION.sub(fraction,safe)).replace('²ᵏ','<sup>2k</sup>')
+    parts = re.split(r'(\{\{[^{}]+\}\})',safe)
+    for i, part in enumerate(parts):
+        if i%2:
+            a,b = part[2:-2].split('|',1)
+            parts[i] = fraction(a,b)
+        else:
+            parts[i] = FRACTION.sub(lambda m: fraction(*m.groups()),part)
+    return re.sub(r'\^(\d+)',r'<sup>\1</sup>',''.join(parts)).replace('²ᵏ','<sup>2k</sup>')
 
 
 def math_html(fragment):
-    """Preserve existing HTML, including the literal pixel rows in SVG figures."""
-    parts = re.split(r'(<figure\b.*?</figure>|<span class="mfrac".*?</span></span>|<[^>]+>)',fragment,flags=re.S)
+    """Preserve HTML and pixel rows while replacing fractions in text."""
+    fragment = re.sub(r'<span class="mfrac"[^>]*aria-label="([−-]?\d+)/(\d+)"[^>]*>.*?</span></span>',
+                      lambda m:fraction(*m.groups()),fragment)
+    parts = re.split(r'(<figure\b.*?</figure>|<math\b.*?</math>|<span class="mfrac".*?</span></span>|<[^>]+>)',fragment,flags=re.S)
     return ''.join(s if s.startswith('<') else FRACTION.sub(
-        lambda m:math(m.group()),s).replace('²ᵏ','<sup>2k</sup>') for s in parts)
+        lambda m: fraction(*m.groups()),s).replace('²ᵏ','<sup>2k</sup>') for s in parts)
+
+
+def topic_equation(topic):
+    if topic != 13:
+        return equation(FORMULAE[topic])
+    terms = []
+    for variable, factor, rate in (('u₀','','2η'),('v₀','c','2cη')):
+        base = symbols(f'(1−{rate})')
+        terms.append(symbols(factor+variable+'²')+f'<msup>{base}{symbols("2k")}</msup>')
+    return '<math display="block">'+symbols('Lₖ=')+'<mo>+</mo>'.join(terms)+'</math>'
 
 
 def choice_reason(value, answer, values, eligible, stem):
@@ -72,7 +123,8 @@ def choice_reason(value, answer, values, eligible, stem):
 
 
 def explanation(topic, stem, proof, values, eligible, model, opts=(), answer=None):
-    core = f'<p><b>계산식</b> {math(FORMULAE[topic])}</p><p>{math(proof)}</p>'
+    core = (f'<div class="aim-equation" style="margin:.5em 0;padding:.4em .5em;border-block:1px solid #b5d8d5;text-align:center;line-height:1.6">'
+            f'{topic_equation(topic)}</div><p>{math(proof)}</p>')
     rows = ''.join(f'<p class="aim-choice"><b>{symbol}</b> {math(choice_reason(value,answer,values,eligible,stem))}</p>'
                    for symbol,value in zip('①②③④⑤',opts))
     return core+substitutions(topic,model,values)+rows
@@ -112,18 +164,18 @@ def substitutions(topic, model, values):
             case 7:
                 w,t = nums(r'\(R\+(\d+)G\+B\)/\d+다\. 평가값은 목표 밝기 (\d+)')
                 a,b,c = row
-                work = f'|({a}+{w}×{b}+{c})/{w+2} − {t}|'
+                work = f'|{{{{{a}+{w}×{b}+{c}|{w+2}}}}} − {t}|'
             case 8:
                 s,t = nums(r'픽셀에 (\d+)를 더하되 .* 목표 (\d+)의 차이')
                 a,b,*_ = row
-                work = f'|({min(255,a+s)}+{min(255,b+s)})/2 − {t}|'
+                work = f'|{{{{{min(255,a+s)}+{min(255,b+s)}|2}}}} − {t}|'
             case 9:
                 a,b,w = re.search(r'위쪽 행은 ([01]+), 아래쪽 행은 ([01]+)이다\..*?칸마다 (\d+)',text).groups()
                 upper,lower = (sum(x!=y for x,y in zip(ref,candidate)) for ref,candidate in zip((a,b),row))
                 work = f'{w}×{upper}+{lower}'
             case 10:
                 a,b = row
-                work = f'{b}/({a}+{b})'
+                work = f'{{{{{b}|{a}+{b}}}}}'
             case 11:
                 x,y,u,v = nums(r'관측점은 \((\d+), (\d+)\)와 \((\d+), (\d+)\)')
                 a,b = row
@@ -131,7 +183,7 @@ def substitutions(topic, model, values):
             case 12:
                 w, = nums(r'차례대로 1, (\d+), 1')
                 a,b,c = row
-                work = f'(({a})²+{w}×({b})²+({c})²)/{w+2}'
+                work = f'{{{{({a})²+{w}×({b})²+({c})²|{w+2}}}}}'
             case 13:
                 u,v,c = nums(r'초기점은 \((\d+), (\d+)\), 손실은 u²\+(\d+)v²')
                 m,k = row
@@ -142,6 +194,6 @@ def substitutions(topic, model, values):
             case 15:
                 t, = nums(r'목표 정확도는 (\d+)%')
                 a,b,c = row
-                work = f'|({a}+{b}+{c})/3 − {t}|'
+                work = f'|{{{{{a}+{b}+{c}|3}}}} − {t}|'
         lines.append(f'<p class="aim-work"><b>{label}</b> {math(work)} = {math(value)}</p>')
     return ''.join(lines)
