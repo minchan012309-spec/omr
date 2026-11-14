@@ -2,6 +2,12 @@
 
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
+## 2026-11-14 · Codex · codex/ai-math-content-revision / PR #135
+- 한 일: 인공지능 수학 개정·변별 검수·답지 변경을 하나의 PR로 등록. 교재 탐색 회귀를 가짜 교사 세션과 초기화 상태 기반 대기로 안정화.
+- 바뀐 파일: `tests/book-navigation.cjs`, `WORKLOG.md`.
+- 확인: 문제은행 전수 검사와 수정한 교재 탐색 단독 검사 통과.
+- 남은 일 · 주의: GitHub 통합 회귀 검사 결과 확인 후 병합.
+
 ## 2026-11-14 · Codex · codex/ai-math-content-revision
 - 한 일: 가상 응시자 500명·9등급에서 정답률과 상하위 27% 변별도를 비교. 취약한 어휘 집합·규칙 추론·픽셀 반전·추세선 제약 오답을 수정하고 합성곱 적용 방향, 경사하강 초기 조건을 명시. 전 40개 유형에 독립 정답 계산을 작성해 새 10,000문항에 적용.
 - 바뀐 파일: `aim/` 재출제 데이터, `tools/aim/{rewrite_models,independent_rewrite,audit_rewrite,discrimination}.py`, `sw.js`(v212).

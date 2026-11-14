@@ -2,9 +2,10 @@ const assert=require('node:assert/strict');
 const {chromium,browserOptions}=require('./runtime.cjs');
 (async()=>{const browser=await chromium.launch(browserOptions());try{
  const page=await browser.newPage({viewport:{width:1440,height:1000}});
+ await page.route(/supabase\.co/, route=>route.fulfill({json:[]}));
+ await page.addInitScript(()=>localStorage.setItem('omr_sess_v1',JSON.stringify({access_token:'test-token',user:{id:'test'}})));
  await page.goto((process.env.BASE||'http://127.0.0.1:8765')+'/index.html?app=1');
- await page.waitForFunction(()=>typeof bkLoad==='function');
- await page.waitForTimeout(1800);
+ await page.waitForFunction(()=>typeof bkLoad==='function'&&!!Object.keys(BIDX).length&&teacher()&&!!document.querySelector('#nav button'));
  await page.evaluate(async()=>{await bkLoad();await bkInit();await conceptLoad();tab='books';});
  for(const width of [1440,820,390]){
   await page.setViewportSize({width,height:1000});
