@@ -138,8 +138,14 @@ const figLost=q=>q.set==='bank'&&/그림/.test(String(q.q||'').split('<div class
 try{const v=localStorage.getItem('omr_subj_v1');if(v&&SNAME[v])SUBJ=v}catch(e){}
 function applySubject(){document.body.dataset.subj=SUBJ;document.title=SNAME[SUBJ]+' · Solvi';if(typeof CK!=='undefined'&&!ckind()[CK.k])CK.k=ckDef();DATA.length=0;POOL[SUBJ].forEach(q=>DATA.push(q));BIDX=BIDXS[SUBJ]||{};calcSubs();const e=$('#subj');if(e){e.textContent=SNAME[SUBJ];e.dataset.s=SNAME[SUBJ].slice(0,2)}}
 async function loadBankIndex(){
- for(const k of Object.keys(DIRS)){try{const r=await fetch(DIRS[k]+'index.json');if(r.ok){BIDXS[k]=await r.json();for(const t in BIDXS[k])TAGSUBJ[t]=k;Object.assign(BIDXALL,BIDXS[k])}}catch(e){}}
- for(const [k,S] of [['cm',CMSET],['ph',PHSET],['hl',HLSET],['aim',AIMSET]]){try{const r=await fetch(DIRS[k]+'data.json');if(r.ok){const a=await r.json();a.forEach(q=>{if(ovHidden(q.code))return;ovApply(q);if(!byCode[q.code]){byCode[q.code]=q;POOL[k].push(q)}S.add(q.code)})}}catch(e){}}
+ const read=async url=>{try{const r=await fetch(url);return r.ok?await r.json():null}catch(e){return null}};
+ const keys=Object.keys(DIRS),sources=[['cm',CMSET],['ph',PHSET],['hl',HLSET],['aim',AIMSET]];
+ const [indexes,pools]=await Promise.all([
+  Promise.all(keys.map(k=>read(DIRS[k]+'index.json'))),
+  Promise.all(sources.map(([k])=>read(DIRS[k]+'data.json')))
+ ]);
+ keys.forEach((k,i)=>{const b=indexes[i];if(!b)return;BIDXS[k]=b;for(const t in b)TAGSUBJ[t]=k;Object.assign(BIDXALL,b)});
+ sources.forEach(([k,S],i)=>{(pools[i]||[]).forEach(q=>{if(ovHidden(q.code))return;ovApply(q);if(!byCode[q.code]){byCode[q.code]=q;POOL[k].push(q)}S.add(q.code)})});
  loadMyQ();applySubject()}
 async function setSubject(k){if(!SNAME[k]||k===SUBJ){closeCfg();return}
  SUBJ=k;try{localStorage.setItem('omr_subj_v1',k)}catch(e){}
