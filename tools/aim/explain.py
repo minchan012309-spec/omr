@@ -23,12 +23,25 @@ FORMULAE = {
 }
 
 
-def symbols(value):
-    tokens = re.findall(r'&(?:amp|lt|gt|quot|#x27);|\d+(?:\.\d+)?|[A-Za-zΑ-ω]+|\s+|.',value)
+def symbols(value, *, rich=False):
+    names = ('Accuracy', 'Precision', 'Specificity', 'Recall', 'RMSE', 'MSE', 'MAE',
+             'IDF', 'TF', 'DF', 'clip', 'cos', 'log', 'min', 'max')
+    base = r'&(?:amp|lt|gt|quot|#x27);|\d+(?:\.\d+)?|[A-Za-zΑ-ω]+|\s+|.'
+    extra = r'√\[[^\[\]]+\]|√\d+|limₕ→₀|[가-힣]+|' + '|'.join(names) + '|'
+    tokens = re.findall(extra + base if rich else base, value)
     operators = set('=+−-×÷<>≤≥∩∪Σ|‖(),[]′')
+    if rich:
+        operators.update('≠∅∈∣·→≈±%¬∧∨⊕⌊⌋⋯*')
     xml = []
     for token in tokens:
         if token.isspace():
+            continue
+        if rich and token.startswith('√') and len(token)>1:
+            radicand = token[2:-1] if token[1]=='[' else token[1:]
+            xml.append(f'<msqrt>{symbols(radicand, rich=True)}</msqrt>')
+            continue
+        if token == 'limₕ→₀':
+            xml.append('<munder><mo>lim</mo><mrow><mi>h</mi><mo>→</mo><mn>0</mn></mrow></munder>')
             continue
         if token in '₀₁₂₃₄₅₆₇₈₉' and xml:
             xml[-1] = f'<msub>{xml[-1]}<mn>{"₀₁₂₃₄₅₆₇₈₉".index(token)}</mn></msub>'
@@ -37,7 +50,9 @@ def symbols(value):
             if xml:
                 xml[-1] = f'<msup>{xml[-1]}<mn>{"²³⁴".index(token)+2}</mn></msup>'
             continue
-        tag = 'mn' if token[0].isdigit() else 'mo' if token in operators or token.startswith('&') else 'mi'
+        tag = ('mn' if token[0].isdigit() else
+               'mo' if token in operators or token.startswith('&') else
+               'mtext' if rich and (token in names or '가' <= token[0] <= '힣') else 'mi')
         xml.append(f'<{tag}>{token}</{tag}>')
     return '<mrow>'+''.join(xml)+'</mrow>'
 
@@ -47,16 +62,22 @@ def fraction(a, b):
             f'{symbols(a)}{symbols(b)}</mfrac></math>')
 
 
-def equation(value):
+def equation(value, *, display='block', rich=False):
+    if rich:
+        value = FRACTION.sub(lambda m: '{{' + m[1] + '|' + m[2] + '}}', value)
     parts = re.split(r'(\{\{[^{}]+\}\})',escape(value))
     xml = []
     for i,part in enumerate(parts):
         if i%2:
             a,b = part[2:-2].split('|',1)
-            xml.append(f'<mfrac>{symbols(a)}{symbols(b)}</mfrac>')
+            xml.append(f'<mfrac>{symbols(a, rich=rich)}{symbols(b, rich=rich)}</mfrac>')
         else:
-            xml.append(symbols(part))
-    return '<math display="block">'+''.join(xml)+'</math>'
+            xml.append(symbols(part, rich=rich))
+    return f'<math display="{display}">'+''.join(xml)+'</math>'
+
+
+def inline_equation(value, *, rich=False):
+    return equation(value, display='inline', rich=rich)
 
 
 def math(text):

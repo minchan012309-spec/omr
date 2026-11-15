@@ -3,7 +3,7 @@ import json
 import re
 from pathlib import Path
 
-from explain import math, math_html
+from explain import inline_equation, math, math_html
 
 ROOT = Path(__file__).resolve().parents[2] / 'aim'
 BASE_END = '<p class="aim-choice">'
@@ -50,6 +50,15 @@ def main():
             body = body.replace('B·B와 81.5%','B·B와 82.5%')
         if number==24:
             base = '<div class="ex"><p>행을 w=1,2,3, 열을 t=1,2,3 순서로 두면 정답 건수는 (4,4,3), (3,3,3), (2,3,3)이다. 최대 4건을 맞힌 조합은 (1,1), (1,2) 두 개다.</p></div>'
+        if q['code']=='AM-043':
+            body = body.replace('중간 두 점에서 실제값−예측값을 각각 구하면?',
+                                '중간 두 점에서 실제값−예측값을 구해 x좌표가 작은 점부터 순서쌍으로 나타내면?')
+            tuples = ('({{−1|3}},{{−2|3}})', '({{−2|3}},{{2|3}})', '(−1,1)',
+                      '({{2|3}},{{−2|3}})', '(0,0)')
+            choices = ''.join(f'<div><b>{mark}</b><span>{inline_equation(pair)}</span></div>'
+                              for mark,pair in zip('①②③④⑤',tuples))
+            start = body.index('<div class="chs">')+len('<div class="chs">')
+            body = body[:start]+choices+'</div></div>'
         if number==60:
             base = '<div class="ex"><p>정확도 차이 B−A는 −3/100 + (x/100)×(2/15) − ((80−x)/100)×(1/25) = (13x−465)/7500이다. 따라서 x&gt;465/13이고 가능한 정수는 36부터 70까지 35개다.</p></div>'
         if number==52:
