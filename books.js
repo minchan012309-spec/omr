@@ -159,6 +159,9 @@ const BKCSS=`
 .bkdoc .cbk .nt.ds{background:#fff;border-color:var(--p)}.bkdoc .cbk .nt.es{background:#fff;border:.3mm dashed var(--p)}
 .bkdoc .cbk .eqn{margin:2mm 0 3mm;padding:1.6mm 2.4mm;text-align:center;font-weight:700;border-top:.3mm solid var(--p);border-bottom:.3mm solid var(--p);background:#fff}
 .bkdoc .cbk .eqn small{display:block;font-weight:400;font-size:.88em;color:#555}
+.bkdoc .cbk .aim-concept-formula{font-size:15px;padding:1.5mm .8mm;background:var(--pl)}
+.bkdoc .cbk .aim-concept-formula math{font-family:math}
+.bkdoc .cbk .aim-concept-table th,.bkdoc .cbk .aim-concept-table td{padding:1mm .8mm}
 .bkdoc .cbk .fg{margin:2mm 0 3mm;text-align:center;break-inside:avoid}.bkdoc .cbk .fg img,.bkdoc .cbk .fg svg{max-width:100%;height:auto;max-height:66mm}
 .bkdoc .cbk .fg .cap{font-size:10.6px;color:#555;margin-top:1mm}
 .bkdoc .cbk .two-c{display:grid;grid-template-columns:1fr 1fr;gap:5mm;align-items:start}
@@ -297,7 +300,7 @@ function bkInit(){
  BKREADY=(async()=>{
   if(!document.getElementById('bkcss')){const s=document.createElement('style');s.id='bkcss';s.textContent=bkFontCss('')+BKSCR;document.head.appendChild(s)}
   try{await Promise.all([400,600,700,800].map(w=>document.fonts.load(w+' 12px Pretendard','가A1')).concat(document.fonts.load('400 12px YetHangul','\u1109\u119e')).concat(document.fonts.load('700 12px YetHangul','\u1109\u119e')))}catch(e){}
-  try{const r=await fetch('books/heights.json?v=11');if(r.ok)BKHT=await r.json()}catch(e){}
+  try{const r=await fetch('books/heights.json?v=12');if(r.ok)BKHT=await r.json()}catch(e){}
   if(!BKHT)BKHT={};
  })();
  return BKREADY;
@@ -311,7 +314,7 @@ function bkH(u){const k=u.key;if(BKREC)BKREC.push(u);if(BKHT&&BKHT[k]!=null)retu
 
 /* ---------- 문항 → HTML ---------- */
 function bkDoc(h){return new DOMParser().parseFromString('<body>'+h+'</body>','text/html').body}
-function bkChoices(root){const c=root.querySelector('.chs');if(!c)return;const t=[...c.querySelectorAll(':scope>div')].map(d=>(d.querySelector('span')||d).textContent.trim());const m=Math.max(0,...t.map(x=>x.length));c.classList.add(m<=10?'sh':m<=20?'md':'lg')}
+function bkChoices(root){const c=root.querySelector('.chs');if(!c)return;const t=[...c.querySelectorAll(':scope>div')].map(d=>(d.querySelector('span')||d).textContent.trim());const m=Math.max(0,...t.map(x=>x.length));c.classList.add(m<=10&&!c.querySelector('math mfrac')?'sh':m<=20?'md':'lg')}
 function bkQHtml(q,no,o){o=o||{};
  const r=bkDoc(q.q);const qs=r.querySelector('.qs');if(!qs)return '<div class="u q">'+q.q+'</div>';
  const pt=o.pt!=null?'['+o.pt+'점]':'';
