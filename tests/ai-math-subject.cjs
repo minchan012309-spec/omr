@@ -43,8 +43,23 @@ const {chromium, browserOptions} = require('./runtime.cjs');
       if (width < 720) await page.getByRole('button', {name:'메뉴 열기', exact:true}).click();
       await page.locator('#nav').getByRole('button', {name:'개념학습', exact:true}).click();
       await page.getByRole('heading', {name:/인공지능의 개념/}).waitFor();
-      await page.getByRole('heading', {name:'지도학습·비지도학습·강화학습'}).waitFor();
-      if (process.env.AI_MATH_SHOTS) await page.screenshot({path:process.env.AI_MATH_SHOTS+'/lesson-'+width+'.png', animations:'disabled'});
+      await page.getByRole('heading', {name:'학습 신호와 문제의 종류'}).waitFor();
+      const methods = await page.evaluate(() => CONC.aim.secs.find(s => s.title === '텍스트 데이터의 정보 추출').id);
+      await page.evaluate(id => cbGo(id), methods);
+      const lesson = page.locator('.cbmain .cbk').first();
+      await lesson.getByRole('heading', {name:'로그 IDF와 변형 문항'}).waitFor();
+      assert.equal(await lesson.locator('.aim-concept-formula math').count(), 5);
+      assert.equal(await lesson.locator('.aim-concept-table').count(), 2);
+      if (process.env.AI_MATH_SHOTS) {
+        await lesson.getByRole('heading', {name:/각각의 분모와 범위/}).evaluate(el => el.scrollIntoView());
+        await page.screenshot({path:process.env.AI_MATH_SHOTS+'/lesson-'+width+'.png', animations:'disabled'});
+      }
+      await page.evaluate(() => cbGo(CONC.aim.secs.find(s => s.title === '텍스트 데이터의 분석').id));
+      await lesson.getByRole('heading', {name:'자카드 유사도와 거리'}).waitFor();
+      assert.equal(await lesson.locator('.aim-concept-formula msqrt').count(), 2);
+      assert.equal(await lesson.locator('.aim-concept-formula mfrac').count(), 4);
+      assert.deepEqual(await lesson.locator('.aim-concept-formula').evaluateAll(boxes =>
+        boxes.filter(box => box.scrollWidth > box.clientWidth + 1).map(box => box.textContent)), []);
       await page.getByRole('button', {name:'다음 연습'}).click();
       await page.getByText('추가 연습 2 / 24쪽', {exact:true}).waitFor();
       assert.equal(await page.getByRole('heading',{name:/빈칸 채우기/}).count(),0);
