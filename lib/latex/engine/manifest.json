@@ -3,7 +3,7 @@
   "files": {
     "DvipdfmxEngine.js": "092b94bd18cfdaae8a1537dc3988f89e69a4ca0c099db07794008db56b35e9e4",
     "XeTeXEngine.js": "1b77d8f86c413dad6a611bd93f0bc2fe6c3bac0572a9b225bc1295d43d4912f4",
-    "swiftlatexdvipdfm.js": "c710b31fe907b66808a5b03492eaa414a39e88f52308c7943e1208f431540142",
+    "swiftlatexdvipdfm.js": "5fd53b9803673f0a232dbb5cad824fcfd0d4c4d993119c33d0d6f85ed8928a11",
     "swiftlatexdvipdfm.wasm": "1bf8c0d424c87c1548d9d22d29251aa3308506fa6acc29d4f08dcd77ccc1f9b1",
     "swiftlatexxetex.js": "a99993698c9d0e86aa60ae9c452a159ebbfc6ed521de87581a4026f1784ab375",
     "swiftlatexxetex.wasm": "dd7f4f8fe8b07b64c058683edd0298afa1998cfae461cab71bd2571e27ffb673"

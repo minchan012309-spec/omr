@@ -7,9 +7,9 @@
 
 새로 만드는 교재·학습지·모의고사는 생성자의 브라우저에서 XeTeX WebAssembly로 PDF를 만듭니다. 별도 조판 서버나 유료 조판 API를 사용하지 않습니다. 기존 자료는 출력 버전 필드가 없으면 종전 HTML 방식과 쪽수·QR을 그대로 유지합니다.
 
-처음 한 번 출력 창에서 지정 원본 폰트 4개를 등록합니다(신명조, KoPubWorld Dotum Bold/Medium, HancomEQN). 폰트는 해당 브라우저에 저장하며 서버로 보내지 않습니다. 제목·과목명·필적확인 문구·앞표지 여부는 출력 창에서 수정할 수 있습니다. 엔진과 필요한 TeX 패키지는 지연 로드하고 캐시합니다.
+지정 원본 폰트 4개(신명조, KoPubWorld Dotum Bold/Medium, HancomEQN)는 사이트에서 자동으로 불러옵니다. 제목·과목명·필적확인 문구·앞표지·유형명·문항코드 표시는 출력 창에서 수정할 수 있으며, 설정 변경은 미리보기에 자동 반영됩니다. PDF 저장·인쇄 시 QR 채점 명세를 저장합니다. 교재는 기존 디자인과 미리보기를 유지한 별도 LaTeX 경로를 사용하고, 학습지·모의고사에만 새 시험지 양식을 적용합니다. 엔진과 필요한 TeX 패키지는 지연 로드하고 캐시합니다.
 
-운영 반영 전에 기존 Supabase 프로젝트에 `supabase/sql_27_latex_manifests.sql`을 한 번 적용해야 합니다. Supabase에는 PDF·폰트·학생 이름 대신 쪽별 문항 코드와 출력 식별자만 저장합니다. 설정 및 의존성 출처는 `lib/latex/README.md`, 검증 범위는 `docs/verification/2026-11-19-latex-print.md`를 참고하세요. 아래의 종전 인쇄 디자인 설명은 기존 HTML 자료에 해당합니다.
+운영 반영 전에 기존 Supabase 프로젝트에 `supabase/sql_27_latex_manifests.sql`을 한 번 적용해야 합니다. Supabase에는 PDF·폰트·학생 이름 대신 쪽별 문항 코드와 출력 식별자만 저장합니다. 설정 및 의존성 출처는 `lib/latex/README.md`, 검증 범위는 `docs/verification/2026-11-20-latex-reference-fidelity.md`를 참고하세요. 학습지의 종전 인쇄 디자인은 기존 HTML 자료에 해당하며, 교재 디자인은 새 LaTeX 출력에서도 유지합니다.
 
 ## 과목
 
