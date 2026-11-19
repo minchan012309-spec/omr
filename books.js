@@ -773,7 +773,11 @@ function bkxDefOf(m){ // 경로 문자열에서 책 정의 복원 → 다른 기
 function bkGapOf(id){const g=String(id).match(/~g([1-3])$/);return g?+g[1]:0}
 function bkBare(id){return String(id).replace(/~g[1-3]$/,'')}
 function bkPid(id){const g=BKO.gap||0;return bkBare(id)+(g?'~g'+g:'')}
-function bkParts(id){const gap=bkGapOf(id);id=bkBare(id);
+function bkLatexRecord(id){const key=bkBare(id).replace(/(~l[0-9a-f]{16})r\d+$/,'$1');return bkxAll().find(b=>b.id===key)}
+function bkLatexOutput(id){const rec=bkLatexRecord(id),variants=rec&&rec.latexOutputs&&rec.latexOutputs[id];return variants&&(variants[variants.active]||variants.all||variants.questions)}
+async function bkGradingPlan(id){const plan=await bkPlan(id),output=bkLatexOutput(id);if(!plan||!output)return plan;return {...plan,pages:output.manifest.pages.map((p,i)=>{const q=p.codes.length&&byCode[p.codes[0]];return {...p,n:i+1,k:p.kind==='questions'?'pr':p.kind==='answers'?'es':'cn',label:p.kind==='questions'?'문제':p.kind==='answers'?'정답 및 해설':p.kind==='cover'?'표지':p.kind==='back'?'뒤표지':p.kind==='quick'?'빠른 정답':'개념',sub:q?{k:q.sub,name:q.subname}:null,cols:[[]]}})}}
+function bkParts(id){const p=bkPartsLegacy(SolviPrint.sourceBookId(id));const rec=bkLatexRecord(id);if(p&&p.def&&rec&&SolviPrint.engine(rec)==='xelatex-v1'){p.def.base=rec.id;p.def.name=rec.name;p.def.subt=rec.sub||'';p.def.rounds=rec.rounds||20;p.def.dz={color:rec.color||'',cover:rec.cover|0,noqr:0,font:'',lf:rec.lf||'solvi',lfp:rec.lfp||'br',lb:rec.lb||'solvi',lbp:rec.lbp||'bc',back:rec.back?1:0,cx:rec.cx||null}}return p}
+function bkPartsLegacy(id){const gap=bkGapOf(id);id=bkBare(id);
  const mf=String(id).match(/^(me|cm|ph|hl|aim)-xf([0-9a-z._]+)$/);
  if(mf){const d=bkfParse(mf[2]);if(!d)return null;const rec=bkxAll().find(b=>b.id===id);d.name=rec?rec.name:'맞춤 교재';d.subt=rec?rec.sub:'';d.base=id;d.dz=rec?{color:rec.color||'',cover:rec.cover|0,noqr:rec.noqr?1:0,font:rec.font||'',lf:rec.lf||'solvi',lfp:rec.lfp||'br',lb:rec.lb||'solvi',lbp:rec.lbp||'bc',back:rec.back?1:0,cx:rec.cx||null}:{color:'',cover:0,noqr:0,font:'',lf:'solvi',lfp:'br',lb:'solvi',lbp:'bc',back:0,cx:null};return {subj:mf[1],kind:'x',def:d,gap}}
  const m=String(id).match(/^(me|cm|ph|hl|aim)-(c|t|h(?:[sgoc]|mg?)?|x(?:b([0-9a-z]+)(?:-([\d.]+))?(?:_(?:l([0-9a-f]))?(?:n(\d+))?)?|e(?:[vn])?(\d+)(?:l([0-9a-f]))?(?:s([\d.]+))?(?:r(\d+))?))$/);if(!m)return null;
@@ -1223,12 +1227,13 @@ function bkEntryRun(label,fn){
 }
 function bkGradePage(id,n,owner){return bkEntryRun('채점할 문항을 준비하는 중…',()=>bkGradePageReady(id,n,owner))}
 function bkGradeAll(id,owner){return bkEntryRun('시험 문항을 준비하는 중…',()=>bkGradeAllReady(id,owner))}
-function bkPageNums(p){const o={};((p.cols||[]).concat(p.top&&p.top.length?[p.top]:[])).forEach(c=>c.forEach(h=>{const m=String(h).match(/data-c="([^"]+)"/);if(!m)return;const n=String(h).match(/class="no">(\d+)</)||String(h).match(/class="nc"><b>(\d+)<\/b>/);if(n)o[m[1]]=+n[1]}));return o}
+function bkPageNums(p){if(p.nums)return {...p.nums};const o={};((p.cols||[]).concat(p.top&&p.top.length?[p.top]:[])).forEach(c=>c.forEach(h=>{const m=String(h).match(/data-c="([^"]+)"/);if(!m)return;const n=String(h).match(/class="no">(\d+)</)||String(h).match(/class="nc"><b>(\d+)<\/b>/);if(n)o[m[1]]=+n[1]}));return o}
 async function bkSolve(id,n){if(!await bkxAccess(id))return;await bkInit();const P=bkParts(id);if(!P)return;if(P.subj!==SUBJ)await setSubject(P.subj);await conceptLoad();const plan=await bkPlan(id);if(!plan)return;
  let codes=[];if(!n){codes=plan.M?plan.M.codes.slice():[]}else{const p=plan.pages.find(x=>x.n===+n);codes=(p&&p.codes)||[]}
  if(!codes.length){toast('p.'+n+'에는 풀 문제가 없어요');return}
  const title=n?plan.short+' p.'+n:plan.short;await practice(codes,title)}
 async function bkGradePageReady(id,n,owner){
+ const lr=bkLatexRecord(id);if(SolviPrint.engine(lr)==='xelatex-v1'){const output=bkLatexOutput(id);if(!output){toast('먼저 이 회차의 PDF를 만들어 주세요');return}await ltLoad();return ltRoute(output.id+':'+n,id)}
  if(needLogin()){askLogin('BK:'+id+':'+n+(owner?'@'+owner:''));return}
  if(!await bkxAccess(id,owner))return;
  await bkInit();const P=bkParts(id);if(!P)return;
@@ -1241,6 +1246,7 @@ async function bkGradePageReady(id,n,owner){
  {const lk=recLock('book',key);if(lk&&lk.items){showLockedRec(lk,{book:bk});return}}
  newCur(qs,{book:bk})}
 async function bkGradeAllReady(id,owner){
+ if(SolviPrint.engine(bkLatexRecord(id))==='xelatex-v1'){const output=bkLatexOutput(id);if(!output){toast('먼저 이 회차의 PDF를 만들어 주세요');return}await ltLoad();return ltRoute(output.id+':all')}
  if(needLogin()){askLogin('BK:'+id+':all'+(owner?'@'+owner:''));return}
  if(!await bkxAccess(id,owner))return;
  await bkInit();const P=bkParts(id);if(!P)return;if(P.subj!==SUBJ)await setSubject(P.subj);
@@ -1250,7 +1256,7 @@ async function bkGradeAllReady(id,owner){
  {const lk=recLock('book',key);if(lk&&lk.items){showLockedRec(lk,{book:bk});return}}
  newCur(qs,{book:bk})}
 function bkRouteStr(s){const m=String(s).match(/^((?:me|cm|ph|hl|aim)-(?:c|t|h(?:[sgoc]|mg?)?|x[0-9a-z._\-]+)(?:~g[1-3])?):(\d+|all)(?:@([0-9a-f-]{36}))?$/i);if(!m)return;return m[2]==='all'?bkGradeAll(m[1],m[3]):bkGradePage(m[1],+m[2],m[3])}
-function bkNextHtml(){const b=cur&&cur.book;if(!b||!b.bk||b.all)return '';const plan=BKP[b.bk];if(!plan)return '';
+function bkNextHtml(){const b=cur&&cur.book;if(!b||!b.bk||b.all)return '';if(b.lt)return ltNextHtml(b);const plan=BKP[b.bk];if(!plan)return '';
  if(BKQ&&BKQ.id===b.bk){BKQ.pages=BKQ.pages.filter(n=>n!==b.n);const q=BKQ.pages[0];if(q)return '<div class="hint" style="margin:10px 0">선택한 범위에서 <b>'+BKQ.pages.length+'쪽</b> 남았어요. <button class="p" style="margin-left:8px" onclick="bkGradePage(\''+b.bk+'\','+q+')">다음 p.'+q+' 채점하기</button> <button class="s" onclick="BKQ=null;cur=null;render()">그만하기</button></div>';BKQ=null;return '<div class="hint" style="margin:10px 0">선택한 범위를 모두 채점했어요.</div>'}
  const nx=plan.pages.find(p=>p.n>b.n&&p.codes&&p.codes.length);
  return nx?'<div class="hint" style="margin:10px 0">'+esc(plan.short)+' p.'+b.n+' 채점을 마쳤습니다. 다음 문제 쪽(<b>p.'+nx.n+'</b>)도 이어서 채점할까요? <button class="p" style="margin-left:8px" onclick="bkGradePage(\''+b.bk+'\','+nx.n+')">p.'+nx.n+' 채점하기</button></div>':''}
@@ -1348,7 +1354,7 @@ async function bkPath(lv){
   if(!s1.value){summary.textContent='먼저 교재를 선택해 주세요.';return}
   const id=bkBare(s1.value)+bkSufOf();summary.textContent='교재의 채점 범위를 불러오는 중…';summary.setAttribute('aria-busy','true');
   try{
-   const plan=await bkPlan(id);
+   const plan=await bkGradingPlan(id);
    if(token!==BKPATHSEQ||!s1.isConnected||s1.value!==bkBare(id))return;
    if(!plan)throw new Error('missing book');
    BKPATHPLAN=plan;BKPATHGROUPS=bkGroups(plan);
@@ -1437,6 +1443,7 @@ EBI.thumb='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="c
 const ebT=tbT,ebS=tbS;
 const EBC=['#e5484d','#2f7fd0','#1f9d55','#111111','#f7b928','#8e4ec6'];
 async function bkEbook(id){
+ if(SolviPrint.engine(bkLatexRecord(id))==='xelatex-v1'){const w=popOpen('PDF를 만드는 중…');await ltLoad();return ltBook(bkPid(id),true,w)}
  if(!await bkxAccess(id))return;
  id=bkPid(id);if(EBKFX){try{await bkLoadJs('lib/html2canvas.min.js',()=>window.html2canvas)}catch(e){}}await bkInit();const P0=bkParts(id);if(P0&&P0.subj!==SUBJ)await setSubject(P0.subj);const plan=await bkPlan(id);if(!plan)return;
  const st=ebkSt()[id]||{};const N=plan.pages.length;
@@ -1793,6 +1800,7 @@ async function bkRepop(o){if(!BKPOP||!BKPOP.win||BKPOP.win.closed)return;bkOset(
 async function bkShowIn(w,plan,all){window._popExtra=bkBarHtml(plan);try{await cbPrintHtml(bkDocHtml(plan,all),w)}finally{window._popExtra=''}
  popWire(w,d=>{{const cv=d.getElementById('pcv');if(cv)cv.onchange=e=>bkRepop({cover:+e.target.value})}d.getElementById('pgap').onchange=e=>bkRepop({gap:+e.target.value});[['pnt','nt'],['pnb','nb'],['pqn','qn'],['pvn','vn']].forEach(([i,k])=>{const el=d.getElementById(i);if(el)el.onchange=e=>bkRepop({[k]:k==='qn'||k==='vn'?+e.target.value:e.target.value})});d.getElementById('pdup').onclick=()=>{dupSet(!dupGet());bkRepop({})};const des=d.getElementById('pdes');if(des)des.onchange=e=>bkRepop({design:e.target.value});swWire(d,v=>bkRepop({color:v}));const gu=d.getElementById('pgut');if(gu)gu.onchange=e=>{bkGutSet(bkGutKey(plan),e.target.value);bkRepop({})};d.getElementById('pfnt').onchange=e=>bkRepop({font:e.target.value})})}
 async function bkPrint(id,all){
+ if(SolviPrint.engine(bkLatexRecord(id))==='xelatex-v1'){const w=popOpen('PDF를 만드는 중…');await ltLoad();return ltBook(bkPid(id),all,w)}
  id=bkPid(id);
  if(typeof isMob==='function'&&isMob()){toast('휴대폰·태블릿은 인쇄 창이 열리지 않는 경우가 많아 PDF로 만들어 드려요. 저장한 PDF를 열어 인쇄하세요');return bkPdf(id,all)}
  if(!await bkxAccess(id))return;
@@ -1804,6 +1812,7 @@ async function bkPrint(id,all){
 /* ---------- PDF 파일로 내려받기(쪽마다 이미지로 그려 한 파일로 묶음) ---------- */
 function bkLoadJs(src,ok){return new Promise((res,rej)=>{if(ok())return res();const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error(src));document.head.appendChild(s)})}
 async function bkPdf(id,all){
+ if(SolviPrint.engine(bkLatexRecord(id))==='xelatex-v1'){const w=popOpen('PDF를 만드는 중…');await ltLoad();return ltBook(bkPid(id),all,w)}
  if(!await bkxAccess(id))return;
  id=bkPid(id);await bkInit();const P=bkParts(id);if(P&&P.subj!==SUBJ)await setSubject(P.subj);
  busyRun('PDF를 만드는 중…',async()=>{let st,host;
@@ -1906,7 +1915,7 @@ function bkfPvDraw(){const plan=BKPV.plan,host=document.getElementById('bkpvp');
  document.querySelectorAll('.bkpvt button').forEach((b,i)=>b.classList.toggle('on',i===k));
  const c=document.getElementById('bkpvc');if(c)c.textContent='p.'+plan.pages[idx].n+' / 총 '+plan.pages.length+'쪽';
  document.querySelectorAll('.bkcvs [data-c]').forEach(h=>{const cp={...plan,dz:{...(plan.dz||{}),cover:+h.dataset.c}};h.style.setProperty('--bks',(h.clientWidth/(210*BK_MM)).toFixed(4));bkShadow(h,'<div class="bkdoc scr">'+bkPageHtml(cp,0)+'</div>')})}
-function bkfPreview(){const box=document.getElementById('bkpv');if(!box||!BKV.d||BKV.d.kind!=='free')return;const my=++BKPVT;clearTimeout(bkfPreview._t);
+function bkfPreview(){const box=document.getElementById('bkpv');if(box){BKPV.plan=null;box.innerHTML='<div class="empty"><b>원본 양식 PDF</b><p>교재를 만든 뒤 실제 PDF에서<br>표지와 문항 배치를 확인할 수 있어요.</p></div>';return;}if(!box||!BKV.d||BKV.d.kind!=='free')return;const my=++BKPVT;clearTimeout(bkfPreview._t);
  const st=document.getElementById('bkpvs');if(st)st.textContent='미리보기를 만드는 중…';
  bkfPreview._t=setTimeout(async()=>{const d=BKV.d,parts=bkfParts(d);if(!parts.length){if(st)st.textContent='구성을 하나 이상 고르세요';return}
   try{await bkInit();await conceptLoad();const def={kind:'free',parts,qs:d.qs,subs:d.subs||[],sort:d.sort,grp:d.grp,ans:d.ans,brk:d.brk,pl:d.pl&&d.pl.on?d.pl:null,name:d.name||'교재 이름',subt:d.sub||'',dz:{color:d.color||'',cover:d.cover|0,noqr:d.noqr?1:0,font:d.font||'',lf:d.lf||'solvi',lfp:d.lfp||'br',lb:d.lb||'solvi',lbp:d.lbp||'bc',back:d.back?1:0,cx:d.cx||null}};
@@ -1971,19 +1980,8 @@ function bkfBuilder(){const d=BKV.d,subs=bkSubs();d.order=bkfOrder(d).filter(k=>
   <h3 class="bkh">범위 · 소단원 <small>비우면 전체 · 시작과 끝을 고르면 그 사이가 한꺼번에 선택돼요</small></h3>${SUBJ==='hl'?`<div style="margin:4px 0 8px">${seg('rg',[['m','혼합 (화법 + 언어)'],['s','화법만'],['g','언어만']],d.rg||'m').replace(/bkfSeg\(this,'rg','(\w)',\d+\)/g,"bkfRg('$1')")}</div>`:''}
   <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><select id="bxr1" style="width:auto;max-width:46%">${subs.map((s2,i)=>!bkRgOk(d,s2)?'':`<option value="${i}" ${i===lo?'selected':''}>${esc(s2.k)} ${esc(s2.name)}</option>`).join('')}</select><span>~</span><select id="bxr2" style="width:auto;max-width:46%">${subs.map((s2,i)=>!bkRgOk(d,s2)?'':`<option value="${i}" ${i===hi?'selected':''}>${esc(s2.k)} ${esc(s2.name)}</option>`).join('')}</select><button class="s sm" onclick="bkxRange()">범위 선택</button><button class="s sm" onclick="bkxRangeSet('all')">전체</button><button class="s sm" onclick="bkxRangeSet('none')">해제</button>${hasSc?'<button class="s sm" onclick="bkxRangeSet(\'def\')">기본 범위</button>':''}</div>
   <div class="bksubs">${subs.map((s2,i)=>!bkRgOk(d,s2)?'':`<label class="chk"><input type="checkbox" id="bxs_${i}" ${sel.includes(i)?'checked':''} onchange="bkfRead();bkxEst()"> ${esc(s2.k)} ${esc(s2.name)}</label>`).join('')}</div>`;
- else body=`<div class="bkc"><h3>이름</h3><div class="bkrow"><label for="bxn">교재 이름</label><input id="bxn" class="bkin" value="${esc(d.name)}" maxlength="30" oninput="bkfRead();bkxEst()"></div><div class="bkrow"><label for="bxs">부제</label><input id="bxs" class="bkin" value="${esc(d.sub||'')}" maxlength="40" oninput="bkfRead();bkxEst()"></div></div>
-  <div class="bkc"><h3>표지 스타일 <small>눌러서 고르면 오른쪽 미리보기에 바로 보여요</small></h3><div class="bkcvs">${covs}</div></div>
-  ${(d.cover|0)===6?bkCxCard(d):''}
-  <div class="bkc"><h3>색상</h3><div class="bkswr">${swb}</div></div>
-  <div class="bkc"><h3>로고 <small>기본은 Solvi 로고예요 · 학원 로고는 학원 설정에서 올린 이미지·이름을 써요</small></h3>
-   <div class="bkrow"><label>앞표지</label><div class="bkctl">${seg('lf',LGS,d.lf||'solvi')}${seg('lfp',[['bl','왼쪽 아래'],['bc','가운데 아래'],['br','오른쪽 아래']],d.lfp||'br')}</div></div>
-   <div class="bkrow"><label>뒷표지</label><div class="bkctl">${seg('lb',LGS,d.lb||'solvi')}${seg('lbp',[['tc','위 중앙'],['bc','아래 중앙']],d.lbp||'bc')}</div></div>
-   <div class="bkrow"><label>뒷표지 쪽</label><label class="swr bkswt"><span><b>뒷표지 쪽 넣기</b><small>책 맨 끝에 뒷표지 한 쪽을 붙여요</small></span><input class="swi" type="checkbox" id="bfback" ${d.back?'checked':''} onchange="bkfRead();bkxEst()"></label></div></div>
-  <div class="bkc"><h3>글꼴 <small>이 교재에만 적용돼요</small></h3><div class="bkrow"><label for="bffont">글꼴</label><select id="bffont" class="bkin" onchange="bkfRead();bkxEst()"><option value="">인쇄 설정 따라가기</option>${Object.entries(FONTS).map(([k,v])=>`<option value="${k}" ${d.font===k?'selected':''}>${esc(v[0])}</option>`).join('')}</select></div></div>
-  <div class="bkc"><h3>출력 <small>문제 간격은 인쇄 창의 「옵션」에서 바꿀 수 있어요</small></h3>
-   <div class="bkrow"><label>정답 · 해설</label><div class="bkctl">${seg('ans',[[0,'정답 + 해설'],[1,'정답표만'],[2,'넣지 않기']],d.ans|0)}</div></div>
-   <div class="bkrow"><label>제본 여백</label><div class="bkctl">${seg('gut',BKGUTS.map(([v,t])=>[v,t]),d.gut|0)}</div></div>
-   <div class="bkrow"><label>채점 QR</label><label class="swr bkswt"><span><b>문제 쪽마다 QR 넣기</b><small>쪽 아래 QR을 찍어 바로 채점해요</small></span><input class="swi" type="checkbox" id="bfq" ${d.noqr?'':'checked'} onchange="bkfRead()"></label></div></div>`;
+ else body=`<div class="bkc"><h3>이름</h3><div class="bkrow"><label for="bxn">교재 이름</label><input id="bxn" class="bkin" value="${esc(d.name)}" maxlength="80" oninput="bkfRead();bkxEst()"></div><div class="bkrow"><label for="bxs">부제</label><input id="bxs" class="bkin" value="${esc(d.sub||'')}" maxlength="80" oninput="bkfRead();bkxEst()"></div></div><div class="bkc"><h3>출력 양식</h3><p class="m">원본 양식 · A4 · 본문 신명조 · 제목 KoPubWorld<br>문제 쪽마다 채점 QR을 넣습니다. 제목·과목명·필적확인 문구는 PDF 출력 창에서 조정할 수 있어요.</p><div class="bkrow"><label>정답·해설</label><div class="bkctl">${seg('ans',[[0,'정답 + 해설'],[1,'정답표만'],[2,'넣지 않기']],d.ans|0)}</div></div><div class="bkrow"><label>뒷표지</label><label class="swr bkswt"><span>뒷표지 한 쪽 넣기</span><input class="swi" type="checkbox" id="bfback" ${d.back?'checked':''} onchange="bkfRead()"></label></div></div>`;
+
  const nav=`<div class="bkn">${step>1?`<button class="s" onclick="bkfStep(${step-1})">‹ 이전</button>`:'<button class="s" onclick="BKV={v:\'shelf\',id:null};render()">취소</button>'}<span style="flex:1"></span>${step<3?`<button class="p" onclick="bkfStep(${step+1})">다음 ›</button>`:'<button class="p" onclick="bkxSaveBook()">교재 만들기</button>'}</div>`;
  const side=`<aside class="bkb-side"><div class="card bkpvc"><div class="bkpvh"><b>미리보기</b><span id="bkpvc" class="m"></span></div><div class="bkpvt"><button class="on" onclick="bkfPvTab(0)">표지</button><button onclick="bkfPvTab(1)">차례</button><button onclick="bkfPvTab(2)">본문</button><button onclick="bkfPvTab(3)">정답</button>${d.back?'<button onclick="bkfPvTab(4)">뒷표지</button>':''}</div><div id="bkpv"><div id="bkpvp" class="bkpvp"></div></div><p id="bkpvs" class="m" style="margin:8px 0 0;font-size:13px"></p></div>
   <div class="card bksum"><h3 style="margin:0 0 6px;font-size:15px">요약</h3><p id="bxe" class="hint" style="margin:0"></p>${step<3?`<button class="p" style="width:100%;margin-top:10px" onclick="bkxSaveBook()">지금 이대로 교재 만들기</button>`:''}</div></aside>`;
@@ -2058,12 +2056,12 @@ function bkxKind(k){bkxRead();const o=BKV.d,n=bkxPreset(k);const keepN=o.name!==
 function bkxSaveBook(){bkxRead();const d=BKV.d;let nm=(d.name||'').trim();if(!nm){toast('교재 이름을 입력하세요');return}
  if(d.kind==='free'){const pts=bkfParts(d);if(!pts.length){toast('넣을 구성을 하나 이상 고르세요');return}
   if(d.pre==='part'&&!(d.subs||[]).length){toast('파고들 소단원을 하나 이상 고르세요');return}
-  const pl0=d.pl&&d.pl.on?d.pl:null;let id=bkxId(SUBJ,{...d,parts:pts,pl:pl0}),cp=0;const ex=new Set([...bkxLocal().map(b=>b.id),...bkxGone()]);while(ex.has(id)&&cp<500){cp++;id=bkxId(SUBJ,{...d,parts:pts,pl:pl0,copy:cp.toString(36)})}if(ex.has(id)){toast('교재 번호를 만들지 못했습니다');return}
-  const a=bkxAll();a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:'free',gut:d.gut||0,color:d.color||'',cover:d.cover|0,noqr:d.noqr?1:0,font:d.font||'',lf:d.lf||'solvi',lfp:d.lfp||'br',lb:d.lb||'solvi',lbp:d.lbp||'bc',back:d.back?1:0,cx:d.cx||null,t:Date.now()});bkxStore(a);
+  const pl0=d.pl&&d.pl.on?d.pl:null;let id=SolviPrint.bookId(bkxId(SUBJ,{...d,parts:pts,pl:pl0})),cp=0;const ex=new Set([...bkxLocal().map(b=>b.id),...bkxGone()]);while(ex.has(id)&&cp<500){cp++;id=bkxId(SUBJ,{...d,parts:pts,pl:pl0,copy:cp.toString(36)})}if(ex.has(id)){toast('교재 번호를 만들지 못했습니다');return}
+  const a=bkxAll();a.push({...SolviPrint.fresh(),id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:'free',gut:d.gut||0,color:d.color||'',cover:d.cover|0,noqr:d.noqr?1:0,font:d.font||'',lf:d.lf||'solvi',lfp:d.lfp||'br',lb:d.lb||'solvi',lbp:d.lbp||'bc',back:d.back?1:0,cx:d.cx||null,t:Date.now()});bkxStore(a);
   delete BKP[id];BKV={v:'shelf',id:null};toast('교재를 만들었어요');render();scrollTo(0,0);return id}
  if(d.kind!=='full'){if(!Object.keys(d.inc||{}).length){toast('넣을 구성을 하나 이상 고르세요');return}
   if(d.kind==='part'&&!d.subs.length){toast('파고들 소단원을 하나 이상 고르세요');return}}
- const id=bkxId(SUBJ,d);if(bkxGone().has(id)){toast('영구 삭제된 교재 번호입니다. 구성을 바꿔 새 교재를 만들어 주세요');return}const a=bkxAll().filter(b=>b.id!==id);if(d.kind==='full'&&(d.subs||[]).length&&nm===BKK.full[0])nm='범위 모의고사';a.push({id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:d.kind==='last'?'std':d.kind,rounds:d.rounds||20,gut:d.gut||0,t:Date.now()});bkxStore(a);
+ const id=SolviPrint.bookId(bkxId(SUBJ,d));if(bkxGone().has(id)){toast('영구 삭제된 교재 번호입니다. 구성을 바꿔 새 교재를 만들어 주세요');return}const a=bkxAll().filter(b=>b.id!==id);if(d.kind==='full'&&(d.subs||[]).length&&nm===BKK.full[0])nm='범위 모의고사';a.push({...SolviPrint.fresh(),id,subj:SUBJ,name:nm,sub:(d.sub||'').trim(),kind:d.kind==='last'?'std':d.kind,rounds:d.rounds||20,gut:d.gut||0,t:Date.now()});bkxStore(a);
  delete BKP[id];Object.keys(BKP).forEach(k=>{if(k.startsWith(id+'r'))delete BKP[k]});
  BKV={v:'shelf',id:null};toast('교재를 만들었어요');render();scrollTo(0,0)}
 function bkxDel(id){const b=bkxAll().find(x=>x.id===id);if(!b||b.asg||!confirm('「'+b.name+'」 교재를 휴지통으로 옮길까요?'))return;
@@ -2111,5 +2109,5 @@ function bkGoFull(){const f=bkxAll().find(b=>b.subj===SUBJ&&b.kind==='full');BKV
 function bkRounds(id){const b=bkxAll().find(x=>x.id===id);if(!b){bkClose();return ''}
  const R=Array.from({length:b.rounds||20},(_,i)=>i+1);
  return `<div class="card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><button class="s" onclick="bkClose()" style="padding:6px 12px;border-radius:8px">‹ 교재함</button><h2 style="margin:0;flex:1">${esc(b.name)}</h2><span class="bklm"><button class="${bkLm()==='card'?'p':'s'}" onclick="bkSetLm('card')">카드</button><button class="${bkLm()==='list'?'p':'s'}" onclick="bkSetLm('list')">리스트</button></span></div><p style="margin:0 0 12px;font-size:13px;color:var(--m)">${esc(b.sub||'')} · 회차마다 문제지·해설을 따로 열고 인쇄할 수 있어요.</p><div style="margin:0 0 12px"><button class="s" onclick="tab='mock';render()">표지·OMR 포함 모의고사 직접 구성 ›</button></div>
- ${bkLm()==='list'?`<div class="bkrl">${R.map(k=>`<div class="bkrr"><b>${k}회</b><span>${esc(b.name)} · ${b.id.match(/xe(\d+)/)[1]}문항</span><button class="p" onclick="bkOpen('${b.id}r${k}')">열기</button><button class="s" onclick="bkPrint('${b.id}r${k}',0)">문제지 인쇄</button><button class="s" onclick="bkPrint('${b.id}r${k}',1)">해설 포함</button></div>`).join('')}</div>`:`<div class="bkshelf">${R.map(k=>`<div class="bkcard"><div class="bkcov"><i></i><b>${k}회</b><span>${esc(b.name)}</span><em>Solvi</em></div><div class="bi2"><h3>${k}회</h3><p>${esc(SNAME[SUBJ])} · ${b.id.match(/xe(\d+)/)[1]}문항<br><small>문제지 + 해설</small></p><div class="bt2"><button class="p" onclick="bkOpen('${b.id}r${k}')">열기</button><button class="s" onclick="bkPrint('${b.id}r${k}',0)">문제지 인쇄</button><button class="s" onclick="bkPrint('${b.id}r${k}',1)">해설 포함</button></div></div></div>`).join('')}</div>`}</div>`}
+ ${bkLm()==='list'?`<div class="bkrl">${R.map(k=>`<div class="bkrr"><b>${k}회</b><span>${esc(b.name)} · ${b.id.match(/xe[vn]?(\d+)/)[1]}문항</span><button class="p" onclick="bkOpen('${b.id}r${k}')">열기</button><button class="s" onclick="bkPrint('${b.id}r${k}',0)">문제지 인쇄</button><button class="s" onclick="bkPrint('${b.id}r${k}',1)">해설 포함</button></div>`).join('')}</div>`:`<div class="bkshelf">${R.map(k=>`<div class="bkcard"><div class="bkcov"><i></i><b>${k}회</b><span>${esc(b.name)}</span><em>Solvi</em></div><div class="bi2"><h3>${k}회</h3><p>${esc(SNAME[SUBJ])} · ${b.id.match(/xe[vn]?(\d+)/)[1]}문항<br><small>문제지 + 해설</small></p><div class="bt2"><button class="p" onclick="bkOpen('${b.id}r${k}')">열기</button><button class="s" onclick="bkPrint('${b.id}r${k}',0)">문제지 인쇄</button><button class="s" onclick="bkPrint('${b.id}r${k}',1)">해설 포함</button></div></div></div>`).join('')}</div>`}</div>`}
 window.bkShow=bkShow;
