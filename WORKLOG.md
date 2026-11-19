@@ -1,5 +1,11 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-19 · Codex · codex/latex-print-engine
+- 한 일: 기존 자료 HTML 보존, 신규 학습지·교재·모의고사를 생성자 브라우저의 XeTeX/xdvipdfmx WASM으로 출력. 첨부 XeLaTeX 본문·HWP 표지 서식, 지정 폰트 등록, 편집 가능한 표지·문구, QR 최종 쪽 명세와 연속 채점 연결. 별도 조판 서버 방식은 비용 제약에 따라 폐기.
+- 바뀐 파일: `index.html`, `books.js`(v87), `sw.js`(v215), `lib/print-engine.js`, `lib/latex/`, `lazy/latex-print.js`, `supabase/sql_27_latex_manifests.sql`, 테스트 4개와 실행 목록, README·PRODUCT·설계·검증 문서.
+- 확인: 전체 `npm test` 통과. 지정 원본 폰트로 5과목 실제 PDF, 신규 개념·문제·해설 교재, CSS 분수 문항 확인. 최종 실제 PDF QR 35개를 해독해 물리 쪽 번호 확인. 1440/820/390px 출력 설정 캡처, 원본 7쪽 비교, SQL 격리 검증, 재출력 잠금·로그인 복귀·기존 HTML 회귀 통과.
+- 남은 일 · 주의: 운영 Supabase에 SQL27 최초 적용 필요, 생성자별 원본 폰트 4개 최초 등록 필요. 운영 배포·병합·실제 Safari/Windows/휴대폰·종이 인쇄 미검증. 기존 사용자 미커밋 기록·skills-lock·자료는 제외. 원본 개인 폰트는 공개 커밋하지 않음.
+
 다른 AI가 이어서 일할 수 있게, 작업이 끝날 때마다 맨 위에 추가합니다. 형식은 `AGENTS.md` 6절.
 
 ## 2026-11-15 · Codex · codex/ai-math-formulas
