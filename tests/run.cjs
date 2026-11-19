@@ -13,6 +13,7 @@ const root = path.resolve(__dirname, ".."),
     ".webp": "image/webp",
     ".png": "image/png",
     ".svg": "image/svg+xml",
+    ".wasm": "application/wasm",
   };
 const server = http.createServer((req, res) => {
   try {
@@ -67,10 +68,12 @@ const run = (args, env) =>
     const env = { BASE: "http://127.0.0.1:" + server.address().port };
     for (const args of [
       ["scripts/verify-static.cjs"],
-      ["--test", "tests/academy-core.test.cjs", "tests/korean-editor.test.cjs", "tests/ui-system.test.cjs", "tests/ui-rebuild-contract.test.cjs", "tests/loading-bar-regression.test.cjs", "tests/domain-login-intro.test.cjs", "tests/book-entry.test.cjs", "tests/book-label.test.cjs"],
+      ["--test", "tests/academy-core.test.cjs", "tests/korean-editor.test.cjs", "tests/ui-system.test.cjs", "tests/ui-rebuild-contract.test.cjs", "tests/loading-bar-regression.test.cjs", "tests/domain-login-intro.test.cjs", "tests/book-entry.test.cjs", "tests/book-label.test.cjs", "tests/print-engine.test.cjs", "tests/latex-document.test.cjs"],
       ["tests/operations-db.cjs"],
       ["tests/full-schema-db.cjs"],
       ["tests/leads-db.cjs"],
+      ["tests/latex-manifests.cjs"],
+      ["tests/latex-browser.cjs"],
       ["tests/print-regression.cjs"],
       ["tests/book-navigation.cjs"],
       ["tests/book-range.cjs"],

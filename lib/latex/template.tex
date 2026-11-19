@@ -1,0 +1,45 @@
+
+\documentclass[a4paper,10pt]{article}
+\usepackage[left=13mm,right=13mm,top=12mm,bottom=16.5mm,headheight=0pt,headsep=0pt,footskip=5.5mm]{geometry}
+\usepackage{fontspec,kotex,unicode-math,amsmath,mathtools,booktabs,tabularx,array,enumitem,tikz,graphicx,ragged2e,multicol,eso-pic}
+\usetikzlibrary{calc,arrows.meta,positioning,shapes.geometric}
+\defaultfontfeatures{Ligatures=TeX}
+\setmainfont[Path=fonts/,AutoFakeBold=1.35]{ShinMyeongjo.ttf}
+\setsansfont[Path=fonts/,AutoFakeBold=1.35]{ShinMyeongjo.ttf}
+\setmainhangulfont[Path=fonts/,AutoFakeBold=1.35]{ShinMyeongjo.ttf}
+\setsanshangulfont[Path=fonts/,AutoFakeBold=1.35]{ShinMyeongjo.ttf}
+\newfontfamily\KoBoldLatin[Path=fonts/]{KoPubWorldBold.ttf}
+\newhangulfontfamily\KoBoldHangul[Path=fonts/]{KoPubWorldBold.ttf}
+\newfontfamily\KoMedLatin[Path=fonts/]{KoPubWorldMedium.ttf}
+\newhangulfontfamily\KoMedHangul[Path=fonts/]{KoPubWorldMedium.ttf}
+\newcommand{\KoBold}{\KoBoldLatin\KoBoldHangul}
+\newcommand{\KoMed}{\KoMedLatin\KoMedHangul}
+\setmathfont{STIXTwoMath-Regular.otf}
+\setmathfont[Path=fonts/,range={up/{latin,Latin,num},it/{latin,Latin}}]{HancomEQN.ttf}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.26}
+\emergencystretch=2.0em
+\raggedbottom
+\newcommand{\circh}[1]{\tikz[baseline=(n.base)]\node[draw,circle,inner sep=.65pt,line width=.43pt](n){\KoMed\fontsize{8.2}{9.5}\selectfont #1};}
+% 문제집식 〈보 기〉 : 닫힌 사각 테두리, 윗변 중앙을 제목이 가리는 구조
+\newcommand{\choices}[1]{%
+\par\vspace{2.6mm}%
+\begingroup\setlength{\parskip}{1.4pt}%
+\noindent\begin{tikzpicture}[baseline=(fr.north)]%
+\node[draw=black,line width=.55pt,inner sep=0pt,outer sep=0pt,anchor=north west] (fr) at (0,0) {%
+  \begin{minipage}{\dimexpr\linewidth-1.5pt\relax}%
+  \vspace{3.2mm}\hspace*{2.7mm}%
+  \begin{minipage}{\dimexpr\linewidth-5.4mm-1.5pt\relax}%
+  \fontsize{9.8}{16.6}\selectfont\RaggedRight #1\par%
+  \end{minipage}\par\vspace{2.9mm}%
+  \end{minipage}};%
+\node[fill=white,inner xsep=2.4mm,inner ysep=0pt,font=\KoMed\fontsize{10}{12}\selectfont] at (fr.north) {〈\,보\,기\,〉};%
+\end{tikzpicture}%
+\endgroup\par\vspace{2.7mm}}
+\newcommand{\examoptsfive}[5]{\par\vspace{3.7mm}\noindent\begin{tabularx}{\linewidth}{@{}*{5}{>{\centering\arraybackslash}X}@{}}\circh1\,#1&\circh2\,#2&\circh3\,#3&\circh4\,#4&\circh5\,#5\end{tabularx}\par\vspace{3.5mm}}
+\newcommand{\examoptstwo}[5]{\par\vspace{3.4mm}\noindent\begingroup\fontsize{10.6}{16}\selectfont\begin{tabularx}{\linewidth}{@{}*{3}{>{\centering\arraybackslash}X}@{}}\circh1\,#1&\circh2\,#2&\circh3\,#3\\[3.8mm]\circh4\,#4&\circh5\,#5&\end{tabularx}\endgroup\par\vspace{3.8mm}}
+\newcommand{\examoptsvertical}[5]{\par\vspace{2.9mm}\begingroup\setlength{\parskip}{4.8pt}\fontsize{10.2}{17}\selectfont\circh1\,#1\par\circh2\,#2\par\circh3\,#3\par\circh4\,#4\par\circh5\,#5\par\endgroup\vspace{2.5mm}}
+\usepackage[normalem]{ulem}\usepackage{qrcode,multirow,atbegshi}\pagestyle{empty}
+
