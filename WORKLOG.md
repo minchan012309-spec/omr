@@ -1,5 +1,12 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-21 · Codex · codex/fix-worksheet-header-ci
+- 한 일: 사용자 정정대로 1페이지의 기존 머리말·QR·하단 구성을 복원하고 2페이지부터만 간소화 머리말·기존 하단 QR을 적용. 첫 페이지 머리말 제거로 발생한 CI의 ws-approved-styles null 참조 원인 해결. 첫 페이지 보존 검사를 집중 회귀에 추가.
+- 바뀐 파일: `index.html`, `sw.js`(v225), `tests/worksheet-simple-header.cjs`, `WORKLOG.md`.
+- 확인: 수정 전 첫 페이지 보존 검사 실패 재현. 수정 후 정적 파싱17개, 첫 페이지/이어지는 쪽 집중 검사, CI 실패했던 디자인14종 검사, 문항 간격별 쪽 배분 검사 및 diff 공백 검사 통과.
+- 남은 일 · 주의: 전체 회귀·실제 기기·종이 인쇄 미실시. 병합 미실시.
+
+
 ## 2026-11-21 · Codex · codex/worksheet-simple-header
 - 한 일: 일반 학습지의 모든 쪽 머리말을 왼쪽 학습지명·오른쪽 학원명과 구분선만으로 정리. 상단 QR·로고·이름·날짜·문항 수·점수·부제 제거. 문제 쪽 하단 QR과 학습지 번호·기존 안내 문구 복구, 기존 하단 스타일 유지. 모의고사·평가원 양식 제외.
 - 바뀐 파일: `index.html`, `sw.js`(v224), `tests/worksheet-simple-header.cjs`, `tests/run.cjs`, `WORKLOG.md`.
