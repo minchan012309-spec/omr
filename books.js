@@ -33,7 +33,7 @@ const BKCSS=`
 @font-face{font-family:Paperozi;src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2') format('woff2');font-weight:700;font-display:swap}
 @font-face{font-family:Paperozi;src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');font-weight:800;font-display:swap}
 @font-face{font-family:Paperozi;src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2') format('woff2');font-weight:900;font-display:swap}
-.bkdoc{color-scheme:light;--qf:none;--qfi:none;--ink:#111;--ink2:#444;--rule:.25mm;--mx:12mm;--blank:.3mm solid #222;font-family:YetHangul,SolviSymbols,Pretendard,PretendardLocal,'Noto Sans CJK KR','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111;font-weight:400;-webkit-print-color-adjust:exact;print-color-adjust:exact;word-break:keep-all;overflow-wrap:break-word}
+.bkdoc{color-scheme:light;--qf:none;--qfi:none;--ink:#333;--ink2:#444;--rule:.25mm;--mx:12mm;--blank:.3mm solid #222;font-family:YetHangul,SolviSymbols,Pretendard,PretendardLocal,'Noto Sans CJK KR','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#333;font-weight:400;-webkit-print-color-adjust:exact;print-color-adjust:exact;word-break:keep-all;overflow-wrap:break-word}
 .bkdoc *{box-sizing:border-box}
 .bkdoc i{font-family:'Times New Roman','Noto Serif CJK KR',serif;font-style:italic}.bkdoc sub,.bkdoc sup{font-size:70%;line-height:0}
 .bkdoc .bkblank .bklg{position:absolute;right:12mm;bottom:10mm;display:flex;align-items:center;gap:1.4mm;font:800 8.5pt/1 Pretendard,sans-serif;letter-spacing:-.02em;color:#8a96a6}.bkdoc .bkblank .bklg svg{height:12mm;width:auto;display:block}.bkdoc .bkblank .bklg img{height:12mm;width:auto;max-width:40mm;object-fit:contain;display:block}.bkdoc .bkblank .bklg .bld{width:.3mm;height:10mm;background:#9aa5b1;display:block}.bkdoc .bkblank .bklg .blt{font-weight:800;font-size:8.5pt;color:#8a96a6;white-space:nowrap}
@@ -61,7 +61,7 @@ const BKCSS=`
 .bkdoc .ft .fl{font-size:9.5px;color:#444}
 .bkdoc .ft .pn{font-size:12px;font-weight:700;text-align:center}
 .bkdoc .ft .fr2{justify-self:end;display:flex;align-items:center;gap:2.4mm}
-.bkdoc .ft .qt{font-size:9px;line-height:1.35;color:#333;text-align:right}.bkdoc .ft .qt b{display:block;font-size:10px;color:#111}
+.bkdoc .ft .qt{font-size:9px;line-height:1.35;color:#333;text-align:right}.bkdoc .ft .qt b{display:block;font-size:10px;color:#333}
 .bkdoc .ft .qq{width:16mm;height:16mm;border:0;padding:0;background:none;display:flex;align-items:center;justify-content:center}
 .bkdoc .ft .qq svg{width:100%;height:100%;display:block}
 .bkdoc .ft .fn{font-size:9.5px;color:#444;text-align:right}
@@ -80,7 +80,7 @@ const BKCSS=`
 .bkdoc .u.q .fg{text-align:center;margin:1.6mm 0}.bkdoc .u.q .fg img{max-width:100%;max-height:62mm;height:auto}
 .bkdoc .u.q .bogi,.bkdoc .u.q .bxx{border:.6px solid #111;padding:1.6mm 2.2mm;margin:2mm 0;font-size:11.8px;line-height:1.5}
 .bkdoc .u.q .bogi{position:relative;padding-top:3.4mm;margin-top:4.4mm}
-.bkdoc .u.q .bogi .bt{position:absolute;top:-2.5mm;left:50%;transform:translateX(-50%);background:#fff;color:#111;border-radius:0;padding:0 1.6mm;margin:0;font-weight:500;font-size:11.6px;line-height:4.6mm;letter-spacing:0;white-space:nowrap} /* 〈보기〉 글자만 윗줄에 걸침 */
+.bkdoc .u.q .bogi .bt{position:absolute;top:-2.5mm;left:50%;transform:translateX(-50%);background:#fff;color:#333;border-radius:0;padding:0 1.6mm;margin:0;font-weight:500;font-size:11.6px;line-height:4.6mm;letter-spacing:0;white-space:nowrap} /* 〈보기〉 글자만 윗줄에 걸침 */
 .bkdoc .u.q .bogi p,.bkdoc .u.q .bxx p{margin:.5mm 0;padding-left:5mm;text-indent:-5mm;text-align:left}
 .bkdoc .u.q .bxx{border-style:solid}
 .bkdoc .u.q .eqn{text-align:center;margin:1.6mm 0;font-size:12.5px}
@@ -107,7 +107,7 @@ const BKCSS=`
 .bkdoc .u.q .ans{margin-top:1.6mm;border:.6px solid #111;padding:.8mm 2.4mm}.bkdoc .u.q .ans div{height:6.4mm;border-bottom:.6px dotted #888}.bkdoc .u.q .ans div:last-child{border-bottom:0}
 /* ---- 교재(개념서·유형서) : 포인트 색을 절제해서 쓴 서식 ---- */
 .bkdoc .hd2{position:absolute;left:12mm;right:12mm;top:8mm;height:7mm;border-bottom:.3mm solid var(--line);display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:1.4mm;font-size:9.5px;color:#555;line-height:1}
-.bkdoc .hd2 b{color:#111;font-weight:600}.bkdoc .hd2 .lb2{color:var(--pd);font-weight:600}
+.bkdoc .hd2 b{color:#333;font-weight:600}.bkdoc .hd2 .lb2{color:var(--pd);font-weight:600}
 .bkdoc .hd2 .lb2:before{content:"";display:inline-block;width:1.6mm;height:1.6mm;border-radius:50%;background:var(--y);margin-right:1.6mm;vertical-align:.05mm}
 .bkdoc .fb{position:absolute;left:12mm;right:12mm;bottom:7mm;height:11mm;border-top:.25mm solid var(--line);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:9.5px;color:#555;line-height:1}
 .bkdoc .fb .pn{color:var(--p);font-weight:700;font-size:13.5px;min-width:12mm;display:inline-flex;align-items:center;gap:2mm}.bkdoc .fb .pn.r{justify-content:flex-end}.bkdoc .fb .pn:before{content:"";width:1.5mm;height:1.5mm;border-radius:50%;background:var(--y)}.bkdoc .fb .pn.r:before{order:2}.bkdoc .fb .pn.r{text-align:right}.bkdoc .fb>:first-child{justify-self:start}.bkdoc .fb>:last-child{justify-self:end}.bkdoc .bp[data-gut]>*{transform:translateX(var(--gx))}
@@ -203,7 +203,7 @@ const BKCSS=`
 .bkdoc .bk-s,.bkdoc .bk-m,.bkdoc .bk-e,.bkdoc .bk-o{position:relative;padding-right:7mm!important}
 .bkdoc .bk-s::after,.bkdoc .bk-m::after,.bkdoc .bk-e::after,.bkdoc .bk-o::after{content:'';position:absolute;right:4mm;top:0;bottom:0;width:1.8mm;border-right:.3mm solid #111;pointer-events:none}
 .bkdoc .bk-s::after,.bkdoc .bk-o::after{border-top:.3mm solid #111}.bkdoc .bk-e::after,.bkdoc .bk-o::after{border-bottom:.3mm solid #111}
-.bkdoc [data-bk]::before{content:'['attr(data-bk)']';position:absolute;right:0;top:50%;transform:translateY(-50%);font-size:.8em;font-weight:700;color:#111;white-space:nowrap}
+.bkdoc [data-bk]::before{content:'['attr(data-bk)']';position:absolute;right:0;top:50%;transform:translateY(-50%);font-size:.8em;font-weight:700;color:#333;white-space:nowrap}
 /* 원문자 배지 */
 .bkdoc .psgu .psg.sp{letter-spacing:.06em;line-height:2.5;font-size:12.6px}.bkdoc .psgu .psg.sp p{margin:0 0 2.2mm}
 .bkdoc .psgu.wd .psg.sp{letter-spacing:.1em;line-height:2.75;font-size:13px;word-spacing:.1em}.bkdoc .psgu.wd .psg.sp p{margin:0 0 3.2mm}.bkdoc .psgu .psg.sp .hd{letter-spacing:0;line-height:1.7}
