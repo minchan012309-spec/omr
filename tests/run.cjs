@@ -76,6 +76,7 @@ const run = (args, env) =>
       ["tests/hwpx-editable.cjs"],
       ["tests/hwpx-app.cjs"],
       ["tests/worksheet-answer-header.cjs"],
+      ["tests/worksheet-simple-header.cjs"],
       ["tests/book-qr-links.cjs"],
       ["tests/book-writing-margins.cjs"],
       ["tests/print-regression.cjs"],
