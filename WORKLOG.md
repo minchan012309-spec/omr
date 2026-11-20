@@ -1,5 +1,11 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-20 · Codex · codex/html-hwpx-export
+- 한 일: 최신 지시로 LaTeX 생성 폐기·전체 HTML 출력 복구. 평가원 본문/표지와 신명조·KoPubWorld 자동 적용. 폰트 선택 후 글·표·한컴 수식을 수정할 수 있는 HWPX 다운로드(그림만 PNG). 교재 좌/우 필기 여백 및 국어 개념 필기 공간 옵션과 실제 너비 재배치·QR 설정 보존.
+- 바뀐 파일: `index.html`, `books.js`(v89), `lib/print-engine.js`, 새 `lib/hwpx.js`, `lazy/hwpx-export.js`, QR 읽기 호환 `lazy/print-history.js`, `sw.js`(v219), HWPX/여백 검사·안내·검증 문서.
+- 확인: 사용자 크레딧 절약 요청에 따라 정적 파싱17개·HTML 계약3개·실제 평가원/학습지/교재 HWPX 다운로드만 최종 확인. HWPX 집중 검사·실제 한컴 본문 수정/수식 편집기 확인, 앞서5과목 여백/넘침·3화면 폭·국어 높이 측정 수행. 전체 반복 검사 생략.
+- 남은 일 · 주의: HWPX 글꼴은 설치된 원본을 참조하며 내장하지 않음. 편집 문서는 재흐름되고 장식의 정밀 위치는 HTML과 다를 수 있음. 과거 QR 조회 호환 보존. 병합/배포·실제 Safari/Windows/휴대폰·종이 인쇄 미실시. 사용자 기존 WORKLOG·skills-lock·자료 제외.
+
 ## 2026-11-20 · Codex · codex/latex-reference-fidelity / PR #139 문항 간격
 - 한 일: 첨부 예시처럼 학습지·모의고사 번호 아래와 본문/선지 사이의 추가 여백을 축소하고 세로 선지 행 간격 조정. 문항별 풀이 칸 높이·교재 디자인은 유지.
 - 바뀐 파일: `lib/latex/document.js`, `template.tex`, `local.js`, `index.html`, `sw.js`(v218), 실제 출력 기준선 회귀 `tests/latex-question-spacing.cjs`, 실행 목록·검증 기록.
