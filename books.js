@@ -97,6 +97,7 @@ const BKCSS=`
 .bkdoc .u.q .chs.sh{display:grid;grid-template-columns:repeat(3,1fr);row-gap:.4mm}
 .bkdoc .u.q .chs.md{display:grid;grid-template-columns:repeat(2,1fr);row-gap:.4mm;column-gap:2mm}
 .bkdoc .u.q .chs div{display:grid;grid-template-columns:auto 1fr;column-gap:1.4mm;align-items:baseline}.bkdoc .u.q .chs div b{font-family:SolviCn,Pretendard,PretendardLocal,sans-serif;font-weight:300;font-size:1.24em;line-height:1;letter-spacing:0}
+.bkdoc .u.narrow .no,.bkdoc .u.narrow .xn{min-width:3ch}.bkdoc .u.narrow .xh{flex-wrap:wrap}.bkdoc .u.narrow .xh .xm{min-width:0;max-width:100%;overflow-wrap:anywhere}
 .bkdoc .u.q.narrow .chs.sh{grid-template-columns:repeat(3,minmax(0,1fr))}.bkdoc .u.q.narrow .chs.md{grid-template-columns:repeat(2,minmax(0,1fr))}.bkdoc .u.q.narrow .chs div{grid-template-columns:auto minmax(0,1fr)}.bkdoc .u.q.narrow .chs span{min-width:0;overflow-wrap:anywhere}
 .bkdoc .u.q .chs.lg div{margin:.5mm 0}
 .bkdoc .u.q .bk{display:inline-block;min-width:15mm;text-align:center;border-bottom:var(--blank);font-weight:700;color:#555;line-height:1.1;margin:0 .6mm}
@@ -326,7 +327,7 @@ const BKSH=':host{all:initial;display:block}.bkdoc.scr .bp{position:absolute;lef
 function bkShadow(host,html){const r=host.shadowRoot||host.attachShadow({mode:'open'});r.innerHTML='<style>'+BKSH+BKCSS+'</style>'+html;return r}
 function bkProbe(){let p=document.getElementById('bkprobe');if(!p){p=document.createElement('div');p.id='bkprobe';p.style.cssText='position:absolute;left:-9999px;top:0;visibility:hidden;pointer-events:none;width:300mm';document.body.appendChild(p);bkShadow(p,'<div class="bkdoc"><div id="bkpm"></div></div>')}return p.shadowRoot.getElementById('bkpm')}
 function bkMeasure(html,w,cls){const p=bkProbe();p.innerHTML='<div class="'+(cls||'bk')+'" style="'+bkVars()+';width:'+w+'mm;display:flow-root;font-size:12px;line-height:1.5">'+bkGlyph(html)+'</div>';return Math.ceil(p.firstChild.getBoundingClientRect().height/BK_MM*10)/10}
-const BKHA={};
+const BKHA={},BKWA={};
 function bkH(u){const k=u.key;if(BKREC)BKREC.push(u);if(BKHT&&BKHT[k]!=null)return BKHT[k];if(BKHA[k]!=null)return BKHA[k];if(BKH[k]==null)BKH[k]=bkMeasure(u.html,u.w||BK_COLW,u.cls);return BKH[k]}
 
 /* ---------- 문항 → HTML ---------- */
@@ -425,6 +426,8 @@ function bkCut(u,k){const a=k*u.lh,off=(u.off||0),base=u.base||u.html,mm=x=>(Mat
  const B={...u,key:u.key+'#'+(off+a).toFixed(1),h:u.h-a,base,off:off+a,html:wrap(off+a,u.h-a),cutT:1};
  return [A,B]}
 function bkPack(units,ncol,cap,firstCap){
+ // New writing margins reserve one line for platform-dependent font rounding.
+ if(BKWR&&(BKWR.left||BKWR.right||(SUBJ==='hl'&&!BKWR.concept))){cap-=3;if(firstCap!=null)firstCap-=3;}
  const pages=[];let pg=null,ci=0,used=0,box=null;const pend=[];
  const capOf=()=>(pages.length===1&&firstCap!=null?firstCap:cap)-(pg&&pg.topH?pg.topH+2:0);
  const np=()=>{pg={cols:Array.from({length:ncol},()=>[]),used:Array(ncol).fill(0)};pages.push(pg);ci=0;used=0;box=null;if(pend.length){const t=pend.shift();pg.top=[t];pg.topH=t.h}};
@@ -468,7 +471,7 @@ function bkBoxMark(p){[...p.cols,p.top||[]].forEach(c=>c.forEach((u,i)=>{const a
 const bkUH=u=>u.bx?u.html.replace(/^<div class="u psgu/,'<div class="u psgu'+u.bx):u.html;
 function bkGap(c,th,used){const n=c.filter((u,i)=>i&&u.pad).length;if(n<1)return 0;const B=BK_BODY-(th?th+2:0);const pad=c.reduce((m,u)=>Math.max(m,u.pad||0),0);if(used==null)used=c.reduce((a,u)=>a+u.h,0);if(used<B*.55)return pad;return Math.max(pad,Math.min(14,Math.round((B-used-8)/n*10)/10))}
 function bkCI(p){return {cols:p.cols.map(c=>c.map(bkUH)),gaps:p.cols.map((c,ci)=>bkGap(c,p.topH,p.used&&p.used[ci])),top:(p.top||[]).map(bkUH)}}
-const bkU=(key,html,o)=>{const w=(o&&o.w)||BK_COLW,changed=BKWR&&(BKWR.left||BKWR.right||(SUBJ==='hl'&&!BKWR.concept));if(changed)html=html.replace(/^<div class="u q(?=[ "])/,'<div class="u q narrow');const u={key:SUBJ+'|'+key+(changed?'@w'+w:''),html,w,...(o||{})};u.h=bkH(u);if(changed&&u.w===BK_COLW&&u.h>BK_BODY&&!u.span){u.w=BK_FULLW;u.key=SUBJ+'|'+key+'@w'+u.w;u.span='brk';u.h=bkH(u)}u.pad=/^<div class="u q"/.test(html)?BKPADS[BKO.gap||0]:0;return u};
+const bkU=(key,html,o)=>{const w=(o&&o.w)||BK_COLW,changed=BKWR&&(BKWR.left||BKWR.right||(SUBJ==='hl'&&!BKWR.concept));if(changed)html=html.replace(/^<div class="u (q|x)(?=[ "])/,'<div class="u $1 narrow');const u={key:SUBJ+'|'+key+(changed?'@w'+w:''),html,w,...(o||{})};u.h=bkH(u);if(changed&&u.w===BK_COLW&&(u.h>BK_BODY-3||(BKWA[u.key]||0)>2)&&!u.span){u.w=BK_FULLW;u.key=SUBJ+'|'+key+'@w'+u.w;u.span='brk';u.h=bkH(u)}u.pad=/^<div class="u q"/.test(html)?BKPADS[BKO.gap||0]:0;return u};
 /* 개념 절 하나 → 단위들. 제목은 뒤 내용과 떨어지지 않게(keep): 절 제목 → (도입 상자) → 첫 소제목 → 첫 본문 블록, 소제목 → 첫 본문 블록,
    설명 문단이 ':'로 끝나거나 바로 뒤에 예시 상자·표가 오면 설명과 상자를 한 덩어리로 */
 function bkCbUnits(sec,w){const us=[bkU('ch:'+sec.id,'<div class="u sh2"><i>'+esc(sec.no)+'</i><span>'+esc(sec.title)+'</span></div>',{w,keep:true,hdg:true,cls:'bk cnmeasure'})];
@@ -1859,12 +1862,13 @@ function bkStandalone(plan){
 /* ---------- 높이표 만들기(개발용) : 콘솔/자동화에서 await bkMeasureAll() ---------- */
 let BKREC=null;
 async function bkSettle(fn){let plan;for(let i=0;i<5;i++){BKREC=[];try{plan=fn()}finally{var rec=BKREC;BKREC=null}
-  const seen=new Set();let n=0;for(const u of rec){if((BKHT&&BKHT[u.key]!=null)||BKHA[u.key]!=null||seen.has(u.key))continue;seen.add(u.key);BKHA[u.key]=await bkMeasureAsync(u.html,u.w||BK_COLW,u.cls);n++}
+  const seen=new Set();let n=0;for(const u of rec){if((BKHT&&BKHT[u.key]!=null)||BKHA[u.key]!=null||seen.has(u.key))continue;seen.add(u.key);BKHA[u.key]=await bkMeasureAsync(u.html,u.w||BK_COLW,u.cls,u.key);n++}
   if(!n)break}
  return plan}
-async function bkMeasureAsync(html,w,cls){const p=bkProbe();p.innerHTML='<div class="'+(cls||'bk')+'" style="'+bkVars()+';width:'+w+'mm;display:flow-root;font-size:12px;line-height:1.5">'+bkGlyph(html)+'</div>';
+async function bkMeasureAsync(html,w,cls,key){const p=bkProbe();p.innerHTML='<div class="'+(cls||'bk')+'" style="'+bkVars()+';width:'+w+'mm;display:flow-root;font-size:12px;line-height:1.5">'+bkGlyph(html)+'</div>';
  if(document.fonts)await document.fonts.ready;
  await Promise.all([...p.querySelectorAll('img')].map(i=>i.complete&&i.naturalWidth?1:new Promise(r=>{i.onload=i.onerror=()=>r();setTimeout(r,30000)})));
+ if(key)BKWA[key]=p.firstChild.scrollWidth-p.firstChild.clientWidth;
  return Math.ceil(p.firstChild.getBoundingClientRect().height/BK_MM*10)/10}
 async function bkMeasureAll(){
  await bkInit();BKHT={};const subj=SUBJ;const ids=[subj+'-c',subj+'-t'].concat(subj==='hl'?['hl-hs','hl-hg','hl-hm','hl-hmg']:[]);
@@ -1872,7 +1876,7 @@ async function bkMeasureAll(){
   delete BKSELC[subj];ids.forEach(id=>delete BKP[id]);
   BKREC=[];for(const id of ids)await bkPlan(id);
   const rec=BKREC;BKREC=null;const seen=new Set();let n=0;
-  for(const u of rec){if(BKHA[u.key]!=null||seen.has(u.key))continue;seen.add(u.key);BKHA[u.key]=await bkMeasureAsync(u.html,u.w||BK_COLW,u.cls);n++}
+  for(const u of rec){if(BKHA[u.key]!=null||seen.has(u.key))continue;seen.add(u.key);BKHA[u.key]=await bkMeasureAsync(u.html,u.w||BK_COLW,u.cls,u.key);n++}
   if(!n)break}
  delete BKSELC[subj];ids.forEach(id=>delete BKP[id]);for(const id of ids)await bkPlan(id);
  return BKHA}
