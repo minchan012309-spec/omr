@@ -1,5 +1,11 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-20 · Codex · codex/fix-html-hwpx-ci
+- 한 일: PR #140 병합 후 CI에서 발견된 좌우 필기 여백 국어 교재의 넘침 수정. 좁은 해설 머리말 줄바꿈·번호 너비 고정, 가로 넘침 문항 전체 너비 재배치, 새 여백 배치에 3mm 안전 공간 적용.
+- 바뀐 파일: `books.js`(v90), `index.html`, `sw.js`(v220), `WORKLOG.md`.
+- 확인: 정적 스크립트17개 파싱과 실패했던 `book-writing-margins` 검사 통과(5과목 실제 폭, 국어 전체 교재 양옆 여백 넘침, 1440/820/390 설정). 검사 기준 유지.
+- 남은 일 · 주의: 사용자 요청에 따라 전체 로컬 회귀 반복 생략. Linux CI 결과와 실제 기기·종이 인쇄는 별도 확인 필요. 기존 사용자 변경 제외, 병합 미실시.
+
 ## 2026-11-20 · Codex · codex/html-hwpx-export
 - 한 일: 최신 지시로 LaTeX 생성 폐기·전체 HTML 출력 복구. 평가원 본문/표지와 신명조·KoPubWorld 자동 적용. 폰트 선택 후 글·표·한컴 수식을 수정할 수 있는 HWPX 다운로드(그림만 PNG). 교재 좌/우 필기 여백 및 국어 개념 필기 공간 옵션과 실제 너비 재배치·QR 설정 보존.
 - 바뀐 파일: `index.html`, `books.js`(v89), `lib/print-engine.js`, 새 `lib/hwpx.js`, `lazy/hwpx-export.js`, QR 읽기 호환 `lazy/print-history.js`, `sw.js`(v219), HWPX/여백 검사·안내·검증 문서.
