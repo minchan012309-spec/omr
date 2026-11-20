@@ -2593,7 +2593,7 @@ function wsThumbs(){const v=$('#wsView'),sh=$('#wsPaper').shadowRoot;v.querySele
 let WSREC=null,WSZ=1;
 function wsDup(){dupSet(!dupGet());WSREC&&openWs(WSREC)}
 function wsZoom(k){WSZ=k?Math.max(.4,Math.min(2.5,Math.round((WSZ+k)*100)/100)):1;const p=$('#wsPaper');if(p)p.style.zoom=WSZ;const l=$('#wszl');if(l)l.textContent=Math.round(WSZ*100)+'%'}
-async function ltLoad(){await loadJsOnce('lib/latex/book-document.js?v=2',()=>!!window.SolviLatexBookDocument);await loadJsOnce('lib/latex/book-layout.js?v=2',()=>!!window.SolviLatexBookLayout);await loadJsOnce('lib/latex/document.js?v=3',()=>!!window.SolviLatexDocument);await loadJsOnce('lib/latex/engine/XeTeXEngine.js',()=>typeof XeTeXEngine==='function');await loadJsOnce('lib/latex/engine/DvipdfmxEngine.js',()=>typeof DvipdfmxEngine==='function');await loadJsOnce('lib/latex/local.js?v=3',()=>!!window.SolviLocalTex);await loadJsOnce('lazy/latex-print.js?v=3',()=>typeof ltViewer==='function')}
+async function ltLoad(){await loadJsOnce('lib/latex/book-document.js?v=2',()=>!!window.SolviLatexBookDocument);await loadJsOnce('lib/latex/book-layout.js?v=2',()=>!!window.SolviLatexBookLayout);await loadJsOnce('lib/latex/document.js?v=4',()=>!!window.SolviLatexDocument);await loadJsOnce('lib/latex/engine/XeTeXEngine.js',()=>typeof XeTeXEngine==='function');await loadJsOnce('lib/latex/engine/DvipdfmxEngine.js',()=>typeof DvipdfmxEngine==='function');await loadJsOnce('lib/latex/local.js?v=4',()=>!!window.SolviLocalTex);await loadJsOnce('lazy/latex-print.js?v=3',()=>typeof ltViewer==='function')}
 async function openWs(rec,pv,opt){
  if(!pv)WSREC=rec;
  let win=null;if(!pv)win=(opt&&opt.win)||wsPopStart(rec);

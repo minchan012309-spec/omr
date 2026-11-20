@@ -1,5 +1,11 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-20 · Codex · codex/latex-reference-fidelity / PR #139 문항 간격
+- 한 일: 첨부 예시처럼 학습지·모의고사 번호 아래와 본문/선지 사이의 추가 여백을 축소하고 세로 선지 행 간격 조정. 문항별 풀이 칸 높이·교재 디자인은 유지.
+- 바뀐 파일: `lib/latex/document.js`, `template.tex`, `local.js`, `index.html`, `sw.js`(v218), 실제 출력 기준선 회귀 `tests/latex-question-spacing.cjs`, 실행 목록·검증 기록.
+- 확인: 실제 PDF 번호→본문 11.11→8.01mm, 본문→세로 선지 9.87→7.24mm, 세로 행 6.97→5.64mm, 본문→한 줄 선지 9.55→7.15mm. 수정 전 실패·수정 후 통과. 문법·단위14개, 국어 선지/지문/12문항 쪽 배치, 정답지, 기존 교재 및 HTML 인쇄 회귀 통과. PDF 확대 이미지 직접 확인.
+- 남은 일 · 주의: 실제 기기·종이 인쇄 미검증. 기존 사용자 WORKLOG·skills-lock 등은 커밋에서 제외. 병합·배포 미실시.
+
 ## 2026-11-20 · Codex · codex/latex-reference-fidelity / PR #139 후속
 - 한 일: 교재 inline MathML 누락을 native LaTeX 수식 층으로 수정하고 제공 HancomEQN 문자표를 사용. 학습지 기본 8.5pt와 ±0.5pt 조절, 교재 QR20mm 및 학습지 상단 QR. 정답 머리말 네모 테두리, 빠른 정답표 아래에 2단 해설 연속 배치.
 - 바뀐 파일: `index.html`, `lazy/latex-print.js`, `lib/print-engine.js`, `lib/latex/{book-document,book-layout,document,local}.js`, `template.tex`, `sw.js`(v217), 실제 수식·정답 흐름 회귀와 검증 문서.
