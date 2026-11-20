@@ -14,6 +14,7 @@
 \newhangulfontfamily\KoMedHangul[Path=fonts/]{KoPubWorldMedium.ttf}
 \newcommand{\KoBold}{\KoBoldLatin\KoBoldHangul}
 \newcommand{\KoMed}{\KoMedLatin\KoMedHangul}
+\newfontfamily\HancomMath[Path=fonts/]{HancomEQN.ttf}
 \setmathfont{STIXTwoMath-Regular.otf}
 \setmathfont[Path=fonts/,range={up/{latin,Latin,num},it/{latin,Latin}}]{HancomEQN.ttf}
 \newcommand{\solvimark}[1]{#1}
@@ -59,7 +60,7 @@
 % Original first-page header and 195mm columns; subsequent pages use the original 235mm columns.
 \newbox\solviremain\newbox\solvileft\newbox\solviright
 \newdimen\solviheight\newdimen\solvilinestart
-\newcommand{\solvirunningheader}[2]{\noindent\makebox[28mm][l]{\KoMed\fontsize{10.2}{13}\selectfont #1}\makebox[\dimexpr\linewidth-56mm\relax][c]{\KoMed\fontsize{13.5}{17}\selectfont #2}\makebox[28mm][r]{\KoMed\fontsize{16}{20}\selectfont\thepage}\par\vspace{2.2mm}\hrule height .68pt\par\vspace{5.2mm}}
+\newcommand{\solvirunningheader}[2]{\gdef\solviheaderqr{0}\noindent\makebox[28mm][l]{}\makebox[\dimexpr\linewidth-56mm\relax][c]{\KoMed\fontsize{13.5}{17}\selectfont #2}\makebox[28mm][r]{\KoMed\fontsize{16}{20}\selectfont\thepage}\par\vspace{2.2mm}\hrule height .68pt\par\vspace{5.2mm}}
 \newcommand{\solvisection}[5]{\begingroup\setbox\solviremain=\vbox{\hsize=.475\textwidth\linewidth=\hsize\columnwidth=\hsize\solvibodyfont\RaggedRight #3\par}\solviheight=#4\relax #1\def\solvinextheader{}\loop\solvinextheader\ifdim\solviheight=235mm\solvilinestart=31mm\else\ifdim\solviheight=195mm\solvilinestart=75mm\else\solvilinestart=54mm\fi\fi\splittopskip=0pt\splitmaxdepth=5pt\setbox\solvileft=\vsplit\solviremain to\solviheight\setbox\solviright=\vsplit\solviremain to\solviheight\noindent\begin{minipage}[t][\solviheight][t]{.475\textwidth}\vspace{0pt}\unvbox\solvileft\end{minipage}\hfill\begin{minipage}[t][\solviheight][t]{.475\textwidth}\vspace{0pt}\unvbox\solviright\end{minipage}\par\AddToShipoutPictureBG*{\begin{tikzpicture}[remember picture,overlay]\draw[black!70,line width=.43pt] ([yshift=-\solvilinestart]current page.north)--([yshift=18mm]current page.south);\end{tikzpicture}}\clearpage\solviheight=#5\relax\def\solvinextheader{#2}\ifdim\dimexpr\ht\solviremain+\dp\solviremain\relax>0pt\repeat\endgroup}
 
 % Long passages continue in bounded framed blocks; headings never become a one-line page fragment.

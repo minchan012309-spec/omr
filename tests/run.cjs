@@ -78,6 +78,8 @@ const run = (args, env) =>
       ["tests/latex-fidelity.cjs"],
       ["tests/latex-creator.cjs"],
       ["tests/latex-book-layout.cjs"],
+      ["tests/latex-book-math.cjs"],
+      ["tests/latex-answer-flow.cjs"],
       ["tests/print-regression.cjs"],
       ["tests/book-navigation.cjs"],
       ["tests/book-range.cjs"],

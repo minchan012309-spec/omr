@@ -1,5 +1,11 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-20 · Codex · codex/latex-reference-fidelity / PR #139 후속
+- 한 일: 교재 inline MathML 누락을 native LaTeX 수식 층으로 수정하고 제공 HancomEQN 문자표를 사용. 학습지 기본 8.5pt와 ±0.5pt 조절, 교재 QR20mm 및 학습지 상단 QR. 정답 머리말 네모 테두리, 빠른 정답표 아래에 2단 해설 연속 배치.
+- 바뀐 파일: `index.html`, `lazy/latex-print.js`, `lib/print-engine.js`, `lib/latex/{book-document,book-layout,document,local}.js`, `template.tex`, `sw.js`(v217), 실제 수식·정답 흐름 회귀와 검증 문서.
+- 확인: 전체 회귀 및 후속 간결형 PDF/단위 검사, 5과목 실제 PDF. 퍼셉트론 수식13개 native 출력과 누락 글리프 없음. 실제 PDF QR3개 해독(교재20mm·학습지 상단), 정답표/첫 해설 동일 쪽, 1440/820/390px 설정 화면 확인.
+- 남은 일 · 주의: HancomEQN에 없는 글리프·확장 MATH 지표는 첨부 원본 STIX 사용. 기존 교재 디자인/기존 HTML 자료 보존. 실제 Safari/Windows/휴대폰·카메라·종이 인쇄, 운영 배포·병합 미실시. 사용자 기존 WORKLOG·skills-lock 등 제외.
+
 ## 2026-11-20 · Codex · codex/latex-reference-fidelity
 - 한 일: 학습지·모의고사의 원본 머리말·여백·2단 해설·선지(한 줄/3+2/세로)·지문 박스·밑줄·공통 제목·표지 안내문 간격 교정. 원본 폰트 자동 로딩과 생성 전/출력 창 실제 PDF 자동 갱신, 글꼴·디자인·크기·유형명·문항코드 설정 복구. 미리보기는 저장하지 않고 최종 저장·인쇄 때 QR 명세 확정.
 - 바뀐 파일: `index.html`, `books.js`(v88), `sw.js`(v216), `lazy/latex-print.js`, `lib/print-engine.js`, `lib/latex/`(원본 글꼴·별도 교재 모델·엔진 압축), 실제 PDF/자동 미리보기 회귀 4개, 검증·출처·설계 문서와 압축 재현 도구.
