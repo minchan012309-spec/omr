@@ -5,7 +5,7 @@ const BK_MM=96/25.4,BK_BODY=240,BK_CONCEPT_NOTE=48;
 let BK_COLW=89,BK_FULLW=186,BK_CONCEPTW=132,BKWR=null;
 const bkWritingKey=id=>{const k=bkBare(id);return /^(me|cm|ph|hl|aim)-xe/.test(k)?k.replace(/r\d+$/,''):k};
 const bkWriting=o=>({left:o&&o.left?22:0,right:o&&o.right?22:0,concept:!(o&&o.concept===false)});
-function bkWritingOf(id,def){const wm=String(id).match(/~w([0-7])(?:~g[1-3])?$/);if(wm){const n=+wm[1];return bkWriting({left:n&1,right:n&2,concept:!(n&4)})}const key=bkWritingKey(id),rec=bkStoredRecord(id),saved=(BKO.writingm||{})[key];return bkWriting(saved||(def&&def.writing)||(rec&&rec.writing))}
+function bkWritingOf(id,def){const wm=String(id).match(/~w([0-7])(?:~l[0-9a-f]{16})?(?:~w[0-7])?(?:~g[1-3])?$/);if(wm){const n=+wm[1];return bkWriting({left:n&1,right:n&2,concept:!(n&4)})}const key=bkWritingKey(id),rec=bkStoredRecord(id),saved=(BKO.writingm||{})[key];return bkWriting(saved||(def&&def.writing)||(rec&&rec.writing))}
 function bkWithWriting(o,fn){const prev=[BK_COLW,BK_FULLW,BK_CONCEPTW,BKWR];BKWR=bkWriting(o);BK_FULLW=186-BKWR.left-BKWR.right;BK_COLW=(BK_FULLW-8)/2;BK_CONCEPTW=(SUBJ==='hl'&&!BKWR.concept)?BK_FULLW:BK_FULLW-54;try{return fn()}finally{[BK_COLW,BK_FULLW,BK_CONCEPTW,BKWR]=prev}}
 function bkWritingSet(id,key,value){const base=bkWritingKey(id),writing={...bkWritingOf(id),[key]:value},m={...(BKO.writingm||{}),[base]:writing};bkOset({writingm:m});const a=bkxLocal(),r=a.find(b=>b.id===base);if(r){r.writing=writing;r.updatedAt=Date.now();bkxStore(a)}return writing}
 function bkWritingFields(d){const o=bkWriting(d.writing);return `<div class="bkrow"><label>필기 여백</label><div class="bkctl"><label class="chk"><input id="bfwl" type="checkbox" ${o.left?'checked':''} onchange="bkxRead();bkxEst()"> 왼쪽 22mm</label><label class="chk"><input id="bfwr" type="checkbox" ${o.right?'checked':''} onchange="bkxRead();bkxEst()"> 오른쪽 22mm</label></div></div>${SUBJ==='hl'?`<div class="bkrow"><label>개념 필기 공간</label><label class="chk"><input id="bfwc" type="checkbox" ${o.concept?'checked':''} onchange="bkxRead();bkxEst()"> 기존 개념 옆 필기 공간·필기 노트 넣기</label></div>`:''}`}
@@ -62,7 +62,7 @@ const BKCSS=`
 .bkdoc .ft .pn{font-size:12px;font-weight:700;text-align:center}
 .bkdoc .ft .fr2{justify-self:end;display:flex;align-items:center;gap:2.4mm}
 .bkdoc .ft .qt{font-size:9px;line-height:1.35;color:#333;text-align:right}.bkdoc .ft .qt b{display:block;font-size:10px;color:#111}
-.bkdoc .ft .qq{width:11mm;height:11mm;border:0;padding:0;background:none;display:flex;align-items:center;justify-content:center}
+.bkdoc .ft .qq{width:16mm;height:16mm;border:0;padding:0;background:none;display:flex;align-items:center;justify-content:center}
 .bkdoc .ft .qq svg{width:100%;height:100%;display:block}
 .bkdoc .ft .fn{font-size:9.5px;color:#444;text-align:right}
 .bkdoc .bp[data-writing] .bd,.bkdoc .bp[data-writing] .cntop{left:calc(12mm + var(--wl));right:calc(12mm + var(--wr))}
@@ -109,12 +109,12 @@ const BKCSS=`
 .bkdoc .hd2{position:absolute;left:12mm;right:12mm;top:8mm;height:7mm;border-bottom:.3mm solid var(--line);display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:1.4mm;font-size:9.5px;color:#555;line-height:1}
 .bkdoc .hd2 b{color:#111;font-weight:600}.bkdoc .hd2 .lb2{color:var(--pd);font-weight:600}
 .bkdoc .hd2 .lb2:before{content:"";display:inline-block;width:1.6mm;height:1.6mm;border-radius:50%;background:var(--y);margin-right:1.6mm;vertical-align:.05mm}
-.bkdoc .fb{position:absolute;left:12mm;right:12mm;bottom:7mm;height:18mm;border-top:.25mm solid var(--line);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:9.5px;color:#555;line-height:1}
+.bkdoc .fb{position:absolute;left:12mm;right:12mm;bottom:7mm;height:11mm;border-top:.25mm solid var(--line);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-size:9.5px;color:#555;line-height:1}
 .bkdoc .fb .pn{color:var(--p);font-weight:700;font-size:13.5px;min-width:12mm;display:inline-flex;align-items:center;gap:2mm}.bkdoc .fb .pn.r{justify-content:flex-end}.bkdoc .fb .pn:before{content:"";width:1.5mm;height:1.5mm;border-radius:50%;background:var(--y)}.bkdoc .fb .pn.r:before{order:2}.bkdoc .fb .pn.r{text-align:right}.bkdoc .fb>:first-child{justify-self:start}.bkdoc .fb>:last-child{justify-self:end}.bkdoc .bp[data-gut]>*{transform:translateX(var(--gx))}
-.bkdoc .fq{position:absolute;bottom:25.6mm;width:9mm;height:9mm;z-index:2}.bkdoc .fq.o-l{left:12mm}.bkdoc .fq.o-r{right:12mm}.bkdoc .fq .qq{width:100%;height:100%;border:0;padding:0;background:none}.bkdoc .fq svg{width:100%;height:100%;display:block}
+.bkdoc .fq{position:absolute;bottom:18.6mm;width:16mm;height:16mm;z-index:2}.bkdoc .fq.o-l{left:12mm}.bkdoc .fq.o-r{right:12mm}.bkdoc .fq .qq{width:100%;height:100%;border:0;padding:0;background:none}.bkdoc .fq svg{width:100%;height:100%;display:block}
 .bkdoc .fb .qrb{display:flex;align-items:center;gap:2.8mm}
 .bkdoc .fb .qt{font-size:9.2px;line-height:1.45;color:#444}
-.bkdoc .fb .qq{width:11mm;height:11mm;border:0;padding:0;background:none;display:flex;align-items:center;justify-content:center}.bkdoc .fb .qq svg{width:100%;height:100%;display:block}
+.bkdoc .fb .qq{width:16mm;height:16mm;border:0;padding:0;background:none;display:flex;align-items:center;justify-content:center}.bkdoc .fb .qq svg{width:100%;height:100%;display:block}
 .bkdoc .bk .bd{top:21mm;height:${BK_BODY}mm}
 .bkdoc .bk .cols:before{border-left:.3mm solid var(--line)}
 .bkdoc .ct{background:var(--pl);color:var(--pd);font-weight:800;font-size:12.5px;padding:1.5mm 3mm;border-radius:1.6mm;margin:0 0 3.6mm;display:flex;gap:2.4mm;align-items:baseline}
@@ -1142,6 +1142,7 @@ function bkPlanFree(id,d){
 const BKCAP=BK_BODY;
 function bkBase(){if(window.BKBASE)return window.BKBASE;return ((typeof CF!=='undefined'&&CF&&CF.pub)||location.href).split('#')[0].split('?')[0]}
 function bkUrl(plan,p){const owner=String(plan.id).includes('-x')&&typeof sess!=='undefined'&&sess&&sess.user&&sess.user.id;return bkBase()+'#bk='+plan.id+':'+(plan.kind==='m'?'all':p.n)+(owner?'@'+owner:'')}
+function bkQrSvg(plan,p){try{const q=qrcode(0,'M');q.addData(bkUrl(plan,p));q.make();return q.createSvgTag(4,16)}catch(e){return ''}}
 function bkQr(plan,p){return !!((p.codes&&p.codes.length)||(plan.kind==='m'&&p.k==='ak'))}
 function bkHd2(plan,p){const even=p.n%2===0;const L='<span>'+esc(SNAME[SUBJ])+' · <b>'+esc(plan.short)+'</b></span>';const R='<span class="lb2">'+(p.sub&&p.sub.k?esc(p.sub.k)+' · ':'')+esc(p.label||'')+'</span>';
  return '<div class="hd2">'+(even?R+L:L+R)+'</div>'}
@@ -1149,12 +1150,12 @@ function bkFb(plan,p){const even=p.n%2===0;
  const pn='<span class="pn'+(even?'':' r')+'">'+p.n+'</span>';
  const mid='<i></i>'; // 바닥에는 쪽 번호와 QR만(라벨·점 없음)
  // 양면 인쇄: 쪽 번호는 바깥쪽 모서리(짝수쪽은 왼쪽 끝, 홀수쪽은 오른쪽 끝), QR은 본문 아래 바깥쪽 모서리(.fq), 단원명은 안쪽
- const q=bkQr(plan,p)?'<div class="fq '+(even?'o-l':'o-r')+'"><div class="qq">'+qrSvg(bkUrl(plan,p))+'</div></div>':'';
+ const q=bkQr(plan,p)?'<div class="fq '+(even?'o-l':'o-r')+'"><div class="qq">'+bkQrSvg(plan,p)+'</div></div>':'';
  return q+'<div class="fb">'+(even?pn+mid+mid:mid+mid+pn)+'</div>'}
 function bkHd(l,r,b){return '<div class="hd"><span class="t1">'+l+'</span><span class="t2">'+r+'<b>'+b+'</b></span></div>'}
 function bkFt(plan,p,o){o=o||{};const qr=p.codes&&p.codes.length&&!(plan.dz&&plan.dz.noqr);
  return '<div class="ft"><span class="fl">'+(o.left||'Solvi · '+esc(plan.title))+'</span><span class="pn">'+(o.pn!=null?o.pn:p.n)+'</span>'+
-  (qr?'<div class="fr2"><div class="qq">'+qrSvg(bkUrl(plan,p))+'</div></div>':o.right?'<div class="fr2"><span class="fn">'+o.right+'</span></div>':'<div></div>')+'</div>'}
+  (qr?'<div class="fr2"><div class="qq">'+bkQrSvg(plan,p)+'</div></div>':o.right?'<div class="fr2"><span class="fn">'+o.right+'</span></div>':'<div></div>')+'</div>'}
 function bkDeco(){const c=bkPal();
  if(SUBJ==='hl')return '<svg class="deco" viewBox="0 0 200 200"><path d="M30 44h112a14 14 0 0 1 14 14v56a14 14 0 0 1-14 14H88l-34 28v-28H30a14 14 0 0 1-14-14V58a14 14 0 0 1 14-14z" fill="'+c.pl+'" stroke="'+c.p+'" stroke-width="3"/><path d="M120 98h50a14 14 0 0 1 14 14v40a14 14 0 0 1-14 14h-6v22l-26-22h-18a14 14 0 0 1-14-14v-40a14 14 0 0 1 14-14z" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="3" transform="translate(0 8)"/><text x="86" y="110" font-size="56" font-weight="800" text-anchor="middle" fill="'+c.p+'" font-family="sans-serif">가</text><text x="152" y="168" font-size="34" font-weight="800" text-anchor="middle" fill="'+c.p+'" font-family="sans-serif">A</text></svg>';
  if(SUBJ==='ph')return '<svg class="deco" viewBox="0 0 200 200"><circle cx="100" cy="100" r="78" fill="none" stroke="'+c.line+'" stroke-width="3" stroke-dasharray="6 6"/><circle cx="100" cy="100" r="46" fill="'+c.pl+'" stroke="'+c.p+'" stroke-width="3"/><circle cx="100" cy="100" r="16" fill="'+c.p+'"/><ellipse cx="100" cy="100" rx="78" ry="30" transform="rotate(-24 100 100)" fill="none" stroke="'+c.p+'" stroke-width="2.5"/><circle cx="162" cy="76" r="11" fill="'+c.pl2+'" stroke="'+c.p+'" stroke-width="3"/><circle cx="36" cy="124" r="8" fill="#ffca2c"/><polygon points="170,168 184,168 177,154" fill="'+c.p+'"/></svg>';
@@ -1212,7 +1213,7 @@ function bkMockCover(plan){const M=plan.M;
  return '<div class="cv2"><div class="row1"><div>'+'Solvi'+'</div><div>'+'전범위'+'</div><div>'+esc(M.sname)+'</div></div><div class="ttl"><div class="a">전 범 위 모 의 고 사</div><div class="b">'+esc(M.sname)+'</div><div class="c">제 '+M.round+' 회 [ '+esc(M.title)+' ]</div><div class="ln"></div></div>'+
  '<table class="info3"><tr><th>출제 범위</th><td>'+M.range.map(esc).join('<br>')+'</td></tr><tr><th>문항 · 배점</th><td>객관식 '+M.codes.length+'문항 · '+M.tot+'점</td></tr><tr><th>시험 시간</th><td>'+esc(M.time)+'</td></tr></table>'+
  '<div class="note"><h3>유 의 사 항</h3><ol><li>시험 시작 종이 울린 후 문제지의 해당란에 학년, 반, 번호, 이름을 정확히 쓰시오.</li><li>모든 문항은 객관식이며, ①~⑤ 중 가장 적절한 것 하나를 고르시오.</li><li>각 문항의 끝에 표시된 배점을 참고하여 시간을 안배하시오.</li><li>문제지 뒤의 정답 및 해설은 시험이 끝난 후에 확인하시오.</li><li>표지와 문제 쪽 아래의 QR은 모두 같으며, 스캔하면 시험 전체를 채점할 수 있다.</li></ol></div>'+
- '<table class="idt"><tr><td class="k">학 년</td><td style="width:20mm"></td><td class="k">반</td><td style="width:20mm"></td><td class="k">번 호</td><td style="width:20mm"></td><td class="k">이 름</td><td></td></tr></table><div class="cvqr"><div class="qq">'+qrSvg(bkUrl(plan,{n:0}))+'</div><span>어느 쪽의 QR을 스캔해도<br>시험 전체를 채점해요</span></div><div class="foot">이 문제지의 저작권은 출제자에게 있으며, 무단 복제 · 전재를 금합니다.</div></div>'}
+ '<table class="idt"><tr><td class="k">학 년</td><td style="width:20mm"></td><td class="k">반</td><td style="width:20mm"></td><td class="k">번 호</td><td style="width:20mm"></td><td class="k">이 름</td><td></td></tr></table><div class="cvqr"><div class="qq">'+bkQrSvg(plan,{n:0})+'</div><span>어느 쪽의 QR을 스캔해도<br>시험 전체를 채점해요</span></div><div class="foot">이 문제지의 저작권은 출제자에게 있으며, 무단 복제 · 전재를 금합니다.</div></div>'}
 const BKGUTS=[[0,'없음'],[3,'3mm'],[5,'5mm'],[7,'7mm']];
 function bkGutKey(plan){const P=bkParts(plan.id);return P&&P.kind==='x'?P.def.base:bkBare(plan.id)}
 function bkGutOf(plan){if(!plan||!plan.id)return 0;const k=bkGutKey(plan);const m=BKO.gutm||{};if(m[k]!=null)return +m[k]||0;const r=bkxAll().find(x=>x.id===k);return r&&+r.gut||0}
@@ -1274,7 +1275,7 @@ async function bkGradeAllReady(id,owner){
  const key=id+':all',bk={page:key,bk:id,n:0,all:1,label:plan.short+' 전체',nums:Object.fromEntries(plan.M.codes.map((c,i)=>[c,i+1]))};
  {const lk=recLock('book',key);if(lk&&lk.items){showLockedRec(lk,{book:bk});return}}
  newCur(qs,{book:bk})}
-function bkRouteStr(s){const m=String(s).match(/^((?:me|cm|ph|hl|aim)-(?:c|t|h(?:[sgoc]|mg?)?|x[0-9a-z._\-]+)(?:~g[1-3])?):(\d+|all)(?:@([0-9a-f-]{36}))?$/i);if(!m)return;return m[2]==='all'?bkGradeAll(m[1],m[3]):bkGradePage(m[1],+m[2],m[3])}
+function bkRouteStr(s){const m=String(s).match(/^((?:me|cm|ph|hl|aim)-(?:c|t|h(?:[sgoc]|mg?)?|x[0-9a-z._\-]+)(?:~l[0-9a-f]{16})?(?:~w[0-7])?(?:~g[1-3])?):(\d+|all)(?:@([0-9a-f-]{36}))?$/i);if(!m)return;return m[2]==='all'?bkGradeAll(m[1],m[3]):bkGradePage(m[1],+m[2],m[3])}
 function bkNextHtml(){const b=cur&&cur.book;if(!b||!b.bk||b.all)return '';if(b.lt)return ltNextHtml(b);const plan=BKP[b.bk];if(!plan)return '';
  if(BKQ&&BKQ.id===b.bk){BKQ.pages=BKQ.pages.filter(n=>n!==b.n);const q=BKQ.pages[0];if(q)return '<div class="hint" style="margin:10px 0">선택한 범위에서 <b>'+BKQ.pages.length+'쪽</b> 남았어요. <button class="p" style="margin-left:8px" onclick="bkGradePage(\''+b.bk+'\','+q+')">다음 p.'+q+' 채점하기</button> <button class="s" onclick="BKQ=null;cur=null;render()">그만하기</button></div>';BKQ=null;return '<div class="hint" style="margin:10px 0">선택한 범위를 모두 채점했어요.</div>'}
  const nx=plan.pages.find(p=>p.n>b.n&&p.codes&&p.codes.length);
