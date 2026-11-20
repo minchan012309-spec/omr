@@ -1,5 +1,23 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-20 · Codex · codex/latex-reference-fidelity / PR #139 문항 간격
+- 한 일: 첨부 예시처럼 학습지·모의고사 번호 아래와 본문/선지 사이의 추가 여백을 축소하고 세로 선지 행 간격 조정. 문항별 풀이 칸 높이·교재 디자인은 유지.
+- 바뀐 파일: `lib/latex/document.js`, `template.tex`, `local.js`, `index.html`, `sw.js`(v218), 실제 출력 기준선 회귀 `tests/latex-question-spacing.cjs`, 실행 목록·검증 기록.
+- 확인: 실제 PDF 번호→본문 11.11→8.01mm, 본문→세로 선지 9.87→7.24mm, 세로 행 6.97→5.64mm, 본문→한 줄 선지 9.55→7.15mm. 수정 전 실패·수정 후 통과. 문법·단위14개, 국어 선지/지문/12문항 쪽 배치, 정답지, 기존 교재 및 HTML 인쇄 회귀 통과. PDF 확대 이미지 직접 확인.
+- 남은 일 · 주의: 실제 기기·종이 인쇄 미검증. 기존 사용자 WORKLOG·skills-lock 등은 커밋에서 제외. 병합·배포 미실시.
+
+## 2026-11-20 · Codex · codex/latex-reference-fidelity / PR #139 후속
+- 한 일: 교재 inline MathML 누락을 native LaTeX 수식 층으로 수정하고 제공 HancomEQN 문자표를 사용. 학습지 기본 8.5pt와 ±0.5pt 조절, 교재 QR20mm 및 학습지 상단 QR. 정답 머리말 네모 테두리, 빠른 정답표 아래에 2단 해설 연속 배치.
+- 바뀐 파일: `index.html`, `lazy/latex-print.js`, `lib/print-engine.js`, `lib/latex/{book-document,book-layout,document,local}.js`, `template.tex`, `sw.js`(v217), 실제 수식·정답 흐름 회귀와 검증 문서.
+- 확인: 전체 회귀 및 후속 간결형 PDF/단위 검사, 5과목 실제 PDF. 퍼셉트론 수식13개 native 출력과 누락 글리프 없음. 실제 PDF QR3개 해독(교재20mm·학습지 상단), 정답표/첫 해설 동일 쪽, 1440/820/390px 설정 화면 확인.
+- 남은 일 · 주의: HancomEQN에 없는 글리프·확장 MATH 지표는 첨부 원본 STIX 사용. 기존 교재 디자인/기존 HTML 자료 보존. 실제 Safari/Windows/휴대폰·카메라·종이 인쇄, 운영 배포·병합 미실시. 사용자 기존 WORKLOG·skills-lock 등 제외.
+
+## 2026-11-20 · Codex · codex/latex-reference-fidelity
+- 한 일: 학습지·모의고사의 원본 머리말·여백·2단 해설·선지(한 줄/3+2/세로)·지문 박스·밑줄·공통 제목·표지 안내문 간격 교정. 원본 폰트 자동 로딩과 생성 전/출력 창 실제 PDF 자동 갱신, 글꼴·디자인·크기·유형명·문항코드 설정 복구. 미리보기는 저장하지 않고 최종 저장·인쇄 때 QR 명세 확정.
+- 바뀐 파일: `index.html`, `books.js`(v88), `sw.js`(v216), `lazy/latex-print.js`, `lib/print-engine.js`, `lib/latex/`(원본 글꼴·별도 교재 모델·엔진 압축), 실제 PDF/자동 미리보기 회귀 4개, 검증·출처·설계 문서와 압축 재현 도구.
+- 확인: 전체 `npm test` 통과 및 최종 간격 조정 후 관련 실제 PDF 재검사. 5과목, 신규 교재 11쪽 약405KB, QR26개 실제 쪽 번호 해독, 1440/820/390px 확인. 12문항을 4문항씩3쪽, 원본의97.5/117.5mm 간격 대조. 기존 교재 표지·본문 native 텍스트와 페이지 위치 비교. 2쪽 샘플21MB→90KB 손실 없는 압축, QR 이외 전 픽셀 동일. 기존 글꼴14개 원본 문자표·폭·윤곽 일치 확인.
+- 남은 일 · 주의: 교재는 기존 디자인을 LaTeX로 옮기는 별도 `book-original-v1`, 모의고사만 새 시험지 양식. 교재 장식·그림·일부 수식은 기존 렌더링을 배경으로 유지하며 본문은 native 텍스트. 원본 TTF 없는 추가 글꼴은 임의 대체하지 않고 필요 파일 안내. 사용자 후속 지시로 폰트 정적 탑재를 허용했으므로 최초 등록 불필요. SQL27 기적용이면 추가 DB 변경 없음. 운영 배포·병합·실제 Safari/Windows/휴대폰·종이 인쇄 미검증. 기존 사용자 미커밋 기록·skills-lock·자료 제외.
+
 ## 2026-11-19 · Codex · codex/latex-print-engine
 - 한 일: 기존 자료 HTML 보존, 신규 학습지·교재·모의고사를 생성자 브라우저의 XeTeX/xdvipdfmx WASM으로 출력. 첨부 XeLaTeX 본문·HWP 표지 서식, 지정 폰트 등록, 편집 가능한 표지·문구, QR 최종 쪽 명세와 연속 채점 연결. 별도 조판 서버 방식은 비용 제약에 따라 폐기.
 - 바뀐 파일: `index.html`, `books.js`(v87), `sw.js`(v215), `lib/print-engine.js`, `lib/latex/`, `lazy/latex-print.js`, `supabase/sql_27_latex_manifests.sql`, 테스트 4개와 실행 목록, README·PRODUCT·설계·검증 문서.

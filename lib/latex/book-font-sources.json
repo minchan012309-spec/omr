@@ -1,0 +1,72 @@
+{
+  "PretendardRegular.ttf": {
+    "source": "fonts/Pretendard-Regular.woff2",
+    "sourceSha256": "fad853f7f47c6c8b103171e7193fa095708cdcd70850a71d93aa5379e8a61d63",
+    "sha256": "46a7359baa50e5e3960115d177aeb0154d4d56ab385d4d71c7c3166d7c168d82"
+  },
+  "PretendardMedium.ttf": {
+    "source": "fonts/Pretendard-Medium.woff2",
+    "sourceSha256": "d03481330eeba0659ab5b87f25ceb504a35de377dd90a0d0aba2982eb2d05e2c",
+    "sha256": "401f40195a20fd867ba7775a9a5b9f94281625231abbc7700303a4c3f9dfe5cc"
+  },
+  "PretendardSemiBold.ttf": {
+    "source": "fonts/Pretendard-SemiBold.woff2",
+    "sourceSha256": "c863f76a7de5c1ddc1ed8b2fa794964530774592c4f31407a84e2a2ae93f17f0",
+    "sha256": "bc9a33e417ea2da3ab534c0fe69e9e778b33811885391e14b9719b3967ea48eb"
+  },
+  "PretendardBold.ttf": {
+    "source": "fonts/Pretendard-Bold.woff2",
+    "sourceSha256": "4609c3356e536fafe38f4add0daeceb3d8595d3057bce13c428c33ddbd43d362",
+    "sha256": "fd05a7f56ade65aaf5592f85048395bcfbeff05af93d393aa0ffb595e85407df"
+  },
+  "PretendardExtraBold.ttf": {
+    "source": "fonts/Pretendard-ExtraBold.woff2",
+    "sourceSha256": "dd7c1e156f508eb962acc7a33a7a1896d1e0b71e11156fad96e731689ceb6dc3",
+    "sha256": "04abe4e866133b0a6098853b3935fe1f858f7fe023fcdc6e6a350c5d628a8d68"
+  },
+  "PretendardLightCn.ttf": {
+    "source": "fonts/Pretendard-Light.cn.woff2",
+    "sourceSha256": "692d330fe535d07a8ac1f8aa757d79e8a79ffb44e1d7b4a7f6e49c7e6a3262cd",
+    "sha256": "ae61db2f2f7c1598c84d710470358276ddc646b89edc99557c184d30237c4dea"
+  },
+  "SolviSymbols.ttf": {
+    "source": "fonts/SolviSymbols.woff2",
+    "sourceSha256": "8b22a12ffc9c498cc0be83051ef050fc24ae1161adc6cee1217e7b6cb01e5927",
+    "sha256": "adb6cc8895726fe93893982672012e0cec93cf7c7bba0ecf6616d5a6ef94c8cf"
+  },
+  "KoPubDotumMediumSubset.ttf": {
+    "source": "fonts/KoPubDotum-Medium.subset.woff2",
+    "sourceSha256": "5fb20a2c0ee90a142d1433a5f0cc6078d627d42f6ef7d896139f31eeeca801d2",
+    "sha256": "3d127abcd2df5bce6a9a03b1d2f20a6764dedcad9a938fc0d135d785c2ca78c4"
+  },
+  "KoPubDotumBoldSubset.ttf": {
+    "source": "fonts/KoPubDotum-Bold.subset.woff2",
+    "sourceSha256": "1debc5f979cd1f1a94227cf26d1f1f2ff1a387b3e4671ca773f7d4c0cc61d54b",
+    "sha256": "4bfc8765f7eec026b381c082a3583615f8474c9e32090eead08871f765b28065"
+  },
+  "PaperlogyRegular.ttf": {
+    "source": "fonts/4Regular.woff2",
+    "sourceSha256": "ad469e33f2ee5f96ba7f3e5df09350daac0420c6a60264119da201eb1bbbfae9",
+    "sha256": "f26fca3697f914fe673679c1ae3272113b686b8bccb3f1d18d3818031e5a27ab"
+  },
+  "PaperlogyMedium.ttf": {
+    "source": "fonts/5Medium.woff2",
+    "sourceSha256": "0fb26c0c6e4d446354570415f03987c4a5bda1895a38f5547e3878d769acecc0",
+    "sha256": "2dc8ec8aa3492686b4e665e5dab6a1bc08f23c28fb9949c05b7a4bc7ad43eb61"
+  },
+  "PaperlogyBold.ttf": {
+    "source": "fonts/7Bold.woff2",
+    "sourceSha256": "390de733d213ad164d4089dbc93b8baf49b9bec8d33f49edcb06b60ab014d7cf",
+    "sha256": "8eb9413a4a67997714a8f52934ea56b8533fdf51c6849e7e8e3ae891a9eb00be"
+  },
+  "PaperlogyExtraBold.ttf": {
+    "source": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2",
+    "sourceSha256": "329c646cc0575dba1a558d34280cab70c57fe811c9aa9542136105e9d3132d5b",
+    "sha256": "d331cdbc1b5ae903e9909efe26afa3eaea2a384b8f148ed91661765be886312c"
+  },
+  "PaperlogyBlack.ttf": {
+    "source": "https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2",
+    "sourceSha256": "ec848b871330702aa83006e8b6223eb776632f13a8c87b07a4022843d8df6797",
+    "sha256": "b92ed220d19b909f80d0fa259015ce3436b917e24012e03ae94501717b4d0b98"
+  }
+}
