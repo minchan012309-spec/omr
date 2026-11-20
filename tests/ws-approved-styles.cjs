@@ -8,7 +8,7 @@ const {chromium,browserOptions}=require('./runtime.cjs');
  await p.waitForFunction(()=>typeof openWs==='function'&&typeof DZ_LIST!=='undefined');await p.waitForTimeout(1200);
  const bad=await p.evaluate(async()=>{const out=[],ok=(c,m)=>{if(!c)out.push(m)};
   ok(JSON.stringify(DZ_LIST.map(d=>d.k))===JSON.stringify(['w-simple','w-kice','w-school','w-school2','w-mock','w-unit','w-book','w-modern','w-drill','w-text','w-edit','w-note','w-academy','w-gray']),'디자인 목록: '+DZ_LIST.map(d=>d.k));
-  ok(Object.keys(STYLES).length===14,'선택 목록 '+Object.keys(STYLES).length+'개');
+  ok(Object.keys(STYLES).length===15,'선택 목록 '+Object.keys(STYLES).length+'개');
   ok(WDEF.style==='w-simple','기본 디자인이 '+WDEF.style);
   ['kice','frame','naesin','sv-x04','basic','nae2','mock'].forEach(k=>ok(STYLES[styNorm(k)]&&STYLE_CSS[k],'예전 키 '+k+' 연결 안 됨'));
   const codes=DATA.filter(q=>q.set!=='essay').slice(0,8).map(q=>q.code);await ensureCodes(codes);
