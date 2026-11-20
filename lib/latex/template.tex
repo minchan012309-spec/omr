@@ -14,14 +14,19 @@
 \newhangulfontfamily\KoMedHangul[Path=fonts/]{KoPubWorldMedium.ttf}
 \newcommand{\KoBold}{\KoBoldLatin\KoBoldHangul}
 \newcommand{\KoMed}{\KoMedLatin\KoMedHangul}
+\newfontfamily\HancomMath[Path=fonts/]{HancomEQN.ttf}
 \setmathfont{STIXTwoMath-Regular.otf}
 \setmathfont[Path=fonts/,range={up/{latin,Latin,num},it/{latin,Latin}}]{HancomEQN.ttf}
+\newcommand{\solvimark}[1]{#1}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{3pt}
 \setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.26}
 \emergencystretch=2.0em
 \raggedbottom
+\clubpenalty=10000\widowpenalty=10000\displaywidowpenalty=10000
+\clubpenalties 3 10000 10000 0
+\widowpenalties 3 10000 10000 0
 \newcommand{\circh}[1]{\tikz[baseline=(n.base)]\node[draw,circle,inner sep=.65pt,line width=.43pt](n){\KoMed\fontsize{8.2}{9.5}\selectfont #1};}
 % 문제집식 〈보 기〉 : 닫힌 사각 테두리, 윗변 중앙을 제목이 가리는 구조
 \newcommand{\choices}[1]{%
@@ -38,8 +43,33 @@
 \node[fill=white,inner xsep=2.4mm,inner ysep=0pt,font=\KoMed\fontsize{10}{12}\selectfont] at (fr.north) {〈\,보\,기\,〉};%
 \end{tikzpicture}%
 \endgroup\par\vspace{2.7mm}}
-\newcommand{\examoptsfive}[5]{\par\vspace{3.7mm}\noindent\begin{tabularx}{\linewidth}{@{}*{5}{>{\centering\arraybackslash}X}@{}}\circh1\,#1&\circh2\,#2&\circh3\,#3&\circh4\,#4&\circh5\,#5\end{tabularx}\par\vspace{3.5mm}}
-\newcommand{\examoptstwo}[5]{\par\vspace{3.4mm}\noindent\begingroup\fontsize{10.6}{16}\selectfont\begin{tabularx}{\linewidth}{@{}*{3}{>{\centering\arraybackslash}X}@{}}\circh1\,#1&\circh2\,#2&\circh3\,#3\\[3.8mm]\circh4\,#4&\circh5\,#5&\end{tabularx}\endgroup\par\vspace{3.8mm}}
+\newcommand{\examoptsfive}[5]{\par\vspace{1.3mm}\noindent\begin{tabularx}{\linewidth}{@{}*{5}{>{\centering\arraybackslash}X}@{}}\circh1\,#1&\circh2\,#2&\circh3\,#3&\circh4\,#4&\circh5\,#5\end{tabularx}\par\vspace{3.5mm}}
+\newcommand{\examoptstwo}[5]{\par\vspace{3.4mm}\noindent\begingroup\solvibodyfont\begin{tabularx}{\linewidth}{@{}*{3}{>{\centering\arraybackslash}X}@{}}\circh1\,#1&\circh2\,#2&\circh3\,#3\\[3.8mm]\circh4\,#4&\circh5\,#5&\end{tabularx}\endgroup\par\vspace{3.8mm}}
 \newcommand{\examoptsvertical}[5]{\par\vspace{2.9mm}\begingroup\setlength{\parskip}{4.8pt}\fontsize{10.2}{17}\selectfont\circh1\,#1\par\circh2\,#2\par\circh3\,#3\par\circh4\,#4\par\circh5\,#5\par\endgroup\vspace{2.5mm}}
-\usepackage[normalem]{ulem}\usepackage{qrcode,multirow,atbegshi}\pagestyle{empty}
+% Measure the actual chosen font, including the option number. Never estimate by character count.
+\renewcommand{\circh}[1]{\begingroup\normalfont\ifcase#1\or①\or②\or③\or④\or⑤\or⑥\or⑦\or⑧\or⑨\or⑩\else#1\fi\endgroup}
+\newlength{\solvioptionwidth}
+\newcommand{\solvibodyfont}{\fontsize{10}{17.7}\selectfont}
+\newcommand{\solvimeasureoption}[2]{\sbox0{\circh{#1}\,#2}\ifdim\wd0>\solvioptionwidth\setlength{\solvioptionwidth}{\wd0}\fi}
+\renewcommand{\examoptstwo}[5]{\par\vspace{1.3mm}\begingroup\setlength{\tabcolsep}{2pt}\renewcommand{\arraystretch}{1}\noindent\begin{tabularx}{\linewidth}{@{}*{3}{>{\RaggedRight\arraybackslash}X}@{}}\circh1\,#1&\circh2\,#2&\circh3\,#3\\[1.2mm]\circh4\,#4&\multicolumn{2}{@{}l@{}}{\circh5\,#5}\end{tabularx}\par\endgroup\vspace{2.5mm}}
+\newcommand{\examoptsauto}[5]{\begingroup\solvibodyfont\setlength{\solvioptionwidth}{0pt}\solvimeasureoption1{#1}\solvimeasureoption2{#2}\solvimeasureoption3{#3}\solvimeasureoption4{#4}\solvimeasureoption5{#5}\ifdim\solvioptionwidth<\dimexpr\linewidth/5-6pt\relax\typeout{SOLVICHOICES:5}\examoptsfive{#1}{#2}{#3}{#4}{#5}\else\setlength{\solvioptionwidth}{0pt}\solvimeasureoption1{#1}\solvimeasureoption2{#2}\solvimeasureoption3{#3}\solvimeasureoption4{#4}\ifdim\solvioptionwidth<\dimexpr\linewidth/3-6pt\relax\setlength{\solvioptionwidth}{0pt}\solvimeasureoption5{#5}\ifdim\solvioptionwidth<\dimexpr\linewidth*2/3-6pt\relax\typeout{SOLVICHOICES:3+2}\examoptstwo{#1}{#2}{#3}{#4}{#5}\else\typeout{SOLVICHOICES:1}\examoptsvertical{#1}{#2}{#3}{#4}{#5}\fi\else\typeout{SOLVICHOICES:1}\examoptsvertical{#1}{#2}{#3}{#4}{#5}\fi\fi\endgroup}
+\newcommand{\solvioption}[2]{\par\noindent\hangindent=1.5em\hangafter=1\circh{#1}\hspace{.4em}#2\par}
+\renewcommand{\examoptsvertical}[5]{\par\vspace{1.6mm}\begingroup\setlength{\parskip}{1pt}\solvibodyfont\solvioption1{#1}\solvioption2{#2}\solvioption3{#3}\solvioption4{#4}\solvioption5{#5}\endgroup\vspace{2.5mm}}
+\newcommand{\solvipassage}[1]{\par\vspace{2mm}\begingroup\setlength{\fboxsep}{2.4mm}\setlength{\fboxrule}{.55pt}\noindent\fbox{\begin{minipage}{\dimexpr\linewidth-4.8mm-1.1pt\relax}\solvibodyfont\RaggedRight #1\end{minipage}}\par\endgroup\vspace{2mm}}
+\newcommand{\solvibogi}[2]{\par\vspace{2.6mm}\begingroup\setlength{\parskip}{1.4pt}\noindent\begin{tikzpicture}[baseline=(fr.north)]\node[draw=black,line width=.55pt,inner sep=0pt,outer sep=0pt,anchor=north west] (fr) at (0,0) {\begin{minipage}{\dimexpr\linewidth-1.5pt\relax}\vspace{3.2mm}\hspace*{2.7mm}\begin{minipage}{\dimexpr\linewidth-5.4mm-1.5pt\relax}\fontsize{9.8}{16.6}\selectfont\RaggedRight #2\par\end{minipage}\par\vspace{2.9mm}\end{minipage}};\node[fill=white,inner xsep=2.4mm,inner ysep=0pt,font=\KoMed\fontsize{10}{12}\selectfont] at (fr.north) {#1};\end{tikzpicture}\endgroup\par\vspace{2.7mm}}
+% Original first-page header and 195mm columns; subsequent pages use the original 235mm columns.
+\newbox\solviremain\newbox\solvileft\newbox\solviright
+\newdimen\solviheight\newdimen\solvilinestart
+\newcommand{\solvirunningheader}[2]{\gdef\solviheaderqr{0}\noindent\makebox[28mm][l]{}\makebox[\dimexpr\linewidth-56mm\relax][c]{\KoMed\fontsize{13.5}{17}\selectfont #2}\makebox[28mm][r]{\KoMed\fontsize{16}{20}\selectfont\thepage}\par\vspace{2.2mm}\hrule height .68pt\par\vspace{5.2mm}}
+\newcommand{\solvisection}[5]{\begingroup\setbox\solviremain=\vbox{\hsize=.475\textwidth\linewidth=\hsize\columnwidth=\hsize\solvibodyfont\RaggedRight #3\par}\solviheight=#4\relax #1\def\solvinextheader{}\loop\solvinextheader\ifdim\solviheight=235mm\solvilinestart=31mm\else\ifdim\solviheight=195mm\solvilinestart=75mm\else\solvilinestart=54mm\fi\fi\splittopskip=0pt\splitmaxdepth=5pt\setbox\solvileft=\vsplit\solviremain to\solviheight\setbox\solviright=\vsplit\solviremain to\solviheight\noindent\begin{minipage}[t][\solviheight][t]{.475\textwidth}\vspace{0pt}\unvbox\solvileft\end{minipage}\hfill\begin{minipage}[t][\solviheight][t]{.475\textwidth}\vspace{0pt}\unvbox\solviright\end{minipage}\par\AddToShipoutPictureBG*{\begin{tikzpicture}[remember picture,overlay]\draw[black!70,line width=.43pt] ([yshift=-\solvilinestart]current page.north)--([yshift=18mm]current page.south);\end{tikzpicture}}\clearpage\solviheight=#5\relax\def\solvinextheader{#2}\ifdim\dimexpr\ht\solviremain+\dp\solviremain\relax>0pt\repeat\endgroup}
+
+% Long passages continue in bounded framed blocks; headings never become a one-line page fragment.
+\newbox\solvitext\newbox\solvichunk
+\newdimen\solvichunkheight
+\newcommand{\solviframechunk}[2]{\par\nobreak\noindent\begin{tikzpicture}[baseline=(fr.north)]\node[draw=black,line width=.55pt,inner sep=0pt,outer sep=0pt,anchor=north west] (fr) at (0,0) {\begin{minipage}{\dimexpr\linewidth-1.5pt\relax}\vspace{2.7mm}\hspace*{2.7mm}\begin{minipage}{\dimexpr\linewidth-5.4mm-1.5pt\relax}\unvbox#2\end{minipage}\par\vspace{2.7mm}\end{minipage}};\def\solviboxlabel{#1}\ifx\solviboxlabel\empty\else\node[fill=white,inner xsep=2.4mm,inner ysep=0pt,font=\KoMed\fontsize{10}{12}\selectfont] at (fr.north) {#1};\fi\end{tikzpicture}\par\vspace{2mm}}
+\newcommand{\solviframed}[2]{\par\nobreak\vspace{2mm}\nobreak\begingroup\setbox\solvitext=\vbox{\hsize=\dimexpr\linewidth-5.4mm-1.5pt\relax\linewidth=\hsize\solvibodyfont\setlength{\parskip}{1.4pt}\RaggedRight #2\par}\loop\ifdim\dimexpr\ht\solvitext+\dp\solvitext\relax>145mm\splittopskip=0pt\splitmaxdepth=5pt\setbox\solvichunk=\vsplit\solvitext to145mm\else\setbox\solvichunk=\box\solvitext\fi\solviframechunk{#1}{\solvichunk}\ifdim\dimexpr\ht\solvitext+\dp\solvitext\relax>0pt\repeat\endgroup}
+\renewcommand{\solvipassage}[1]{\solviframed{}{#1}}
+\renewcommand{\solvibogi}[2]{\solviframed{#1}{#2}}
+
+\usepackage[normalem]{ulem}\usepackage{multirow,atbegshi}\pagestyle{empty}
 
