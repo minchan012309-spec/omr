@@ -1,5 +1,11 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-21 · Claude Code · claude/sharp-maxwell-twnvbb (후속 요청 3건)
+- 한 일: ① 해설 선지 번호: 풀이 줄이 선지 글로 시작하거나 「선지」를 인용하면 ①~⑤를 자동으로 붙이고, 사이에 다른 글 없이 이어진 줄은 선지 순서로 정렬(`expLabel`, 문항을 불러올 때 한 번 적용·섞인 문항은 기존 번호 바꾸기로 따라감). 바뀐 문항: 화법과 언어 6,321 · 역학과 에너지 71(이미 번호가 있거나 선지별 풀이가 없는 계산 문항은 그대로). ② 유형 별초록(완전 정복) 기준을 3문항 → 10문항 이상 + 정답률 90% 이상으로(OX 문항으로 금방 별초록 되던 문제, 사용자 선택). ③ 선생님 O/X 채점에서 오답으로 한 문항에 「학생이 쓴 답」(선택)을 고를 수 있게(객관식은 정답을 뺀 번호 칩, 나머지는 글 입력, 정답은 넣을 수 없음). 기록에 `a`로 남고 `r`은 항상 0. 제출 뒤에도 선생님은 결과에서 오답 문항을 누르면 학생 답만 고칠 수 있음(서버 함수 `attempt_wrong_answer`가 r=0 문항의 a만 바꿈, 오답 → 정답은 제출 초기화로만).
+- 바뀐 파일: `index.html`, `styles/screens.css`(v17), `sw.js`(v229), 새 `supabase/sql_28_wrong_answer.sql`, 테스트 `tests/exp-choice-label.cjs`·`tests/wrong-answer-ui.cjs`·`tests/wrong-answer-db.cjs`, `tests/app-ui.cjs`(CSS 버전), `tests/run.cjs`.
+- 확인: 새 검사 3개 통과(실제 G-hl052-0027이 ①~⑤ 순서로 표시, 정답 칩 제외·정답 입력 거부·제출 기록 a/r·제출 뒤 수정·정답으로 바꾸기 거부, PGlite에서 남의 기록·정답 문항·비로그인 거부). app-ui 통과. 1440/390 채점 화면 캡처.
+- 남은 일 · 주의: 운영 Supabase에 `supabase/sql_28_wrong_answer.sql`을 한 번 실행해야 제출 뒤 수정이 서버에 저장됨(안 하면 「SQL 28 적용 필요」 안내). 서버 함수는 기록 주인(선생님 본인) 것만 고침 — 다른 선생님(학원 공동 계정) 기록은 미지원. 실제 기기 미확인. 병합 미실시.
+
 ## 2026-11-21 · Claude Code · claude/sharp-maxwell-twnvbb
 - 한 일: 해원고 부교재 Ⅲ·Ⅳ단원 원본 148문항(153~300번, 문제은행 `hw:'o'`)을 「2026학년도 2학기 해원고 물질과 에너지 기말고사 빌드업 문항 모음」 XeLaTeX PDF로 생성(미적분 I 서바이벌 양식: 표지·문제·뒷면·빠른 정답·정답 및 해설, 본문 8.5pt, 1~148번 새 번호, 번호 옆 소단원 대신 문항 코드, 소단원 상자로 이어서 배치, 필적 확인 문구, QR 1쪽 위·2쪽부터 아래+학습지 번호). 수식은 HYHWPEQ가 가진 기호 119자 전부 HYHWPEQ, 숫자·영문자 등은 Latin Modern Math(HYHWPEQ 유니코드 표에 숫자·영문자 없음). 화학식·숫자·단위도 수식으로. 앱: 선생님 계정 로그인 이메일의 SHA-256이 맞으면 고정 번호 2264-3735 학습지를 자동 등록(`presets/me-haewon-buildup.json`, `presetSeed`), `locked`면 삭제·선택 삭제·이름 변경·문항 편집 막음, 목록에 「기본」 표시, 「다시 출력」은 빌드업 PDF / 앱 인쇄 양식 선택, 「재출제」는 소단원을 골라 원본별 1:1 교체(같은 원본의 변형·유사 → 같은 유형 다른 문항 → 원본). 기존 버그: 목록 「복제」가 같은 이름의 양면 인쇄 토글 `wsDup()`에 가려 동작하지 않던 것을 `wsClone`으로 분리. 256번 해설의 그림이 이스케이프된 HTML 글자로 보이던 데이터 수정.
 - 바뀐 파일: `index.html`, `styles/screens.css`(v16), `sw.js`(v228), `presets/me-haewon-buildup.json`·`.pdf`, `bank/hwee1.json`, 생성기 `tools/me/buildup/`(build.py·conv.py·pre.tex), `tests/preset-worksheet.cjs`, `tests/run.cjs`.
