@@ -1,11 +1,22 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-22 · Claude Code · claude/sharp-maxwell-twnvbb (main 충돌 복구)
+- 한 일: main의 `sw.js`에 병합 충돌 표시(`<<<<<<< HEAD`)가 그대로 남아 서비스 워커가 문법 오류로 설치되지 않아, 브라우저가 옛 앱을 계속 보여 주던 문제 해결(새 기능이 사이트에 안 보이던 원인). origin/main을 병합해 `sw.js`를 VER v231·screens.css v17로 정리. `scripts/verify-static.cjs`가 배포 파일의 병합 충돌 표시를 찾아 실패하도록 추가.
+- 바뀐 파일: `sw.js`, `scripts/verify-static.cjs`, `WORKLOG.md`(충돌 정리).
+- 확인: sw.js 파싱, 정적 검사, preset·선지 번호·학생 답·개념 HTML·학습지 해설 검사, app-ui 통과.
+- 남은 일 · 주의: 병합·배포 후 첫 방문에서 새 서비스 워커가 설치되면 새로고침 한 번 필요할 수 있음. sql_28 적용 필요.
+
 ## 2026-11-21 · Claude Code · claude/sharp-maxwell-twnvbb (후속 2)
 - 한 일: 정답 글에 수식·아래첨자 HTML이 들어 있는 문항(물질과 에너지 해원고 서답형 12개)이 「정답 H<sub>2</sub>…」처럼 태그 글자로 보이던 문제 수정(`questionAnswer`가 허용한 MathML·sub·sup·span 등만 남겨 그대로 표시, 그 밖 태그·속성 제거; 채점 상세·오답 노트·진단 줄도 같은 함수로). 학생 범위(예: 한 학생 선택)를 골라도 기본 학습지가 목록에 보이게. 기본 학습지 자동 등록이 동시에 두 번 돌면 두 번 등록 요청하던 경쟁 상태 방지.
 - 바뀐 파일: `index.html`, `sw.js`(v230), `tests/exp-choice-label.cjs`, `tests/preset-worksheet.cjs`.
 - 확인: 실제 G-hwea3-0155 정답이 수식으로 표시(태그 글자 없음), 위험한 태그 제거 검사, preset 검사 8회 연속 통과, app-ui·wrong-answer-ui 통과.
 - 남은 일 · 주의: 이 브랜치는 아직 main에 병합·배포되지 않아 운영 사이트(solvi.win)에는 기본 학습지·선지 번호·학생 답 입력이 아직 없음. 병합·배포 후 해당 선생님 계정으로 로그인해야 2264-3735가 등록됨. sql_28 적용 필요.
 
+## 2026-11-21 · Claude Code · claude/funny-hawking-c1nyl1
+- 한 일: 물질과 에너지 개념 정리(`bank/concept.json`)에 그림·표·강조 HTML이 이스케이프된 채 보이던 문제 수정. 원인: `tools/me/concept.py`의 `EX`/`T`가 이미 만든 `<div class="fg">`·표·`<span class="hl">`(안의 MathML 포함)를 다시 `fmt()`에 넣어 `chem()`이 허용 목록 밖 태그를 `&lt;`로 바꿈, 상자 제목은 `esc()`라 `->`·`\\frac`가 날 문자열로 남음. `mk.raw()`/`unraw()` 자리표시로 만든 HTML은 다시 변환하지 않게 하고, 제목도 `fmt()`(→, MathML 분수), 그림·표 줄은 `<p>`로 감싸지 않음. 수식 안 `\\mathrm{N_2O_5}`의 밑줄이 글자로 보이던 것도 `mk.rm()`으로 아래 첨자 처리. 12개 절이 바뀜(나머지 13절·요약·풀 동일).
+- 바뀐 파일: `tools/me/mk.py`, `tools/me/concept.py`, `bank/concept.json`, `bank/hwd3.json`·`hwed2.json`·`hwf1.json`·`hwf4.json`(`\\mathrm` 아래 첨자 17곳만 데이터 직접 치환), 새 `tests/me-concept-html.cjs`(+`tests/run.cjs`), `sw.js`(v228).
+- 확인: `concept.json`에서 `&lt;div`·`&lt;table`·`-&gt;`·`\\frac`·`&lt;math` 0건(grep). 새 검사는 수정 전 데이터에서 실패·수정 후 통과. `python3 tools/me/verify.py` 13,943문항 오류 0건. 앱 개념학습 Ⅳ-A 1(반응 속도 측정)·3(반응 속도식 연습 1~3)·4(N2O5 농도 변화, 1차 반응 두 조건 비교)을 1440/820/390 px 스크린샷으로 확인 — 태그 글자 없음, 표·그림·수식 정상, 가로 넘침 0, 페이지 오류 0. 전체 `npm test` 통과(EXIT 0, 새 검사 포함) — 이 환경에는 pglite·playwright 기본 경로가 없어 `PGLITE`·`PW`·`NODE_PATH`를 지정해 실행.
+- 남은 일 · 주의: `tools/me/build.py`는 다시 돌릴 때마다 결과가 달라짐(같은 코드로도 hwb2·hwb5·hwd3 수백 문항 변경) → 문제은행은 재빌드하지 않고 해당 17곳만 치환함. 비결정성(해시 순서 등) 원인은 미조사. 실제 기기 미확인. 병합 미실시.
 ## 2026-11-21 · Claude Code · claude/sharp-maxwell-twnvbb (후속 요청 3건)
 - 한 일: ① 해설 선지 번호: 풀이 줄이 선지 글로 시작하거나 「선지」를 인용하면 ①~⑤를 자동으로 붙이고, 사이에 다른 글 없이 이어진 줄은 선지 순서로 정렬(`expLabel`, 문항을 불러올 때 한 번 적용·섞인 문항은 기존 번호 바꾸기로 따라감). 바뀐 문항: 화법과 언어 6,321 · 역학과 에너지 71(이미 번호가 있거나 선지별 풀이가 없는 계산 문항은 그대로). ② 유형 별초록(완전 정복) 기준을 3문항 → 10문항 이상 + 정답률 90% 이상으로(OX 문항으로 금방 별초록 되던 문제, 사용자 선택). ③ 선생님 O/X 채점에서 오답으로 한 문항에 「학생이 쓴 답」(선택)을 고를 수 있게(객관식은 정답을 뺀 번호 칩, 나머지는 글 입력, 정답은 넣을 수 없음). 기록에 `a`로 남고 `r`은 항상 0. 제출 뒤에도 선생님은 결과에서 오답 문항을 누르면 학생 답만 고칠 수 있음(서버 함수 `attempt_wrong_answer`가 r=0 문항의 a만 바꿈, 오답 → 정답은 제출 초기화로만).
 - 바뀐 파일: `index.html`, `styles/screens.css`(v17), `sw.js`(v229), 새 `supabase/sql_28_wrong_answer.sql`, 테스트 `tests/exp-choice-label.cjs`·`tests/wrong-answer-ui.cjs`·`tests/wrong-answer-db.cjs`, `tests/app-ui.cjs`(CSS 버전), `tests/run.cjs`.
