@@ -1,5 +1,11 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-21 · Claude Code · claude/sharp-maxwell-twnvbb (후속 2)
+- 한 일: 정답 글에 수식·아래첨자 HTML이 들어 있는 문항(물질과 에너지 해원고 서답형 12개)이 「정답 H<sub>2</sub>…」처럼 태그 글자로 보이던 문제 수정(`questionAnswer`가 허용한 MathML·sub·sup·span 등만 남겨 그대로 표시, 그 밖 태그·속성 제거; 채점 상세·오답 노트·진단 줄도 같은 함수로). 학생 범위(예: 한 학생 선택)를 골라도 기본 학습지가 목록에 보이게. 기본 학습지 자동 등록이 동시에 두 번 돌면 두 번 등록 요청하던 경쟁 상태 방지.
+- 바뀐 파일: `index.html`, `sw.js`(v230), `tests/exp-choice-label.cjs`, `tests/preset-worksheet.cjs`.
+- 확인: 실제 G-hwea3-0155 정답이 수식으로 표시(태그 글자 없음), 위험한 태그 제거 검사, preset 검사 8회 연속 통과, app-ui·wrong-answer-ui 통과.
+- 남은 일 · 주의: 이 브랜치는 아직 main에 병합·배포되지 않아 운영 사이트(solvi.win)에는 기본 학습지·선지 번호·학생 답 입력이 아직 없음. 병합·배포 후 해당 선생님 계정으로 로그인해야 2264-3735가 등록됨. sql_28 적용 필요.
+
 ## 2026-11-21 · Claude Code · claude/sharp-maxwell-twnvbb (후속 요청 3건)
 - 한 일: ① 해설 선지 번호: 풀이 줄이 선지 글로 시작하거나 「선지」를 인용하면 ①~⑤를 자동으로 붙이고, 사이에 다른 글 없이 이어진 줄은 선지 순서로 정렬(`expLabel`, 문항을 불러올 때 한 번 적용·섞인 문항은 기존 번호 바꾸기로 따라감). 바뀐 문항: 화법과 언어 6,321 · 역학과 에너지 71(이미 번호가 있거나 선지별 풀이가 없는 계산 문항은 그대로). ② 유형 별초록(완전 정복) 기준을 3문항 → 10문항 이상 + 정답률 90% 이상으로(OX 문항으로 금방 별초록 되던 문제, 사용자 선택). ③ 선생님 O/X 채점에서 오답으로 한 문항에 「학생이 쓴 답」(선택)을 고를 수 있게(객관식은 정답을 뺀 번호 칩, 나머지는 글 입력, 정답은 넣을 수 없음). 기록에 `a`로 남고 `r`은 항상 0. 제출 뒤에도 선생님은 결과에서 오답 문항을 누르면 학생 답만 고칠 수 있음(서버 함수 `attempt_wrong_answer`가 r=0 문항의 a만 바꿈, 오답 → 정답은 제출 초기화로만).
 - 바뀐 파일: `index.html`, `styles/screens.css`(v17), `sw.js`(v229), 새 `supabase/sql_28_wrong_answer.sql`, 테스트 `tests/exp-choice-label.cjs`·`tests/wrong-answer-ui.cjs`·`tests/wrong-answer-db.cjs`, `tests/app-ui.cjs`(CSS 버전), `tests/run.cjs`.
