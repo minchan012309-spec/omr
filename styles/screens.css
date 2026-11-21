@@ -193,3 +193,17 @@ html[data-theme=dark] .ldg .sk{background:#262c36}html[data-theme=dark] .ldg .sk
 @keyframes donep{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}22%{opacity:1;transform:translate(-50%,-50%) scale(1)}72%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-62%) scale(.96)}}
 #cft{position:fixed;inset:0;z-index:159;pointer-events:none;overflow:hidden}#cft i{position:absolute;display:block;border-radius:2px;will-change:transform,opacity}
 @media(prefers-reduced-motion:reduce){#donep{animation:none;opacity:1}}
+/* 기본 학습지: 다시 출력 고르기 · 재출제 소단원 · 「기본」 표시 */
+.pkw{display:grid;gap:var(--ui-space-2,8px);margin-top:12px}
+.pkc{display:grid;gap:3px;text-align:left;padding:12px 14px;border:1px solid var(--ui-border,#dbe2ea);border-radius:var(--ui-radius-control,10px);background:var(--ui-surface,#fff);color:var(--ui-text,#1b2430);font:inherit;cursor:pointer;transition:transform .16s cubic-bezier(.23,1,.32,1)}
+.pkc b{font-size:15px;font-weight:600}.pkc span{font-size:13px;color:var(--ui-muted,#5d6877)}
+.pkc:active{transform:scale(.98)}
+@media(hover:hover) and (pointer:fine){.pkc:hover{border-color:var(--ui-accent,#2f7fd0)}}
+.chps.prs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}.chps.prs .chp em{font-style:normal;opacity:.7;margin-left:4px;font-size:.9em}
+.tag.wslock{background:var(--ui-accent-soft,#eef5fc);color:var(--ui-accent-strong,#1d5ca6)}
+/* 선생님 채점: 오답 문항에 학생이 쓴 답(선택) */
+.wans{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:10px 0;padding:10px 12px;border:1px solid var(--ui-border,#dbe2ea);border-radius:var(--ui-radius-control,10px);background:var(--ui-raised,#f7f9fb)}
+.wans .wl{font-size:13px;font-weight:600;color:var(--ui-text,#1b2430)}.wans .wl em{font-style:normal;font-weight:500;color:var(--ui-muted,#5d6877);margin-left:4px;font-size:12px}
+.wans .wo{display:flex;flex-wrap:wrap;gap:6px}.wans .chp{min-width:38px;justify-content:center}
+.wans .wansi{width:min(240px,100%);font:inherit;font-size:16px;padding:6px 10px;border:1px solid var(--ui-border,#dbe2ea);border-radius:var(--ui-radius-control,8px);background:var(--ui-surface,#fff);color:var(--ui-text,#1b2430)}
+.wans2 .m{flex-basis:100%;font-size:12px}

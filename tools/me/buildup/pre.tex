@@ -1,0 +1,45 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[left=13mm,right=13mm,top=12mm,bottom=@BOTTOM@mm,headheight=0pt,headsep=0pt,footskip=6mm]{geometry}
+\usepackage{multicol,needspace}\usepackage{fontspec,unicode-math,amsmath,mathtools,array,tabularx,tikz,xcolor,graphicx,ragged2e,eso-pic,lastpage,colortbl,qrcode}
+\usetikzlibrary{calc,arrows.meta,shapes.geometric}
+\graphicspath{{fig/}}
+\defaultfontfeatures{Ligatures=TeX}
+\setmainfont[Path=fonts/,AutoFakeBold=1.4]{ShinMyeongjo.ttf}
+\setsansfont[Path=fonts/,AutoFakeBold=1.4]{ShinMyeongjo.ttf}
+\newfontfamily\KoBoldLatin[Path=fonts/]{KoPubWorldBold.ttf}
+\newcommand{\KoBold}{\KoBoldLatin}
+% 수식: HYHWPEQ 가 가진 기호는 모두 HYHWPEQ, 이 글꼴에 없는 숫자·영문자·나머지 기호는 Latin Modern Math
+\setmathfont[Path=fonts/]{latinmodern-math.otf}
+\setmathfont[Path=fonts/,range={@HYRANGE@}]{HYHWPEQ.ttf}
+\thinmuskip=3mu \medmuskip=4mu plus 1mu minus 1mu \thickmuskip=5mu plus 2mu
+\setlength{\parindent}{0pt}
+\binoppenalty=10000 \relpenalty=10000 \hbadness=10000 \hfuzz=2pt
+\XeTeXinterchartokenstate=1
+\newcount\tmpc\makeatletter\tmpc="AC00 \@whilenum\tmpc<"D7A4 \do{\XeTeXcharclass\tmpc=1 \advance\tmpc by 1 }\makeatother
+\XeTeXinterchartoks 1 1={\penalty0\relax}
+\pagestyle{empty}
+\newlength{\tmpw}
+\newfontfamily\KoMedF[Path=fonts/]{KoPubDotumMedium.ttf}\newcommand{\KoMed}{\KoMedF}
+\setlength{\parskip}{2.4pt plus .4pt minus .2pt}
+\setlength{\tabcolsep}{3.4pt}
+\renewcommand{\arraystretch}{1.18}
+\emergencystretch=1.5em\raggedbottom
+% 본문 8.5pt
+\newcommand{\qfont}{\fontsize{8.5}{16.2}\selectfont}
+\newcommand{\choices}[1]{%
+\par\vspace{3.0mm}\nointerlineskip%
+\noindent\begin{tikzpicture}
+\node[draw,line width=.5pt,inner xsep=2.8mm,inner ysep=3.0mm,text width=\dimexpr\linewidth-5.6mm-1pt\relax,anchor=north west,align=left](bx){\setlength{\parskip}{1.0mm}\fontsize{8.5}{15.4}\selectfont\RaggedRight #1\par};
+\node[fill=white,inner xsep=2mm,inner ysep=1pt,font=\KoMed\fontsize{8.6}{11}\selectfont] at (bx.north){< 보 기 >};
+\end{tikzpicture}\par\vspace{2.4mm}}
+\newcommand{\circh}[1]{\tikz[baseline=(n.base)]\node[draw,circle,inner sep=.36pt,line width=.4pt,outer sep=0pt](n){\fontsize{6.8}{8}\selectfont #1};}
+\newcommand{\examoptsfive}[5]{\par\vspace{2.4mm}\nointerlineskip\noindent\begin{tabularx}{\linewidth}{@{}*{5}{>{\raggedright\arraybackslash}X}@{}}\circh1\ #1&\circh2\ #2&\circh3\ #3&\circh4\ #4&\circh5\ #5\end{tabularx}\par\vspace{2.2mm}}
+\newcommand{\examoptstwo}[5]{\par\vspace{2.4mm}\nointerlineskip\noindent\begingroup\fontsize{8.5}{15}\selectfont\begin{tabularx}{\linewidth}{@{}*{3}{>{\raggedright\arraybackslash}X}@{}}\circh1\ #1&\circh2\ #2&\circh3\ #3\end{tabularx}\par\vspace{2.0mm}\nointerlineskip\noindent\begin{tabularx}{\linewidth}{@{}*{3}{>{\raggedright\arraybackslash}X}@{}}\circh4\ #4&\circh5\ #5&\end{tabularx}\endgroup\par\vspace{2.2mm}}
+\newcommand{\examoptsvertical}[5]{\par\vspace{1.6mm}\begin{minipage}{\linewidth}\setlength{\parskip}{3.6pt}\fontsize{8.5}{14.4}\selectfont\RaggedRight
+\hangindent=4.2mm\hangafter=1\circh1\ #1\par\hangindent=4.2mm\hangafter=1\circh2\ #2\par\hangindent=4.2mm\hangafter=1\circh3\ #3\par\hangindent=4.2mm\hangafter=1\circh4\ #4\par\hangindent=4.2mm\hangafter=1\circh5\ #5\par\end{minipage}\par\vspace{1.6mm}}
+\newcommand{\pbox}[1]{\par\vspace{2.6mm}\nointerlineskip\noindent\begin{tikzpicture}\node[draw,line width=.5pt,inner xsep=2.8mm,inner ysep=2.6mm,text width=\dimexpr\linewidth-5.6mm-1pt\relax,anchor=north west,align=left]{\setlength{\parskip}{1.4mm}\fontsize{8.5}{15.4}\selectfont\RaggedRight #1\par};\end{tikzpicture}\par\vspace{1.4mm}}
+\newcommand{\circhL}[1]{\tikz[baseline=(n.base)]\node[draw,circle,inner sep=.8pt,line width=.45pt](n){\fontsize{8.5}{10}\selectfont #1};}
+\newcommand{\ansbox}[1]{\colorbox{black!16}{\strut\,\bfseries #1\,}}
+\newcommand{\bogi}[2]{\par\noindent\setbox0\hbox{ㄱ.\ }\hangindent=\wd0\hangafter=1 #1.\ #2\par}
+\newcommand{\qitem}[2]{\par\noindent\setbox0\hbox{#1\ }\hangindent=\wd0\hangafter=1 #1\ #2\par}
+\newcommand{\unitbox}[1]{\noindent\fbox{\KoBold\fontsize{8.6}{11}\selectfont #1}\par\vspace{3.2mm}}
