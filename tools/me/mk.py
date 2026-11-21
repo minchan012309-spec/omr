@@ -150,7 +150,7 @@ def table(rows, head=True, cls='tb'):
 
 def fig(src, w=70):
     if '/' not in src: src = f'fig/hw/{src}.png'
-    return f'<div class="fg"><img src="{src}" style="width:{w}%" alt="" loading="lazy"></div>'
+    return f'<div class="fg"><img src="{src}" style="width:{w}%" alt=""></div>'
 
 def p(s): return f'<p>{fmt(s)}</p>'
 
