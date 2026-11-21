@@ -278,7 +278,7 @@ const focusedId = (page) => page.evaluate(() => document.activeElement && docume
         await page.evaluate(() => setScope("c:고2 1반"));
         await page.waitForTimeout(400);
         assert.match(await page.locator(".wk-q").innerText(), /고2 1반 학생들이/);
-        assert.match(await page.locator(".wk-a").innerText(), /연소·생성·분해·용해·기화 엔탈피의 정의.*정답률 0% · 3문항/);
+        assert.match(await page.locator(".wk-a").innerText(), /엔탈피와 반응 엔탈피의 의미.*정답률 0% · 3문항/);
         await page.evaluate(() => { setStu("s2"); render(); });
         await page.waitForTimeout(400);
         assert.match(await page.locator(".wk-q").innerText(), /나학생 학생이/);

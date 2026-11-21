@@ -178,7 +178,7 @@ const BKCSS=`
 .bkdoc .cbk .eqn{margin:2mm 0 3mm;padding:1.6mm 2.4mm;text-align:center;font-weight:700;border-top:.3mm solid var(--p);border-bottom:.3mm solid var(--p);background:#fff}
 .bkdoc .cbk .eqn small{display:block;font-weight:400;font-size:.88em;color:#555}
 .bkdoc .cbk .aim-concept-formula{font-size:15px;padding:1.5mm .8mm;background:var(--pl)}
-.bkdoc .cbk .aim-concept-formula math{font-family:math}
+.bkdoc .cbk .aim-concept-formula math{font-family:LatinModernMath,'Latin Modern Math',serif}.bkdoc math,.bkdoc math *,.bkdoc .mx{font-family:LatinModernMath,'Latin Modern Math',serif!important}
 .bkdoc .cbk .aim-concept-table th,.bkdoc .cbk .aim-concept-table td{padding:1mm .8mm}
 .bkdoc .cbk .fg{margin:2mm 0 3mm;text-align:center;break-inside:avoid}.bkdoc .cbk .fg img,.bkdoc .cbk .fg svg{max-width:100%;height:auto;max-height:66mm}
 .bkdoc .cbk .fg .cap{font-size:10.6px;color:#555;margin-top:1mm}
@@ -492,6 +492,7 @@ const bkGlyph=h=>String(h).replace(/[\u3200-\u321B]/g,c=>BKPH[c]||c)
 
 /* ---------- 쪽 계획 ---------- */
 async function bkfBank(d){if(!d)return;
+ if(d.hw&&SUBJ==='me'){const S=bkSel(),subs=S.subs.filter((s,i)=>!(d.subs||[]).length||d.subs.includes(i)).map(s=>s.k);const tags=Object.keys(BIDX).filter(t=>BIDX[t]&&BIDX[t].hw&&subs.includes(BIDX[t].sub));if(tags.length)await ensureTags(tags);return}
  if(SUBJ==='aim'){const parts=new Set((d.parts||[]).map(p=>p.k)),sets={mc:parts.has('m')||parts.has('t'),ox:parts.has('o'),blank:parts.has('b')};
   const subs=bkSubs().filter((s,i)=>!(d.subs||[]).length||d.subs.includes(i));
   await ensureTags(subs.flatMap(s=>bankTagsFor(s.k,'',sets)));return}
@@ -948,6 +949,7 @@ function bkfParse(str){const d={kind:'free',parts:[],subs:[],sort:0,grp:0,ans:0,
   else if((m=t.match(/^r(\d+(?:\.\d+)*)$/)))d.subs=m[1].split('.').map(Number);
   else if((m=t.match(/^j([0-7])$/))){const n=+m[1];d.writing=bkWriting({left:n&1,right:n&2,concept:!(n&4)})}
   else if((m=t.match(/^z([0-9a-z]{1,4})$/)))d.copy=m[1];
+  else if(t==='h1')d.hw=1;else if((m=t.match(/^h([vs])(\d)$/)))d[m[1]==='v'?'hv':'hs']=+m[2];
   else if((m=t.match(/^([sgap])([0-3])$/)))d[{s:'sort',g:'grp',a:'ans',p:'brk'}[m[1]]]=+m[2];
   else if((m=t.match(/^([nkydulfw])(\d{1,40})$/))){const pl=d.pl=d.pl||bkPlDef(),v=m[2];
    if(m[1]==='w'){if(!/^[0-4]+$/.test(v))return null;pl.w=[...v].map(Number)}else if(v.length>4)return null;else pl[{n:'n',k:'ox',y:'bl',d:'dist',u:'ar',l:'lm',f:'sf'}[m[1]]]=+v;if(m[1]==='n')pl.on=1}
@@ -960,7 +962,7 @@ function bkfPayload(d){const o=[],wr=bkWriting(d.writing),wm=(wr.left?1:0)+(wr.r
  if((d.parts||[]).some(p=>p.k==='q'))BKQS.forEach(([k])=>{const n=bkQn(d,k);o.push('x'+k+n)});
  const si=(d.subs||[]).slice().sort((a,b)=>a-b);if(si.length)o.push('r'+si.join('.'));
  const pl=d.pl;if(pl&&pl.on){o.push('n'+(pl.n|0));if(pl.ox>0)o.push('k'+(pl.ox|0));if(pl.bl>0)o.push('y'+(pl.bl|0));o.push('d'+(pl.dist|0));if(pl.dist===1)o.push('u'+(pl.ar??4));if(pl.dist===2)o.push('w'+bkSubs().map((_,i)=>(pl.w||[])[i]??2).join(''));o.push('l'+(pl.lm|0),'f'+(pl.sf??1))}
- if(d.sort)o.push('s'+d.sort);if(d.copy)o.push('z'+d.copy);if(d.grp)o.push('g'+d.grp);if(d.ans)o.push('a'+d.ans);if(d.brk)o.push('p'+d.brk);
+ if(d.hw)o.push('h1','hv'+(d.hv??2),'hs'+(d.hs??1));if(d.sort)o.push('s'+d.sort);if(d.copy)o.push('z'+d.copy);if(d.grp)o.push('g'+d.grp);if(d.ans)o.push('a'+d.ans);if(d.brk)o.push('p'+d.brk);
  return o.join('_')}
 const bkQn=(d,k)=>{const v=(d.qs||{})[k];return v==null?BKQDEF[k]:Math.max(0,Math.min(999,v|0))};
 const bkSpread=(a,n)=>{if(n>=a.length)return a.slice();const o=[];for(let i=0;i<n;i++)o.push(a[Math.floor(i*a.length/n)]);return o};
@@ -969,8 +971,19 @@ function bkfSort(a,mode,typeOrder,seed){const byNo=(x,y)=>(x.no||0)-(y.no||0);
  if(mode===3)return a.slice().sort((x,y)=>LVI[bkLv(y)]-LVI[bkLv(x)]||byNo(x,y));
  if(mode===2){const r=bkRng([...seed].reduce((h,c)=>h*31+c.charCodeAt(0)|0,11)),b=a.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
  return a.slice().sort((x,y)=>(typeOrder.get(x.sub+'|'+x.type)||0)-(typeOrder.get(y.sub+'|'+y.type)||0)||LVI[bkLv(x)]-LVI[bkLv(y)]||byNo(x,y))}
+/* 해원고 부교재 우선: 원본(선다형) → 그 원본의 변형 → 동유형 유사. 서답형 원본은 '서술형' 구성으로 */
+function bkHwCard(d){const on=!!d.hw;return `<div class="bkhw${on?' on':''}"><label class="chk"><input type="checkbox" id="bfhw" ${on?'checked':''} onchange="bkfRead();bkShow()"> <b>해원고 부교재 우선</b></label><small class="m">수준별 평가 원본(153~300번)과 원본마다 변형 문제 · 동유형 유사 문제만 담아요. 서답형 원본은 ‘서술형’ 구성으로, 개념 정리는 해원고 개념 학습지(답 채움)로 들어가요. 다른 문항(OX · 빈칸 · 기초 선다형)은 빠져요.</small>${on?`<span class="bkhwn">원본 1문항마다 변형 <input type="number" id="bfhv" min="0" max="9" value="${d.hv??2}" oninput="bkfRead();bkxEst()"> 개 · 유사 <input type="number" id="bfhs" min="0" max="9" value="${d.hs??1}" oninput="bkfRead();bkxEst()"> 개 <small class="m">난이도는 ‘유형 문제’의 난이도 체크를 따라요</small></span>`:''}</div>`}
+function bkHwPick(d,s,lvf){const V=d.hv??2,Sn=d.hs??1,all=DATA.filter(q=>q.hw&&q.sub===s.k&&q.set!=='essay'),out=[],used=new Set();
+ const origs=all.filter(q=>q.hw==='o').sort((a,b)=>a.ono-b.ono);
+ const nos=[...new Set(DATA.filter(q=>q.hw==='o'&&q.sub===s.k).map(q=>q.ono))].sort((a,b)=>a-b);
+ const take=(pool,n)=>{const a=lvf(pool.filter(q=>!used.has(q.code)));return n>0&&a.length?bkPickRound(a,Math.min(n,a.length),['하','중','상','최']):[]};
+ nos.forEach(no=>{const o=origs.find(q=>q.ono===no);if(o){out.push(o);used.add(o.code)}
+  take(all.filter(q=>q.hw==='v'&&q.ono===no),V).forEach(q=>{out.push(q);used.add(q.code)});
+  take(all.filter(q=>q.hw==='s'&&q.ono===no),Sn).forEach(q=>{out.push(q);used.add(q.code)})});
+ return out}
 /* 소단원 하나에서 구성 하나가 담을 문항 */
-function bkfPick(d,s,pt,S,base,ctx){const byNo=(a,b)=>(a.no||0)-(b.no||0),of=f=>base.filter(q=>q.sub===s.k&&f(q)).sort(byNo);
+function bkfPick(d,s,pt,S,base,ctx){
+ if(d.hw&&SUBJ==='me'){const lvf=a=>pt.lv&&pt.lv!==15?a.filter(q=>q.hw==='o'||bkLvOk(q,pt.lv)):a;if(pt.k==='t')return bkHwPick(d,s,lvf);if(pt.k==='e')return DATA.filter(q=>q.hw==='o'&&q.set==='essay'&&q.sub===s.k).sort((a,b)=>a.ono-b.ono);return []}const byNo=(a,b)=>(a.no||0)-(b.no||0),of=f=>base.filter(q=>q.sub===s.k&&f(q)).sort(byNo);
  const lim=a=>pt.all?a:pt.cap>0?bkSpread(a,pt.cap):a;
  const PQ=ctx.pq&&ctx.pq[s.k];
  if(pt.k==='o'){if(PQ&&d.pl.ox>0)return bkSpread(of(q=>q.set==='ox'),PQ.o);const a=pt.all||pt.cap>0?of(q=>q.set==='ox'):(S.ox[s.k]||[]);return lim(a)}
@@ -1073,7 +1086,7 @@ function bkfBlocks(d){const S=bkSel(),base=DATA.filter(q=>q.sub&&q.set!=='bank'&
   if(k==='c'){pick[s.k+'|c']=[];return}
   let a=bkfPick(d,s,pt,S,base,ctx);
   if(k==='m')ctx.basic[s.k]=new Set(a.map(q=>q.code));
-  if(k==='t'||k==='e')a=bkfSort(a,d.sort,typeOrder,SUBJ+s.k+k);
+  if((k==='t'||k==='e')&&!d.hw)a=bkfSort(a,d.sort,typeOrder,SUBJ+s.k+k);
   pick[s.k+'|'+k]=a})});
  const blocks=[];
  const add=(s,pt)=>{const a=pick[s.k+'|'+pt.k]||[];if(pt.k==='c'||a.length)blocks.push({s,pt,k:pt.k,arr:a})};
@@ -1112,8 +1125,8 @@ function bkPlanFree(id,d){
   else if(b.k==='m')b.arr.forEach(q=>qU(q,'',{code:1}));
   else if(b.k==='t'){let cur=null,ti=0;
    b.arr.forEach(q=>{
-    if(d.sort===0&&q.type!==cur){cur=q.type;ti++;const grp=b.arr.filter(x=>x.type===cur);const av=grp.reduce((a,x)=>a+LVI[bkLv(x)],0)/grp.length;const n=Math.max(1,Math.min(4,Math.round(av)+1));
-     units.push(bkU('th:'+s.k+':'+ti+':'+cur,'<div class="th"><b>유형 '+String(ti).padStart(2,'0')+'</b><span>'+esc(cur)+'</span><small>'+'★'.repeat(n)+'☆'.repeat(4-n)+'</small></div>',{keep:true}))}
+    const gk=d.hw?q.ono:q.type;if((d.sort===0||d.hw)&&gk!==cur){cur=gk;ti++;const grp=b.arr.filter(x=>(d.hw?x.ono:x.type)===cur);const av=grp.reduce((a,x)=>a+LVI[bkLv(x)],0)/grp.length;const n=Math.max(1,Math.min(4,Math.round(av)+1));
+     units.push(bkU('th:'+s.k+':'+ti+':'+cur,'<div class="th"><b>'+(d.hw?'부교재 '+q.ono+'번':'유형 '+String(ti).padStart(2,'0'))+'</b><span>'+esc(d.hw?q.type+(grp.some(x=>x.hw==='o')?' · 원본·변형·유사':' · 변형·유사 (원본은 서술형 구성)'):cur)+'</span><small>'+'★'.repeat(n)+'☆'.repeat(4-n)+'</small></div>',{keep:true}))}
     qU(q,':t',{lv:bkLv(q),code:1})})}
   else if(b.k==='e')b.arr.forEach(q=>qU(q,':e',{ans:1,code:1,lv:bkLv(q)}));
   else if(b.k==='q')b.arr.forEach(q=>qU(q,':h',{lv:bkLv(q),code:1}));
@@ -1793,7 +1806,7 @@ function ebkScrubBind(s){let st=null;
  s.addEventListener('pointerup',end,true);s.addEventListener('pointercancel',end,true)}
 
 /* ---------- 인쇄 ---------- */
-function bkFontCssRule(){const f=BKO.font&&typeof FONTS!=='undefined'&&FONTS[BKO.font];return f&&BKO.font!=='paper'?'.bkdoc,.bkdoc *{font-family:'+f[1]+'!important}.bkdoc .u.q .chs div b{font-family:'+(BKO.font==='shin'?f[1]:'SolviCn,'+f[1])+'!important;'+(BKO.font==='shin'?'font-size:1em!important;font-weight:400!important;margin-right:.5em!important':'')+'}':''}
+function bkFontCssRule(){const f=BKO.font&&typeof FONTS!=='undefined'&&FONTS[BKO.font];return f&&BKO.font!=='paper'?'.bkdoc,.bkdoc *{font-family:'+f[1]+'!important}.bkdoc .u.q .chs div b{font-family:'+(BKO.font==='shin'?f[1]:'SolviCn,'+f[1])+'!important;'+(BKO.font==='shin'?'font-size:1em!important;font-weight:400!important;margin-right:.5em!important':'')+'}.bkdoc math,.bkdoc math *,.bkdoc .mx{font-family:LatinModernMath,\'Latin Modern Math\',serif!important}':''}
 /* 양면 인쇄: 답안이 뒷면에서 시작하지 않게 빈 쪽을 끼우고, 총 쪽수가 홀수면 마지막에 빈 쪽을 붙임(-1 = 빈 쪽) */
 function bkSheets(plan,all){const last=plan.pages[plan.pages.length-1],back=!!(all&&last&&last.k==='back');
  const n=all?plan.pages.length-(back?1:0):Math.max(1,(plan.aStart||plan.pages.length+1)-1);const a=[];for(let i=0;i<n;i++)a.push(i);
@@ -1896,6 +1909,7 @@ function bkfNew(k){if(SUBJ==='hl')k='free';const P=SUBJ==='hl'?{n:'나만의 교
 function bkfOrder(d){return (d.order||[]).filter((k,i,a)=>(SUBJ==='hl'||k!=='q')&&a.indexOf(k)===i)}
 function bkfParts(d){return bkfOrder(d).filter(k=>d.on[k]).map(k=>{const c=d.cm[k]||{m:'d',n:10};return {k,all:c.m==='a',cap:c.m==='n'?Math.max(1,Math.min(999,c.n|0)):0,lv:BKFLV.has(k)?(d.lv[k]||15):15}})}
 function bkfRead(){const d=BKV.d,g=i=>document.getElementById(i);if(!d||d.kind!=='free')return;bkWritingRead(d);
+ if(g('bfhw')){const was=d.hw;d.hw=g('bfhw').checked&&SUBJ==='me'?1:0;const n=(i,f)=>{const e=g(i);return e?Math.max(0,Math.min(9,Math.round(+e.value)||0)):f};d.hv=n('bfhv',d.hv??2);d.hs=n('bfhs',d.hs??1);if(d.hw){d.on=d.on||{};d.on.t=1;if(!was){d.on.e=1;d.on.c=1;['t','e','c'].forEach(k=>{const e=g('bfo_'+k);if(e)e.checked=true})}}}
  d.order=bkfOrder(d);if(SUBJ!=='hl')delete d.on.q;
  d.qs=d.qs||{...BKQDEF};BKQS.forEach(([k])=>{const e=g('bfq_'+k);if(e)d.qs[k]=Math.max(0,Math.min(999,Math.round(+e.value)||0));const c=g('bfqi_'+k);if(c)d.qs[k]=c.checked?(d.qs[k]||BKQDEF[k]):0});
  const pl=d.pl=d.pl||bkPlDef(),num=(i,mx)=>Math.max(0,Math.min(mx,Math.round(+g(i).value)||0));if(g('bfpn'))pl.n=num('bfpn',3000);if(g('bfpo'))pl.ox=num('bfpo',3000);if(g('bfpb'))pl.bl=num('bfpb',3000);
@@ -1995,7 +2009,7 @@ function bkfBuilder(){const d=BKV.d,subs=bkSubs();d.order=bkfOrder(d).filter(k=>
  const swb=sw.map(([k,t])=>{const c=k?PAL[k][0]:bkPal().p;return `<button type="button" class="bfsw ${(d.color||'')===k?'on':''}" onclick="bkfSet('color','${k}')" style="--c:${c}" title="${t}" aria-label="색상 ${t}"></button>`}).join('');
  const covs=[[0,'기본형','일러스트 + 흰 바탕'],[1,'컬러 띠형','큰 색 면 위에 제목'],[2,'미니멀형','글자 중심'],[3,'사이드 바','왼쪽 세로 색 띠'],[4,'중앙 정렬형','글자를 가운데로'],[5,'하단 컬러 블록','아래쪽 큰 색 면'],[6,'시리즈형','네이비 · 큰 영문 제목']].map(([v,t,s2])=>`<button class="bkcvb ${(d.cover|0)===v?'on':''}" onclick="bkfSet('cover',${v})" aria-label="${t}"><span class="bkcvh" data-c="${v}"></span><b>${t}</b><small>${s2}</small></button>`).join('');
  let body='';
- if(step===1)body=(SUBJ==='hl'?bkMainPick():'')+`<h3 class="bkh">${SUBJ==='hl'?'직접 구성 교재':'시작 양식'} <small>고른 뒤 아래에서 마음대로 바꿀 수 있어요</small></h3><div class="bkpre">${(SUBJ==='hl'?['free']:['std','last','drill','part','free']).map(chip).join('')}<button class="s" onclick="bkNew('full')" style="text-align:left;padding:10px 12px;border-radius:10px"><b style="display:block;font-size:14px">전범위 모의고사</b><small style="font-weight:400;opacity:.8">회차별 시험지 (별도 설정)</small></button></div>
+ if(step===1)body=(SUBJ==='hl'?bkMainPick():'')+(SUBJ==='me'?bkHwCard(d):'')+`<h3 class="bkh">${SUBJ==='hl'?'직접 구성 교재':'시작 양식'} <small>고른 뒤 아래에서 마음대로 바꿀 수 있어요</small></h3><div class="bkpre">${(SUBJ==='hl'?['free']:['std','last','drill','part','free']).map(chip).join('')}<button class="s" onclick="bkNew('full')" style="text-align:left;padding:10px 12px;border-radius:10px"><b style="display:block;font-size:14px">전범위 모의고사</b><small style="font-weight:400;opacity:.8">회차별 시험지 (별도 설정)</small></button></div>
   <h3 class="bkh">책에 넣을 구성 <small>체크로 넣고 빼고, ↑↓로 순서를 바꿔요</small></h3>${d.order.map(rowA).join('')}
   <h3 class="bkh">배열 방식</h3><div class="bfg"><div><label class="bkfl">배열</label><select id="bfg" onchange="bkfRead();bkxEst()">${op(0,'소단원별 (소단원 안에서 구성 순서대로)',d.grp|0)}${op(1,'구성별 (OX 전체 → 빈칸 전체 …)',d.grp|0)}</select></div><div style="display:flex;align-items:flex-end"><label class="chk"><input type="checkbox" id="bfb" ${d.brk?'checked':''} onchange="bkfRead();bkxEst()"> 소단원(구성)마다 새 쪽에서 시작</label></div></div>`;
  else if(step===2)body=(SUBJ==='hl'?bkfPlanCard(d):'')+`<h3 class="bkh">구성별 문항 수 · 난이도 <small>문항 수는 소단원마다 적용돼요</small></h3>${d.order.filter(k=>d.on[k]).map(rowB).join('')||'<div class="hint">1단계에서 구성을 하나 이상 고르세요</div>'}
@@ -2029,7 +2043,7 @@ function bkfBuilder(){const d=BKV.d,subs=bkSubs();d.order=bkfOrder(d).filter(k=>
 @media(max-width:640px){.bkpl .bkrow{grid-template-columns:1fr}}
 @media(max-width:640px){.bkrow{grid-template-columns:1fr}.bkseg button{padding:9px 9px;font-size:13px}}
 @media(prefers-reduced-motion:reduce){.bkth{transition:none}}
-.bkb .bkh{margin:18px 0 8px;font-size:15px}.bkb .bkh small{font-weight:400;color:var(--m);font-size:12.5px;margin-left:6px}.bkb .bkfl{display:block;font-size:12px;color:var(--m);margin-bottom:3px}.bkst{cursor:pointer}.bkpre{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.bkn{display:flex;gap:8px;margin-top:22px;padding-top:14px;border-top:1px solid var(--l)}
+.bkb .bkh{margin:18px 0 8px;font-size:15px}.bkb .bkh small{font-weight:400;color:var(--m);font-size:12.5px;margin-left:6px}.bkb .bkfl{display:block;font-size:12px;color:var(--m);margin-bottom:3px}.bkst{cursor:pointer}.bkpre{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.bkhw{display:grid;gap:6px;padding:12px 14px;border:1px solid var(--line,#d5dbe3);border-radius:12px;margin:6px 0 4px}.bkhw.on{border-color:var(--b);background:color-mix(in srgb,var(--b) 6%,transparent)}.bkhw small{line-height:1.55}.bkhwn{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13.5px}.bkhwn input{width:58px}.bkn{display:flex;gap:8px;margin-top:22px;padding-top:14px;border-top:1px solid var(--l)}
  .bfr{border:1px solid var(--l);border-radius:12px;padding:10px 12px;margin:6px 0;background:var(--surface)}.bfr.off{opacity:.62}.bfh{display:flex;align-items:center;justify-content:space-between;gap:8px}.bfb{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;margin:8px 0 0}.bfmv{display:flex;gap:4px}.bflv{display:flex;gap:4px 12px;flex-wrap:wrap;align-items:center;font-size:12.5px}.bfcm{display:flex;gap:4px 14px;flex-wrap:wrap}
  .bfsw{width:44px;height:44px;border:0;background:none;cursor:pointer;padding:0;position:relative}.bfsw:after{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1px #0002}.bfsw.on:after{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--c)}.bkswr{display:flex;gap:0;flex-wrap:wrap}.bfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px 14px}.bksubs{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 12px;margin:6px 0}
  .bkcvs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.bkcvs .bkcvb b{font-size:13px}.bkcvb{border:2px solid var(--l);border-radius:12px;background:var(--surface);padding:8px;cursor:pointer;text-align:left;font:inherit;color:inherit;min-width:0}.bkcvb.on{border-color:var(--b);background:var(--bl)}.bkcvb b{display:block;margin-top:6px;font-size:13.5px}.bkcvb small{color:var(--m);font-size:12px}.bkcvh{display:block;position:relative;width:100%;aspect-ratio:210/297;overflow:hidden;background:#fff;border:1px solid var(--l)}
