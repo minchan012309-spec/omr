@@ -3,7 +3,7 @@
 그림은 개념 학습지에서 잘라 낸 원본 그림(fig/hw/c/*.png)을 쓴다."""
 import os, sys, json, re
 sys.path.insert(0, os.path.dirname(__file__))
-from mk import fmt, esc
+from mk import fmt, raw, unraw
 from orig_common import TYPES
 import build, apply as AP
 
@@ -19,7 +19,7 @@ CF = {  # 개념 그림: 키 → 잘라 둔 파일
  'enz': 'C4/C4_0_p9_4', 'enzTpH': 'C4/C4_0_p10_0', 'hydro': 'C4/C4_0_p10_1', 'proline': 'C4/C4_0_p10_2'}
 
 def P(s): return f'<p>{fmt(s)}</p>'
-def F(k, w=62): return f'<div class="fg"><img src="fig/hw/c/{k}.png" style="width:{w}%" alt=""></div>'
+def F(k, w=62): return raw(f'<div class="fg"><img src="fig/hw/c/{k}.png" style="width:{w}%" alt=""></div>')
 def E(s, small=''): return f'<div class="eqn">{fmt(s)}' + (f'<small>{fmt(small)}</small>' if small else '') + '</div>'
 def T(rows, w=None):
     h = '<div class="tbw"><table class="tb">'
@@ -27,16 +27,16 @@ def T(rows, w=None):
     h += '<thead><tr>' + ''.join(f'<th>{fmt(c)}</th>' for c in rows[0]) + '</tr></thead><tbody>'
     for r in rows[1:]:
         h += '<tr>' + ''.join(f'<td class="{"b" if j == 0 else "l"}">{fmt(c)}</td>' for j, c in enumerate(r)) + '</tr>'
-    return h + '</tbody></table></div>'
+    return raw(h + '</tbody></table></div>')
 def N(label, lines, cls=''):
-    return f'<div class="nt{(" " + cls) if cls else ""}"><span class="lb">{esc(label)}</span><ul class="l">' + ''.join(f'<li>{fmt(x)}</li>' for x in lines) + '</ul></div>'
+    return f'<div class="nt{(" " + cls) if cls else ""}"><span class="lb">{fmt(label)}</span><ul class="l">' + ''.join(f'<li>{fmt(x)}</li>' for x in lines) + '</ul></div>'
 def EX(label, lines):
-    return f'<div class="nt ds"><span class="lb">{esc(label)}</span>' + ''.join(f'<p>{fmt(x)}</p>' for x in lines) + '</div>'
-def H(s): return f'<span class="hl">{fmt(s)}</span>'
+    return f'<div class="nt ds"><span class="lb">{fmt(label)}</span>' + ''.join(unraw(x) if re.fullmatch(r'\x00\d+\x00', x) else f'<p>{fmt(x)}</p>' for x in lines) + '</div>'
+def H(s): return raw(f'<span class="hl">{fmt(s)}</span>')
 
 SECS = []
 def S(sub, no, title, types, *parts):
-    SECS.append(dict(id=f'c-{sub[0] == "Ⅲ" and 3 or 4}-{"ABC".index(sub[-1]) + 1}-{no}', sub=sub, no=str(no), title=title, html=''.join(parts),
+    SECS.append(dict(id=f'c-{sub[0] == "Ⅲ" and 3 or 4}-{"ABC".index(sub[-1]) + 1}-{no}', sub=sub, no=str(no), title=title, html=unraw(''.join(parts)),
                      types=[TYPES[t][1] for t in types]))
 
 # ============================== Ⅲ-A 반응 엔탈피와 열화학 반응식
