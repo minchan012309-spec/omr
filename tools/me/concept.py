@@ -19,7 +19,7 @@ CF = {  # 개념 그림: 키 → 잘라 둔 파일
  'enz': 'C4/C4_0_p9_4', 'enzTpH': 'C4/C4_0_p10_0', 'hydro': 'C4/C4_0_p10_1', 'proline': 'C4/C4_0_p10_2'}
 
 def P(s): return f'<p>{fmt(s)}</p>'
-def F(k, w=62): return f'<div class="fg"><img src="fig/hw/c/{k}.png" style="width:{w}%" alt="" loading="lazy"></div>'
+def F(k, w=62): return f'<div class="fg"><img src="fig/hw/c/{k}.png" style="width:{w}%" alt=""></div>'
 def E(s, small=''): return f'<div class="eqn">{fmt(s)}' + (f'<small>{fmt(small)}</small>' if small else '') + '</div>'
 def T(rows, w=None):
     h = '<div class="tbw"><table class="tb">'
