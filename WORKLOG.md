@@ -3,7 +3,7 @@
 ## 2026-11-21 · Claude Code · claude/funny-hawking-c1nyl1
 - 한 일: 물질과 에너지 개념 정리(`bank/concept.json`)에 그림·표·강조 HTML이 이스케이프된 채 보이던 문제 수정. 원인: `tools/me/concept.py`의 `EX`/`T`가 이미 만든 `<div class="fg">`·표·`<span class="hl">`(안의 MathML 포함)를 다시 `fmt()`에 넣어 `chem()`이 허용 목록 밖 태그를 `&lt;`로 바꿈, 상자 제목은 `esc()`라 `->`·`\\frac`가 날 문자열로 남음. `mk.raw()`/`unraw()` 자리표시로 만든 HTML은 다시 변환하지 않게 하고, 제목도 `fmt()`(→, MathML 분수), 그림·표 줄은 `<p>`로 감싸지 않음. 수식 안 `\\mathrm{N_2O_5}`의 밑줄이 글자로 보이던 것도 `mk.rm()`으로 아래 첨자 처리. 12개 절이 바뀜(나머지 13절·요약·풀 동일).
 - 바뀐 파일: `tools/me/mk.py`, `tools/me/concept.py`, `bank/concept.json`, `bank/hwd3.json`·`hwed2.json`·`hwf1.json`·`hwf4.json`(`\\mathrm` 아래 첨자 17곳만 데이터 직접 치환), 새 `tests/me-concept-html.cjs`(+`tests/run.cjs`), `sw.js`(v228).
-- 확인: `concept.json`에서 `&lt;div`·`&lt;table`·`-&gt;`·`\\frac`·`&lt;math` 0건(grep). 새 검사는 수정 전 데이터에서 실패·수정 후 통과. `python3 tools/me/verify.py` 13,943문항 오류 0건. 앱 개념학습 Ⅳ-A 1(반응 속도 측정)·3(반응 속도식 연습 1~3)·4(N2O5 농도 변화, 1차 반응 두 조건 비교)을 1440/820/390 px 스크린샷으로 확인 — 태그 글자 없음, 표·그림·수식 정상, 가로 넘침 0, 페이지 오류 0. `npm test` 결과는 아래 남은 일 참고.
+- 확인: `concept.json`에서 `&lt;div`·`&lt;table`·`-&gt;`·`\\frac`·`&lt;math` 0건(grep). 새 검사는 수정 전 데이터에서 실패·수정 후 통과. `python3 tools/me/verify.py` 13,943문항 오류 0건. 앱 개념학습 Ⅳ-A 1(반응 속도 측정)·3(반응 속도식 연습 1~3)·4(N2O5 농도 변화, 1차 반응 두 조건 비교)을 1440/820/390 px 스크린샷으로 확인 — 태그 글자 없음, 표·그림·수식 정상, 가로 넘침 0, 페이지 오류 0. 전체 `npm test` 통과(EXIT 0, 새 검사 포함) — 이 환경에는 pglite·playwright 기본 경로가 없어 `PGLITE`·`PW`·`NODE_PATH`를 지정해 실행.
 - 남은 일 · 주의: `tools/me/build.py`는 다시 돌릴 때마다 결과가 달라짐(같은 코드로도 hwb2·hwb5·hwd3 수백 문항 변경) → 문제은행은 재빌드하지 않고 해당 17곳만 치환함. 비결정성(해시 순서 등) 원인은 미조사. 실제 기기 미확인. 병합 미실시.
 
 ## 2026-11-21 · Claude Code · claude/beautiful-wright-4upm3d / PR #147
