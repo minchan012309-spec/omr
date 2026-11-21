@@ -44,7 +44,7 @@ def _atom(p):
             a = _atom(_skip(p)); return f'<msqrt>{a}</msqrt>'
         if cmd in ('\\text', '\\mathrm'):
             _skip(p); assert p.peek() == '{'; j = p.t.index('}', p.i); s = p.t[p.i + 1:j]; p.i = j + 1
-            return f'<mtext>{esc(s)}</mtext>' if cmd == '\\text' else f'<mi mathvariant="normal">{esc(s)}</mi>'
+            return f'<mtext>{esc(s)}</mtext>' if cmd == '\\text' else rm(s)
         if cmd == '\\,': return '<mtext>\u2009</mtext>'
         if cmd == '\\ ': return '<mtext>\u00a0</mtext>'
         if cmd in CMDS:
@@ -69,6 +69,14 @@ def _atom(p):
         stretch = ' stretchy="false"' if c in '()[]|' else ''
         return f'<mo{stretch}>{c}</mo>'
     return f'<mtext>{esc(c)}</mtext>'
+
+def rm(s):
+    """\\mathrm{N_2O_5} → 정자 원소 기호 + 아래 첨자(밑줄이 글자로 보이지 않게)."""
+    if '_' not in s: return f'<mi mathvariant="normal">{esc(s)}</mi>'
+    out = ''
+    for t, d in re.findall(r'([^_{}]+)(?:_\{?(\d+)\}?)?', s):
+        out += f'<msub><mi mathvariant="normal">{esc(t)}</mi><mn>{d}</mn></msub>' if d else f'<mi mathvariant="normal">{esc(t)}</mi>'
+    return f'<mrow>{out}</mrow>'
 
 def _skip(p):
     while p.peek() == ' ': p.i += 1
@@ -115,8 +123,22 @@ def chem(s):
     s = re.sub(r'\((aq|g|l|s)(, [^)]{1,12})?\)', _state, s)
     return s
 
+RAW = []
+def raw(h):
+    """이미 만든 HTML(그림·표·강조)을 fmt가 다시 이스케이프하지 않도록 자리표시로 맡긴다."""
+    RAW.append(h); return f'\x00{len(RAW) - 1}\x00'
+
+def unraw(s):
+    return re.sub(r'\x00(\d+)\x00', lambda m: unraw(RAW[int(m.group(1))]), s)
+
 def fmt(s):
-    """$수식$·\\frac와 본문을 함께 변환."""
+    """$수식$·\\frac와 본문을 함께 변환. raw()로 맡긴 HTML은 그대로 둔다."""
+    parts = re.split(r'(\x00\d+\x00)', s)
+    if len(parts) > 1:
+        return ''.join(unraw(x) if i % 2 else _fmt(x) for i, x in enumerate(parts))
+    return _fmt(s)
+
+def _fmt(s):
     out = []
     for i, part in enumerate(re.split(r'(\$[^$]+\$)', s)):
         if i % 2: out.append(tex(part[1:-1]))
