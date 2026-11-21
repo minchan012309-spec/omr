@@ -171,7 +171,27 @@ const examSetOn=k=>SUBJ==='aim'?k==='mc':W.sets[k];
 const examSetEntries=()=>Object.entries(SETS).filter(([k])=>SUBJ!=='aim'||k==='mc');
 function bankTagsFor(sub,type,sets){return Object.entries(BIDX).filter(([,b])=>b.sub===sub&&(!type||b.label===type)&&(!sets||sets[bankSet(b)])).map(([t])=>t)}
 async function ensureTags(tags){let _i=0;for(const t of tags){_i++;if(tags.length>1)busyPct((_i-.5)/tags.length*100);if(!t||BLOADED[t]||!BIDXALL[t])continue;const sj=TAGSUBJ[t];
- try{const r=await fetch(DIRS[sj]+t+'.json');if(!r.ok)continue;const a=await r.json();a.forEach(q=>{if(ovHidden(q.code)||figLost(q))return;ovApply(q);if(!byCode[q.code]){byCode[q.code]=q;POOL[sj].push(q);if(sj===SUBJ)DATA.push(q);if(CSTAT[q.code])calibQ(q)}});BLOADED[t]=1}catch(e){}}}
+ try{const r=await fetch(DIRS[sj]+t+'.json');if(!r.ok)continue;const a=await r.json();a.forEach(q=>{if(ovHidden(q.code)||figLost(q))return;ovApply(q);if(!byCode[q.code]){try{q.exp=expLabel(q.q,q.exp)}catch(e){}byCode[q.code]=q;POOL[sj].push(q);if(sj===SUBJ)DATA.push(q);if(CSTAT[q.code])calibQ(q)}});BLOADED[t]=1}catch(e){}}}
+/* 해설 선지 번호: 풀이 줄이 선지 글로 시작하면(또는 「선지」를 인용하면) 앞에 ①~⑤를 붙이고, 이어진 줄이면 선지 순서로 정렬 */
+function expLabel(qh,eh){if(!qh||!eh||eh.indexOf('class="st"')<0||qh.indexOf('class="chs')<0)return eh;
+ const plain=h=>h.replace(/<[^>]+>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ');
+ const nz=t=>plain(t).normalize('NFKC').replace(/[\s.,'"‘’“”·()]/g,'');
+ const ch=[];qh.replace(/<div><b>([①-⑤])<\/b><span>([\s\S]*?)<\/span><\/div>/g,(m,l,t)=>{ch.push({l,n:nz(t)});return m});
+ if(ch.length<4||new Set(ch.map(c=>c.n)).size!==ch.length)return eh;
+ const re=/<p class="st">([\s\S]*?)<\/p>/g,ps=[];let m;while((m=re.exec(eh)))ps.push({s:m.index,e:m.index+m[0].length,body:m[1]});
+ const used=new Set();
+ for(const p of ps){const raw=plain(p.body).trim();if(/^[①-⑩ㄱ-ㅎ㉠-㉭]|^\(|^\d|^→/.test(raw))continue;const t=nz(p.body);
+  const q=raw.match(/^(?:옳은|옳지 않은) 설명:\s*「([\s\S]*?)」/);
+  const hit=ch.filter(c=>c.n.length>=2&&!used.has(c.l)&&(q?nz(q[1])===c.n:t.startsWith(c.n)));
+  if(!hit.length)continue;hit.sort((a,b)=>b.n.length-a.n.length);if(hit.length>1&&hit[0].n.length===hit[1].n.length)continue;
+  p.l=hit[0].l;used.add(p.l)}
+ const lab=ps.filter(p=>p.l);if(!lab.length)return eh;
+ // 번호 붙인 줄이 사이에 다른 글 없이 이어져 있으면 선지 순서로
+ let contig=lab.length>=3&&lab.every((p,i)=>i===0||/^\s*$/.test(eh.slice(lab[i-1].e,p.s)));
+ const html=p=>'<p class="st">'+p.l+' '+p.body+'</p>';
+ let out='',pos=0;
+ if(contig){const sorted=lab.slice().sort((a,b)=>a.l.localeCompare(b.l));out=eh.slice(0,lab[0].s)+sorted.map(html).join('')+eh.slice(lab[lab.length-1].e);return out}
+ for(const p of lab){out+=eh.slice(pos,p.s)+html(p);pos=p.e}return out+eh.slice(pos)}
 const ensureCodes=codes=>ensureTags([...new Set(codes.map(tagOf).filter(Boolean))]);
 function qMeta(c){const q=byCode[c];if(q)return q;const t=tagOf(c);if(t&&BIDXALL[t])return{code:c,set:bankSet(BIDXALL[t]),sub:BIDXALL[t].sub,subname:BIDXALL[t].subname,type:BIDXALL[t].label};return null}
 /* ---------- 저장소 · 클라우드 ---------- */
@@ -1290,7 +1310,7 @@ const ICON={
  green:'<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#3fb36b"/><path d="M9.5 16.5l4.4 4.4 8.6-9.2" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
  star:'<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#1f9d57"/><path d="M16 6.6l2.8 6 6.5.7-4.9 4.4 1.4 6.4L16 20.8l-5.8 3.3 1.4-6.4-4.9-4.4 6.5-.7z" fill="#ffe27a" stroke="#fff" stroke-width=".8" stroke-linejoin="round"/></svg>'};
 const LV={skull:'해골 · 거의 못 맞힘',gray:'아직 안 풀어 봄',red:'위험',yellow:'보통',green:'양호',star:'완전 정복'};
-function lvl(o){if(!o.n)return 'gray';const s=o.n<3?o.p:.4*o.p+.6*o.rp;if(s<.3)return 'skull';if(s<.5)return 'red';if(s<.75)return 'yellow';if(s>=.9&&o.n>=3)return 'star';return 'green'}
+function lvl(o){if(!o.n)return 'gray';const s=o.n<3?o.p:.4*o.p+.6*o.rp;if(s<.3)return 'skull';if(s<.5)return 'red';if(s<.75)return 'yellow';if(s>=.9&&o.n>=10)return 'star';return 'green'}
 function typeRows(hs){hs=hs||H();const all={};
  const ent=(sub,subname,type)=>{const k=sub+'|'+type;return all[k]=all[k]||{k,sub,subname,type,pool:0,n:0,r:0,rec:[]}};
  DATA.forEach(q=>{if(!q.sub||!q.type||tagOf(q.code)||!examQuestionOn(q))return;ent(q.sub,q.subname,q.type).pool++});
