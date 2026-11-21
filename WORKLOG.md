@@ -1,5 +1,11 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-21 · Claude Code · claude/beautiful-wright-4upm3d
+- 한 일: 물질과 에너지를 해원고 부교재(Ⅲ·Ⅳ단원 개념 학습지 + 수준별 평가 6종) 기준으로 재구성. 원본 148문항 전사(자세한 풀이), 변형 7,962 · 동유형 유사 5,833문항 생성(난이도 하·중·상·최상), 새 유형 28개로 재분류, 범위 밖 4개 유형·문항 삭제. 개념 정리를 학습지 빈칸 답을 채운 25절로 새로 작성(원본 그림 400 dpi). 교재 만들기에 「해원고 부교재 우선」 옵션(원본 → 원본마다 변형 n · 유사 n, 서답형 원본은 서술형 구성, 다른 문항 제외). 모든 수식을 Latin Modern Math로 고정(앱·인쇄 창·학습지·교재·개념 인쇄·LaTeX 양식, 사용자 글꼴 선택보다 우선). 채점 기록·통계·학습지 목록·학교 기출·홈 등 모든 화면이 지금 고른 과목 것만 보이도록 `HS()`/`WS()`로 분리(모든 과목 공통). HWPX 내보내기: 화학 반응식 한 줄(→·⇄)을 편집 가능한 수식 개체 하나로(원소 기호 정자 `rm`, 상태·변수 기울임, 단위 정자), 낱개 화학식도 정자로, 「<보기>」의 <·>와 학습지 번호(1234-5678)가 수식으로 잘못 바뀌던 문제 수정.
+- 바뀐 파일: `bank/`(hw* 49개 새 파일, 기존 유형 재분류, eqm·fuel·znkhalf01·zntemp01 삭제, `index.json`, `concept.json`, `data.js`), `fig/hw/`, `fonts/LatinModernMath.woff2`(+GUST 라이선스), `lib/latex/latinmodern-math.otf`·`template.tex`·`book-document.js`·`local.js`·`book-layout.js`, `index.html`, `books.js`(v93), `lazy/omr-report.js`, `lazy/acad.js`, `lib/hwpx.js`(v3), `lazy/hwpx-export.js`, `sw.js`(v227), `tests/app-ui.cjs`(새 유형 이름), `tests/hwpx-editable.cjs`(화학식 정자 기대값), 생성기 `tools/me/`, `docs/verification/2026-11-21-me-haewon-curriculum.md`.
+- 확인: `python3 tools/me/verify.py` 13,943문항 오류 0건(정답 재계산·보기 조합·선지 중복·HTML/MathML·원본 해설 일치). 정적 파싱 17개 통과. 1440/820/390 px에서 문항·개념 25절·교재 옵션 카드 확인, 휴대폰 가로 넘침 0. 해원고 교재 계획 282문항 전부 부교재 문항. 과목 섞임: 화법 기록·학습지를 넣어도 물질과 에너지에서 보이지 않음. 전체 `npm test` 결과는 PR 설명 참조.
+- 남은 일 · 주의: 원본 PDF는 커밋하지 않음(그림만). 다시 만들려면 `HW_FIG_SRC`(잘라 둔 그림 폴더)로 `tools/me/figs.py`·`concept.py`. 숫자가 바뀐 변형 문항의 그래프는 원본 캡처 대신 SVG로 새로 그림. HWPX의 수식은 한컴 수식 개체(HancomEQN)라 Latin Modern Math를 지정할 수 없음. 보내준 HWPX는 이 환경에 한컴이 없어 직접 열어 보지 못했고, 생성 XML(수식 스크립트·구조)로만 확인함 — 표·쪽 배치 등 다른 깨짐은 한컴에서 재확인 필요. 212번(원본 정답 오류)·224번(표 오기)은 문항에 표시. 실제 기기·종이 인쇄 미확인. 병합 미실시.
+
 ## 2026-11-21 · Codex · codex/fix-worksheet-header-ci
 - 한 일: 사용자 정정대로 1페이지의 기존 머리말·QR·하단 구성을 복원하고 2페이지부터만 간소화 머리말·기존 하단 QR을 적용. 첫 페이지 머리말 제거로 발생한 CI의 ws-approved-styles null 참조 원인 해결. 첫 페이지 보존 검사를 집중 회귀에 추가.
 - 바뀐 파일: `index.html`, `sw.js`(v225), `tests/worksheet-simple-header.cjs`, `WORKLOG.md`.

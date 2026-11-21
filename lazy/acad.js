@@ -108,7 +108,7 @@ async function acFillPins(){let n=0;for(const s of AC.stu){if(!s.att_pin&&pinFro
 function acNoteHtml(){
  const cls=[...new Set(AC.stu.map(s=>String(s.grade||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko',{numeric:true}));
  const opts='<option value="">전체 학생</option>'+cls.map(g=>`<option value="c:${esc(g)}">반 전체 · ${esc(g)}</option>`).join('')+AC.stu.map(s=>`<option value="${s.id}">${esc(s.name)} ${esc(s.grade||'')}</option>`).join('');
- const ws=(typeof WSH!=='undefined'?WSH.slice().sort((a,b)=>b.t-a.t).slice(0,20):[]);
+ const ws=(typeof WSH!=='undefined'?(typeof WS==='function'?WS():WSH).slice().sort((a,b)=>b.t-a.t).slice(0,20):[]);
  const wo='<option value="">첨부 안 함</option>'+ws.map(w=>`<option value="${esc(w.id)}">${esc(w.title)} · ${esc(fmtNo(w.id))}</option>`).join('');
  const tag={all:'학생·학부모',parent:'학부모',student:'학생'};
  const list=AC.notes.map(n=>`<div class="axnl"><div><b>${esc(n.title)}</b><small>${new Date(n.t).toLocaleString('ko-KR')} · ${n.sid?esc(acStuName(n.sid)):'전체'} · ${tag[n.aud]||'학생'}</small><p>${esc(n.body).replace(/\n/g,'<br>')}</p></div><span class="axna"><button class="s sm" aria-label="다시 쓰기: ${esc(n.title)}" onclick="acNoteReuse('${n.src}',${n.id})">다시 쓰기</button><button class="s sm" aria-label="삭제: ${esc(n.title)}" onclick="acNoteDel('${n.src}',${n.id})">삭제</button></span></div>`).join('');

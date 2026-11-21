@@ -20,7 +20,7 @@ function openReport(hsIn){
  const order={skull:0,red:1,yellow:2,green:3,star:4,gray:5};
  const weak=rows.filter(o=>o.n).sort((a,b)=>order[a.lv]-order[b.lv]||a.p-b.p).slice(0,8);
  const adv={skull:'개념 정리부터 다시 읽고, 쉬운 문제부터 반복',red:'유형 문제를 하·중 위주로 반복',yellow:'틀린 문제 복습과 쌍둥이 문제로 확인',green:'가끔 점검',star:'충분함'};
- const wsn=WSH.filter(w=>!CUR_S||w.sid===CUR_S).length;
+ const wsn=(typeof WS==="function"?WS():WSH).filter(w=>!CUR_S||w.sid===CUR_S).length;
  const L=lastRes();const wrongCodes=Object.entries(L).filter(([c,a])=>a[a.length-1]===0).map(([c])=>c);
  const recent=hs.slice(-10).reverse();
  const bar=p=>`<div class="bar ${p<.5?'vl':p<.75?'lo':''}"><i style="width:${Math.round(p*100)}%"></i></div>`;
@@ -54,7 +54,7 @@ function repOpen(kind,id){REP.kind=kind||'stu';REP.id=id||'';REP.cm='';REP.bk=nu
 
 function repDays(d){REP.days=d;repRender()}
 
-async function repBook(){const my=REP;try{if(!(typeof bkLoad==='function'))return;await bkLoad();await bkInit();const books=bkBookList(),sid=REP.kind==='stu'?(teacher()?(REP.id||CUR_S):''):'';const hs=REP.kind==='stu'?(teacher()?hist.filter(h=>h.sid===sid):hist):[];const recs=bkRecs(hs);const out=[];
+async function repBook(){const my=REP;try{if(!(typeof bkLoad==='function'))return;await bkLoad();await bkInit();const books=bkBookList(),sid=REP.kind==='stu'?(teacher()?(REP.id||CUR_S):''):'';const hs=REP.kind==='stu'?(teacher()?HS().filter(h=>h.sid===sid):HS()):[];const recs=bkRecs(hs);const out=[];
   for(const b of books){const pg=await bkPagesOf(b);out.push(bkStatOf(b,pg,recs));if(my!==REP)return}
   REP.bk=out;if($('#wsView').classList.contains('open'))repRender()}catch(e){}}
 
@@ -66,7 +66,7 @@ function repRender(){const days=REP.days,cls=REP.kind==='cls';let body='',title=
  .cm{min-height:24mm;border:.3mm dashed #9aa7b6;border-radius:2mm;padding:2.5mm 3mm;white-space:pre-wrap;outline:none}.cm:empty::before{content:'여기를 눌러 코멘트를 입력하세요 (인쇄에 포함돼요)';color:#9aa7b6}.ft{position:absolute;left:15mm;right:15mm;bottom:8mm;text-align:center;font-size:8pt;color:#8794a3}.g2{display:grid;grid-template-columns:1fr 1fr;gap:5mm}@media print{.pg{box-shadow:none;margin:0}.cm:empty::before{content:''}}`;
  const chart=(per)=>{const mx=Math.max(1,...per.map(x=>x.n)),w=170,h=34,bw=w/per.length;return `<svg viewBox="0 0 ${w} ${h+8}" style="width:100%;height:30mm">${per.map((x,i)=>{const bh=x.n/mx*h;return `<rect x="${i*bw+1}" y="${h-bh}" width="${Math.max(1,bw-2)}" height="${Math.max(bh,x.n?.6:0)}" fill="${x.n?'#2a72bf':'#e8eef5'}" rx=".8"/>${per.length<=14||i%Math.ceil(per.length/14)===0?`<text x="${i*bw+bw/2}" y="${h+5.5}" font-size="3.2" text-anchor="middle" fill="#586476">${new Date(x.d).getDate()}</text>`:''}${x.n?`<text x="${i*bw+bw/2}" y="${h-bh-1}" font-size="3" text-anchor="middle" fill="#1d5ca6">${x.n}</text>`:''}`}).join('')}</svg>`};
  if(!cls){const sid=teacher()?(REP.id||CUR_S):'',st=teacher()?STU.find(x=>x.id===sid):null;if(teacher()&&!st){toast('학생을 먼저 선택하세요');return}
-  const hs=teacher()?hist.filter(h=>h.sid===sid):hist,name=teacher()?st.name:(STINFO&&STINFO.name)||'',grade=teacher()?clsName(st):(STINFO&&STINFO.grade)||'';
+  const hs=teacher()?HS().filter(h=>h.sid===sid):HS(),name=teacher()?st.name:(STINFO&&STINFO.name)||'',grade=teacher()?clsName(st):(STINFO&&STINFO.grade)||'';
   const M=repMetrics(hs,days),S=habitStats(hs),rows=typeRows(hs).filter(o=>o.n),weak=rows.filter(o=>['skull','red','yellow'].includes(o.lv)).sort((a,b)=>a.p-b.p).slice(0,5),strong=rows.filter(o=>['star','green'].includes(o.lv)&&o.n>=3).sort((a,b)=>b.p-a.p).slice(0,3);
   const as=teacher()?ASSIGN.filter(x=>x.student_id===sid):ASSIGN,done=as.filter(x=>hs.some(h=>h.set==='ws'&&h.sub===x.wid)).length,late=as.filter(x=>x.due&&x.due<new Date().toISOString().slice(0,10)&&!hs.some(h=>h.set==='ws'&&h.sub===x.wid)).length;
   const ex=ddayList(grade).find(x=>x.days>=0);title=name+' 학습 리포트';
@@ -78,8 +78,8 @@ function repRender(){const days=REP.days,cls=REP.kind==='cls';let body='',title=
   ${REP.bk?`<h2>교재 진도</h2><table><tr><th style="width:26%">교재</th><th>진도</th><th>채점한 쪽</th><th>정답률</th></tr>${REP.bk.map(x=>`<tr><td class="l">${esc2(x.b.name)}</td><td><div class="bar"><i style="width:${x.pct||0}%"></i></div></td><td>${x.done}${x.tot?'/'+x.tot:''}</td><td>${x.acc===null?'-':Math.round(x.acc*100)+'%'}</td></tr>`).join('')}</table>`:''}
   <h2>선생님 코멘트</h2><div class="cm" contenteditable="true" oninput="REP.cm=this.innerText">${esc2(REP.cm)}</div>`}
  else{const ss=clsMembers();if(!ss.length){toast('반을 먼저 선택하세요');return}const nm=SGR==='__none'?'반 미지정':SGR;title=nm+' 반 리포트';
-  const rowsS=ss.map(x=>{const h=hist.filter(y=>y.sid===x.id),m=repMetrics(h,days),sh=habitStats(h),w=typeRows(h).filter(o=>o.n&&['skull','red','yellow'].includes(o.lv)).sort((a,b)=>a.p-b.p)[0];return {x,m,sh,w}});
-  const all=repMetrics(hist.filter(h=>ss.some(x=>x.id===h.sid)),days),CS=clsStats(ss),act=rowsS.filter(r=>r.m.P.n).length;
+  const rowsS=ss.map(x=>{const h=HS().filter(y=>y.sid===x.id),m=repMetrics(h,days),sh=habitStats(h),w=typeRows(h).filter(o=>o.n&&['skull','red','yellow'].includes(o.lv)).sort((a,b)=>a.p-b.p)[0];return {x,m,sh,w}});
+  const all=repMetrics(HS().filter(h=>ss.some(x=>x.id===h.sid)),days),CS=clsStats(ss),act=rowsS.filter(r=>r.m.P.n).length;
   body=`<h1>${esc2(nm)} 학습 리포트</h1><div class="sub">${esc2(sp)} · 최근 ${days}일 (${fmtD(all.today-(days-1)*864e5).slice(5)} ~ ${fmtD(all.today).slice(5)}) · 학생 ${ss.length}명 · 발행 ${now}</div>
   <div class="kp"><div><small>학생</small><b>${ss.length}</b></div><div><small>푼 문항 합계</small><b>${all.P.n}</b><em>${all.Q.n?repDelta(all.P.n,all.Q.n):''}</em></div><div><small>반 평균 정답률</small><b>${all.P.p===null?'-':Math.round(all.P.p*100)+'%'}</b><em>${repDelta(all.P.p,all.Q.p,1)}</em></div><div><small>학습한 학생</small><b>${act}/${ss.length}</b></div><div><small>1인 평균 문항</small><b>${ss.length?Math.round(all.P.n/ss.length):0}</b></div></div>
   <h2>일별 반 전체 학습량</h2>${chart(all.per)}
