@@ -13,6 +13,6 @@ const {chromium,browserOptions}=require('./runtime.cjs');
   const root=document.querySelector('#wsPaper').shadowRoot,s=root.querySelector('.pg[data-solvi-kind="answers"] .sb.wq'),h=root.querySelector('.ph2.ref2'),sub=h.querySelector('.ref-running-subject'),a=h.getBoundingClientRect(),b=sub.getBoundingClientRect();
   return {oldHeads:s.querySelectorAll('.sol .sh').length,answers:s.querySelectorAll('.ws-answer').length,numbers:[...s.querySelectorAll('.sol p.st')].slice(0,5).map(p=>p.textContent.trim()[0]),font:getComputedStyle(sub).fontFamily,delta:Math.abs((a.left+a.right-b.left-b.right)/2)};
  });
- assert.equal(result.oldHeads,0,'original answer heading must not duplicate worksheet heading');assert.equal(result.answers,1);assert.deepEqual(result.numbers,['①','②','④','③','⑤'],'explanations must follow current choice numbers rather than explanation order');assert.match(result.font,/SolviKoPub/);assert.ok(result.delta<1,JSON.stringify(result));
+ assert.equal(result.oldHeads,0,'original answer heading must not duplicate worksheet heading');assert.equal(result.answers,1);assert.deepEqual(result.numbers,['①','②','③','④','⑤'],'explanations are labeled with current choice numbers and sorted into choice order');assert.match(result.font,/SolviKoPub/);assert.ok(result.delta<1,JSON.stringify(result));
  console.log('PASS single answer heading, real shuffled choice labels, KoPub and centered continuation header');
 }finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});
