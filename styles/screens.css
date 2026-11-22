@@ -226,3 +226,25 @@ html[data-theme=dark] .ldg .sk{background:#262c36}html[data-theme=dark] .ldg .sk
 .hwopt span{min-width:0;overflow-wrap:anywhere;white-space:normal}
 /* 「만드는 중」 표시는 전체 화면 창(학습지 출제 #mkw 9500)보다 위에 */
 #busy{z-index:9800}
+/* 진행 표시(만드는 중): 옅은 막 + 가운데 카드. 실제 진행률이 있을 때만 막대 · 퍼센트 */
+#busy{background:rgba(244,246,249,.62)}
+:root[data-theme="dark"] #busy{background:rgba(12,16,22,.55)}
+#busy .bx{flex-direction:row;align-items:center;gap:14px;min-width:0;width:auto;max-width:min(340px,calc(100vw - 32px));padding:18px 22px;background:var(--ui-surface,#fff);color:var(--ui-text,#14202e);border:1px solid var(--ui-border,#e3e8ee);border-radius:16px;box-shadow:0 12px 32px rgba(16,32,44,.16);opacity:0;animation:busyIn .2s cubic-bezier(.23,1,.32,1) .25s forwards}
+#busy .busy-spin{flex:none;width:26px;height:26px;border-radius:50%;border:3px solid var(--ui-raised,#eef1f5);border-top-color:var(--ui-accent,#2f7fd0);animation:busySpin .8s linear infinite}
+#busy .busy-tx{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:left}
+#busy b{font-size:15px;font-weight:600;color:inherit}
+#busy small{font-size:12.5px;color:var(--ui-muted,#5f6c7b)}
+#busy .busy-progress{display:none;padding-top:8px}
+#busy.real .busy-progress{display:block}
+#busy.real .bring{width:220px;max-width:100%;background:var(--ui-raised,#eef1f5)}
+#busy.real .bring span{color:var(--ui-text,#14202e)}
+@keyframes busyIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes busySpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#busy .busy-spin{animation:none;border-top-color:var(--ui-accent,#2f7fd0)}#busy .bx{animation:none;opacity:1}}
+/* 담은 문항 바: 문항 상세 창(#exp) 위, 휴대폰은 버튼 줄바꿈 */
+#bkbar{z-index:9600;flex-wrap:wrap;justify-content:center;row-gap:8px;width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box}
+#bkbar .bk-n{white-space:nowrap}
+#bkbar .bk-note{color:#c9d4e0;font-size:13px}
+#bkbar .bk-acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+#bkbar .bk-acts button{min-height:40px}
+.ckgo{width:100%;min-height:44px;margin:10px 0 6px}

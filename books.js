@@ -1313,6 +1313,8 @@ function bkBookList(){const S=bkSel();const sk=bkScope(S).map(s=>s.k),inS=k=>sk.
  if(SUBJ==='hl')BKHM.forEach(([id,n,sb])=>L.push({id,name:'주교재 '+n+(id==='hl-hmg'?' (언어 먼저)':''),sub:sb,meta:'주교재',main:1}));
  bkxAll().filter(b=>b.subj===SUBJ).forEach(b=>L.push({id:b.id,name:b.name,sub:b.sub||BKK[b.kind==='full'?'full':'std'][0],meta:b.asg?'선생님이 배포한 교재'+(b.due?' · 마감 '+b.due:''):b.kind==='full'?'전범위 · '+(b.rounds||20)+'회분':'내가 만든 교재',custom:1,asg:!!b.asg,full:b.kind==='full'}));
  return L}
+/* 채점 목록: 화법과 언어 주교재(기본 교재)는 배포된 학생이 1명 이상일 때만 */
+function bkGradeList(){return bkBookList().filter(b=>!b.main||bkDistN(b.id)>0)}
 async function bkShow(){
  await bkInit();await conceptLoad();
  await bkxCheckAssigned();
@@ -1434,7 +1436,7 @@ function bkPathGo(){const id=bkBare($('#bkp1').value)+bkSufOf(),v=$('#bkp2').val
  if(R.p){if(R.bad.length||!R.codes.length)return;return bkEntryRun('선택한 문항을 준비하는 중…',()=>practice(R.codes,BKPATHPLAN.short+' p.'+R.p.n+' '+R.L.join(',')+'번'))}
  BKQ=pages.length>1?{id,pages:pages.slice(1)}:null;return bkGradePage(id,pages[0])}
 async function bkPathMount(el){
- await bkInit();await conceptLoad();if(!el.isConnected)return;const L=bkBookList();
+ await bkInit();await conceptLoad();if(!el.isConnected)return;const L=bkGradeList();
  BKPATHSEQ++;BKPATHPLAN=null;BKPATHGROUPS=new Map();BKSEL=new Set();
  el.innerHTML=`<div class="bk-range-picker"><div class="bk-range-fields"><div><label for="bkp1">1. 교재 선택</label><select id="bkp1" onchange="bkPath(1)"><option value="">교재를 골라 주세요</option>${L.map(b=>b.full?Array.from({length:(bkxAll().find(x=>x.id===b.id)||{}).rounds||20},(_,i)=>`<option value="${b.id}r${i+1}">${esc(b.name)} ${i+1}회</option>`).join(''):`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select></div><div><label for="bkp2">2. 단원·구성 선택</label><select id="bkp2" onchange="bkPath(2)" disabled><option value="">교재를 먼저 선택해 주세요</option></select></div></div><h3>3. 채점할 쪽 선택</h3><input type="hidden" id="bkp3"><div id="bk-page-options" class="bk-page-options" role="group" aria-label="채점할 쪽"></div><div class="bk-range-extra"><div><label for="bk-page-input">쪽 번호로 고르기</label><input id="bk-page-input" inputmode="numeric" placeholder="예: 12-15, 18" onkeydown="if(event.key==='Enter')bkPathType()" onchange="bkPathType()"></div><div><label for="bk-q-input">문항 번호 (한 쪽만, 선택)</label><input id="bk-q-input" inputmode="numeric" placeholder="예: 1-3, 5" disabled oninput="bkRangeSum()"></div></div><p id="bk-range-err" class="bk-range-err" role="alert"></p><div class="bk-range-bottom"><p id="bk-range-summary" role="status" aria-live="polite">${L.length?'먼저 교재를 선택해 주세요.':'채점할 교재가 없어요. 배포받은 교재를 확인해 주세요.'}</p><button type="button" class="p" id="bkpg" onclick="bkPathGo()" disabled>선택한 범위 채점</button></div></div>`;
 }
