@@ -310,7 +310,8 @@ def table_tex(tb):
     lines = [r'\hline']
     for i, r in enumerate(grid):
         cells = [v for _, v in r] + [''] * (ncol - len(r))
-        lines.append(' & '.join(cells) + r' \\')
+        # 머리줄(실험 · [NO](M) …)은 연한 회색 바탕
+        lines.append((r'\rowcolor{black!8}' if i == 0 and head and len(grid) > 1 else '') + ' & '.join(cells) + r' \\')
         if i == 0 and head and len(grid) > 1: lines.append(r'\hline')
     lines.append(r'\hline')
     # 표는 한 단 폭에 맞춘다: 자연 폭이 단보다 좁으면 남는 폭을 칸 수만큼 나눠 칸 양옆 여백(\tabcolsep)에 더해
