@@ -1,5 +1,10 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (교재 편집 미리보기 롤백)
+- 한 일: 교재 편집 화면 미리보기(bkfPreview)가 bkPlanFree를 바로 불러 예전 데이터(bank0) 교체를 안 거치던 것 수정 — bkLegacyRun으로 교재 화면 · 인쇄와 같은 데이터로 만든다(BKLOCK 직렬).
+- 확인: 륜원햄(me-xft_a1_p1) 미리보기와 교재 둘 다 99쪽, 45쪽 Q41-003·004·005·012·015, 57쪽 Q41-082·083, 쪽별 문항 완전히 같음.
+- 바뀐 파일: books.js, index.html(books.js?v=99), sw.js(v243), WORKLOG.md
+
 ## 2026-11-22 · Claude Code · claude/book-rollback-font
 - 한 일: 교재 수식 글꼴을 #146 이전(기본 수식 글꼴)으로 되돌림 — 기존 교재가 예전 인쇄본과 같게.
 - 확인: 사용자 교재 3권(me-xfc_o_b_t_z1_a2, me-xft_a1_p1, hl-xfq_…_a1)을 커밋별로 다시 짜 비교. f3a52b5와 현재가 쪽수 · 쪽별 문항 · 쪽 HTML 해시 모두 같고(All in One 56쪽 Q33-004·005·014, 륜원햄 7쪽 Q31-033~036, 화법 10쪽 N-006·007·009·012), 해당 쪽 화면 캡처도 픽셀까지 같음. 455b31e~02052a2 배포본에서는 달랐음.
