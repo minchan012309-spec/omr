@@ -1,5 +1,11 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (3차: 빌드업 PDF 재생성)
+- 한 일: 사용자가 보내 준 빌드업 zip의 진짜 글꼴(HYHWPEQ · KoPubDotumMedium · ShinMyeongjo · KoPubWorldBold)로 `presets/me-haewon-buildup.pdf`를 다시 만듦. 표가 한 단 폭에 맞고(PR #152의 `conv.py` 수정), 선지가 표의 ①~⑤만 가리키는 문항은 번호만 나옴. 사용자 요청으로 표 머리줄(실험 · [NO](M) …)에 연한 회색 바탕(`\rowcolor{black!8}`, `conv.py`)을 넣음 — 가로 · 세로 실선은 그대로(300 dpi 픽셀로 확인). zip의 build.py · pre.tex는 저장소와 같고 conv.py는 PR #152 이전 저장소 판과 같음을 확인(글꼴만 사용, 글꼴은 저장소에 넣지 않음).
+- 바뀐 파일: `presets/me-haewon-buildup.pdf`, `tools/me/buildup/conv.py`, `sw.js`(v233), `WORKLOG.md`.
+- 확인: XeLaTeX 오류 0, 78쪽(이전과 같음), 누락 글자는 수식 글꼴의 공백(U+0020) 경고뿐(이전과 같음). 81 · 82번 쪽 300 dpi로 표 폭 확인. 2쪽 QR을 300 dpi로 읽어 `https://solvi.win/#ws=22643735` 확인(1쪽은 이전 PDF와 마찬가지로 읽히는 QR 없음).
+- 남은 일 · 주의: 실제 종이 인쇄 미확인.
+
 ## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (2차: HWPX 디자인 · 인쇄 · 계정 · 코드 검색 · 빌드업 표)
 - 한 일:
   - HWPX를 HTML 디자인과 맞춤(`lib/hwpx.js` v5): <보기> 제목이 위 테두리에 걸치는 모양(3×3 표: 위 두 줄 반 높이 + 가운데 칸 제목), 보기 줄 · 선지 내어쓰기(CSS padding-left · text-indent → 한컴 왼쪽 여백 · 내어쓰기), 문단 앞 간격은 HTML에서 앞 덩어리와 실제로 벌어진 거리로, 표 칸 안쪽 여백 · 테두리(색 · 굵기 · 종류) · 바탕 · 세로 정렬을 CSS 계산값 그대로, 글자 간격, ① 뒤 간격 등 인라인 여백, 바탕색만 있는 상자(단원 머리 · 문항 묶음 띠)는 같은 바탕의 칸, 단 사이 세로줄(colLine), 평가원 머리말(QR | 과목명 | 쪽) 한 줄 표 + 밑줄, 학번 · 이름 빈칸 밑줄, 작은 상자(학습 문항) 폭 여유, 머리말의 쪽 번호는 한컴 쪽 번호 필드, 오른쪽 끝 글(배점 · 문항 수)은 오른쪽 탭. 테두리 채우기 1번은 항상 「선 없음」으로 고정(문단 · 글자가 1번을 가리킴).
@@ -10,7 +16,7 @@
   - 빌드업 생성기(`tools/me/buildup/conv.py`): 표를 한 단 폭에 맞춤(남는 폭을 칸 양옆 여백에 나눠 다시 짬, 넘치면 예전처럼 축소), 선지가 표의 ①~⑤를 가리키기만 하면 「① ①」 대신 번호만.
 - 바뀐 파일: `lib/hwpx.js`(v5), `lazy/hwpx-export.js`(v4), `books.js`(v94), `index.html`, `sw.js`(v232), 새 `supabase/sql_29_account_self.sql`, `tools/me/buildup/conv.py`, 새 검사 `tests/print-sheets.cjs` · `tests/account-self-db.cjs` · `tests/account-self-ui.cjs` · `tests/student-code-search.cjs`, `tests/hwpx-worksheet-layout.cjs`(디자인 검사 추가), `tests/run.cjs`, `WORKLOG.md`.
 - 확인: 학습지(기본 · 평가원) · 교재 HWPX를 오픈소스 렌더러(@rhwp/core, 이 환경에서만)로 그려 HTML 화면과 비교. 새 검사 4개 통과(인쇄 검사는 인쇄 창 도구 막대가 자리를 잡는 동안 누른 클릭이 빠지는 경우가 있어 상태가 바뀔 때까지 다시 누르게 함). 계정 SQL은 PGlite에서(발급 → must_reset, 틀린 비밀번호 · 토큰 · 형식 · 길이 · 중복 거부, 토큰 무효, 재발급 시 다시 요구). 첫 로그인 창 · 설정 화면 1440 · 390 스크린샷. 빌드업은 XeLaTeX로 대체 글꼴(HYHWPEQ 대신 HancomEQN, KoPubDotumMedium 대신 KoPubWorldMedium)을 써서 생성해 81 · 82번 표가 단 폭에 맞는 것 확인(53쪽, 오류 0). 전체 `npm test` 통과(EXIT 0, 새 검사 포함).
-- 남은 일 · 주의: 운영 Supabase에 `supabase/sql_29_account_self.sql`을 한 번 실행해야 계정 바꾸기 · 첫 로그인 재설정이 동작(안 하면 「SQL 29 적용 필요」 안내, 첫 로그인 창은 뜨지 않음). 이미 발급돼 쓰고 있는 계정은 강제하지 않고, 실행 뒤 발급 · 재발급한 계정부터 적용. `presets/me-haewon-buildup.pdf`는 진짜 글꼴(HYHWPEQ.ttf · KoPubDotumMedium.ttf)이 저장소에 없어 다시 만들지 않음 — 글꼴을 받으면 `python3 tools/me/buildup/build.py --fonts <폴더> --out <폴더>`로 재생성. 한컴에서 직접 열어 보지 못함(특히 <보기> 3×3 표 높이, 오른쪽 탭, 쪽 번호 필드). 실제 기기 미확인. 병합 미실시.
+- 남은 일 · 주의: 운영 Supabase에 `supabase/sql_29_account_self.sql`을 한 번 실행해야 계정 바꾸기 · 첫 로그인 재설정이 동작(안 하면 「SQL 29 적용 필요」 안내, 첫 로그인 창은 뜨지 않음). 이미 발급돼 쓰고 있는 계정은 강제하지 않고, 실행 뒤 발급 · 재발급한 계정부터 적용. 빌드업 PDF는 다음 기록에서 진짜 글꼴로 다시 만듦. 한컴에서 직접 열어 보지 못함(특히 <보기> 3×3 표 높이, 오른쪽 탭, 쪽 번호 필드). 실제 기기 미확인. PR #152로 병합 · 배포됨.
 
 ## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (후속: 태블릿 학생 목록)
 - 한 일: 태블릿 가로(사이드바 펼침)에서 학생 목록 오른쪽 「상세 · …」 버튼이 카드 밖으로 밀려 잘리던 문제 수정. 원인: 칸 수를 화면 폭(`max-width:1180px`)으로 정했는데 칸 최소 폭 합(약 1,050px)이 사이드바를 뺀 카드 폭보다 컸음(1024px · 1194~1366px에서 넘침). 칸 수를 카드 폭 기준 컨테이너 쿼리(`.stx-list{container:stx/inline-size}`, 960px 이하 7칸, 620px 이하 최근 풀이도 숨김)로 바꾸고 최소 폭을 줄임, 버튼 칸은 고정 112px. 머리줄의 약한 유형 · 계정 · 최근 풀이 칸에 클래스가 없어 숨긴 칸 머리가 남아 줄이 어긋나던 기존 문제도 수정.
