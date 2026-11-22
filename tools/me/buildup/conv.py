@@ -290,6 +290,7 @@ def opts_macro(items, cls):
         x = re.sub(r'\\[a-zA-Z]+|[\$\{\}_^]', '', x)
         return sum(1.0 if ord(c) > 0x2E80 else (0.4 if c in ', ' else 0.55) for c in x)
     mx = max(w(x) for x in items)
+    if not any(items): return 'examoptsfive'
     if 'v' in cls: return 'examoptsvertical'
     if 'w2' in cls: return 'examoptstwo'
     if mx <= 4.0: return 'examoptsfive'
@@ -312,8 +313,13 @@ def table_tex(tb):
         lines.append(' & '.join(cells) + r' \\')
         if i == 0 and head and len(grid) > 1: lines.append(r'\hline')
     lines.append(r'\hline')
+    # 표는 한 단 폭에 맞춘다: 자연 폭이 단보다 좁으면 남는 폭을 칸 수만큼 나눠 칸 양옆 여백(\tabcolsep)에 더해
+    # 다시 짠다(칸 비율 · 세로줄 위치는 그대로). 단보다 넓으면 예전처럼 단 폭으로 줄인다.
+    tab = r'\begin{tabular}{%s}%s\end{tabular}' % (spec, '\n'.join(lines))
     return (r'\par\vspace{2.2mm}\nointerlineskip\begingroup\centering\fontsize{8.2}{12}\selectfont\renewcommand{\arraystretch}{1.45}'
-            r'\setbox0\hbox{\begin{tabular}{%s}%s\end{tabular}}\ifdim\wd0>\linewidth\resizebox{\linewidth}{!}{\box0}\else\box0\fi\par\endgroup\vspace{1.6mm}' % (spec, '\n'.join(lines)))
+            r'\setbox0\hbox{%s}\ifdim\wd0>\linewidth\resizebox{\linewidth}{!}{\box0}\else'
+            r'\dimen0=\linewidth\advance\dimen0 by -\wd0\divide\dimen0 by %d\advance\tabcolsep by \dimen0\hbox{%s}\fi'
+            r'\par\endgroup\vspace{1.6mm}' % (tab, 2 * ncol, tab))
 
 def block_tex(n):
     """div.qs 의 자식들 → TeX"""
@@ -336,8 +342,12 @@ def block_tex(n):
                 ps.append(r'\bogi{%s}{%s}' % (m.group(1), s[m.end():]) if m else s + r'\par')
             out.append(r'\choices{%s}' % ''.join(ps))
         elif t == 'div' and 'chs' in cls:
-            items = [inl(d.find('span')) for d in k.find_all('div', recursive=False)]
+            divs = k.find_all('div', recursive=False)
+            items = [inl(d.find('span')) for d in divs]
             assert len(items) == 5, items
+            # 선지가 표의 ①~⑤ 줄을 가리키기만 하면(「① ①」) 번호만 남긴다.
+            if all(d.find('span').get_text(strip=True) == '①②③④⑤'[i] for i, d in enumerate(divs)):
+                items = [''] * 5
             out.append('\\%s{%s}{%s}{%s}{%s}{%s}' % ((opts_macro(items, cls),) + tuple(items)))
         elif t == 'div' and 'fg' in cls:
             imgs = k.find_all('img')
