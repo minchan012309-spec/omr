@@ -3888,7 +3888,7 @@ async function wsFav(id){const w=WSH.find(x=>x.id===id);w.fav=w.fav?0:1;wsStore(
 /* ---- 쌍둥이 문제 담기 (문제 보기 창) ---- */
 async function addTwins(code){const q=byCode[code];if(!q)return;const tags=Object.entries(BIDX).filter(([t,b])=>b.sub===q.sub&&b.label===q.type).map(([t])=>t);await ensureTags(tags);
  const pool=DATA.filter(x=>x.set==='bank'&&x.sub===q.sub&&x.type===q.type&&x.code!==code);let t=pool.filter(x=>x.fam&&x.fam===q.fam);if(t.length<3)t=t.concat(pool.filter(x=>!t.includes(x)&&(x.lv||'중')===(q.lv||'중')));
- shuffle(t).slice(0,3).forEach(x=>{if(!BASKET.includes(x.code))BASKET.push(x.code)});saveBasket();basketBar('쌍둥이 문제 3개를 담았어요')}
+ shuffle(t).slice(0,3).forEach(x=>{if(!BASKET.includes(x.code))BASKET.push(x.code)});saveBasket();basketBar('쌍둥이 문제 3개를 담았어요. 바로 학습지로 만들까요?')}
 
 /* =================== 학습지 검토 (만들기 전 마지막 확인) =================== */
 let RV=null;
