@@ -106,7 +106,7 @@ def build(write=True):
         files[tag] = qs
         lvc = collections.Counter(q['lv'] for q in qs)
         t0 = L[0]['typ']
-        index[tag] = dict(lv=dict(lvc), label=TYPES[t0][1], sub=TYPES[t0][0], subname=SUBNAME[TYPES[t0][0]], n=len(qs), hw=1)
+        index[tag] = dict(lv=dict(lvc), label=TYPES[t0][1], sub=TYPES[t0][0], subname=SUBNAME[TYPES[t0][0]], n=len(qs), hw=1, hwn=sum(1 for q in qs if q['hw'] in ('o', 'v', 's')))
         if tag.startswith('hwe'): index[tag]['set'] = 'essay'
     return files, index, dup, items
 

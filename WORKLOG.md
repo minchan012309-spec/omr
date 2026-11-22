@@ -1,10 +1,23 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (6차: 해원고 부교재 옵션)
+- 한 일: 물질과 에너지 학습지 만들기 「출제 대상」과 전범위 모의고사 「출제 범위」에 「해원고 부교재 — 원본 · 변형 · 유사에서만 출제」 옵션(`W.hw`, `MKF.hw`). 학교 선생님이 외부 문제지 없이 부교재만 보고 출제한다는 사용자 설명에 따라, 부교재로 만든 문항 전체(원본 o 148 · 변형 v 7,962 · 동유형 유사 s 5,833 = 13,943)에서만 출제하고 부교재와 무관한 기존 문제은행 문항은 뺌(서술형도 같은 조건). 유형 카드마다 「(해원고 n)」. `bank/index.json` 해원고 태그에 `hwn`(그 태그의 해원고 문항 수) 추가, 생성기 `tools/me/build.py`도 같은 값 기록.
+- 추가(사용자 요청): 전범위 모의고사는 5지선다만(선지 5개 · 정답 1개, `nOpts`·`isMulti`로 6지 · 「모두 고르면」 제외) — 서술형 선택 칸을 없애고 안내로 바꿈(모든 과목). 학습지에서 「해원고 부교재」는 5지선다 · 서술형에 적용하고 OX · 빈칸은 「출제 대상」에서 체크했을 때만 같은 유형에서 함께 넣음(물질과 에너지 OX 316 · 빈칸 193은 해원고 표시가 없는 기본 데이터). 옵션을 켜면 5지선다 · 최상위 · 문제 은행 체크는 잠김.
+- 바뀐 파일: `index.html`, `styles/screens.css`(v20), `sw.js`(v236), `bank/index.json`, `tools/me/build.py`, `tests/app-ui.cjs`(CSS 버전), 새 `tests/haewon-only.cjs`(+`tests/run.cjs`), `WORKLOG.md`.
+- 확인: 새 검사(옵션 켜면 학습지 32문항 · 모의고사 20문항이 모두 해원고 부교재 문항, 끄면 다른 문항 섞임, 카드에 (해원고 n), 옵션 표시, 모의고사는 옵션과 상관없이 5지선다만 · 서술형 없음, 학습지 OX · 빈칸은 체크할 때만) 통과. 학습지 만들기 1440 · 모의고사 범위 단계 390 스크린샷. 전체 `npm test` 통과(EXIT 0).
+- 남은 일 · 주의: 해원고 문항이 적은 유형은 요청 수보다 적게 나올 수 있음(카드의 괄호 수가 상한). 모의고사 범위 단계의 난이도별 가능 수는 옵션과 상관없이 전체 기준. 다른 과목에는 옵션이 보이지 않음. 실제 기기 미확인. 병합 미실시.
+
+## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (5차: 서술형 · 수식 단답형 스스로 채점)
+- 한 일: 학생이 화학 반응식 · 수식 답을 입력할 수 없던 문제. 서술형(`set:'essay'`, 빌드업 원본 포함 해원고 55문항 등)과 정답에 수식 · 아래첨자 · 화살표가 든 단답형은 입력 대신 「정답 보고 스스로 채점」 → 정답(수식 그대로) → 「맞았어요 / 틀렸어요」로 채점(`selfQ`, `selfBox`). 학생 채점 번호판 줄 · 휴대폰 문항 시트 · 연습(풀기) 화면 모두. 기록은 a=O/X, 맞았어요=정답(r=1). 숫자 키는 이 문항에서 동작하지 않음. 선생님 O/X 채점(mark) 모드와 쉬운 단답형(숫자 · 낱말 입력, 자동 채점)은 그대로. 이전에는 서술형이 객관식 줄로 그려져 「모름」만 있고 정답 비교가 HTML 문자열이라 맞힐 수 없었음.
+- 바뀐 파일: `index.html`, `styles/screens.css`(v19), `sw.js`(v235), `tests/app-ui.cjs`(CSS 버전), 새 `tests/self-check-answer.cjs`(+`tests/run.cjs`), `WORKLOG.md`.
+- 확인: 새 검사(학생 세션: 정답은 누르기 전 숨김, 수식으로 표시 · 태그 글자 없음, O → r=1 / X → r=0 기록, 결과 화면, 연습 화면 숫자 키 무시 · 「틀렸다고 표시했어요」) 통과. 1440 · 820 · 390(문항 시트) 스크린샷. 전체 `npm test` 통과(EXIT 0).
+- 남은 일 · 주의: 스스로 채점이라 학생이 「맞았어요」를 눌러도 선생님이 검증하지 않음(선생님 채점 기록에는 a=O/X로 보임). 수식 입력 도구(빈칸 · 네모 칸)는 만들지 않음. 실제 기기 미확인. 병합 미실시.
+
 ## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (4차: PR #150 합치기)
 - 한 일: 열려 있던 PR #150(claude/sharp-maxwell-twnvbb: 정답 수식 표시 `ansSafe`, 학생 범위에서도 기본 학습지 보이기, 기본 학습지 자동 등록 경쟁 방지, `verify-static`의 병합 충돌 표시 검사)을 사용자 요청으로 main에 합침. `sw.js`는 main 쪽(최신 SHELL) 유지 + v234, `WORKLOG.md`는 양쪽 기록 모두 유지.
 - 바뀐 파일: #150의 `index.html` · `scripts/verify-static.cjs` · `tests/exp-choice-label.cjs` · `tests/preset-worksheet.cjs`, `sw.js`(v234), `WORKLOG.md`.
 - 확인: 합친 상태로 전체 `npm test` 통과(EXIT 0), `verify-static`(충돌 표시 검사 포함) 통과.
-- 남은 일 · 주의: #150 설명대로 운영 Supabase에 `sql_28_wrong_answer.sql`(아직 안 했다면)과 `sql_29_account_self.sql` 실행 필요.
+- 남은 일 · 주의: #150 설명대로 운영 Supabase에 `sql_28_wrong_answer.sql`(아직 안 했다면)과 `sql_29_account_self.sql` 실행 필요. PR #154로 병합 · 배포됨(#150도 병합됨 표시).
 
 ## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (3차: 빌드업 PDF 재생성)
 - 한 일: 사용자가 보내 준 빌드업 zip의 진짜 글꼴(HYHWPEQ · KoPubDotumMedium · ShinMyeongjo · KoPubWorldBold)로 `presets/me-haewon-buildup.pdf`를 다시 만듦. 표가 한 단 폭에 맞고(PR #152의 `conv.py` 수정), 선지가 표의 ①~⑤만 가리키는 문항은 번호만 나옴. 사용자 요청으로 표 머리줄(실험 · [NO](M) …)에 연한 회색 바탕(`\rowcolor{black!8}`, `conv.py`)을 넣음 — 가로 · 세로 실선은 그대로(300 dpi 픽셀로 확인). zip의 build.py · pre.tex는 저장소와 같고 conv.py는 PR #152 이전 저장소 판과 같음을 확인(글꼴만 사용, 글꼴은 저장소에 넣지 않음).
