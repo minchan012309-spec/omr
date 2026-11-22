@@ -19,7 +19,8 @@ const bkLv=q=>q.lv0||q.lv||'';
 const BKPAL={cm:{p:'#2f9d66',pd:'#1f7d4e',pl:'#eefcf5',pl2:'#d9f8e8',line:'#b0e3c9'},me:{p:'#2f7fd0',pd:'#1d5ca6',pl:'#eef5fc',pl2:'#d9e8f8',line:'#b9cfe6'},ph:{p:'#6d4cc4',pd:'#5a3bad',pl:'#f3effc',pl2:'#e4dbf8',line:'#cdbfef'},hl:{p:'#d9622b',pd:'#b84d1d',pl:'#fdf1ea',pl2:'#f9dfd0',line:'#f0c3aa'},aim:{p:'#157578',pd:'#105d5f',pl:'#edf8f7',pl2:'#d8eeec',line:'#b5d8d5'}};
 const BKPADS=[2.8,4.5,6.5,9];
 let BKO=(()=>{try{return JSON.parse(localStorage.getItem('omr_bko')||'{}')}catch(e){return {}}})();
-const bkOsig=()=>(BKO.color||'')+'|c'+(BKO.cover==null?1:BKO.cover)+'|'+(BKO.font||'')+'|'+(BKO.design||'')+'|'+(BKO.nt||'')+(BKO.nb||'')+(BKO.nbn||'')+(BKO.qn||'')+(BKO.vn||'')+'|'+JSON.stringify(BKO.writingm||{});
+let BKANSOV=null;/* 인쇄 창에서만: 만들 때 고른 해설 옵션 대신 쓸 답안 구성(0 정답·해설, 1 정답만) */
+const bkOsig=()=>(BKANSOV==null?'':'a'+BKANSOV+'|')+(BKO.color||'')+'|c'+(BKO.cover==null?1:BKO.cover)+'|'+(BKO.font||'')+'|'+(BKO.design||'')+'|'+(BKO.nt||'')+(BKO.nb||'')+(BKO.nbn||'')+(BKO.qn||'')+(BKO.vn||'')+'|'+JSON.stringify(BKO.writingm||{});
 function bkOset(o){Object.assign(BKO,o);try{localStorage.setItem('omr_bko',JSON.stringify(BKO))}catch(e){}}
 let BKDZ=null;
 const bkPal=()=>{const ck=(BKDZ&&BKDZ.color)||BKO.color;if(ck&&typeof PAL!=='undefined'&&PAL[ck]){const v=PAL[ck];return {p:v[0],pd:v[1],pl:v[2],pl2:v[3],line:v[3]}}return BKPAL[SUBJ]||BKPAL.cm};
@@ -1134,7 +1135,7 @@ function bkPlanFree(id,d){
   buf.push(...units);total+=b.arr.length;lastSub=s.k});
  flush();
  // 정답·해설
- const au=[];let aStart=0;
+ const au=[];let aStart=0;d={...d,ans:BKANSOV==null?d.ans:BKANSOV};
  if(d.ans<2){let ls=null;
   blocks.forEach((b,i)=>{if(b.k==='c')return;const s=b.s,nm=BKFN[b.k];
    if(d.grp!==1&&ls!==s.k){au.push(bkU('as:'+s.k+':'+i,'<div class="u ct"><span>'+esc(s.k)+' '+esc(s.name)+'</span></div>',{keep:true}));ls=s.k}
@@ -1808,18 +1809,20 @@ function ebkScrubBind(s){let st=null;
 /* ---------- 인쇄 ---------- */
 function bkFontCssRule(){const f=BKO.font&&typeof FONTS!=='undefined'&&FONTS[BKO.font];return f&&BKO.font!=='paper'?'.bkdoc,.bkdoc *{font-family:'+f[1]+'!important}.bkdoc .u.q .chs div b{font-family:'+(BKO.font==='shin'?f[1]:'SolviCn,'+f[1])+'!important;'+(BKO.font==='shin'?'font-size:1em!important;font-weight:400!important;margin-right:.5em!important':'')+'}.bkdoc math,.bkdoc math *,.bkdoc .mx{font-family:LatinModernMath,\'Latin Modern Math\',serif!important}':''}
 /* 양면 인쇄: 답안이 뒷면에서 시작하지 않게 빈 쪽을 끼우고, 총 쪽수가 홀수면 마지막에 빈 쪽을 붙임(-1 = 빈 쪽) */
-function bkSheets(plan,all){const last=plan.pages[plan.pages.length-1],back=!!(all&&last&&last.k==='back');
+function bkSheets(plan,all,noQ){const last=plan.pages[plan.pages.length-1],back=!!(all&&last&&last.k==='back');
  const n=all?plan.pages.length-(back?1:0):Math.max(1,(plan.aStart||plan.pages.length+1)-1);const a=[];for(let i=0;i<n;i++)a.push(i);
  const dp=dupGet();
+ /* 문제지 끄기: 답안 쪽만 */
+ if(noQ&&all&&plan.aStart>1&&plan.aStart-1<n){const b=a.slice(plan.aStart-1);if(dp&&b.length%2)b.push(-1);return b}
  if(dp&&all&&plan.aStart>1&&plan.aStart-1<n&&plan.aStart%2===0)a.splice(plan.aStart-1,0,-1);
  if(back){if(dp&&a.length%2===0)a.push(-1);a.push(plan.pages.length-1)}else if(dp&&a.length%2)a.push(-1);
  return a}
 const BKLOGO=lgSvg('w','#8a96a6');
 const bkBlankHtml=()=>'<div class="bp bk bkblank"><div class="bklg">'+blankLogoHtml()+'</div></div>';
 const bkSheetHtml=(plan,i)=>i<0?bkBlankHtml():bkPageHtml(plan,i);
-function bkDocHtml(plan,all){
+function bkDocHtml(plan,all,noQ){
  const abs=location.origin+location.pathname.replace(/[^/]*$/,'');
- let pg='';bkSheets(plan,all).forEach(i=>pg+=bkSheetHtml(plan,i));
+ let pg='';bkSheets(plan,all,noQ).forEach(i=>pg+=bkSheetHtml(plan,i));
  return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>'+esc(plan.title)+'</title><link rel="stylesheet" href="'+BKCDN+'"><style>'+(typeof wsSourceFontFaces==='function'?wsSourceFontFaces():'')+bkFontCss(abs)+'@page{size:A4;margin:0}html,body{margin:0;padding:0;background:#d9dde3}'+BKCSS+'.bkdoc .bp{margin:8mm auto;box-shadow:0 1px 8px rgba(0,0,0,.25);page-break-after:always;break-after:page}.bkdoc .bp:last-child{page-break-after:auto;break-after:auto}@media print{html,body{background:#fff}.bkdoc .bp{margin:0;box-shadow:none}}'+bkFontCssRule()+'</style></head><body class="bkdoc">'+pg+'</body></html>'}
 let BKPOP=null;
 function bkBarHtml(plan){
@@ -1830,19 +1833,23 @@ function bkBarHtml(plan){
  const gk=tbS('pgut','','제본 여백','bind','제본 여백',o(BKGUTS,bkGutOf(plan)));
  const mo=plan.kind==='h'?bkMainOpt():null;
  const mx=mo?tbS('pnt','','오른쪽 필기 쪽','bind','오른쪽 쪽',o(BKNT,mo.nt))+tbS('pnb','','개념 뒤 노트 쪽','bind','개념 뒤 노트',o(BKNB,mo.nb))+tbS('pqn','','문제 쪽 뒤 필기 쪽','bind','문제 뒤 필기',o([[0,'넣지 않음'],[1,'넣기']],mo.qn))+tbS('pvn','','변형 문항 수','plus','변형 문항',o([[1,'적게'],[2,'보통'],[3,'많이'],[4,'아주 많이']],mo.vn)):'';
- return tbT('book-hwpx','','편집 가능한 HWPX 다운로드','pdf','HWPX')+bkWritingBar(plan)+mx+tbS('pgap','','문제 간격','gap','문제 간격',gap)+tbT('pdup','','양면 인쇄: 답안이 뒷면에서 시작하지 않게 빈 쪽을 채워요','duplex','양면 인쇄',dupGet()?'on':'')+des+gk+swHtml(BKO.color||'',bkPal().p,true)+tbS('pcv','','표지 디자인','palette','표지',o(BKCVS,bkCvOf()))+tbS('pfnt','','글꼴','type','글꼴',fnt)}
+ const st=BKPOP||{q:1,a:1,x:1},canA=!!plan.aStart||!!plan.free,sheets=canA?tbT('psq','','문제지 넣기/빼기','pen','문제지',st.q?'on':'','aria-pressed="'+(st.q?'true':'false')+'"')+tbT('psa','','답안지(정답) 넣기/빼기','grade','답안지',st.a?'on':'','aria-pressed="'+(st.a?'true':'false')+'"')+(plan.free?tbT('psx','','답안지에 풀이(해설)까지 넣기','bulb','해설',st.a&&st.x?'on':'','aria-pressed="'+(st.a&&st.x?'true':'false')+'"'+(st.a?'':' disabled')):''):'';
+ return sheets+tbT('book-hwpx','','편집 가능한 HWPX 다운로드','pdf','HWPX')+bkWritingBar(plan)+mx+tbS('pgap','','문제 간격','gap','문제 간격',gap)+tbT('pdup','','양면 인쇄: 답안이 뒷면에서 시작하지 않게 빈 쪽을 채워요','duplex','양면 인쇄',dupGet()?'on':'')+des+gk+swHtml(BKO.color||'',bkPal().p,true)+tbS('pcv','','표지 디자인','palette','표지',o(BKCVS,bkCvOf()))+tbS('pfnt','','글꼴','type','글꼴',fnt)}
+/* 인쇄 창의 문제지 · 답안지 · 해설 켜기/끄기 → 실제로 만들 쪽 */
+async function bkPrintPlan(id,st){const P=bkParts(id),free=!!(P&&P.def&&P.def.kind==='free');BKANSOV=free&&st&&st.a?(st.x?0:1):null;try{return await bkPlan(id)}finally{BKANSOV=null}}
 async function bkRepop(o){if(!BKPOP||!BKPOP.win||BKPOP.win.closed)return;bkOset(o);if(BKPOP.subj!==SUBJ)await setSubject(BKPOP.subj);
- const plan=await bkPlan(bkPid(BKPOP.id));if(!plan)return;await bkShowIn(BKPOP.win,plan,BKPOP.all)}
-async function bkShowIn(w,plan,all){window._popExtra=bkBarHtml(plan);try{await cbPrintHtml(bkDocHtml(plan,all),w)}finally{window._popExtra=''}
- popWire(w,d=>{d.getElementById('book-hwpx').onclick=()=>downloadHwpx(()=>({pages:[...d.querySelectorAll('.bkdoc>.bp')],writing:plan.writing}),{window:w,title:plan.title,subject:SNAME[SUBJ],bodyFont:'Pretendard'});[['pwl','left'],['pwr','right'],['pwc','concept']].forEach(([i,k])=>{const el=d.getElementById(i);if(el)el.onchange=async e=>{bkWritingSet(plan.id,k,!!(+e.target.value));await bkRepop({})}});{const cv=d.getElementById('pcv');if(cv)cv.onchange=e=>bkRepop({cover:+e.target.value})}d.getElementById('pgap').onchange=e=>bkRepop({gap:+e.target.value});[['pnt','nt'],['pnb','nb'],['pqn','qn'],['pvn','vn']].forEach(([i,k])=>{const el=d.getElementById(i);if(el)el.onchange=e=>bkRepop({[k]:k==='qn'||k==='vn'?+e.target.value:e.target.value})});d.getElementById('pdup').onclick=()=>{dupSet(!dupGet());bkRepop({})};const des=d.getElementById('pdes');if(des)des.onchange=e=>bkRepop({design:e.target.value});swWire(d,v=>bkRepop({color:v}));const gu=d.getElementById('pgut');if(gu)gu.onchange=e=>{bkGutSet(bkGutKey(plan),e.target.value);bkRepop({})};d.getElementById('pfnt').onchange=e=>bkRepop({font:e.target.value})})}
+ const plan=await bkPrintPlan(bkPid(BKPOP.id),BKPOP);if(!plan)return;await bkShowIn(BKPOP.win,plan,BKPOP.a?1:0)}
+async function bkShowIn(w,plan,all){const noQ=!!(BKPOP&&BKPOP.win===w&&!BKPOP.q&&all&&plan.aStart);window._popExtra=bkBarHtml(plan);try{await cbPrintHtml(bkDocHtml(plan,all,noQ),w)}finally{window._popExtra=''}
+ popWire(w,d=>{if(BKPOP&&BKPOP.win===w){const tg=(i,f)=>{const el=d.getElementById(i);if(el)el.onclick=()=>{f();if(!BKPOP.q&&!BKPOP.a)BKPOP.q=1;bkRepop({})}};tg('psq',()=>BKPOP.q=BKPOP.q?0:1);tg('psa',()=>BKPOP.a=BKPOP.a?0:1);tg('psx',()=>BKPOP.x=BKPOP.x?0:1)}d.getElementById('book-hwpx').onclick=()=>downloadHwpx(()=>({pages:[...d.querySelectorAll('.bkdoc>.bp')],writing:plan.writing}),{window:w,title:plan.title,subject:SNAME[SUBJ],bodyFont:'Pretendard'});[['pwl','left'],['pwr','right'],['pwc','concept']].forEach(([i,k])=>{const el=d.getElementById(i);if(el)el.onchange=async e=>{bkWritingSet(plan.id,k,!!(+e.target.value));await bkRepop({})}});{const cv=d.getElementById('pcv');if(cv)cv.onchange=e=>bkRepop({cover:+e.target.value})}d.getElementById('pgap').onchange=e=>bkRepop({gap:+e.target.value});[['pnt','nt'],['pnb','nb'],['pqn','qn'],['pvn','vn']].forEach(([i,k])=>{const el=d.getElementById(i);if(el)el.onchange=e=>bkRepop({[k]:k==='qn'||k==='vn'?+e.target.value:e.target.value})});d.getElementById('pdup').onclick=()=>{dupSet(!dupGet());bkRepop({})};const des=d.getElementById('pdes');if(des)des.onchange=e=>bkRepop({design:e.target.value});swWire(d,v=>bkRepop({color:v}));const gu=d.getElementById('pgut');if(gu)gu.onchange=e=>{bkGutSet(bkGutKey(plan),e.target.value);bkRepop({})};d.getElementById('pfnt').onchange=e=>bkRepop({font:e.target.value})})}
 async function bkPrint(id,all){
  id=bkPid(id);
- if(typeof isMob==='function'&&isMob()){toast('휴대폰·태블릿은 인쇄 창이 열리지 않는 경우가 많아 PDF로 만들어 드려요. 저장한 PDF를 열어 인쇄하세요');return bkPdf(id,all)}
  if(!await bkxAccess(id))return;
+ /* 태블릿 · 휴대폰도 학습지처럼 인쇄 창을 열고, 그 창의 「A4 PDF 저장」으로 받는다(창이 막히면 바로 PDF) */
  const pw=typeof popOpen==='function'?popOpen('인쇄할 책을 만드는 중…'):null;
+ if(!pw&&typeof isMob==='function'&&isMob()){toast('인쇄 창을 열 수 없어 PDF로 만들어 드려요. 저장한 PDF를 열어 인쇄하세요');return bkPdf(id,all)}
  await bkInit();const P=bkParts(id);if(P&&P.subj!==SUBJ)await setSubject(P.subj);
- busyRun('인쇄할 책을 만드는 중…',async()=>{await conceptLoad();const plan=await bkPlan(id);if(!plan){if(pw)pw.close();return}
-  if(pw){BKPOP={win:pw,id,all,subj:SUBJ};await bkShowIn(pw,plan,all)}else await cbPrintHtml(bkDocHtml(plan,all),pw)})}
+ busyRun('인쇄할 책을 만드는 중…',async()=>{await conceptLoad();const st={q:1,a:all?1:0,x:1};const P0=bkParts(id);if(P0&&P0.def&&P0.def.kind==='free'&&all)st.x=P0.def.ans===1?0:1;const plan=pw?await bkPrintPlan(id,st):await bkPlan(id);if(!plan){if(pw)pw.close();return}
+  if(pw){BKPOP={win:pw,id,all,subj:SUBJ,...st};await bkShowIn(pw,plan,st.a)}else await cbPrintHtml(bkDocHtml(plan,all),pw)})}
 
 /* ---------- PDF 파일로 내려받기(쪽마다 이미지로 그려 한 파일로 묶음) ---------- */
 function bkLoadJs(src,ok){return new Promise((res,rej)=>{if(ok())return res();const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error(src));document.head.appendChild(s)})}
