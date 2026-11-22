@@ -515,11 +515,14 @@ async function bkPlan0(id){
  if(BKP[id]&&BKP[id].subj===SUBJ&&BKP[id].sig===bkOsig())return BKP[id];
  await bkInit();await conceptLoad();
  const P=bkParts(id);if(!P)return null;
- if(!bkLegacyOn(P))return bkPlan1(id,P);
- let L;try{L=await bkLegacyLoad()}catch(e){return bkPlan1(id,P)}
+ return bkLegacyRun(P,()=>bkPlan1(id,P))}
+/* 예전 데이터로 바꿔 끼운 채 fn 실행(물질과 에너지 · 해원고 아닌 교재). 교재 화면 · 인쇄 · 편집 미리보기 모두 이것을 거친다 */
+async function bkLegacyRun(P,fn){
+ if(!bkLegacyOn(P))return fn();
+ let L;try{L=await bkLegacyLoad()}catch(e){return fn()}
  const sv={data:DATA.slice(),bidx:BIDX,conc:CONC.me,ens:ensureTags};
  DATA.length=0;L.pool.forEach(q=>DATA.push(q));sv.data.forEach(q=>{if(typeof MYSUBJ!=='undefined'&&MYSUBJ[q.code])DATA.push(q)});BIDX=L.idx;CONC.me=L.conc;ensureTags=bkLegacyTags;
- try{return await bkPlan1(id,P)}finally{DATA.length=0;sv.data.forEach(q=>DATA.push(q));BIDX=sv.bidx;CONC.me=sv.conc;ensureTags=sv.ens}}
+ try{return await fn()}finally{DATA.length=0;sv.data.forEach(q=>DATA.push(q));BIDX=sv.bidx;CONC.me=sv.conc;ensureTags=sv.ens}}
 async function bkPlan1(id,P){
  if(P.kind==='h')await bkMainPrep(P.part);
  if(P.kind==='x'&&P.def&&P.def.kind==='free')await bkfBank(P.def);
@@ -1983,7 +1986,7 @@ function bkfPreview(){const box=document.getElementById('bkpv');if(!box||!BKV.d|
  const st=document.getElementById('bkpvs');if(st)st.textContent='미리보기를 만드는 중…';
  bkfPreview._t=setTimeout(async()=>{const d=BKV.d,parts=bkfParts(d);if(!parts.length){if(st)st.textContent='구성을 하나 이상 고르세요';return}
   try{await bkInit();await conceptLoad();const def={kind:'free',parts,qs:d.qs,subs:d.subs||[],sort:d.sort,grp:d.grp,ans:d.ans,brk:d.brk,writing:bkWriting(d.writing),pl:d.pl&&d.pl.on?d.pl:null,name:d.name||'교재 이름',subt:d.sub||'',dz:{color:d.color||'',cover:d.cover|0,noqr:d.noqr?1:0,font:d.font||'',lf:d.lf||'solvi',lfp:d.lfp||'br',lb:d.lb||'solvi',lbp:d.lbp||'bc',back:d.back?1:0,cx:d.cx||null}};
-   await bkfBank(def);{const be=document.getElementById('bxe');if(be&&my===BKPVT)be.textContent=bkfEstText(d)}const plan=await bkSettle(()=>bkWithWriting(def.writing,()=>bkPlanFree('preview',def)));plan.writing=def.writing;if(my!==BKPVT||!document.getElementById('bkpv'))return;
+   const run=BKLOCK.then(()=>bkLegacyRun({def},async()=>{await bkfBank(def);{const be=document.getElementById('bxe');if(be&&my===BKPVT)be.textContent=bkfEstText(d)}return bkSettle(()=>bkWithWriting(def.writing,()=>bkPlanFree('preview',def)))}));BKLOCK=run.catch(()=>{});const plan=await run;plan.writing=def.writing;if(my!==BKPVT||!document.getElementById('bkpv'))return;
    plan.pages.forEach((p,i)=>p.n=i+1);plan.id='preview';plan.subj=SUBJ;BKPV.plan=plan;bkfPvDraw();
    if(st)st.textContent='총 '+plan.pages.length+'쪽 · '+plan.total+'문항'+(plan.aStart?' · 정답 p.'+plan.aStart:'')}catch(e){if(st)st.textContent='미리보기를 만들지 못했어요'}},350)}
 /* 분량 · 배분 · 초점 카드(화법과 언어) */
