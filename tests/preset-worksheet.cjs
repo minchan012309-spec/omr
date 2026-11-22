@@ -22,6 +22,8 @@ const {chromium,browserOptions}=require('./runtime.cjs');
   WSSEL.clear();WSSEL.add(P.id);await wsDelSel();out.afterDelSel=!!WSH.find(x=>x.id===P.id&&!x.deletedAt);
   window.prompt=()=>'바뀐 이름';await wsRename(P.id);out.title=WSH.find(x=>x.id===P.id).title;
   const before=WSH.length;wsClone(P.id);const dup=WSH[WSH.length-1];out.dupInfo=[WSH.length-before,dup.id,dup.locked,dup.preset,dup.codes.length];out.dup=WSH.length===before+1&&dup.id!==P.id&&!dup.locked&&!dup.preset&&dup.codes.length===148;
+  // 학생 범위를 골라도 기본 학습지는 목록에 보임
+  STU.push({id:'s9',name:'예시'});CUR_S='s9';navGo('ws');await new Promise(r=>setTimeout(r,300));out.scoped=document.body.innerText.includes(w.title);CUR_S='';
   // 다시 출력 고르기
   wsReprintPick(P.id);out.pick=[...document.querySelectorAll('#cfgBox .pkc b')].map(b=>b.textContent);closeCfg();
   // 재출제: 소단원 6개, 하나 빼고 1:1 교체
@@ -42,7 +44,7 @@ const {chromium,browserOptions}=require('./runtime.cjs');
  assert.equal(r.menuDel,false);assert.equal(r.menuRename,false);assert.equal(r.menuEdit,false);assert.equal(r.menuDup,true);assert.equal(r.menuRegen,true);assert.equal(r.menuPick,true);
  assert.equal(r.afterDel,true,'삭제 안 됨');assert.equal(r.afterDelSel,true,'선택 삭제 안 됨');assert.notEqual(r.title,'바뀐 이름');
  assert.equal(r.dup,true,'복제본은 일반 학습지');
- assert.deepEqual(r.pick,['빌드업 PDF','앱 인쇄 양식']);
+ assert.equal(r.scoped,true,'학생 범위에서도 기본 학습지 보임');assert.deepEqual(r.pick,['빌드업 PDF','앱 인쇄 양식']);
  assert.equal(r.chips,6);assert.equal(r.regenN,r.regenExpect);assert.equal(r.regenLocked,false);assert.equal(r.regenNoSub0,true);assert.equal(r.unique,true);
  assert.ok(r.replaced>=r.withVar,'변형이 있는 원본은 모두 교체');
  console.log('PASS 기본 학습지 등록·잠금·복제·소단원 재출제·출력 고르기');
