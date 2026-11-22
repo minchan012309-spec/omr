@@ -1,5 +1,11 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (4차: PR #150 합치기)
+- 한 일: 열려 있던 PR #150(claude/sharp-maxwell-twnvbb: 정답 수식 표시 `ansSafe`, 학생 범위에서도 기본 학습지 보이기, 기본 학습지 자동 등록 경쟁 방지, `verify-static`의 병합 충돌 표시 검사)을 사용자 요청으로 main에 합침. `sw.js`는 main 쪽(최신 SHELL) 유지 + v234, `WORKLOG.md`는 양쪽 기록 모두 유지.
+- 바뀐 파일: #150의 `index.html` · `scripts/verify-static.cjs` · `tests/exp-choice-label.cjs` · `tests/preset-worksheet.cjs`, `sw.js`(v234), `WORKLOG.md`.
+- 확인: 아래 「합친 뒤 검사」 참조.
+- 남은 일 · 주의: #150 설명대로 운영 Supabase에 `sql_28_wrong_answer.sql`(아직 안 했다면)과 `sql_29_account_self.sql` 실행 필요.
+
 ## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (3차: 빌드업 PDF 재생성)
 - 한 일: 사용자가 보내 준 빌드업 zip의 진짜 글꼴(HYHWPEQ · KoPubDotumMedium · ShinMyeongjo · KoPubWorldBold)로 `presets/me-haewon-buildup.pdf`를 다시 만듦. 표가 한 단 폭에 맞고(PR #152의 `conv.py` 수정), 선지가 표의 ①~⑤만 가리키는 문항은 번호만 나옴. 사용자 요청으로 표 머리줄(실험 · [NO](M) …)에 연한 회색 바탕(`\rowcolor{black!8}`, `conv.py`)을 넣음 — 가로 · 세로 실선은 그대로(300 dpi 픽셀로 확인). zip의 build.py · pre.tex는 저장소와 같고 conv.py는 PR #152 이전 저장소 판과 같음을 확인(글꼴만 사용, 글꼴은 저장소에 넣지 않음).
 - 바뀐 파일: `presets/me-haewon-buildup.pdf`, `tools/me/buildup/conv.py`, `sw.js`(v233), `WORKLOG.md`.
@@ -29,6 +35,17 @@
 - 바뀐 파일: `lib/hwpx.js`(v4), `lazy/hwpx-export.js`(v3), `index.html`(hwpx-export v3), `sw.js`(충돌 정리 + v230), 새 `tests/hwpx-worksheet-layout.cjs`(+`tests/run.cjs`), `WORKLOG.md`.
 - 확인: 사용자가 보낸 HWPX와 수정 전후 파일을 오픈소스 HWPX 렌더러(@rhwp/core, 이 환경에서만 사용 · 저장소에 넣지 않음)로 그려 비교 — 수정 전 머리말 · 번호 낱줄, 표 머리 빈칸, 쪽 밀림 재현 → 수정 후 머리말 한 줄, 2단 흐름, 표 머리 색, 해설 새 쪽 확인(기본 양식 · 평가원 양식). 새 검사는 수정 전 코드에서 실패 · 수정 후 통과(태블릿 UA · 터치로 내려받기). `hwpx-editable` · `hwpx-app` 통과, 정적 파싱 17개 통과. 전체 `npm test` 통과(EXIT 0, 후속 학생 목록 수정과 함께 재실행).
 - 남은 일 · 주의: 이 환경에 한컴이 없어 실제 한글 프로그램에서는 열어 보지 못함 — 특히 구역 중간 다단 바꾸기(colPr), 머리말 · 쪽 번호 컨트롤, 오른쪽 자동 탭은 한컴에서 확인 필요. 렌더러의 수식 표시는 렌더러 한계(한컴 수식 개체는 그대로). 교재(`.bp`) · 개념 인쇄는 쪽마다 구역 방식 그대로(가로 줄 · 표 색 개선만 적용). 실제 기기 미확인. PR #151로 병합 · 배포됨.
+## 2026-11-22 · Claude Code · claude/sharp-maxwell-twnvbb (main 충돌 복구)
+- 한 일: main의 `sw.js`에 병합 충돌 표시(`<<<<<<< HEAD`)가 그대로 남아 서비스 워커가 문법 오류로 설치되지 않아, 브라우저가 옛 앱을 계속 보여 주던 문제 해결(새 기능이 사이트에 안 보이던 원인). origin/main을 병합해 `sw.js`를 VER v231·screens.css v17로 정리. `scripts/verify-static.cjs`가 배포 파일의 병합 충돌 표시를 찾아 실패하도록 추가.
+- 바뀐 파일: `sw.js`, `scripts/verify-static.cjs`, `WORKLOG.md`(충돌 정리).
+- 확인: sw.js 파싱, 정적 검사, preset·선지 번호·학생 답·개념 HTML·학습지 해설 검사, app-ui 통과.
+- 남은 일 · 주의: 병합·배포 후 첫 방문에서 새 서비스 워커가 설치되면 새로고침 한 번 필요할 수 있음. sql_28 적용 필요.
+
+## 2026-11-21 · Claude Code · claude/sharp-maxwell-twnvbb (후속 2)
+- 한 일: 정답 글에 수식·아래첨자 HTML이 들어 있는 문항(물질과 에너지 해원고 서답형 12개)이 「정답 H<sub>2</sub>…」처럼 태그 글자로 보이던 문제 수정(`questionAnswer`가 허용한 MathML·sub·sup·span 등만 남겨 그대로 표시, 그 밖 태그·속성 제거; 채점 상세·오답 노트·진단 줄도 같은 함수로). 학생 범위(예: 한 학생 선택)를 골라도 기본 학습지가 목록에 보이게. 기본 학습지 자동 등록이 동시에 두 번 돌면 두 번 등록 요청하던 경쟁 상태 방지.
+- 바뀐 파일: `index.html`, `sw.js`(v230), `tests/exp-choice-label.cjs`, `tests/preset-worksheet.cjs`.
+- 확인: 실제 G-hwea3-0155 정답이 수식으로 표시(태그 글자 없음), 위험한 태그 제거 검사, preset 검사 8회 연속 통과, app-ui·wrong-answer-ui 통과.
+- 남은 일 · 주의: 이 브랜치는 아직 main에 병합·배포되지 않아 운영 사이트(solvi.win)에는 기본 학습지·선지 번호·학생 답 입력이 아직 없음. 병합·배포 후 해당 선생님 계정으로 로그인해야 2264-3735가 등록됨. sql_28 적용 필요.
 
 ## 2026-11-21 · Claude Code · claude/funny-hawking-c1nyl1
 - 한 일: 물질과 에너지 개념 정리(`bank/concept.json`)에 그림·표·강조 HTML이 이스케이프된 채 보이던 문제 수정. 원인: `tools/me/concept.py`의 `EX`/`T`가 이미 만든 `<div class="fg">`·표·`<span class="hl">`(안의 MathML 포함)를 다시 `fmt()`에 넣어 `chem()`이 허용 목록 밖 태그를 `&lt;`로 바꿈, 상자 제목은 `esc()`라 `->`·`\\frac`가 날 문자열로 남음. `mk.raw()`/`unraw()` 자리표시로 만든 HTML은 다시 변환하지 않게 하고, 제목도 `fmt()`(→, MathML 분수), 그림·표 줄은 `<p>`로 감싸지 않음. 수식 안 `\\mathrm{N_2O_5}`의 밑줄이 글자로 보이던 것도 `mk.rm()`으로 아래 첨자 처리. 12개 절이 바뀜(나머지 13절·요약·풀 동일).
