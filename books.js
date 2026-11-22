@@ -364,7 +364,8 @@ function bkPickRound(a,n,pat){const by={};a.forEach(x=>(by[bkLv(x)]=by[bkLv(x)]|
  for(let pass=0;pass<2&&out.length<n;pass++){let guard=0,i=0;while(out.length<n&&guard++<400){const l=pat[i++%pat.length];const arr=by[l]||[];const x=arr.find(y=>!used.has(y.code)&&(pass||!fam.has(y.fam)));if(x){used.add(x.code);fam.add(x.fam);out.push(x)}if(guard>300&&!arr.length&&pass)break}}
  if(out.length<n)a.forEach(x=>{if(out.length<n&&!used.has(x.code)){used.add(x.code);out.push(x)}});return out}
 function bkSel(){
- if(BKSELC[SUBJ])return BKSELC[SUBJ];
+ /* 단원 목록(개념 자료)을 불러오기 전에 만든 구성은 단원 순서가 달라 교재 문항이 바뀐다 → 순서가 같을 때만 저장본을 쓴다 */
+ const sk=bkSubs().map(s=>s.k).join('|');if(BKSELC[SUBJ]&&BKSELC[SUBJ].sk===sk)return BKSELC[SUBJ];
  const base=DATA.filter(q=>q.sub&&q.set!=='bank'&&!q.mock&&!(SUBJ==='aim'&&tagOf(q.code)));
  const subs=bkSubs();const S={subs,ox:{},bl:{},basic:{},type:[],essay:[]};
  const byNo=(a,b)=>(a.no||0)-(b.no||0);
@@ -382,7 +383,7 @@ function bkSel(){
  let es=base.filter(q=>q.set==='essay').sort((a,b)=>so(a.sub)-so(b.sub)||byNo(a,b));
  if(es.length>ecap){const t=es.length;es=Array.from({length:ecap},(_,i)=>es[Math.floor(i*t/ecap)])}
  S.essay=es;
- return BKSELC[SUBJ]=S}
+ S.sk=sk;return BKSELC[SUBJ]=S}
 function bkTags(s){const C=(CONC[SUBJ]||{}).secs||[];let n=0;const t=[];
  for(const sc of C.filter(x=>x.sub===s.k)){const w='#'+String(sc.title).replace(/[\s·,]+/g,'').slice(0,14);if(n+w.length>100)break;t.push(w);n+=w.length+2}
  return t.map(x=>'<span style="white-space:nowrap;margin-right:2.4mm">'+esc(x)+'</span>').join(' ')}
