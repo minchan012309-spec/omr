@@ -80,7 +80,7 @@ const BKCSS=`
 .bkdoc .u.q .lv.h{background:#111;color:#fff}
 .bkdoc .u.q .fg{text-align:center;margin:1.6mm 0}.bkdoc .u.q .fg img{max-width:100%;max-height:62mm;height:auto}
 .bkdoc .u.q .bogi,.bkdoc .u.q .bxx{border:.6px solid #111;padding:1.6mm 2.2mm;margin:2mm 0;font-size:11.8px;line-height:1.5}
-.bkdoc .u.q .bogi{position:relative;padding-top:3.4mm;margin-top:4.4mm}
+.bkdoc .u.q .bogi{position:relative;padding-top:3.4mm;margin-top:4.4mm}.bkdoc .cx{font-family:inherit!important;font-style:inherit!important}
 .bkdoc .u.q .bogi .bt{position:absolute;top:-2.5mm;left:50%;transform:translateX(-50%);background:#fff;color:#333;border-radius:0;padding:0 1.6mm;margin:0;font-weight:500;font-size:11.6px;line-height:4.6mm;letter-spacing:0;white-space:nowrap} /* 〈보기〉 글자만 윗줄에 걸침 */
 .bkdoc .u.q .bogi p,.bkdoc .u.q .bxx p{margin:.5mm 0;padding-left:5mm;text-indent:-5mm;text-align:left}
 .bkdoc .u.q .bxx{border-style:solid}
@@ -1848,7 +1848,7 @@ async function bkPrint(id,all){
  const pw=typeof popOpen==='function'?popOpen('인쇄할 책을 만드는 중…'):null;
  if(!pw&&typeof isMob==='function'&&isMob()){toast('인쇄 창을 열 수 없어 PDF로 만들어 드려요. 저장한 PDF를 열어 인쇄하세요');return bkPdf(id,all)}
  await bkInit();const P=bkParts(id);if(P&&P.subj!==SUBJ)await setSubject(P.subj);
- busyRun('인쇄할 책을 만드는 중…',async()=>{await conceptLoad();const st={q:1,a:all?1:0,x:1};const P0=bkParts(id);if(P0&&P0.def&&P0.def.kind==='free'&&all)st.x=P0.def.ans===1?0:1;const plan=pw?await bkPrintPlan(id,st):await bkPlan(id);if(!plan){if(pw)pw.close();return}
+ busyRun('인쇄할 책을 만드는 중…',async()=>{await conceptLoad();const st={q:1,a:all?1:0,x:1};const P0=bkParts(id);/* 처음 상태는 교재를 만들 때 고른 대로(해설 없이 만든 교재는 답안지 꺼짐) — 예전 인쇄와 쪽수가 같게 */if(P0&&P0.def&&P0.def.kind==='free'&&all){if(P0.def.ans===2)st.a=0;st.x=P0.def.ans===1?0:1}const plan=pw?await bkPrintPlan(id,st):await bkPlan(id);if(!plan){if(pw)pw.close();return}
   if(pw){BKPOP={win:pw,id,all,subj:SUBJ,...st};await bkShowIn(pw,plan,st.a)}else await cbPrintHtml(bkDocHtml(plan,all),pw)})}
 
 /* ---------- PDF 파일로 내려받기(쪽마다 이미지로 그려 한 파일로 묶음) ---------- */
