@@ -223,4 +223,4 @@ html[data-theme=dark] .ldg .sk{background:#262c36}html[data-theme=dark] .ldg .sk
 .hwopt{display:flex;align-items:center;gap:8px;box-sizing:border-box;max-width:100%;margin:0 0 12px;padding:10px 12px;border:1px solid var(--ui-border);border-radius:10px;background:var(--ui-raised)}
 .hwopt b{color:var(--ui-accent);margin-right:4px}
 .tc .hwn{color:var(--ui-accent);font-weight:600}
-.hwopt span{min-width:0;overflow-wrap:anywhere}
+.hwopt span{min-width:0;overflow-wrap:anywhere;white-space:normal}
