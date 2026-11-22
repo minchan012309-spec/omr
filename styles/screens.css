@@ -210,3 +210,12 @@ html[data-theme=dark] .ldg .sk{background:#262c36}html[data-theme=dark] .ldg .sk
 .wans .wo{display:flex;flex-wrap:wrap;gap:6px}.wans .chp{min-width:38px;justify-content:center}
 .wans .wansi{width:min(240px,100%);font:inherit;font-size:16px;padding:6px 10px;border:1px solid var(--ui-border,#dbe2ea);border-radius:var(--ui-radius-control,8px);background:var(--ui-surface,#fff);color:var(--ui-text,#1b2430)}
 .wans2 .m{flex-basis:100%;font-size:12px}
+/* 서술형 · 수식 단답형 스스로 채점 */
+.selfq{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;flex:1;min-width:0}
+.selfq .selfr{min-height:40px}
+.selfq.on{flex-direction:column;align-items:stretch}
+.selfq .selfa{padding:10px 12px;border-radius:10px;background:var(--ui-raised);color:var(--ui-text);line-height:1.6;overflow-wrap:anywhere}
+.selfq .selfa b{font-weight:600}
+.selfq .selfb{display:flex;gap:8px}
+.selfq .selfb button{flex:1;min-height:42px}
+.selfq .selfv{font-size:14px}.selfq .selfv.o{color:var(--ui-success)}.selfq .selfv.x{color:var(--ui-danger)}
