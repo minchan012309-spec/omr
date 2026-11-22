@@ -1540,7 +1540,7 @@ function buildView(){
  const pre=[['기초',[5,4,1,0]],['표준',[2,5,3,0]],['심화',[1,3,5,1]],['최상위',[0,2,5,3]]];
  const sameLv=a=>LVS.every((l,i)=>(W.lvr[l]||0)===a[i]);
  const ess=essPool();
- const col1=`<section class="mkw-c"><h3>출제 대상</h3>${hwChk(W.hw,"W.hw=this.checked?1:0;saveW();buildView()")}<div class="bwsets">${examSetEntries().map(([k,v])=>`<label class="mkw-ck"><input type="checkbox" ${examSetOn(k)?'checked':''} ${SUBJ==='aim'?'disabled':''} onchange="W.sets['${k}']=this.checked?1:0;saveW();buildView()"><span>${v}</span></label>`).join('')}</div>
+ const col1=`<section class="mkw-c"><h3>출제 대상</h3>${hwChk(W.hw,"W.hw=this.checked?1:0;saveW();buildView()")}${hwOpt(W.hw)?'<div class="mkw-sm" style="margin:-4px 0 8px">5지선다는 부교재 문항으로 채워요. OX · 빈칸은 아래에서 체크하면 같은 유형에서 함께 넣어요.</div>':''}<div class="bwsets">${examSetEntries().map(([k,v])=>`<label class="mkw-ck"><input type="checkbox" ${examSetOn(k)?'checked':''} ${SUBJ==='aim'||(hwOpt(W.hw)&&['mc','top','bank'].includes(k))?'disabled':''} onchange="W.sets['${k}']=this.checked?1:0;saveW();buildView()"><span>${v}</span></label>`).join('')}</div>
   ${W.sets.bank?`<div class="mkw-q" style="margin-top:12px"><span class="mkw-l" style="width:auto">문제 은행 비율</span><input type="range" min="0" max="100" step="10" value="${W.bankPct}" oninput="W.bankPct=+this.value;document.getElementById('bpv').textContent=this.value+'%';saveW()"><b id="bpv">${W.bankPct}%</b></div>`:''}
   <div class="mkw-sm">${esc(SNAME[SUBJ])} · ${bankStatus().replace(/<[^>]+>/g,'')}</div>
   <h3 style="margin-top:20px">유형 자동 선택</h3><div class="bwauto"><div class="bwal">기준</div><div class="mkw-chips">${[['weak','약한 유형'],['wrong','최근 틀린'],['new','안 풀어 본'],['mix','단원별 골고루']].map(([k,t])=>`<button class="${BAUTO.mode===k?'on':''}" onclick="BAUTO.mode='${k}';buildView()">${t}</button>`).join('')}</div><div class="bwal">유형 수</div><div class="mkw-chips">${[3,5,8,10].map(n=>`<button class="${BAUTO.n===n?'on':''}" onclick="BAUTO.n=${n};buildView()">${n}개</button>`).join('')}</div><button class="p bwgo" onclick="bsAuto()">이 조건으로 고르기</button></div>
@@ -1727,10 +1727,12 @@ function allocMix(cands,r){ // 교재/은행 비율 + 난이도 비율
  const b=allocLv(tb,Math.min(tb.length,r-a.length));const out=[...a,...b];
  if(out.length<r){const ids=new Set(out.map(q=>q.code));out.push(...allocLv(cands.filter(q=>!ids.has(q.code)),r-out.length))}return out}
 async function pickCodes(excl){const L=lastRes();const keys=[...W.sel.keys()];const plan=planCounts();
- const hw=hwOpt(W.hw),tags=Object.entries(BIDX).filter(([,b])=>examBankOn(b)&&W.sel.has(b.sub+'|'+b.label)&&(!hw||b.hwn)).map(([t])=>t);await ensureTags(tags);
+ const hw=hwOpt(W.hw),tags=Object.entries(BIDX).filter(([,b])=>(hw?b.hwn&&b.set!=='essay':examBankOn(b))&&W.sel.has(b.sub+'|'+b.label)).map(([t])=>t);await ensureTags(tags);
+ /* 해원고 부교재: 5지선다는 부교재 문항(원본 · 변형 · 유사)으로만, OX · 빈칸은 「출제 대상」에서 체크했을 때만 같은 유형에서 함께 */
+ const hwPool=q=>hwQ(q)||(q.set==='ox'||q.set==='blank')&&examQuestionOn(q);
  const used=new Set(excl||[]),last=c=>{const a=L[c];return a?a[a.length-1]:undefined};const groups=[];
  for(const k of keys){const N=plan[k]||0;const [sub,type]=k.split('|');
-  const same=DATA.filter(q=>q.sub===sub&&q.type===type&&q.set!=='essay'&&(SUBJ!=='aim'||q.revised)&&(!hw||hwQ(q)));const pool=same.filter(examQuestionOn);
+  const same=DATA.filter(q=>q.sub===sub&&q.type===type&&q.set!=='essay'&&(SUBJ!=='aim'||q.revised)&&(!hw||hwPool(q)));const pool=hw?same:same.filter(examQuestionOn);
   const lvOk=q=>(W.lvr[q.lv||'중']||0)>0||LVS.every(l=>!(W.lvr[l]>0));
   const got=[];const left=()=>N-got.length;const famN={};let fcap=1;const fokay=q=>(famN[srcKey(q)]||0)<fcap;
   const uniq=a=>{const seen=new Set(),o=[];shuffle(a).forEach(q=>{if(!fokay(q))return;const sk=srcKey(q);if(seen.has(sk))return;seen.add(sk);o.push(q)});return o};
@@ -3947,7 +3949,8 @@ function MKCD(){return `<div class="mkw-d"><div class="card lay"><h3 style="marg
 
 let MKW={open:0,step:1};
 const MKSTEPS=['시험 정보','출제 범위','구성·배점','디자인·표지'],MKLC={'하':'#2e9e5b','중':'#b7791f','상':'#c0392b','최':'#6a3fc4'};
-function mkEns(){if(SUBJ==='aim')MKF.essay=0;const sc=MKF.scope==='all'?subs.map(x=>x[0]):MKF.subs;const obj=mkObjN();
+/* 전범위 모의고사는 5지선다만(선지 5개 · 정답 1개): 서술형은 넣지 않는다 */
+function mkEns(){MKF.essay=0;const sc=MKF.scope==='all'?subs.map(x=>x[0]):MKF.subs;const obj=mkObjN();
  if(!MKF.lvc||MKF.lvc.reduce((a,b)=>a+b,0)!==obj)MKF.lvc=mkLv(obj,MKF.preset);
  const all=jget(MK,[]);const next=all.filter(m=>m.subj===SUBJ).reduce((a,m)=>Math.max(a,m.round),0)+1;if(!MKF.round)MKF.round=next;
  return {sc,obj,ps:mkPerSub(sc,obj),lvSum:MKF.lvc.reduce((a,b)=>a+b,0),next,hasEssay:DATA.some(q=>q.set==='essay')}}
@@ -3987,7 +3990,7 @@ function mkwR(){
   <div class="mkw-sm">합계가 ${obj}문항(전체 ${MKF.n}문항${MKF.essay?' − 서술형 '+MKF.essay:''})이 되어야 해요. 가능 문항보다 많이 고르면 가까운 난이도로 채워요.</div></section></div>`}
  else if(st===3)body=`<div class="mkw-one"><h3>구성 · 배점</h3><div class="mkw-q"><span class="mkw-l">배점 방식</span><select onchange="MKF.pts=this.value;mkSave()"><option value="kice" ${MKF.pts==='kice'?'selected':''}>수능형 (어려운 문항일수록 높은 배점, 총점 맞춤)</option><option value="even" ${MKF.pts==='even'?'selected':''}>모두 같은 배점 (총점 맞춤)</option><option value="orig" ${MKF.pts==='orig'?'selected':''}>문항 원본 배점 그대로</option></select></div>
   <div class="mkw-q"><span class="mkw-l">문항 순서</span><select onchange="MKF.order=this.value;mkSave()"><option value="lv" ${MKF.order==='lv'?'selected':''}>쉬운 문항부터 (난이도 순)</option><option value="sub" ${MKF.order==='sub'?'selected':''}>소단원 순서대로</option><option value="mix" ${MKF.order==='mix'?'selected':''}>섞어서</option></select></div>
-  ${hasEssay?`<div class="mkw-q"><span class="mkw-l">서술형</span><select onchange="MKF.essay=+this.value;MKF.lvc=null;MKF.perSub={};mkSave();mockView()">${[0,1,2,3,4,5].map(n=>`<option value="${n}" ${MKF.essay===n?'selected':''}>${n?n+'문항 포함':'없음'}</option>`).join('')}</select></div>`:''}
+  <div class="mkw-sm">모의고사는 5지선다(선지 5개 · 정답 1개)로만 만들어요.</div>
   <div class="mkw-q"><span class="mkw-l">중복</span><label class="mkw-ck"><input type="checkbox" ${MKF.dup?'checked':''} onchange="MKF.dup=this.checked?1:0;mkSave()"><span>이전 회차와 같은 문제 빼기</span></label></div></div>`;
  else body=`<div class="mkw-one wide">${MKCD()}</div>`;
  const nm=MKF.title||SNAME[SUBJ]+' 모의고사 '+MKF.round+'회';
@@ -4025,7 +4028,7 @@ async function mockPick(sc,obj,ps,used){
  const slots={};sc.forEach(sb=>slots[sb]=[]);let li=0;const order=[];sc.forEach(sb=>{for(let k=0;k<(ps[sb]||0);k++)order.push(sb)});shuffle(order);
  order.forEach(sb=>slots[sb].push(lvList[li++%Math.max(1,lvList.length)]||'중'));
  const seenType={};
- for(const sb of sc){const pool=shuffle(DATA.filter(q=>q.sub===sb&&['mc','top','bank'].includes(q.set)&&(SUBJ!=='aim'||q.revised)&&!usedSet.has(q.code)&&(!hw||hwQ(q))));
+ for(const sb of sc){const pool=shuffle(DATA.filter(q=>q.sub===sb&&['mc','top','bank'].includes(q.set)&&nOpts(q)===5&&!isMulti(q)&&(SUBJ!=='aim'||q.revised)&&!usedSet.has(q.code)&&(!hw||hwQ(q))));
   for(const L of slots[sb]){
    const cand=[0,1,-1,2,-2,3,-3].map(d=>LVN[LVI[L]+d]).filter(Boolean);let got=null;
    for(const lv of cand){got=pool.find(q=>!usedSet.has(q.code)&&(q.lv||'중')===lv&&(fam[srcKey(q)]||0)<1&&!(seenType[q.type]>=3&&pool.some(z=>!usedSet.has(z.code)&&(z.lv||'중')===lv&&(seenType[z.type]||0)<3&&(fam[srcKey(z)]||0)<1)));if(got)break}
