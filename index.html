@@ -171,9 +171,9 @@ const tagOf=c=>{const m=String(c).match(/^G-([a-z0-9]+)-/);return m&&m[1]};
 const bankSet=b=>b.set||'bank';
 const examBankOn=b=>SUBJ==='aim'?b.revised===true:examSetOn(bankSet(b));
 const examQuestionOn=q=>SUBJ==='aim'?q.revised===true:examSetOn(q.set);
-/* 물질과 에너지 「해원고 부교재」: 켜면 부교재 원본(hw o)과 그 변형(v)에서만 출제(동유형 유사 s · 다른 문항 제외) */
-const hwOpt=on=>SUBJ==='me'&&!!on,hwQ=q=>q.hw==='o'||q.hw==='v';
-const hwChk=(on,set)=>SUBJ==='me'?`<label class="mkw-ck hwopt"><input type="checkbox" ${on?'checked':''} onchange="${set}"><span><b>해원고 부교재</b> 원본 + 변형에서만 출제</span></label>`:'';
+/* 물질과 에너지 「해원고 부교재」: 학교 선생님이 부교재만 보고 출제하므로, 켜면 부교재로 만든 문항(원본 o · 변형 v · 동유형 유사 s)에서만 출제하고 부교재와 무관한 기존 문항은 뺀다 */
+const hwOpt=on=>SUBJ==='me'&&!!on,hwQ=q=>q.hw==='o'||q.hw==='v'||q.hw==='s';
+const hwChk=(on,set)=>SUBJ==='me'?`<label class="mkw-ck hwopt"><input type="checkbox" ${on?'checked':''} onchange="${set}"><span><b>해원고 부교재</b> 원본 · 변형 · 유사에서만 출제</span></label>`:'';
 const examSetOn=k=>SUBJ==='aim'?k==='mc':W.sets[k];
 const examSetEntries=()=>Object.entries(SETS).filter(([k])=>SUBJ!=='aim'||k==='mc');
 function bankTagsFor(sub,type,sets){return Object.entries(BIDX).filter(([,b])=>b.sub===sub&&(!type||b.label===type)&&(!sets||sets[bankSet(b)])).map(([t])=>t)}
