@@ -499,10 +499,27 @@ async function bkfBank(d){if(!d)return;
   await ensureTags(subs.flatMap(s=>bankTagsFor(s.k,'',sets)));return}
  if(!(d.parts||[]).some(p=>p.k==='q')||!bkQn(d,'v'))return;const S=bkSel(),subs=S.subs.filter((s,i)=>!(d.subs||[]).length||d.subs.includes(i)).map(s=>s.k);
  const tags=Object.keys(BIDX).filter(t=>BIDX[t]&&subs.includes(BIDX[t].sub)&&BIDX[t].style!=='기초');if(tags.length)await ensureTags(tags)}
+/* 물질과 에너지 기존 교재 롤백: 해원고 부교재 재구성(#146) 전 데이터(bank0/)로 쪽을 짠다. 예전에 인쇄 · 배포한 교재와 쪽수 · 문항이 같아야 하므로. 「해원고 부교재」로 만든 교재(def.hw)만 새 데이터. */
+let BKL=null,BKLOCK=Promise.resolve();
+async function bkLegacyLoad(){if(BKL)return BKL;const j=async u=>{const r=await fetch(u);if(!r.ok)throw new Error(u);return r.json()};
+ const [data,idx,conc,ch]=await Promise.all(['data','index','concept','changed'].map(n=>j('bank0/'+n+'.json?v=1')));
+ const L={pool:[],idx,conc,ch:new Set(ch),done:{}};const add=q=>{if(typeof ovHidden==='function'&&ovHidden(q.code))return false;if(typeof ovApply==='function')ovApply(q);L.pool.push(q);if(!byCode[q.code])byCode[q.code]=q;return true};
+ data.forEach(add);L.add=add;return BKL=L}
+async function bkLegacyTags(tags){const L=BKL;for(const t of tags){if(!t||L.done[t]||!L.idx[t])continue;try{const r=await fetch((L.ch.has(t)?'bank0/':'bank/')+t+'.json'+(L.ch.has(t)?'?v=1':''));if(!r.ok)continue;(await r.json()).forEach(q=>{if(figLost(q))return;if(L.add(q))DATA.push(q)});L.done[t]=1}catch(e){}}}
+const bkLegacyOn=P=>SUBJ==='me'&&!(P&&P.def&&P.def.hw);
 async function bkPlan(id){
+ if(BKP[id]&&BKP[id].subj===SUBJ&&BKP[id].sig===bkOsig())return BKP[id];
+ const run=BKLOCK.then(()=>bkPlan0(id));BKLOCK=run.catch(()=>{});return run}
+async function bkPlan0(id){
  if(BKP[id]&&BKP[id].subj===SUBJ&&BKP[id].sig===bkOsig())return BKP[id];
  await bkInit();await conceptLoad();
  const P=bkParts(id);if(!P)return null;
+ if(!bkLegacyOn(P))return bkPlan1(id,P);
+ let L;try{L=await bkLegacyLoad()}catch(e){return bkPlan1(id,P)}
+ const sv={data:DATA.slice(),bidx:BIDX,conc:CONC.me,ens:ensureTags};
+ DATA.length=0;L.pool.forEach(q=>DATA.push(q));sv.data.forEach(q=>{if(typeof MYSUBJ!=='undefined'&&MYSUBJ[q.code])DATA.push(q)});BIDX=L.idx;CONC.me=L.conc;ensureTags=bkLegacyTags;
+ try{return await bkPlan1(id,P)}finally{DATA.length=0;sv.data.forEach(q=>DATA.push(q));BIDX=sv.bidx;CONC.me=sv.conc;ensureTags=sv.ens}}
+async function bkPlan1(id,P){
  if(P.kind==='h')await bkMainPrep(P.part);
  if(P.kind==='x'&&P.def&&P.def.kind==='free')await bkfBank(P.def);
  if(SUBJ==='aim'&&P.def&&P.def.kind==='full'){

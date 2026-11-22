@@ -5,7 +5,8 @@
 - 교재 쪽수 점검(기본 교재, 커밋별): 화법과 언어는 쪽수 변화 없음(10480ca 해설 문구 변경으로 모양만 바뀜 → exp0로 되돌림). 물질과 에너지는 455b31e(해원고 부교재 재구성 데이터)부터 바뀜 — All in One 70→57→64→62쪽, 하이라이트류 92→87→92→91쪽, 문제집(t) 160쪽 유지 · 문항 구성 바뀜.
 - 바뀐 파일: index.html, books.js, lib/hwpx.js, styles/screens.css, sw.js, tests/*
 - 확인: node scripts/verify-static.cjs, 추가 테스트(build-busy, haewon-only, self-check-answer, student-code-search, account-self-*)
-- 남은 일 · 주의: **물질과 에너지 기존 교재 롤백 미완료** — f3a52b5 시점 데이터를 기존 교재용으로 따로 두고 bkPlan에서 쓰게 해야 함. 운영 DB에 supabase/sql_28 · sql_29 실행 필요.
+- 물질과 에너지 교재 롤백: f3a52b5 시점 데이터를 bank0/(data.json · index.json · concept.json · 바뀐 유형 파일)에 두고, bkPlan이 「해원고 부교재」(def.hw) 교재가 아니면 이 데이터로 쪽을 짬(직렬 실행으로 데이터 교체 충돌 방지). 기본 교재 9종 쪽수 · 문항 · 배치 해시가 f3a52b5와 완전히 같음 확인.
+- 남은 일 · 주의: 사용자가 만든 교재(예: All in One)는 계정 데이터라 여기서 직접 확인 못 함 — 같은 경로로 예전 데이터를 씀. 운영 DB에 supabase/sql_28 · sql_29 실행 필요.
 
 ## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (7차: 문항 구성 중 표시)
 - 한 일: 학습지 만들기 「다음 · 문항 확인」을 누르면 반응이 없어 씹힌 것처럼 보이던 문제. 원인: 「만드는 중」 진행 표시(#busy, z-index 100)가 전체 화면 출제 창(#mkw, 9500) 뒤에 깔림. #busy를 9800으로 올리고(모의고사 출제 창도 같은 #mkw라 함께 해결), 버튼은 누르는 즉시 잠기고 「문항 구성 중…」으로 바뀌며 끝나면 되돌아옴(여러 번 눌러도 한 번만 출제). 진행 문구는 「문항을 구성하는 중…」.
