@@ -32,4 +32,20 @@ for (const f of [
     n++;
   }
 }
-console.log("PASS " + n + " executable scripts parsed");
+// 병합 충돌 표시가 배포 파일에 남으면 서비스 워커·앱이 통째로 멈춘다
+{
+  const bad = [];
+  const walk = (d) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      if (["node_modules", ".git", "backups"].includes(e.name)) continue;
+      const p = d === "." ? e.name : d + "/" + e.name;
+      if (e.isDirectory()) walk(p);
+      else if (/\.(html|js|cjs|css|json|sql|webmanifest)$/.test(e.name) && fs.statSync(p).size < 4e6) {
+        if (/^(<<<<<<<|>>>>>>>) /m.test(fs.readFileSync(p, "utf8"))) bad.push(p);
+      }
+    }
+  };
+  walk(".");
+  if (bad.length) throw new Error("merge conflict markers in: " + bad.join(", "));
+}
+console.log("PASS " + n + " executable scripts parsed, no merge conflict markers");
