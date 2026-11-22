@@ -3,7 +3,7 @@
 ## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (4차: PR #150 합치기)
 - 한 일: 열려 있던 PR #150(claude/sharp-maxwell-twnvbb: 정답 수식 표시 `ansSafe`, 학생 범위에서도 기본 학습지 보이기, 기본 학습지 자동 등록 경쟁 방지, `verify-static`의 병합 충돌 표시 검사)을 사용자 요청으로 main에 합침. `sw.js`는 main 쪽(최신 SHELL) 유지 + v234, `WORKLOG.md`는 양쪽 기록 모두 유지.
 - 바뀐 파일: #150의 `index.html` · `scripts/verify-static.cjs` · `tests/exp-choice-label.cjs` · `tests/preset-worksheet.cjs`, `sw.js`(v234), `WORKLOG.md`.
-- 확인: 아래 「합친 뒤 검사」 참조.
+- 확인: 합친 상태로 전체 `npm test` 통과(EXIT 0), `verify-static`(충돌 표시 검사 포함) 통과.
 - 남은 일 · 주의: #150 설명대로 운영 Supabase에 `sql_28_wrong_answer.sql`(아직 안 했다면)과 `sql_29_account_self.sql` 실행 필요.
 
 ## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (3차: 빌드업 PDF 재생성)
