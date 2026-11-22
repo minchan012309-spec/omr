@@ -1,5 +1,11 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-22 · Claude Code · claude/book-rollback-font
+- 한 일: 교재 수식 글꼴을 #146 이전(기본 수식 글꼴)으로 되돌림 — 기존 교재가 예전 인쇄본과 같게.
+- 확인: 사용자 교재 3권(me-xfc_o_b_t_z1_a2, me-xft_a1_p1, hl-xfq_…_a1)을 커밋별로 다시 짜 비교. f3a52b5와 현재가 쪽수 · 쪽별 문항 · 쪽 HTML 해시 모두 같고(All in One 56쪽 Q33-004·005·014, 륜원햄 7쪽 Q31-033~036, 화법 10쪽 N-006·007·009·012), 해당 쪽 화면 캡처도 픽셀까지 같음. 455b31e~02052a2 배포본에서는 달랐음.
+- 바뀐 파일: books.js, index.html(books.js?v=97), sw.js(v241), WORKLOG.md
+- 남은 일 · 주의: 채점 결과 · 문항 상세 등 교재 밖 화면의 유형 · 단원 이름은 새 데이터 기준.
+
 ## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (#156 병합 후 CI 수정)
 - 한 일: 분수(mfrac)가 든 선지는 자동 선지 배치에서 빼 원래 2열 유지(인공지능 수학 인쇄 회귀). app-ui 테스트의 screens.css 버전 v=22 반영, build-busy 테스트 타이밍 안정화.
 - 바뀐 파일: index.html, sw.js, tests/app-ui.cjs, tests/build-busy.cjs, WORKLOG.md

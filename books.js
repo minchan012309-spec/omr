@@ -179,7 +179,7 @@ const BKCSS=`
 .bkdoc .cbk .eqn{margin:2mm 0 3mm;padding:1.6mm 2.4mm;text-align:center;font-weight:700;border-top:.3mm solid var(--p);border-bottom:.3mm solid var(--p);background:#fff}
 .bkdoc .cbk .eqn small{display:block;font-weight:400;font-size:.88em;color:#555}
 .bkdoc .cbk .aim-concept-formula{font-size:15px;padding:1.5mm .8mm;background:var(--pl)}
-.bkdoc .cbk .aim-concept-formula math{font-family:LatinModernMath,'Latin Modern Math',serif}.bkdoc math,.bkdoc math *,.bkdoc .mx{font-family:LatinModernMath,'Latin Modern Math',serif!important}
+.bkdoc .cbk .aim-concept-formula math{font-family:math}
 .bkdoc .cbk .aim-concept-table th,.bkdoc .cbk .aim-concept-table td{padding:1mm .8mm}
 .bkdoc .cbk .fg{margin:2mm 0 3mm;text-align:center;break-inside:avoid}.bkdoc .cbk .fg img,.bkdoc .cbk .fg svg{max-width:100%;height:auto;max-height:66mm}
 .bkdoc .cbk .fg .cap{font-size:10.6px;color:#555;margin-top:1mm}
@@ -1826,7 +1826,7 @@ function ebkScrubBind(s){let st=null;
  s.addEventListener('pointerup',end,true);s.addEventListener('pointercancel',end,true)}
 
 /* ---------- 인쇄 ---------- */
-function bkFontCssRule(){const f=BKO.font&&typeof FONTS!=='undefined'&&FONTS[BKO.font];return f&&BKO.font!=='paper'?'.bkdoc,.bkdoc *{font-family:'+f[1]+'!important}.bkdoc .u.q .chs div b{font-family:'+(BKO.font==='shin'?f[1]:'SolviCn,'+f[1])+'!important;'+(BKO.font==='shin'?'font-size:1em!important;font-weight:400!important;margin-right:.5em!important':'')+'}.bkdoc math,.bkdoc math *,.bkdoc .mx{font-family:LatinModernMath,\'Latin Modern Math\',serif!important}':''}
+function bkFontCssRule(){const f=BKO.font&&typeof FONTS!=='undefined'&&FONTS[BKO.font];return f&&BKO.font!=='paper'?'.bkdoc,.bkdoc *{font-family:'+f[1]+'!important}.bkdoc .u.q .chs div b{font-family:'+(BKO.font==='shin'?f[1]:'SolviCn,'+f[1])+'!important;'+(BKO.font==='shin'?'font-size:1em!important;font-weight:400!important;margin-right:.5em!important':'')+'}':''}
 /* 양면 인쇄: 답안이 뒷면에서 시작하지 않게 빈 쪽을 끼우고, 총 쪽수가 홀수면 마지막에 빈 쪽을 붙임(-1 = 빈 쪽) */
 function bkSheets(plan,all,noQ){const last=plan.pages[plan.pages.length-1],back=!!(all&&last&&last.k==='back');
  const n=all?plan.pages.length-(back?1:0):Math.max(1,(plan.aStart||plan.pages.length+1)-1);const a=[];for(let i=0;i<n;i++)a.push(i);
