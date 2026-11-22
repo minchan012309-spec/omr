@@ -1,5 +1,12 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s
+- 한 일: 문항 표시(긴 선지 세로 배치, (가)(나)(다) 상자, 화학식 · 단위 수식 글꼴, 그림 최대 높이), HWPX 그림 누락 수정, 빌드업 재출제 단원 선택 창 · 진행 표시, 채점 교재 쪽수 목록(배포된 주교재만), 학생 문항 검색 탭, 코드 검색은 번호를 끝까지 쳤을 때만 + 검색하기 버튼, 담기 바(고른 문항 확인 · 학습지 만들기), 진행 표시 디자인. 화법과 언어 교재 해설은 바뀌기 전 해설(exp0)을 써서 기존 교재 모양 유지.
+- 교재 쪽수 점검(기본 교재, 커밋별): 화법과 언어는 쪽수 변화 없음(10480ca 해설 문구 변경으로 모양만 바뀜 → exp0로 되돌림). 물질과 에너지는 455b31e(해원고 부교재 재구성 데이터)부터 바뀜 — All in One 70→57→64→62쪽, 하이라이트류 92→87→92→91쪽, 문제집(t) 160쪽 유지 · 문항 구성 바뀜.
+- 바뀐 파일: index.html, books.js, lib/hwpx.js, styles/screens.css, sw.js, tests/*
+- 확인: node scripts/verify-static.cjs, 추가 테스트(build-busy, haewon-only, self-check-answer, student-code-search, account-self-*)
+- 남은 일 · 주의: **물질과 에너지 기존 교재 롤백 미완료** — f3a52b5 시점 데이터를 기존 교재용으로 따로 두고 bkPlan에서 쓰게 해야 함. 운영 DB에 supabase/sql_28 · sql_29 실행 필요.
+
 ## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (7차: 문항 구성 중 표시)
 - 한 일: 학습지 만들기 「다음 · 문항 확인」을 누르면 반응이 없어 씹힌 것처럼 보이던 문제. 원인: 「만드는 중」 진행 표시(#busy, z-index 100)가 전체 화면 출제 창(#mkw, 9500) 뒤에 깔림. #busy를 9800으로 올리고(모의고사 출제 창도 같은 #mkw라 함께 해결), 버튼은 누르는 즉시 잠기고 「문항 구성 중…」으로 바뀌며 끝나면 되돌아옴(여러 번 눌러도 한 번만 출제). 진행 문구는 「문항을 구성하는 중…」.
 - 바뀐 파일: `index.html`, `styles/screens.css`(v21), `sw.js`(v237), `tests/app-ui.cjs`(CSS 버전), 새 `tests/build-busy.cjs`(+`tests/run.cjs`), `WORKLOG.md`.
