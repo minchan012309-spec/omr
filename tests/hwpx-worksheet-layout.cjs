@@ -34,5 +34,12 @@ const paras=x=>[...x.matchAll(/<hp:p [^>]*>([\s\S]*?)<\/hp:p>/g)].map(m=>[...m[1
  assert.match(head,/autoTabRight="1"/,'right tab for number/points rows');
  const white=[...head.matchAll(/<hh:charPr id="(\d+)"[^>]*textColor="#ffffff"/g)].map(m=>m[1]);
  const outside=sec.replace(/<hp:tc [\s\S]*?<\/hp:tc>/g,'');for(const id of white)assert.ok(!outside.includes('charPrIDRef="'+id+'"'),'no white text outside filled table cells');
+ // HTML과 같은 디자인: <보기> 제목이 위 테두리에 걸치는 3줄 표, 보기 줄 · 선지 내어쓰기, 칸 여백 · 테두리 색은 CSS 값
+ assert.match(sec,/<hp:tbl [^>]*rowCnt="3" colCnt="3"[\s\S]*?<hp:cellSpan colSpan="1" rowSpan="2"\/>/,'보기 title straddles the top border');
+ const bogiTitle=sec.match(/rowSpan="2"[\s\S]*?<\/hp:tc>/)||sec.match(/<hp:tc [^>]*>(?:(?!<\/hp:tc>)[\s\S])*?보\s*기(?:(?!<\/hp:tc>)[\s\S])*?<\/hp:tc>/);assert.ok(bogiTitle,'보기 title cell');
+ assert.match(head,/<hc:intent value="-\d+" unit="HWPUNIT"\/><hc:left value="\d+"/,'hanging indent for 보기 lines and choices');
+ assert.ok([...sec.matchAll(/<hp:cellMargin left="(\d+)" right="(\d+)" top="(\d+)"/g)].some(m=>+m[1]>=250&&+m[3]>=150),'table cell padding follows the HTML (about 1.2 x 0.9 mm)');
+ assert.match(head,/<hh:leftBorder type="SOLID" width="0\.\d+ mm" color="#(?!000000)[0-9a-f]{6}"/,'table border colour follows the HTML');
+ assert.match(head,/<hh:paraPr id="\d+"[\s\S]*?<hc:prev value="[1-9]\d*"/,'paragraph spacing measured from the HTML');
  console.log('PASS tablet worksheet HWPX: one flowing 2-column section ('+htmlPages+' HTML pages), Hancom header/page number, joined rows, cell fills, readable badges');
 }finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});
