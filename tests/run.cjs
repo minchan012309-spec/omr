@@ -88,6 +88,7 @@ const run = (args, env) =>
       ["tests/student-code-search.cjs"],
       ["tests/self-check-answer.cjs"],
       ["tests/haewon-only.cjs"],
+      ["tests/build-busy.cjs"],
       ["tests/book-qr-links.cjs"],
       ["tests/book-writing-margins.cjs"],
       ["tests/print-regression.cjs"],

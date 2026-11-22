@@ -80,7 +80,7 @@ const BKCSS=`
 .bkdoc .u.q .lv.h{background:#111;color:#fff}
 .bkdoc .u.q .fg{text-align:center;margin:1.6mm 0}.bkdoc .u.q .fg img{max-width:100%;max-height:62mm;height:auto}
 .bkdoc .u.q .bogi,.bkdoc .u.q .bxx{border:.6px solid #111;padding:1.6mm 2.2mm;margin:2mm 0;font-size:11.8px;line-height:1.5}
-.bkdoc .u.q .bogi{position:relative;padding-top:3.4mm;margin-top:4.4mm}
+.bkdoc .u.q .bogi{position:relative;padding-top:3.4mm;margin-top:4.4mm}.bkdoc .cx{font-family:inherit!important;font-style:inherit!important}
 .bkdoc .u.q .bogi .bt{position:absolute;top:-2.5mm;left:50%;transform:translateX(-50%);background:#fff;color:#333;border-radius:0;padding:0 1.6mm;margin:0;font-weight:500;font-size:11.6px;line-height:4.6mm;letter-spacing:0;white-space:nowrap} /* 〈보기〉 글자만 윗줄에 걸침 */
 .bkdoc .u.q .bogi p,.bkdoc .u.q .bxx p{margin:.5mm 0;padding-left:5mm;text-indent:-5mm;text-align:left}
 .bkdoc .u.q .bxx{border-style:solid}
@@ -352,7 +352,7 @@ function bkQHtml(q,no,o){o=o||{};
 function bkOxHtml(q,no,kind){const r=bkDoc(q.q);const qs=r.querySelector('.qs')||r;let h=qs.innerHTML.replace(/^<p>/,'').replace(/<\/p>$/,'');if(kind==='bl')h=h.replace(/<span class="bk">[^<]*<\/span>/g,'<span class="bk">&nbsp;</span>');
  return '<div class="u o '+(kind==='bl'?'b':'')+'" data-c="'+q.code+'"><span class="nc"><b>'+no+'</b><small>'+q.code+'</small></span><span class="tx">'+h+'</span>'+(kind==='ox'?'<span class="bx">O / X</span>':'')+'</div>'}
 function bkAnsOf(q){if(q.set==='ox')return String(q.ans).toUpperCase()==='O'?'○':'×';if(q.set==='blank')return (q.blanks||[]).map((a,k)=>'㉠㉡㉢㉣㉤'[k]+' '+questionAnswer(q,a)).join(' · ');if(q.set==='essay')return '';return bkCir(q.ans)}
-function bkXHtml(q,no){const r=bkDoc(q.exp||'');const sol=r.querySelector('.sol')||r;sol.querySelectorAll('.sh').forEach(e=>e.remove());
+function bkXHtml(q,no){const r=bkDoc(q.exp0??q.exp??'');const sol=r.querySelector('.sol')||r;sol.querySelectorAll('.sh').forEach(e=>e.remove());
  let body=sol.innerHTML;if(!r.querySelector('.sol'))body=r.innerHTML;
  const a=q.set==='essay'?'모범 답안':'정답 '+bkAnsOf(q);
  return '<div class="u x"><div class="xh"><span class="xn">'+no+'</span><span class="xa">'+a+'</span><span class="xm">'+(bkLv(q)&&q.set!=='ox'&&q.set!=='blank'?'난이도 '+bkLv(q)+' · ':'')+q.code+'</span></div><div class="xb">'+body+'</div></div>'}
@@ -499,10 +499,27 @@ async function bkfBank(d){if(!d)return;
   await ensureTags(subs.flatMap(s=>bankTagsFor(s.k,'',sets)));return}
  if(!(d.parts||[]).some(p=>p.k==='q')||!bkQn(d,'v'))return;const S=bkSel(),subs=S.subs.filter((s,i)=>!(d.subs||[]).length||d.subs.includes(i)).map(s=>s.k);
  const tags=Object.keys(BIDX).filter(t=>BIDX[t]&&subs.includes(BIDX[t].sub)&&BIDX[t].style!=='기초');if(tags.length)await ensureTags(tags)}
+/* 물질과 에너지 기존 교재 롤백: 해원고 부교재 재구성(#146) 전 데이터(bank0/)로 쪽을 짠다. 예전에 인쇄 · 배포한 교재와 쪽수 · 문항이 같아야 하므로. 「해원고 부교재」로 만든 교재(def.hw)만 새 데이터. */
+let BKL=null,BKLOCK=Promise.resolve();
+async function bkLegacyLoad(){if(BKL)return BKL;const j=async u=>{const r=await fetch(u);if(!r.ok)throw new Error(u);return r.json()};
+ const [data,idx,conc,ch]=await Promise.all(['data','index','concept','changed'].map(n=>j('bank0/'+n+'.json?v=1')));
+ const L={pool:[],idx,conc,ch:new Set(ch),done:{}};const add=q=>{if(typeof ovHidden==='function'&&ovHidden(q.code))return false;if(typeof ovApply==='function')ovApply(q);L.pool.push(q);if(!byCode[q.code])byCode[q.code]=q;return true};
+ data.forEach(add);L.add=add;return BKL=L}
+async function bkLegacyTags(tags){const L=BKL;for(const t of tags){if(!t||L.done[t]||!L.idx[t])continue;try{const r=await fetch((L.ch.has(t)?'bank0/':'bank/')+t+'.json'+(L.ch.has(t)?'?v=1':''));if(!r.ok)continue;(await r.json()).forEach(q=>{if(figLost(q))return;if(L.add(q))DATA.push(q)});L.done[t]=1}catch(e){}}}
+const bkLegacyOn=P=>SUBJ==='me'&&!(P&&P.def&&P.def.hw);
 async function bkPlan(id){
+ if(BKP[id]&&BKP[id].subj===SUBJ&&BKP[id].sig===bkOsig())return BKP[id];
+ const run=BKLOCK.then(()=>bkPlan0(id));BKLOCK=run.catch(()=>{});return run}
+async function bkPlan0(id){
  if(BKP[id]&&BKP[id].subj===SUBJ&&BKP[id].sig===bkOsig())return BKP[id];
  await bkInit();await conceptLoad();
  const P=bkParts(id);if(!P)return null;
+ if(!bkLegacyOn(P))return bkPlan1(id,P);
+ let L;try{L=await bkLegacyLoad()}catch(e){return bkPlan1(id,P)}
+ const sv={data:DATA.slice(),bidx:BIDX,conc:CONC.me,ens:ensureTags};
+ DATA.length=0;L.pool.forEach(q=>DATA.push(q));sv.data.forEach(q=>{if(typeof MYSUBJ!=='undefined'&&MYSUBJ[q.code])DATA.push(q)});BIDX=L.idx;CONC.me=L.conc;ensureTags=bkLegacyTags;
+ try{return await bkPlan1(id,P)}finally{DATA.length=0;sv.data.forEach(q=>DATA.push(q));BIDX=sv.bidx;CONC.me=sv.conc;ensureTags=sv.ens}}
+async function bkPlan1(id,P){
  if(P.kind==='h')await bkMainPrep(P.part);
  if(P.kind==='x'&&P.def&&P.def.kind==='free')await bkfBank(P.def);
  if(SUBJ==='aim'&&P.def&&P.def.kind==='full'){
@@ -1313,6 +1330,8 @@ function bkBookList(){const S=bkSel();const sk=bkScope(S).map(s=>s.k),inS=k=>sk.
  if(SUBJ==='hl')BKHM.forEach(([id,n,sb])=>L.push({id,name:'주교재 '+n+(id==='hl-hmg'?' (언어 먼저)':''),sub:sb,meta:'주교재',main:1}));
  bkxAll().filter(b=>b.subj===SUBJ).forEach(b=>L.push({id:b.id,name:b.name,sub:b.sub||BKK[b.kind==='full'?'full':'std'][0],meta:b.asg?'선생님이 배포한 교재'+(b.due?' · 마감 '+b.due:''):b.kind==='full'?'전범위 · '+(b.rounds||20)+'회분':'내가 만든 교재',custom:1,asg:!!b.asg,full:b.kind==='full'}));
  return L}
+/* 채점 목록: 화법과 언어 주교재(기본 교재)는 배포된 학생이 1명 이상일 때만 */
+function bkGradeList(){return bkBookList().filter(b=>!b.main||bkDistN(b.id)>0)}
 async function bkShow(){
  await bkInit();await conceptLoad();
  await bkxCheckAssigned();
@@ -1434,7 +1453,7 @@ function bkPathGo(){const id=bkBare($('#bkp1').value)+bkSufOf(),v=$('#bkp2').val
  if(R.p){if(R.bad.length||!R.codes.length)return;return bkEntryRun('선택한 문항을 준비하는 중…',()=>practice(R.codes,BKPATHPLAN.short+' p.'+R.p.n+' '+R.L.join(',')+'번'))}
  BKQ=pages.length>1?{id,pages:pages.slice(1)}:null;return bkGradePage(id,pages[0])}
 async function bkPathMount(el){
- await bkInit();await conceptLoad();if(!el.isConnected)return;const L=bkBookList();
+ await bkInit();await conceptLoad();if(!el.isConnected)return;const L=bkGradeList();
  BKPATHSEQ++;BKPATHPLAN=null;BKPATHGROUPS=new Map();BKSEL=new Set();
  el.innerHTML=`<div class="bk-range-picker"><div class="bk-range-fields"><div><label for="bkp1">1. 교재 선택</label><select id="bkp1" onchange="bkPath(1)"><option value="">교재를 골라 주세요</option>${L.map(b=>b.full?Array.from({length:(bkxAll().find(x=>x.id===b.id)||{}).rounds||20},(_,i)=>`<option value="${b.id}r${i+1}">${esc(b.name)} ${i+1}회</option>`).join(''):`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select></div><div><label for="bkp2">2. 단원·구성 선택</label><select id="bkp2" onchange="bkPath(2)" disabled><option value="">교재를 먼저 선택해 주세요</option></select></div></div><h3>3. 채점할 쪽 선택</h3><input type="hidden" id="bkp3"><div id="bk-page-options" class="bk-page-options" role="group" aria-label="채점할 쪽"></div><div class="bk-range-extra"><div><label for="bk-page-input">쪽 번호로 고르기</label><input id="bk-page-input" inputmode="numeric" placeholder="예: 12-15, 18" onkeydown="if(event.key==='Enter')bkPathType()" onchange="bkPathType()"></div><div><label for="bk-q-input">문항 번호 (한 쪽만, 선택)</label><input id="bk-q-input" inputmode="numeric" placeholder="예: 1-3, 5" disabled oninput="bkRangeSum()"></div></div><p id="bk-range-err" class="bk-range-err" role="alert"></p><div class="bk-range-bottom"><p id="bk-range-summary" role="status" aria-live="polite">${L.length?'먼저 교재를 선택해 주세요.':'채점할 교재가 없어요. 배포받은 교재를 확인해 주세요.'}</p><button type="button" class="p" id="bkpg" onclick="bkPathGo()" disabled>선택한 범위 채점</button></div></div>`;
 }
@@ -1848,7 +1867,7 @@ async function bkPrint(id,all){
  const pw=typeof popOpen==='function'?popOpen('인쇄할 책을 만드는 중…'):null;
  if(!pw&&typeof isMob==='function'&&isMob()){toast('인쇄 창을 열 수 없어 PDF로 만들어 드려요. 저장한 PDF를 열어 인쇄하세요');return bkPdf(id,all)}
  await bkInit();const P=bkParts(id);if(P&&P.subj!==SUBJ)await setSubject(P.subj);
- busyRun('인쇄할 책을 만드는 중…',async()=>{await conceptLoad();const st={q:1,a:all?1:0,x:1};const P0=bkParts(id);if(P0&&P0.def&&P0.def.kind==='free'&&all)st.x=P0.def.ans===1?0:1;const plan=pw?await bkPrintPlan(id,st):await bkPlan(id);if(!plan){if(pw)pw.close();return}
+ busyRun('인쇄할 책을 만드는 중…',async()=>{await conceptLoad();const st={q:1,a:all?1:0,x:1};const P0=bkParts(id);/* 처음 상태는 교재를 만들 때 고른 대로(해설 없이 만든 교재는 답안지 꺼짐) — 예전 인쇄와 쪽수가 같게 */if(P0&&P0.def&&P0.def.kind==='free'&&all){if(P0.def.ans===2)st.a=0;st.x=P0.def.ans===1?0:1}const plan=pw?await bkPrintPlan(id,st):await bkPlan(id);if(!plan){if(pw)pw.close();return}
   if(pw){BKPOP={win:pw,id,all,subj:SUBJ,...st};await bkShowIn(pw,plan,st.a)}else await cbPrintHtml(bkDocHtml(plan,all),pw)})}
 
 /* ---------- PDF 파일로 내려받기(쪽마다 이미지로 그려 한 파일로 묶음) ---------- */
