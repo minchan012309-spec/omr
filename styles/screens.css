@@ -248,3 +248,15 @@ html[data-theme=dark] .ldg .sk{background:#262c36}html[data-theme=dark] .ldg .sk
 #bkbar .bk-acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 #bkbar .bk-acts button{min-height:40px}
 .ckgo{width:100%;min-height:44px;margin:10px 0 6px}
+/* 빌드업 문항 모음 쪽 고르기: 돌려서 맞추는 바퀴 */
+.bpw-wrap{position:relative;margin:14px 0 6px;height:220px;border-radius:14px;background:var(--ui-surface-2,#f4f6f9);overflow:hidden}
+.bpw-band{position:absolute;left:8px;right:8px;top:88px;height:44px;border-radius:10px;background:var(--ui-surface,#fff);box-shadow:0 0 0 1px var(--ui-line,#d7dde5);pointer-events:none}
+.bpw{position:relative;height:220px;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none;outline:none;-webkit-mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent)}
+.bpw::-webkit-scrollbar{display:none}
+.bpw-pad{height:88px}
+.bpw-i{height:44px;display:flex;align-items:center;justify-content:center;gap:8px;scroll-snap-align:center;font:600 17px/1 Pretendard,sans-serif;color:var(--ui-muted,#8a94a3);cursor:pointer;user-select:none;-webkit-user-select:none}
+.bpw-i.on{color:var(--ui-ink,#1b2430);font-size:20px;font-weight:700}
+.bpw-i small{font-size:12px;font-weight:600;color:var(--ui-muted,#8a94a3)}
+.bpw-i.dn{text-decoration:line-through;text-decoration-thickness:1px}
+.bpw-wrap:focus-within .bpw-band{box-shadow:0 0 0 2px var(--b,#2f7fd0)}
+.bpgo-b{width:100%;height:48px;margin-top:6px}
