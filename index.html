@@ -1337,11 +1337,18 @@ function wsLocked(wid,resetAt,srvSub,sid,rng){return recLock('ws',wid,resetAt,rn
 /* 해원고 빌드업 문항 모음(148문항): QR · 번호로 열면 몇 쪽을 채점할지 묻고 교재처럼 한 쪽씩 채점한다. 인쇄된 QR(학습지 번호)은 그대로 */
 let BP=null;
 async function bpPages(wid,codes){const p=PRESETS.find(x=>x.id===String(wid).toUpperCase().replace(/[^A-Z0-9]/g,''));if(!p)return null;try{const d=await presetData(p.key);const pg=d.pages;if(!pg||!pg.length)return null;const set=new Set(codes||[]);return pg.every(a=>a.every(c=>set.has(c)))?pg:null}catch(e){return null}}
-function bpAsk(n){if(!BP)return;const N=BP.pages.length,v=Math.max(1,Math.min(N,n||1));
- $('#cfgBox').innerHTML=`<h2 style="margin-top:0">몇 쪽을 채점할까요?</h2><p class="m">${esc(BP.info.title||'')}<br>문제지 쪽 번호(1~${N}쪽)를 넣으면 그 쪽부터 한 쪽씩 채점해요.</p><div class="bpgo"><input id="bpn" type="number" inputmode="numeric" min="1" max="${N}" value="${v}" aria-label="쪽 번호" onkeydown="if(event.key==='Enter')bpGo()"><span>쪽</span><button class="p" onclick="bpGo()">채점 시작</button></div><p class="m" id="bpm" role="status"></p>`;
- $('#cfg').classList.add('open');setTimeout(()=>{const e=$('#bpn');if(e){e.focus();e.select()}},30)}
-async function bpGo(n){if(!BP)return;const N=BP.pages.length;n=n||Math.round(+(($('#bpn')||{}).value));const m=$('#bpm');
- if(!(n>=1&&n<=N)){if(m)m.textContent='1부터 '+N+' 사이의 쪽 번호를 넣어 주세요.';return}
+function bpAsk(n){if(!BP)return;const N=BP.pages.length,v=Math.max(1,Math.min(N,n||1)),info=BP.info;
+ const done=k=>!!wsLocked(BP.wid,info.resetAt,0,info.sid,'p'+k);
+ $('#cfgBox').innerHTML=`<h2 style="margin-top:0">몇 쪽을 채점할까요?</h2><p class="m">${esc(info.title||'')}<br>돌려서 문제지 쪽(1~${N}쪽)을 맞추면 그 쪽부터 한 쪽씩 채점해요.</p><div class="bpw-wrap"><div class="bpw-band" aria-hidden="true"></div><div class="bpw" id="bpw" role="listbox" tabindex="0" aria-label="채점할 쪽"><div class="bpw-pad"></div>${Array.from({length:N},(_,i)=>`<div class="bpw-i${done(i+1)?' dn':''}" role="option" data-n="${i+1}" onclick="bpPick(${i+1},1)">${i+1}쪽${done(i+1)?'<small>채점함</small>':''}</div>`).join('')}<div class="bpw-pad"></div></div></div><p class="m" id="bpm" role="status"></p><button class="p bpgo-b" onclick="bpGo()">채점 시작</button>`;
+ $('#cfg').classList.add('open');const w=$('#bpw');BP.n=v;let raf=0;
+ const mark=()=>{raf=0;const k=Math.max(1,Math.min(N,Math.round(w.scrollTop/BPH)+1));if(k!==BP.n||!w.querySelector('.on')){BP.n=k;w.querySelectorAll('.bpw-i.on').forEach(e=>{e.classList.remove('on');e.removeAttribute('aria-selected')});const e=w.children[k];if(e){e.classList.add('on');e.setAttribute('aria-selected','true')}const m=$('#bpm');if(m)m.textContent=''}};
+ w.addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(mark)},{passive:true});
+ w.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();bpPick(BP.n+(e.key==='ArrowDown'?1:-1))}else if(e.key==='Enter'){e.preventDefault();bpGo()}});
+ requestAnimationFrame(()=>{w.scrollTop=(v-1)*BPH;mark();w.focus({preventScroll:true})})}
+const BPH=44;
+function bpPick(n,smooth){const w=$('#bpw');if(!w||!BP)return;n=Math.max(1,Math.min(BP.pages.length,n));w.scrollTo({top:(n-1)*BPH,behavior:smooth&&!matchMedia('(prefers-reduced-motion: reduce)').matches?'smooth':'auto'});BP.n=n;if(!smooth)w.dispatchEvent(new Event('scroll'))}
+async function bpGo(n){if(!BP)return;const N=BP.pages.length;n=n||BP.n;const m=$('#bpm');
+ if(!(n>=1&&n<=N)){if(m)m.textContent='1부터 '+N+' 사이의 쪽을 골라 주세요.';return}
  const info=BP.info;if(wsLocked(BP.wid,info.resetAt,0,info.sid,'p'+n)){if(m)m.textContent=n+'쪽은 이미 채점했어요. 다른 쪽을 골라 주세요.';else toast(n+'쪽은 이미 채점했어요');return}
  const codes=BP.pages[n-1];await ensureCodes(codes);closeCfg();startWs(BP.wid,{...info,codes,pg:n,pgN:N})}
 function bpNext(){if(!cur||!cur.ws||!cur.ws.pg||!BP)return;const n=cur.ws.pg+1;cur=null;if(n>BP.pages.length)return;bpGo(n)}
