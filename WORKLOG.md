@@ -1,7 +1,7 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
 ## 2026-11-23 · Claude Code · claude/eloquent-euler-8s2a0s (빌드업 쪽 단위 채점)
-- 한 일: 해원고 빌드업 문항 모음(학습지 2264-3735, 148문항)을 QR · 번호로 열면 「몇 쪽을 채점할까요?」를 묻고 그 쪽 문항만 채점, 결과에서 「다음 쪽 채점」. 쪽마다 따로 기록(rng 'p<n>', 학생 st_submit · 선생님 attempts 모두 rng 저장), 채점한 쪽은 다시 못 고름. 인쇄된 QR · 학습지 번호는 그대로.
+- 한 일: 해원고 빌드업 문항 모음(학습지 2264-3735, 148문항)을 QR · 번호로 열면 「몇 쪽을 채점할까요?」를 돌려서 맞추는 바퀴(스크롤 스냅 · 방향키)로 묻고 그 쪽 문항만 채점, 결과에서 「다음 쪽 채점」. 쪽마다 따로 기록(rng 'p<n>', 학생 st_submit · 선생님 attempts 모두 rng 저장), 채점한 쪽은 다시 못 고름. 인쇄된 QR · 학습지 번호는 그대로.
 - 쪽 ↔ 문항: presets/me-haewon-buildup.json 의 pages(인쇄 PDF 문제지 1~53쪽에서 문항 코드 추출, 148문항 순서 일치).
 - 바뀐 파일: index.html, presets/me-haewon-buildup.json, styles/screens.css(v23), sw.js(v244), tests/buildup-page-grade.cjs, tests/run.cjs, tests/app-ui.cjs, WORKLOG.md
 - 확인: tests/buildup-page-grade.cjs, app-ui, 390 · 1440 화면 확인
