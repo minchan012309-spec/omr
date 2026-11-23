@@ -1,5 +1,12 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-23 · Claude Code · claude/eloquent-euler-8s2a0s (빌드업 쪽 단위 채점)
+- 한 일: 해원고 빌드업 문항 모음(학습지 2264-3735, 148문항)을 QR · 번호로 열면 「몇 쪽을 채점할까요?」를 묻고 그 쪽 문항만 채점, 결과에서 「다음 쪽 채점」. 쪽마다 따로 기록(rng 'p<n>', 학생 st_submit · 선생님 attempts 모두 rng 저장), 채점한 쪽은 다시 못 고름. 인쇄된 QR · 학습지 번호는 그대로.
+- 쪽 ↔ 문항: presets/me-haewon-buildup.json 의 pages(인쇄 PDF 문제지 1~53쪽에서 문항 코드 추출, 148문항 순서 일치).
+- 바뀐 파일: index.html, presets/me-haewon-buildup.json, styles/screens.css(v23), sw.js(v244), tests/buildup-page-grade.cjs, tests/run.cjs, tests/app-ui.cjs, WORKLOG.md
+- 확인: tests/buildup-page-grade.cjs, app-ui, 390 · 1440 화면 확인
+- 남은 일 · 주의: 로그인 안 한 익명 채점은 ws_submit(쪽 구분 없음) 대신 이 기기에만 저장.
+
 ## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (교재 편집 미리보기 롤백)
 - 한 일: 교재 편집 화면 미리보기(bkfPreview)가 bkPlanFree를 바로 불러 예전 데이터(bank0) 교체를 안 거치던 것 수정 — bkLegacyRun으로 교재 화면 · 인쇄와 같은 데이터로 만든다(BKLOCK 직렬).
 - 확인: 륜원햄(me-xft_a1_p1) 미리보기와 교재 둘 다 99쪽, 45쪽 Q41-003·004·005·012·015, 57쪽 Q41-082·083, 쪽별 문항 완전히 같음.
