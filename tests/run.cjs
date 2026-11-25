@@ -94,6 +94,7 @@ const run = (args, env) =>
       ["tests/book-writing-margins.cjs"],
       ["tests/print-regression.cjs"],
       ["tests/book-navigation.cjs"],
+      ["tests/book-type-name.cjs"],
       ["tests/book-range.cjs"],
       ["tests/ws-approved-styles.cjs"],
       ["tests/book-mock-passage.cjs"],

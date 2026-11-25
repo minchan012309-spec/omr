@@ -1,5 +1,11 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
+## 2026-11-25 · Claude Code · claude/wizardly-keller-46s7m7 (유형 제목 · 유형명 인쇄 옵션)
+- 한 일: 해원고 부교재 우선출제 교재의 유형 제목 줄에서 「 · 원본·변형·유사」「 · 변형·유사 (원본은 서술형 구성)」 꼬리를 없애고 유형명만 표시. 교재 인쇄 창 툴바에 「유형명」(표시 / 숨기기) 옵션 추가 — 숨기면 「유형 01 ★★☆☆」「부교재 174번 ★★★☆」처럼 번호 · 난이도만. 유형 제목이 있는 교재에서만 보이고, 설정은 다른 인쇄 옵션처럼 이 기기에 저장(BKO.tn), 쪽 계획 캐시 서명에도 포함.
+- 바뀐 파일: books.js, index.html(books.js?v=101), sw.js(v246), tests/book-type-name.cjs(새), tests/run.cjs, WORKLOG.md
+- 확인: node scripts/verify-static.cjs, tests/book-type-name.cjs, app-ui, book-navigation, book-writing-margins, book-pdf 통과. 1440 인쇄 창에서 유형서(me-t) 표시/숨기기 화면 확인, 드롭다운을 바꾸면 바로 다시 짜이는 것 확인.
+- 남은 일 · 주의: 유형명을 숨기면 제목이 짧아져 쪽 배치가 달라질 수 있음(기본값은 표시라 기존 교재는 그대로). 해원고 부교재 교재는 계정 데이터라 실제 교재로는 확인 못 함. 태블릿 · 휴대폰 인쇄 창 미확인, npm test 전체는 안 돌림.
+
 ## 2026-11-23 · Claude Code · claude/eloquent-euler-8s2a0s (빌드업 쪽 단위 채점)
 - 한 일: 해원고 빌드업 문항 모음(학습지 2264-3735, 148문항)을 QR · 번호로 열면 「몇 쪽을 채점할까요?」를 돌려서 맞추는 바퀴(스크롤 스냅 · 방향키)로 묻고 그 쪽 문항만 채점, 결과에서 「다음 쪽 채점」. 쪽마다 따로 기록(rng 'p<n>', 학생 st_submit · 선생님 attempts 모두 rng 저장), 채점한 쪽은 다시 못 고름. 인쇄된 QR · 학습지 번호는 그대로.
 - 쪽 ↔ 문항: presets/me-haewon-buildup.json 의 pages(인쇄 PDF 문제지 1~53쪽에서 문항 코드 추출, 148문항 순서 일치).
