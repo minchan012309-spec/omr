@@ -5,7 +5,7 @@
 
 - 서비스: **https://solvi.win** (로그인 전 소개 페이지 → 선생님 · 학생 · 학부모 로그인)
 - 정보 과제 연구(꿈두레) 개인 프로젝트 · 1학기 꿈두레 「데이터베이스 프로그래밍」의 후속 연구
-- 연구 보고서 · 발표 자료: [`docs/research/`](docs/research/README.md)
+- 발표 자료 · ERD · 실험 스크립트: [`docs/research/`](docs/research/README.md)
 
 ![선생님 홈 화면(화면의 학생 이름 · 기록은 예시 데이터)](docs/research/img/app/mac-thome.webp)
 
@@ -135,12 +135,12 @@
 | 학원 운영 | `classes`, `class_members`, `attendance`, `fees`, `counsels`, `makeups`, `ops_tasks`, `ops_audit`, `academy_members` |
 | 학부모 | `parent_accounts`, `parent_notices`, `pa_tokens` |
 
-모든 표가 교사 계정(`user_id`)을 외래키로 갖고 `auth.uid() = user_id` 정책으로 학원별 데이터를 DB 단에서 분리합니다. 표 36개의 ERD(Chen 표기)는 [연구 보고서](docs/research/Solvi_연구보고서.docx)에 있습니다.
+모든 표가 교사 계정(`user_id`)을 외래키로 갖고 `auth.uid() = user_id` 정책으로 학원별 데이터를 DB 단에서 분리합니다. 표 36개의 ERD(Chen 표기)는 [`docs/research/img/erd/`](docs/research/img/erd/)에 있습니다.
 
 ## 실제 사용과 개선
 
 - **2026-11-11** 인스타그램에 소개 · 사용 신청 방법 · 사용 꿀팁 카드뉴스(25장)를 올리고, 9개 고등학교 학생 약 50명이 실제로 가입해 사용했습니다.
-- 테스트 기간에 발견한 문제(회원가입 화면이 안 뜸, 서술형 · 수식 답 입력 불가, 버튼 반응 없음처럼 보임, 긴 문항 모음 채점 불편 등)를 바로 고쳤습니다. 목록은 [연구 보고서 3.6절](docs/research/Solvi_연구보고서.docx)과 [`WORKLOG.md`](WORKLOG.md)에 있습니다.
+- 테스트 기간에 발견한 문제(회원가입 화면이 안 뜸, 서술형 · 수식 답 입력 불가, 버튼 반응 없음처럼 보임, 긴 문항 모음 채점 불편 등)를 바로 고쳤습니다. 목록은 [`WORKLOG.md`](WORKLOG.md)와 발표 자료 19번 슬라이드에 있습니다.
 
 ## 문서
 
@@ -149,7 +149,7 @@
 | [`PRODUCT.md`](PRODUCT.md) | 제품 맥락 |
 | [`AGENTS.md`](AGENTS.md) | 개발 규칙 · 검증 명령 |
 | [`WORKLOG.md`](WORKLOG.md) | 작업 기록(최신이 위) |
-| [`docs/research/`](docs/research/README.md) | 연구 보고서 · 발표 자료 · 실험 스크립트 |
+| [`docs/research/`](docs/research/README.md) | 발표 자료 · ERD · 실험 스크립트 |
 | [`docs/verification/`](docs/verification/) | 검증 기록 |
 | [`docs/README-history.md`](docs/README-history.md) | 예전 README의 기능 설명 · 날짜별 변경 기록 |
 

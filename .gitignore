@@ -7,3 +7,4 @@ pi/data/
 node_modules/
 .superpowers/
 backups/
+docs/research/*.docx

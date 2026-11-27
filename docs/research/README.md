@@ -1,8 +1,9 @@
-# Solvi 연구 보고서 · 발표 자료
+# Solvi 발표 자료 · ERD · 실험
+
+연구 보고서(Word)는 저장소에 올리지 않고 따로 제출한다.
 
 | 파일 | 내용 |
 |---|---|
-| `Solvi_연구보고서.docx` | 연구 보고서(서론 · 연구 수행 내용 · 결과 · 결론 및 제언 · 참고 문헌, 표마다 ERD 36장 + 전체 ERD) |
 | `solvi-presentation.html` | 15분 발표용 인터랙티브 HTML 발표 자료(21장, `experiments/bundle.py`로 글꼴 · 그림을 넣은 한 파일도 만들 수 있음) |
 | `img/erd/` | Chen 표기 ERD(표 36개 + overview) |
 | `img/fig/`, `img/app/` | 보고서 · 발표용 그림, 앱 화면 캡처(예시 데이터) |
