@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solvi 연구 발표</title>
+<link rel="stylesheet" href="lib/deck3.css">
+</head>
+<body class="edit">
+<header id="tool">
+  <div class="tl"><b>Solvi</b> 발표 자료 <span id="saved">자동 저장됨</span></div>
+  <div class="tg">
+    <button id="bEdit" class="on">글자 편집</button>
+    <button id="bSave">HTML로 저장</button>
+    <button id="bShow" class="play">▶ 슬라이드쇼</button>
+  </div>
+</header>
+<nav id="side"></nav>
+<div id="viewport"><div id="stage">
+
+<section class="slide s-cover" data-id="cover" data-title="표지" data-tr="iris" data-notes="안녕하세요, 20216 김민찬입니다. 종이로 푼 문제가 데이터가 되어 약점을 보여 주는 과학 · 국어 문제은행 Solvi를 소개하겠습니다.">
+  <div class="glow g1"></div><div class="glow g2"></div>
+  <div class="cv-l">
+    <div class="logo xl"></div>
+    <h1 class="ani">종이로 풀면,<br><em>약점이 보인다</em></h1>
+    <p class="ani lead">과학 · 국어 문제은행 Solvi</p>
+  </div>
+  <div class="cv-r ani"><img class="tilt" src="img/app/mac-thome.webp" alt=""><div class="phone fl"><img src="img/app/phone-result.webp" alt=""></div></div>
+  <div class="who ani"><b>김민찬</b><span>인천해원고등학교 20216 · 정보 과제 연구 · 1학기 꿈두레 데이터베이스 프로그래밍 계승</span></div>
+</section>
+
+<section class="slide" data-id="prob" data-title="문제" data-tr="stripes" data-notes="수학 문제은행은 9천 곳 넘게 씁니다. 그런데 고등 과학 전용은 공개 자료에서 한 곳, 국어는 찾지 못했습니다. 사교육비는 29조 원, 선생님은 행정업무에 OECD의 두 배를 씁니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani">수학엔 <em>9,000곳</em>,<br>과학엔 1곳</h2>
+  <div class="vs ani">
+    <div class="vsL"><div id="dotsMath" class="dotf"></div><p><b class="num">9,000+</b>수학 문제은행 이용 기관</p></div>
+    <div class="vsR"><div class="lone"><i></i></div><p><b class="num dim">1</b>고등 과학 전용</p></div>
+  </div>
+  <p class="foot ani">사교육비 29.2조 원(2024) · 교사 행정업무 OECD의 2배(TALIS 2024) · 공개 자료 기준</p>
+</section>
+
+<section class="slide" data-id="loop" data-title="해법" data-tr="zoom" data-notes="Solvi는 이 순환 하나로 설명됩니다. 출제 → 종이 풀이 → QR 채점 → DB 기록 → 취약 진단 → 다음 학습지, 그리고 다시 출제로.">
+  <div class="logo sm"></div>
+  <h2 class="ani">종이 → 채점 → 진단 →<br><em>다시 종이</em></h2>
+  <div class="loopwrap ani"><svg id="ring" viewBox="0 0 1600 560" width="100%" height="100%"></svg></div>
+</section>
+
+<section class="slide" data-id="bank" data-title="문제은행" data-tr="stripes" data-notes="문제은행은 다섯 과목 76,645문항입니다. 물질과 에너지 3만, 인공지능 수학 2만 4천, 화법과 언어 1만 2천, 세포와 물질대사 5천, 역학과 에너지 4천 5백. 유형 289개, 모든 문항에 고유 코드가 있고, 자동 검수로 오류 0건을 확인했습니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani">다섯 과목,<br><em>76,645문항</em></h2>
+  <div class="bank ani">
+    <div class="br"><span>물질과 에너지</span><i style="--w:100%;--c:#0d387e"></i><b class="num" data-to="30411">30,411</b></div>
+    <div class="br"><span>인공지능 수학</span><i style="--w:80.5%;--c:#5a6f93"></i><b class="num" data-to="24479">24,479</b></div>
+    <div class="br"><span>화법과 언어</span><i style="--w:39.3%;--c:#ef7d3c"></i><b class="num" data-to="11950">11,950</b></div>
+    <div class="br"><span>세포와 물질대사</span><i style="--w:17.4%;--c:#17956a"></i><b class="num" data-to="5305">5,305</b></div>
+    <div class="br"><span>역학과 에너지</span><i style="--w:14.8%;--c:#7357c6"></i><b class="num" data-to="4500">4,500</b></div>
+  </div>
+  <div class="bankside ani"><div><b class="num">289</b>유형</div><div><b class="num">4</b>난이도</div><div><b class="num">0</b>검수 오류</div></div>
+</section>
+
+<section class="slide" data-id="build" data-title="출제" data-tr="push" data-notes="유형과 난이도, 문항 수만 고르면 문제은행에서 학습지가 만들어집니다. 디자인 18종, A/B형, 학생에게 바로 배포까지.">
+  <div class="logo sm"></div>
+  <div class="split">
+    <div class="copy"><h2 class="ani">고르면,<br><em>출제 끝</em></h2><ul class="pts ani"><li>유형 · 난이도 · 문항 수</li><li>디자인 18종 · A/B형</li><li>학생에게 바로 배포</li></ul></div>
+    <div class="shotwrap ani"><img class="tilt-r" src="img/app/xdr-build.webp" alt=""></div>
+  </div>
+</section>
+
+<section class="slide" data-id="book" data-title="교재" data-tr="doors" data-notes="문제은행은 한 권의 교재가 됩니다. 쪽마다 QR이 들어가서 찍으면 그 쪽이 바로 채점되고, 한글 파일로 편집도 됩니다.">
+  <div class="logo sm"></div>
+  <div class="split">
+    <div class="copy"><h2 class="ani">문제은행이<br><em>한 권의 책</em>으로</h2><ul class="pts ani"><li>개념 · OX · 유형 · 서술형</li><li>쪽마다 QR → 그 쪽 채점</li><li>한글(HWPX) 편집</li></ul></div>
+    <div class="books ani"><img class="b1" src="img/app/cover-cm-t.webp" alt=""><img class="b2" src="img/app/book-concept.webp" alt=""><img class="b3" src="img/app/book-problem.webp" alt=""></div>
+  </div>
+</section>
+
+<section class="slide s-demo" data-id="demo" data-title="라이브 시연" data-tr="flip" data-notes="다음 버튼을 누를 때마다 한 단계씩: 유형 선택 → 학습지 생성 → QR 인식 → 학생 답 입력 → 채점 → 틀린 문항 해설 → 오답 학습지 → 2회차 채점 → 회차 비교. 문항은 실제 문제은행, 학생 답은 예시입니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani sm2">라이브 시연 <span class="tagx">실제 문항 · 예시 학생 답</span></h2>
+  <div class="demo ani" id="demo"></div>
+</section>
+
+<section class="slide" data-id="phones" data-title="학생 · 학부모" data-tr="stripes" data-notes="학생은 휴대폰으로 채점하고 약점을 보고, 학부모는 보기 전용 계정으로 학습과 출결, 수납을 확인합니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani">휴대폰 하나로<br><em>채점부터 알림까지</em></h2>
+  <div class="phones ani">
+    <figure><div class="phone"><img src="img/app/phone-omr.webp" alt=""></div><figcaption>OMR 채점</figcaption></figure>
+    <figure><div class="phone"><img src="img/app/phone-result.webp" alt=""></div><figcaption>채점 결과</figcaption></figure>
+    <figure><div class="phone"><img src="img/app/phone-weak.webp" alt=""></div><figcaption>취약 유형</figcaption></figure>
+    <figure><div class="phone"><img src="img/app/phone-parent.webp" alt=""></div><figcaption>학부모 홈</figcaption></figure>
+  </div>
+</section>
+
+<section class="slide" data-id="heat" data-title="취약 유형 진단" data-tr="zoom" data-notes="채점 기록이 쌓이면 반과 유형별 약점이 지도처럼 보입니다. 학생 200명이 30번씩 푼 시뮬레이션 데이터입니다. 가장 약한 칸이 자동으로 짚어지고, 그 유형으로 학습지를 다시 만듭니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani">약점이 <em>지도</em>로 보인다 <span class="tagx">시뮬레이션 · 학생 200명 × 30회</span></h2>
+  <div class="heatwrap ani"><div class="heat" id="heat"></div><div class="hinfo" id="hinfo"></div></div>
+</section>
+
+<section class="slide" data-id="acad" data-title="학원 운영" data-tr="iris" data-notes="학원 운영도 같은 데이터베이스에서 합니다. 출결, 월 청구, 상담, 보강, 알림장, 반 관리가 모두 학생 표 하나에 연결됩니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani">출결부터 수납까지,<br><em>같은 DB에서</em></h2>
+  <div class="mos ani">
+    <figure><img src="img/app/xdr-att.webp" alt=""><figcaption>출결</figcaption></figure>
+    <figure><img src="img/app/xdr-bill.webp" alt=""><figcaption>월 청구 · 수납</figcaption></figure>
+    <figure><img src="img/app/xdr-cns.webp" alt=""><figcaption>상담</figcaption></figure>
+    <figure><img src="img/app/xdr-mku.webp" alt=""><figcaption>보강</figcaption></figure>
+    <figure><img src="img/app/xdr-diary.webp" alt=""><figcaption>알림장</figcaption></figure>
+    <figure><img src="img/app/xdr-cls.webp" alt=""><figcaption>반 관리</figcaption></figure>
+  </div>
+</section>
+
+<section class="slide" data-id="kiosk" data-title="태블릿 출결" data-tr="zoom" data-notes="학원 입구 태블릿에 출결 번호를 누르면 등원이 기록되고, 같은 날 한 번 더 누르면 하원입니다. 기록은 바로 학부모 앱에 보입니다.">
+  <div class="logo sm"></div>
+  <div class="split">
+    <div class="copy"><h2 class="ani">번호 4자리로<br><em>출결 끝</em></h2><ul class="pts ani"><li>한 번 누르면 등원, 또 누르면 하원</li><li>학부모 앱에 바로 표시</li><li>지각 · 결석 자동 집계</li></ul></div>
+    <div class="tablet ani"><img src="img/app/kiosk.webp" alt=""><div class="toast" id="kToast"><i></i><b>솔비 학생 등원</b><span>오후 6:02 · 학부모에게 알림</span></div></div>
+  </div>
+</section>
+
+<section class="slide" data-id="pay" data-title="토스페이먼츠 수납" data-tr="doors" data-notes="월 수강료는 반별로 한 번에 청구합니다. 학부모는 앱에서 토스페이먼츠로 카드 결제하고, 서버 승인 함수가 결제를 확인하면 납부 완료가 자동으로 반영됩니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani">청구부터 결제까지,<br><em>한 번에</em></h2>
+  <div class="payflow ani">
+    <div class="pf"><div class="pfimg"><img src="img/app/xdr-bill.webp" alt=""></div><b>① 월 수강료 일괄 청구</b><span>반 수강료로 전체 원생에게</span></div>
+    <svg class="arr" viewBox="0 0 80 40"><path d="M4 20H70M58 8l12 12-12 12" stroke="#2f7fd0" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="pf"><div class="pfimg paysheet"><div class="ps"><small>10월 수강료 · 고2 화학 A</small><b class="num">280,000원</b><div class="pm"><span class="on">카드</span><span>간편결제</span><span>계좌이체</span></div><button>결제하기</button><em>토스페이먼츠 결제창</em></div></div><b>② 학부모 앱에서 카드 결제</b><span>토스페이먼츠 연동</span></div>
+    <svg class="arr" viewBox="0 0 80 40"><path d="M4 20H70M58 8l12 12-12 12" stroke="#2f7fd0" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="pf"><div class="pfimg done"><div class="ck"><svg viewBox="0 0 60 60"><path d="M16 31l9 9 19-20" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><b>납부 완료</b><small>fees.paid_at 기록 · 영수증</small></div><b>③ 서버 승인 → 자동 반영</b><span>toss-confirm 함수</span></div>
+  </div>
+  <p class="foot ani">결제 화면은 흐름을 보여 주는 그림 · 실제 결제는 토스페이먼츠 결제창에서 진행</p>
+</section>
+
+<section class="slide" data-id="wall" data-title="이것도 다 된다" data-tr="iris" data-notes="그 밖에도 OMR 사진 판독, 한글 파일 내보내기, 평가원식 모의고사, 간격 복습, 오답 원인 분류, 난이도 자동 보정, 시험 모드, 패스키 로그인, 오프라인, 반 공통 학습지, 상담 · 보강 · 알림장, 학습 리포트까지 모두 됩니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani">이것도 <em>다 됩니다</em></h2>
+  <div class="wall">
+    <div class="ani"><b>OMR 사진 판독</b><span>찍으면 답 · 인적사항 입력</span></div>
+    <div class="ani"><b>한글(HWPX) 내보내기</b><span>한컴 수식 · 표 그대로</span></div>
+    <div class="ani"><b>평가원식 모의고사</b><span>표지 · 배점 · 회차 관리</span></div>
+    <div class="ani"><b>오늘의 5문제</b><span>1 · 3 · 7 · 14 · 30일 복습</span></div>
+    <div class="ani"><b>오답 원인 4분류</b><span>성급 · 오판단 · 발문 혼동 · 모름</span></div>
+    <div class="ani"><b>난이도 자동 보정</b><span>실제 정답률로 다시 매김</span></div>
+    <div class="ani"><b>시험 모드</b><span>제한 시간 · 자동 제출</span></div>
+    <div class="ani"><b>패스키 로그인</b><span>비밀번호 없이 지문 · 얼굴</span></div>
+    <div class="ani"><b>오프라인 앱(PWA)</b><span>끊겨도 풀고 나중에 제출</span></div>
+    <div class="ani"><b>반 공통 학습지</b><span>반이 약한 유형으로 출제</span></div>
+    <div class="ani"><b>상담 · 보강 · 알림장</b><span>학부모 공유까지</span></div>
+    <div class="ani"><b>학습 리포트 PDF</b><span>7 · 14 · 30일</span></div>
+  </div>
+</section>
+
+<section class="slide" data-id="screens" data-title="화면 더 보기" data-tr="stripes" data-notes="실제 화면을 빠르게 훑겠습니다. 취약 유형 지도, 오답 원인 진단, 학생 상세, 원장 대시보드, 반복 운영 업무, 학생 관리, 평가원식 모의고사, 태블릿 학습 통계까지 모두 같은 DB에서 나옵니다. 화면의 학생 이름과 기록은 예시 데이터입니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani">실제 화면, <em>한 번에 훑기</em></h2>
+  <div class="gal">
+    <figure class="ani w2"><img src="img/app/xdr-weak.webp" alt=""><figcaption>취약 유형 지도</figcaption></figure>
+    <figure class="ani w2"><img src="img/app/mac-diag.webp" alt=""><figcaption>오답 원인 진단</figcaption></figure>
+    <figure class="ani t"><img src="img/app/mock-cover.webp" alt=""><figcaption>평가원식 모의고사</figcaption></figure>
+    <figure class="ani w2"><img src="img/app/xdr-dash.webp" alt=""><figcaption>원장 대시보드</figcaption></figure>
+    <figure class="ani w2"><img src="img/app/xdr-ops.webp" alt=""><figcaption>반복 운영 업무</figcaption></figure>
+    <figure class="ani w2"><img src="img/app/xdr-stu.webp" alt=""><figcaption>원생 관리</figcaption></figure>
+    <figure class="ani w2"><img src="img/app/mac-stu.webp" alt=""><figcaption>학생 상세</figcaption></figure>
+    <figure class="ani t"><img src="img/app/pad-stat.webp" alt=""><figcaption>태블릿 학습 통계</figcaption></figure>
+  </div>
+  <p class="foot ani">화면의 학생 이름 · 기록은 예시 데이터</p>
+</section>
+
+<section class="slide" data-id="db" data-title="DB 설계 · 꿈두레" data-tr="push" data-notes="이 연구의 중심입니다. 꿈두레에서 배운 기본키, 외래키, 정규화, 조인, 집계를 Solvi의 표 36개에 적용했습니다. 학생과 반은 다대다 관계라 연결 표로 풀었습니다.">
+  <div class="logo sm"></div>
+  <div class="split db">
+    <div class="copy"><h2 class="ani">꿈두레 SQL이<br><em>표 36개</em>로</h2>
+      <div class="kpis ani"><div><b class="num">36</b>표</div><div><b class="num">51</b>외래키</div><div><b class="num">76</b>보안 정책</div><div><b class="num">92</b>SQL 함수</div></div>
+      <ul class="pts ani small"><li>기본키 · 외래키 · 정규화 · JOIN · GROUP BY</li><li>학생 ↔ 반 N:M → 연결 표</li></ul></div>
+    <div class="erdwrap ani"><svg id="erd" viewBox="0 0 1060 700" width="100%" height="100%"></svg></div>
+  </div>
+</section>
+
+<section class="slide" data-id="pi" data-title="라즈베리파이 5" data-tr="flip" data-notes="서버를 클라우드 Supabase에서 라즈베리파이 5로 옮겼습니다. 앱이 쓰는 DB, REST, 로그인, 패스키만 Docker로 올렸고, 학생이 채점을 제출하면 이 길로 DB에 한 줄이 기록됩니다. CPU와 RAM 모두 여유 있게 정상 동작합니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani">서버는 <em>라즈베리파이 5</em></h2>
+  <div class="archwrap ani"><div id="arch"></div></div>
+  <p class="foot ani">Docker · USB SSD · 메모리 한도 1.16GB / 2GB · 매일 자동 백업 · 운영 관찰: CPU · RAM 여유</p>
+</section>
+
+<section class="slide" data-id="verify" data-title="검증" data-tr="stripes" data-notes="생성 문항 4만 1천 개를 자동 검수해 오류 0건, SQL 진단은 앱 계산과 8천 쌍이 모두 같았습니다. 그리고 9개 학교 학생 50명이 직접 써 봤습니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani">숫자로 <em>확인했다</em></h2>
+  <div class="big3 ani">
+    <div><b class="num ok">0</b><span>자동 검수 오류</span><small>41,601문항</small></div>
+    <div><b class="num">8,000</b><span>SQL = 앱 계산 일치</span><small>쌍 · 불일치 0</small></div>
+    <div><b class="num">50</b><span>사용자 테스트</span><small>9개 고등학교</small></div>
+  </div>
+  <div class="schools ani"><span>해원고</span><span>가정고</span><span>가림고</span><span>서인천고</span><span>인천외고</span><span>인천하늘고</span><span>초은고</span><span>신현고</span><span>외대부고</span></div>
+</section>
+
+<section class="slide" data-id="promo" data-title="카드뉴스 홍보" data-tr="zoom" data-notes="직접 쓰게 하려고 11월 11일 인스타그램에 카드뉴스 25장을 올렸습니다. 소개 11장, 사용 신청 방법 7장, 사용 꿀팁 7장입니다. 이걸 보고 9개 고등학교 학생 약 50명이 가입해서 실제로 썼습니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani">인스타그램 <em>카드뉴스</em>로 알렸다</h2>
+  <div class="cnrow">
+    <img class="ani" src="img/cardnews/cn-01.jpg" alt=""><img class="ani" src="img/cardnews/cn-05.jpg" alt=""><img class="ani" src="img/cardnews/cn-07.jpg" alt=""><img class="ani" src="img/cardnews/cn-13.jpg" alt=""><img class="ani" src="img/cardnews/cn-22.jpg" alt=""><img class="ani" src="img/cardnews/cn-24.jpg" alt="">
+  </div>
+  <div class="cnstat ani">
+    <div><b class="num">25</b><span>장 · 2026. 11. 11. 게시</span></div>
+    <div><i>소개 11</i><i>사용 신청 방법 7</i><i>사용 꿀팁 7</i></div>
+    <div><b class="num">약 50</b><span>명 가입 · 9개 고등학교</span></div>
+  </div>
+</section>
+
+<section class="slide" data-id="fix" data-title="찾은 문제 · 수정" data-tr="push" data-notes="학생들이 실제로 쓰면서 문제가 드러났습니다. 회원가입 화면이 안 뜨는 문제는 하루 만에 고쳤고, 가입 형식은 카드뉴스로 안내했습니다. 화학 반응식 답을 못 쓰는 문제는 정답을 보고 스스로 채점하게 바꿨고, 버튼이 씹히는 것처럼 보이던 건 진행 표시가 창 뒤에 가려진 게 원인이었습니다. 148문항 모음은 쪽 단위로 채점하게 했습니다. 고친 것마다 자동 테스트를 붙여 다시 생기지 않게 했습니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani">써 보니 나온 문제, <em>바로 고쳤다</em></h2>
+  <div class="fixes">
+    <div class="ani"><s>11.10</s><p>회원가입 버튼을 눌러도 화면이 안 뜸</p><b>긴급 수정 · 당일 배포</b></div>
+    <div class="ani"><s>11.11</s><p>가입 신청의 학년 · 반이 제각각</p><b>카드뉴스로 「학교 + 학년」 안내</b></div>
+    <div class="ani"><s>11.21</s><p>정답이 태그 글자로 보임</p><b>수식 · 아래첨자로 표시</b></div>
+    <div class="ani"><s>11.21</s><p>홈 화면 앱이 새 버전으로 안 바뀜</p><b>서비스 워커 충돌 제거 + 검사 추가</b></div>
+    <div class="ani"><s>11.22</s><p>화학 반응식 · 서술형 답을 못 씀</p><b>정답 보고 스스로 채점</b></div>
+    <div class="ani"><s>11.22</s><p>「다음」을 눌러도 반응 없음</p><b>진행 표시 맨 앞 · 버튼 잠금</b></div>
+    <div class="ani"><s>11.22</s><p>문항 코드로 문제를 못 찾음</p><b>학생 문항 코드 검색</b></div>
+    <div class="ani"><s>11.23</s><p>148문항을 한 번에 채점해야 함</p><b>QR로 열면 쪽 단위 채점</b></div>
+  </div>
+  <p class="foot ani">테스트 기간에 고친 14건 중 8건 · 날짜는 저장소 커밋 기록 · 고칠 때마다 자동 회귀 테스트 추가</p>
+</section>
+
+<section class="slide" data-id="cmp" data-title="차별성" data-tr="doors" data-notes="기존 서비스와 비교입니다. 매쓰플랫, 매쓰홀릭, 수학대왕은 수학 중심입니다. Solvi는 과학 · 국어, 종이 쪽 QR, 오답 원인, 학원 운영 통합, 자체 서버가 다릅니다.">
+  <div class="logo sm"></div>
+  <h2 class="ani">다른 문제은행과 <em>무엇이 다른가</em></h2>
+  <table class="cmp ani">
+    <tr><th></th><th>매쓰플랫</th><th>매쓰홀릭</th><th>수학대왕</th><th class="me">Solvi</th></tr>
+    <tr><td>과목</td><td>수학</td><td>수학</td><td>수학</td><td class="me">과학 · 국어 · AI 수학</td></tr>
+    <tr><td>종이 → QR 채점</td><td><i class="d"></i></td><td><i class="d"></i></td><td><i class="d q"></i></td><td class="me">쪽 단위 QR · OMR</td></tr>
+    <tr><td>오답 원인 분석</td><td><i class="d q"></i></td><td><i class="d q"></i></td><td><i class="d q"></i></td><td class="me">4가지 원인 분류</td></tr>
+    <tr><td>학원 운영 통합</td><td><i class="d h"></i></td><td><i class="d q"></i></td><td><i class="d n"></i></td><td class="me">출결 · 수납 · 상담</td></tr>
+    <tr><td>자체 서버</td><td><i class="d n"></i></td><td><i class="d n"></i></td><td><i class="d n"></i></td><td class="me">라즈베리파이 5</td></tr>
+  </table>
+  <p class="foot ani">● 확인 · ◐ 일부 · ○ 공개 자료로 확인 못 함 · 빈칸 없음 · 앱스토어 · 보도자료 기준(2026-11)</p>
+</section>
+
+<section class="slide s-end" data-id="end" data-title="마무리" data-tr="iris" data-notes="꿈두레에서 배운 SQL로 문제은행과 학습 순환을 만들고 라즈베리파이 5에서 운영하고 있습니다. 앞으로 실제 학습 효과 측정, 서버 성능 실측, 과목 확장을 하겠습니다. 감사합니다.">
+  <div class="glow g1"></div><div class="glow g3"></div>
+  <div class="logo xl ani"></div>
+  <h2 class="ani">종이 한 장이<br><em>데이터</em>가 되기까지</h2>
+  <p class="ani lead">감사합니다</p>
+</section>
+
+</div></div>
+<div id="fx"></div>
+<div id="hud"><span id="timer">00:00</span><span id="pg">1 / 21</span><button id="hN">메모</button><button id="hX">끝내기</button></div>
+<div id="notes"></div>
+<div id="blk"></div>
+<script src="lib/qrcode.js"></script>
+<script src="lib/data.js"></script>
+<script src="lib/deck3.js"></script>
+</body>
+</html>

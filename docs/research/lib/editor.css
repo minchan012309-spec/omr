@@ -1,0 +1,24 @@
+/* 편집 모드 ↔ 슬라이드쇼 모드 */
+#tool{position:fixed;left:0;right:0;top:0;height:58px;background:#151b24;border-bottom:1px solid #263040;display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:40;color:#dfe5ec}
+#tool .brand-t{font:600 15px Pretendard;display:flex;align-items:center;gap:10px}#tool .brand-t b{font:800 19px Paperlogy;color:#fff}
+#saved{font-size:12.5px;color:#7f8ea2;font-weight:500}
+#tool .grp{display:flex;gap:6px}
+#tool button{font:600 14px Pretendard;color:#dfe5ec;background:#222b37;border-radius:8px;padding:8px 12px;transition:background .15s}
+#tool button.on{background:#1f63b0;color:#fff}#tool button.play{background:#fff;color:#151b24;font-weight:800}
+@media(hover:hover) and (pointer:fine){#tool button:hover{background:#2c3746}#tool button.on:hover{background:#1a5699}#tool button.play:hover{background:#e9eef4}}
+#side{position:fixed;left:0;top:58px;bottom:0;width:250px;background:#11161e;border-right:1px solid #222b37;overflow:auto;padding:10px 8px;z-index:39}
+#side button{display:flex;gap:10px;width:100%;text-align:left;padding:10px 10px;border-radius:8px;color:#b9c4d2;font:500 14px/1.35 Pretendard}
+#side button i{font-style:normal;font:700 12px Pretendard;color:#6d7b8f;min-width:20px;padding-top:1px}
+#side button small{display:block;color:#6d7b8f;font-size:11.5px;margin-top:2px}
+#side button.cur{background:#1f2a38;color:#fff}#side button.cur i{color:#8fc2ff}
+@media(hover:hover) and (pointer:fine){#side button:hover{background:#18202b}}
+body.edit #viewport{left:250px;top:58px}
+body.edit #hud #hX{display:none}
+body.show #tool,body.show #side{display:none}
+body.edit #bar{left:250px}
+/* 글자 편집 */
+body.editing .slide [contenteditable=true]{outline:1px dashed transparent;outline-offset:3px;border-radius:3px;cursor:text}
+@media(hover:hover) and (pointer:fine){body.editing .slide [contenteditable=true]:hover{outline-color:rgba(47,127,208,.55)}}
+body.editing .slide [contenteditable=true]:focus{outline:2px solid #2f7fd0;background:rgba(47,127,208,.04)}
+body.editing .frag{opacity:1;transform:none}
+.slide .hlx{color:var(--b)}
