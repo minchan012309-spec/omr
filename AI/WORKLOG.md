@@ -1,6 +1,12 @@
 # WORKLOG — 최근 작업 기록 (새 기록을 맨 위에)
 
-## 2026-11-27 · Claude Code · claude/modest-darwin-7a5irn (README 제출용 재작성 · 카드뉴스 · 테스트 수정 내역, 미커밋)
+## 2026-11-28 · AI · main (커밋 기록 정리)
+- 한 일: main 전체 커밋 기록에서 AI 도구 흔적 정리(작성자를 KIM MIN CHAN으로 통일, 공동 작성자 · 세션 링크 줄 삭제, 커밋 메시지 속 브랜치 접두어 정리), 기록 전체에서 AI 도구 설정 파일 제거. AI 관련 문서 · 스킬을 AI/ 폴더로 모음.
+- 바뀐 파일: AGENTS.md → AI/AGENTS.md, WORKLOG.md → AI/WORKLOG.md, .agents/skills → AI/skills, skills-lock.json → AI/skills-lock.json, docs/superpowers → AI/plans, README.md · docs/README-history.md 링크
+- 확인: 정리 전후 최종 파일 차이는 AI 도구 설정 파일 삭제뿐임을 git diff로 확인. node scripts/verify-static.cjs 통과.
+- 남은 일 · 주의: AGENTS.md가 루트에 없어 AI 도구가 자동으로 읽지 않음 — 작업 시작 때 AI/AGENTS.md를 읽으라고 직접 알려 줄 것. 커밋 해시가 모두 바뀌었으니 예전 clone은 새로 받을 것.
+
+## 2026-11-27 · AI · modest-darwin-7a5irn (README 제출용 재작성 · 카드뉴스 · 테스트 수정 내역, 미커밋)
 - 한 일: 루트 README.md 위쪽을 GitHub 제출용으로 새로 씀(한눈에 보기 수치, 학습 순환, 기능 6분야 표 + 화면 캡처, 기술 구성, DB, 실제 사용과 개선, 문서). 예전 기능 설명 · 날짜별 기록은 docs/README-history.md로 그대로 옮김. 연구 보고서에 기능 전체 목록 표 · 화면 사진 12장 추가, 3.6절을 「홍보와 사용자 테스트」(카드뉴스 사진 2장, 테스트 개요, 발견한 문제 14건과 수정, 얻은 점 · 한계)로 교체(노란 빈칸 제거). 발표 자료 21장: 14 실제 화면 훑기, 18 카드뉴스 홍보, 19 찾은 문제 · 수정 추가, 검증 슬라이드의 학교별 인원 빈칸 제거.
 - 바뀐 파일: README.md, docs/README-history.md(새), docs/research/**(보고서 docx, 발표 html, lib/deck3.css, experiments/bundle.py, img/cardnews/, img/fig/cardnews-*.jpg, README.md), WORKLOG.md — 앱 배포 파일 변경 없음(sw.js VER 그대로)
 - 확인: 보고서 LibreOffice PDF 변환 48쪽 눈으로 확인. 발표 새 슬라이드 1920×1080 스크린샷, 한 파일 번들(5.6MB)에서 그림 깨짐 0 · 외부 요청 0 · 스크립트 오류 0.
@@ -9,45 +15,45 @@
 - 연구 보고서 docx는 저장소에 올리지 않음(사용자 요청, .gitignore에 docs/research/*.docx).
 - 남은 일 · 주의: 문제 · 수정 14건은 테스트 기간(11.10~11.23) 커밋 기록 기준이며 학생 개별 의견 원문 · 학교별 인원 · 만족도는 집계 자료가 없어 넣지 않음. 카드뉴스 중 이메일 · 선생님 코드가 보이는 장(12 · 14 · 15 · 16 · 17 · 20 · 21쪽)은 저장소에 넣지 않음.
 
-## 2026-11-25 · Claude Code · claude/modest-darwin-7a5irn (연구 보고서 · 발표 자료, 미커밋)
+## 2026-11-25 · AI · modest-darwin-7a5irn (연구 보고서 · 발표 자료, 미커밋)
 - 한 일: 정보 과제 연구 결과물 docs/research/ 추가 — Word 연구 보고서(40쪽, 표 36개마다 Chen ERD + 전체 ERD, 공개 통계 · 기존 문제은행 비교, 라즈베리파이 5 이식), 인터랙티브 HTML 발표 자료(16장, 편집 모드 · 슬라이드쇼 · 모핑 · 출제→QR→OMR→채점→오답 학습지 라이브 시연, Paperlogy · Pretendard).
 - 바뀐 파일: docs/research/**(새 폴더만, 앱 파일 변경 없음 → sw.js VER 그대로), WORKLOG.md
 - 확인: setup.sql + sql_24·27·28·29를 PGlite에 적용해 표 36 · 외래키 51 · RLS 76 · 함수 92 집계(sql_25는 pg_cron 없어 제외). 문항 검수(hl 13,258 · aim 14,400 · me 13,943 오류 0). SQL 진단 실험(시뮬레이션 12만 건, 앱 계산과 8,000쌍 일치). 발표 HTML 콘솔 오류 0, 편집 → 새로 고침 유지 → HTML로 저장 → 저장본 복원, 슬라이드쇼 · 시연 흐름 Playwright로 확인.
 - 2차: 발표 자료 전면 개편(17장, 실제 Solvi 로고, 화면 밀도 ↑, Paperlogy는 제목 · 강조만, 리모컨 한 버튼 단계 진행 69회, 도표 그리기 · 카운트 · 모핑 · 원형 전환, 시연 9단계 자동 진행). lib/deck.js · deck.css로 교체.
 - 남은 일 · 주의: 학생 50명 테스트 의견 · 개선점 칸은 실제 내용으로 채워야 함(보고서 3.6, 슬라이드 14). 라즈베리파이 응답 시간 · SD/SSD 실측 없음. 시뮬레이션 데이터는 그렇게 표시함. 꿈두레 수업 범위(JOIN · 기본키 포함 여부) 사용자 확인 필요.
-## 2026-11-25 · Claude Code · claude/wizardly-keller-46s7m7 (유형 제목 · 유형명 인쇄 옵션)
+## 2026-11-25 · AI · wizardly-keller-46s7m7 (유형 제목 · 유형명 인쇄 옵션)
 - 한 일: 해원고 부교재 우선출제 교재의 유형 제목 줄에서 「 · 원본·변형·유사」「 · 변형·유사 (원본은 서술형 구성)」 꼬리를 없애고 유형명만 표시. 교재 인쇄 창 툴바에 「유형명」(표시 / 숨기기) 옵션 추가 — 숨기면 「유형 01 ★★☆☆」「부교재 174번 ★★★☆」처럼 번호 · 난이도만. 유형 제목이 있는 교재에서만 보이고, 설정은 다른 인쇄 옵션처럼 이 기기에 저장(BKO.tn), 쪽 계획 캐시 서명에도 포함.
 - 바뀐 파일: books.js, index.html(books.js?v=101), sw.js(v246), tests/book-type-name.cjs(새), tests/run.cjs, WORKLOG.md
 - 확인: node scripts/verify-static.cjs, tests/book-type-name.cjs, app-ui, book-navigation, book-writing-margins, book-pdf 통과. 1440 인쇄 창에서 유형서(me-t) 표시/숨기기 화면 확인, 드롭다운을 바꾸면 바로 다시 짜이는 것 확인.
 - 남은 일 · 주의: 유형명을 숨기면 제목이 짧아져 쪽 배치가 달라질 수 있음(기본값은 표시라 기존 교재는 그대로). 해원고 부교재 교재는 계정 데이터라 실제 교재로는 확인 못 함. 태블릿 · 휴대폰 인쇄 창 미확인, npm test 전체는 안 돌림.
 
 
-## 2026-11-23 · Claude Code · claude/eloquent-euler-8s2a0s (빌드업 쪽 단위 채점)
+## 2026-11-23 · AI · eloquent-euler-8s2a0s (빌드업 쪽 단위 채점)
 - 한 일: 해원고 빌드업 문항 모음(학습지 2264-3735, 148문항)을 QR · 번호로 열면 「몇 쪽을 채점할까요?」를 돌려서 맞추는 바퀴(스크롤 스냅 · 방향키)로 묻고 그 쪽 문항만 채점, 결과에서 「다음 쪽 채점」. 쪽마다 따로 기록(rng 'p<n>', 학생 st_submit · 선생님 attempts 모두 rng 저장), 채점한 쪽은 다시 못 고름. 인쇄된 QR · 학습지 번호는 그대로.
 - 쪽 ↔ 문항: presets/me-haewon-buildup.json 의 pages(인쇄 PDF 문제지 1~53쪽에서 문항 코드 추출, 148문항 순서 일치).
 - 바뀐 파일: index.html, presets/me-haewon-buildup.json, styles/screens.css(v23), sw.js(v244), tests/buildup-page-grade.cjs, tests/run.cjs, tests/app-ui.cjs, WORKLOG.md
 - 확인: tests/buildup-page-grade.cjs, app-ui, 390 · 1440 화면 확인
 - 남은 일 · 주의: 로그인 안 한 익명 채점은 ws_submit(쪽 구분 없음) 대신 이 기기에만 저장.
 
-## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (교재 편집 미리보기 롤백)
+## 2026-11-22 · AI · eloquent-euler-8s2a0s (교재 편집 미리보기 롤백)
 - 한 일: 교재 편집 화면 미리보기(bkfPreview)가 bkPlanFree를 바로 불러 예전 데이터(bank0) 교체를 안 거치던 것 수정 — bkLegacyRun으로 교재 화면 · 인쇄와 같은 데이터로 만든다(BKLOCK 직렬).
 - 확인: 륜원햄(me-xft_a1_p1) 미리보기와 교재 둘 다 99쪽, 45쪽 Q41-003·004·005·012·015, 57쪽 Q41-082·083, 쪽별 문항 완전히 같음.
 - 바뀐 파일: books.js, index.html(books.js?v=99), sw.js(v243), WORKLOG.md
 
-## 2026-11-22 · Claude Code · claude/book-rollback-font
+## 2026-11-22 · AI · book-rollback-font
 - 한 일: 교재 수식 글꼴을 #146 이전(기본 수식 글꼴)으로 되돌림 — 기존 교재가 예전 인쇄본과 같게.
 - 확인: 사용자 교재 3권(me-xfc_o_b_t_z1_a2, me-xft_a1_p1, hl-xfq_…_a1)을 커밋별로 다시 짜 비교. f3a52b5와 현재가 쪽수 · 쪽별 문항 · 쪽 HTML 해시 모두 같고(All in One 56쪽 Q33-004·005·014, 륜원햄 7쪽 Q31-033~036, 화법 10쪽 N-006·007·009·012), 해당 쪽 화면 캡처도 픽셀까지 같음. 455b31e~02052a2 배포본에서는 달랐음.
 - 바뀐 파일: books.js, index.html(books.js?v=97), sw.js(v241), WORKLOG.md
 - 원래 있던 버그 수정: bkSel 구성 캐시가 단원 목록(개념 자료) 로드 전에 만들어지면 단원 순서가 바뀐 채 남아(화법과 언어 Ⅱ-C가 뒤로) 교재 문항이 빠지고 쪽이 밀림(84→83쪽). 단원 순서가 같을 때만 캐시를 쓰게 함. 화법 교재(hl-xfq_…_a1) 23쪽 G-hl089-0001 … G-hl088-0032, 10쪽 N-006 …, 84쪽으로 어떤 순서로 열어도 같음 확인.
 - 남은 일 · 주의: 채점 결과 · 문항 상세 등 교재 밖 화면의 유형 · 단원 이름은 새 데이터 기준.
 
-## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (#156 병합 후 CI 수정)
+## 2026-11-22 · AI · eloquent-euler-8s2a0s (#156 병합 후 CI 수정)
 - 한 일: 분수(mfrac)가 든 선지는 자동 선지 배치에서 빼 원래 2열 유지(인공지능 수학 인쇄 회귀). app-ui 테스트의 screens.css 버전 v=22 반영, build-busy 테스트 타이밍 안정화.
 - 바뀐 파일: index.html, sw.js, tests/app-ui.cjs, tests/build-busy.cjs, WORKLOG.md
 - 확인: 로컬 npm test 전체 통과
 - 남은 일 · 주의: tests/trash-regression.test.cjs 3건은 main에서도 실패(CI 목록 밖).
 
-## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s
+## 2026-11-22 · AI · eloquent-euler-8s2a0s
 - 한 일: 문항 표시(긴 선지 세로 배치, (가)(나)(다) 상자, 화학식 · 단위 수식 글꼴, 그림 최대 높이), HWPX 그림 누락 수정, 빌드업 재출제 단원 선택 창 · 진행 표시, 채점 교재 쪽수 목록(배포된 주교재만), 학생 문항 검색 탭, 코드 검색은 번호를 끝까지 쳤을 때만 + 검색하기 버튼, 담기 바(고른 문항 확인 · 학습지 만들기), 진행 표시 디자인. 화법과 언어 교재 해설은 바뀌기 전 해설(exp0)을 써서 기존 교재 모양 유지.
 - 교재 쪽수 점검(기본 교재, 커밋별): 화법과 언어는 쪽수 변화 없음(10480ca 해설 문구 변경으로 모양만 바뀜 → exp0로 되돌림). 물질과 에너지는 455b31e(해원고 부교재 재구성 데이터)부터 바뀜 — All in One 70→57→64→62쪽, 하이라이트류 92→87→92→91쪽, 문제집(t) 160쪽 유지 · 문항 구성 바뀜.
 - 바뀐 파일: index.html, books.js, lib/hwpx.js, styles/screens.css, sw.js, tests/*
@@ -55,38 +61,38 @@
 - 물질과 에너지 교재 롤백: f3a52b5 시점 데이터를 bank0/(data.json · index.json · concept.json · 바뀐 유형 파일)에 두고, bkPlan이 「해원고 부교재」(def.hw) 교재가 아니면 이 데이터로 쪽을 짬(직렬 실행으로 데이터 교체 충돌 방지). 기본 교재 9종 쪽수 · 문항 · 배치 해시가 f3a52b5와 완전히 같음 확인.
 - 남은 일 · 주의: 사용자가 만든 교재(예: All in One)는 계정 데이터라 여기서 직접 확인 못 함 — 같은 경로로 예전 데이터를 씀. 운영 DB에 supabase/sql_28 · sql_29 실행 필요.
 
-## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (7차: 문항 구성 중 표시)
+## 2026-11-22 · AI · eloquent-euler-8s2a0s (7차: 문항 구성 중 표시)
 - 한 일: 학습지 만들기 「다음 · 문항 확인」을 누르면 반응이 없어 씹힌 것처럼 보이던 문제. 원인: 「만드는 중」 진행 표시(#busy, z-index 100)가 전체 화면 출제 창(#mkw, 9500) 뒤에 깔림. #busy를 9800으로 올리고(모의고사 출제 창도 같은 #mkw라 함께 해결), 버튼은 누르는 즉시 잠기고 「문항 구성 중…」으로 바뀌며 끝나면 되돌아옴(여러 번 눌러도 한 번만 출제). 진행 문구는 「문항을 구성하는 중…」.
 - 바뀐 파일: `index.html`, `styles/screens.css`(v21), `sw.js`(v237), `tests/app-ui.cjs`(CSS 버전), 새 `tests/build-busy.cjs`(+`tests/run.cjs`), `WORKLOG.md`.
 - 확인: 새 검사(문항 파일을 0.7초 늦게 받게 해서 누른 직후 버튼 잠김 · 문구, 진행 표시가 출제 창 위 맨 앞, 여러 번 눌러도 출제 1회, 끝나면 문항 확인 화면) 통과.
 - 남은 일 · 주의: 실제 기기 미확인. 병합 미실시.
 
-## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (6차: 해원고 부교재 옵션)
+## 2026-11-22 · AI · eloquent-euler-8s2a0s (6차: 해원고 부교재 옵션)
 - 한 일: 물질과 에너지 학습지 만들기 「출제 대상」과 전범위 모의고사 「출제 범위」에 「해원고 부교재 — 원본 · 변형 · 유사에서만 출제」 옵션(`W.hw`, `MKF.hw`). 학교 선생님이 외부 문제지 없이 부교재만 보고 출제한다는 사용자 설명에 따라, 부교재로 만든 문항 전체(원본 o 148 · 변형 v 7,962 · 동유형 유사 s 5,833 = 13,943)에서만 출제하고 부교재와 무관한 기존 문제은행 문항은 뺌(서술형도 같은 조건). 유형 카드마다 「(해원고 n)」. `bank/index.json` 해원고 태그에 `hwn`(그 태그의 해원고 문항 수) 추가, 생성기 `tools/me/build.py`도 같은 값 기록.
 - 추가(사용자 요청): 전범위 모의고사는 5지선다만(선지 5개 · 정답 1개, `nOpts`·`isMulti`로 6지 · 「모두 고르면」 제외) — 서술형 선택 칸을 없애고 안내로 바꿈(모든 과목). 학습지에서 「해원고 부교재」는 5지선다 · 서술형에 적용하고 OX · 빈칸은 「출제 대상」에서 체크했을 때만 같은 유형에서 함께 넣음(물질과 에너지 OX 316 · 빈칸 193은 해원고 표시가 없는 기본 데이터). 옵션을 켜면 5지선다 · 최상위 · 문제 은행 체크는 잠김.
 - 바뀐 파일: `index.html`, `styles/screens.css`(v20), `sw.js`(v236), `bank/index.json`, `tools/me/build.py`, `tests/app-ui.cjs`(CSS 버전), 새 `tests/haewon-only.cjs`(+`tests/run.cjs`), `WORKLOG.md`.
 - 확인: 새 검사(옵션 켜면 학습지 32문항 · 모의고사 20문항이 모두 해원고 부교재 문항, 끄면 다른 문항 섞임, 카드에 (해원고 n), 옵션 표시, 모의고사는 옵션과 상관없이 5지선다만 · 서술형 없음, 학습지 OX · 빈칸은 체크할 때만) 통과. 학습지 만들기 1440 · 모의고사 범위 단계 390 스크린샷. 전체 `npm test` 통과(EXIT 0).
 - 남은 일 · 주의: 해원고 문항이 적은 유형은 요청 수보다 적게 나올 수 있음(카드의 괄호 수가 상한). 모의고사 범위 단계의 난이도별 가능 수는 옵션과 상관없이 전체 기준. 다른 과목에는 옵션이 보이지 않음. 실제 기기 미확인. PR #155로 병합 · 배포됨.
 
-## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (5차: 서술형 · 수식 단답형 스스로 채점)
+## 2026-11-22 · AI · eloquent-euler-8s2a0s (5차: 서술형 · 수식 단답형 스스로 채점)
 - 한 일: 학생이 화학 반응식 · 수식 답을 입력할 수 없던 문제. 서술형(`set:'essay'`, 빌드업 원본 포함 해원고 55문항 등)과 정답에 수식 · 아래첨자 · 화살표가 든 단답형은 입력 대신 「정답 보고 스스로 채점」 → 정답(수식 그대로) → 「맞았어요 / 틀렸어요」로 채점(`selfQ`, `selfBox`). 학생 채점 번호판 줄 · 휴대폰 문항 시트 · 연습(풀기) 화면 모두. 기록은 a=O/X, 맞았어요=정답(r=1). 숫자 키는 이 문항에서 동작하지 않음. 선생님 O/X 채점(mark) 모드와 쉬운 단답형(숫자 · 낱말 입력, 자동 채점)은 그대로. 이전에는 서술형이 객관식 줄로 그려져 「모름」만 있고 정답 비교가 HTML 문자열이라 맞힐 수 없었음.
 - 바뀐 파일: `index.html`, `styles/screens.css`(v19), `sw.js`(v235), `tests/app-ui.cjs`(CSS 버전), 새 `tests/self-check-answer.cjs`(+`tests/run.cjs`), `WORKLOG.md`.
 - 확인: 새 검사(학생 세션: 정답은 누르기 전 숨김, 수식으로 표시 · 태그 글자 없음, O → r=1 / X → r=0 기록, 결과 화면, 연습 화면 숫자 키 무시 · 「틀렸다고 표시했어요」) 통과. 1440 · 820 · 390(문항 시트) 스크린샷. 전체 `npm test` 통과(EXIT 0).
 - 남은 일 · 주의: 스스로 채점이라 학생이 「맞았어요」를 눌러도 선생님이 검증하지 않음(선생님 채점 기록에는 a=O/X로 보임). 수식 입력 도구(빈칸 · 네모 칸)는 만들지 않음. 실제 기기 미확인. 병합 미실시.
 
-## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (4차: PR #150 합치기)
-- 한 일: 열려 있던 PR #150(claude/sharp-maxwell-twnvbb: 정답 수식 표시 `ansSafe`, 학생 범위에서도 기본 학습지 보이기, 기본 학습지 자동 등록 경쟁 방지, `verify-static`의 병합 충돌 표시 검사)을 사용자 요청으로 main에 합침. `sw.js`는 main 쪽(최신 SHELL) 유지 + v234, `WORKLOG.md`는 양쪽 기록 모두 유지.
+## 2026-11-22 · AI · eloquent-euler-8s2a0s (4차: PR #150 합치기)
+- 한 일: 열려 있던 PR #150(sharp-maxwell-twnvbb: 정답 수식 표시 `ansSafe`, 학생 범위에서도 기본 학습지 보이기, 기본 학습지 자동 등록 경쟁 방지, `verify-static`의 병합 충돌 표시 검사)을 사용자 요청으로 main에 합침. `sw.js`는 main 쪽(최신 SHELL) 유지 + v234, `WORKLOG.md`는 양쪽 기록 모두 유지.
 - 바뀐 파일: #150의 `index.html` · `scripts/verify-static.cjs` · `tests/exp-choice-label.cjs` · `tests/preset-worksheet.cjs`, `sw.js`(v234), `WORKLOG.md`.
 - 확인: 합친 상태로 전체 `npm test` 통과(EXIT 0), `verify-static`(충돌 표시 검사 포함) 통과.
 - 남은 일 · 주의: #150 설명대로 운영 Supabase에 `sql_28_wrong_answer.sql`(아직 안 했다면)과 `sql_29_account_self.sql` 실행 필요. PR #154로 병합 · 배포됨(#150도 병합됨 표시).
 
-## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (3차: 빌드업 PDF 재생성)
+## 2026-11-22 · AI · eloquent-euler-8s2a0s (3차: 빌드업 PDF 재생성)
 - 한 일: 사용자가 보내 준 빌드업 zip의 진짜 글꼴(HYHWPEQ · KoPubDotumMedium · ShinMyeongjo · KoPubWorldBold)로 `presets/me-haewon-buildup.pdf`를 다시 만듦. 표가 한 단 폭에 맞고(PR #152의 `conv.py` 수정), 선지가 표의 ①~⑤만 가리키는 문항은 번호만 나옴. 사용자 요청으로 표 머리줄(실험 · [NO](M) …)에 연한 회색 바탕(`\rowcolor{black!8}`, `conv.py`)을 넣음 — 가로 · 세로 실선은 그대로(300 dpi 픽셀로 확인). zip의 build.py · pre.tex는 저장소와 같고 conv.py는 PR #152 이전 저장소 판과 같음을 확인(글꼴만 사용, 글꼴은 저장소에 넣지 않음).
 - 바뀐 파일: `presets/me-haewon-buildup.pdf`, `tools/me/buildup/conv.py`, `sw.js`(v233), `WORKLOG.md`.
 - 확인: XeLaTeX 오류 0, 78쪽(이전과 같음), 누락 글자는 수식 글꼴의 공백(U+0020) 경고뿐(이전과 같음). 81 · 82번 쪽 300 dpi로 표 폭 확인. 2쪽 QR을 300 dpi로 읽어 `https://solvi.win/#ws=22643735` 확인(1쪽은 이전 PDF와 마찬가지로 읽히는 QR 없음).
 - 남은 일 · 주의: 실제 종이 인쇄 미확인.
 
-## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (2차: HWPX 디자인 · 인쇄 · 계정 · 코드 검색 · 빌드업 표)
+## 2026-11-22 · AI · eloquent-euler-8s2a0s (2차: HWPX 디자인 · 인쇄 · 계정 · 코드 검색 · 빌드업 표)
 - 한 일:
   - HWPX를 HTML 디자인과 맞춤(`lib/hwpx.js` v5): <보기> 제목이 위 테두리에 걸치는 모양(3×3 표: 위 두 줄 반 높이 + 가운데 칸 제목), 보기 줄 · 선지 내어쓰기(CSS padding-left · text-indent → 한컴 왼쪽 여백 · 내어쓰기), 문단 앞 간격은 HTML에서 앞 덩어리와 실제로 벌어진 거리로, 표 칸 안쪽 여백 · 테두리(색 · 굵기 · 종류) · 바탕 · 세로 정렬을 CSS 계산값 그대로, 글자 간격, ① 뒤 간격 등 인라인 여백, 바탕색만 있는 상자(단원 머리 · 문항 묶음 띠)는 같은 바탕의 칸, 단 사이 세로줄(colLine), 평가원 머리말(QR | 과목명 | 쪽) 한 줄 표 + 밑줄, 학번 · 이름 빈칸 밑줄, 작은 상자(학습 문항) 폭 여유, 머리말의 쪽 번호는 한컴 쪽 번호 필드, 오른쪽 끝 글(배점 · 문항 수)은 오른쪽 탭. 테두리 채우기 1번은 항상 「선 없음」으로 고정(문단 · 글자가 1번을 가리킴).
   - 양면 인쇄 빈 쪽 로고 복구: `wsLiveCss`(0e738d8)의 `.pg.wblank .bklg{display:none!important}` 제거.
@@ -98,47 +104,47 @@
 - 확인: 학습지(기본 · 평가원) · 교재 HWPX를 오픈소스 렌더러(@rhwp/core, 이 환경에서만)로 그려 HTML 화면과 비교. 새 검사 4개 통과(인쇄 검사는 인쇄 창 도구 막대가 자리를 잡는 동안 누른 클릭이 빠지는 경우가 있어 상태가 바뀔 때까지 다시 누르게 함). 계정 SQL은 PGlite에서(발급 → must_reset, 틀린 비밀번호 · 토큰 · 형식 · 길이 · 중복 거부, 토큰 무효, 재발급 시 다시 요구). 첫 로그인 창 · 설정 화면 1440 · 390 스크린샷. 빌드업은 XeLaTeX로 대체 글꼴(HYHWPEQ 대신 HancomEQN, KoPubDotumMedium 대신 KoPubWorldMedium)을 써서 생성해 81 · 82번 표가 단 폭에 맞는 것 확인(53쪽, 오류 0). 전체 `npm test` 통과(EXIT 0, 새 검사 포함).
 - 남은 일 · 주의: 운영 Supabase에 `supabase/sql_29_account_self.sql`을 한 번 실행해야 계정 바꾸기 · 첫 로그인 재설정이 동작(안 하면 「SQL 29 적용 필요」 안내, 첫 로그인 창은 뜨지 않음). 이미 발급돼 쓰고 있는 계정은 강제하지 않고, 실행 뒤 발급 · 재발급한 계정부터 적용. 빌드업 PDF는 다음 기록에서 진짜 글꼴로 다시 만듦. 한컴에서 직접 열어 보지 못함(특히 <보기> 3×3 표 높이, 오른쪽 탭, 쪽 번호 필드). 실제 기기 미확인. PR #152로 병합 · 배포됨.
 
-## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s (후속: 태블릿 학생 목록)
+## 2026-11-22 · AI · eloquent-euler-8s2a0s (후속: 태블릿 학생 목록)
 - 한 일: 태블릿 가로(사이드바 펼침)에서 학생 목록 오른쪽 「상세 · …」 버튼이 카드 밖으로 밀려 잘리던 문제 수정. 원인: 칸 수를 화면 폭(`max-width:1180px`)으로 정했는데 칸 최소 폭 합(약 1,050px)이 사이드바를 뺀 카드 폭보다 컸음(1024px · 1194~1366px에서 넘침). 칸 수를 카드 폭 기준 컨테이너 쿼리(`.stx-list{container:stx/inline-size}`, 960px 이하 7칸, 620px 이하 최근 풀이도 숨김)로 바꾸고 최소 폭을 줄임, 버튼 칸은 고정 112px. 머리줄의 약한 유형 · 계정 · 최근 풀이 칸에 클래스가 없어 숨긴 칸 머리가 남아 줄이 어긋나던 기존 문제도 수정.
 - 바뀐 파일: `styles/screens.css`(v18), `index.html`, `sw.js`(v231), `tests/app-ui.cjs`(CSS 버전), `WORKLOG.md`.
 - 확인: 학생 12명 예시 데이터로 390 · 820 · 901 · 960 · 1000 · 1024 · 1100 · 1194 · 1280 · 1366 · 1440 · 1920px에서 버튼 오른쪽 끝이 줄 안, 가로 넘침 0, 머리줄과 각 줄 칸 위치 일치(측정). 1366 · 1024 · 960 · 390 스크린샷 확인. 390px는 수정 전과 화면이 같음(픽셀 비교). app-ui 단독 통과.
 - 남은 일 · 주의: 휴대폰(390)에서 「최근 풀이 1일 전」이 세로로 좁게 줄바꿈되는 것은 기존 그대로(이번 범위 밖). 실제 iPad Safari 미확인(컨테이너 쿼리는 Safari 16 이상). PR #151로 병합 · 배포됨.
 
-## 2026-11-22 · Claude Code · claude/eloquent-euler-8s2a0s
+## 2026-11-22 · AI · eloquent-euler-8s2a0s
 - 한 일: 태블릿(iPad Safari)에서 받은 학습지 HWPX가 한컴에서 깨지던 문제 수정. 원인은 태블릿이 아니라 변환기(`lib/hwpx.js`) 자체 — 데스크톱에서 받은 파일도 같았음. ① HTML 쪽마다 구역을 끊고 쪽 아래 「1 / 9 학습지명」을 본문 글로 넣어, 한컴 글꼴로 글이 조금만 길어져도 쪽이 밀리고(9쪽 → 15쪽) 쪽 번호 글이 중간에 끼던 것 → 학습지(`.pg` + `.cols`)는 한 구역 · 한컴 기본 2단으로 이어서 흐르고, 2쪽부터의 머리말은 한컴 머리말(첫 쪽 감춤), 쪽 번호는 한컴 쪽 번호로. 해설 부분은 새 쪽에서 시작, 문항은 「다음 문단과 함께」로 단을 넘어 갈라지지 않게. ② 가로로 놓인 줄(이름 · 날짜 · 문항 · 점수, 문항 번호와 배점, 유형 태그)이 칸마다 낱줄로 흩어지던 것 → 한 문단으로(빈칸은 밑줄, 번호 · 배점은 오른쪽 자동 탭). CSS `::before/::after` 글자(문항 번호 뒤 「.」)도 옮김. ③ 제목 묶음 | QR처럼 나란히 놓인 덩어리는 테두리 없는 표 한 줄, 정답표 같은 격자는 같은 모양의 표로. ④ 표 머리 칸 바탕색(청록 등)이 빠져 흰 글자가 안 보이던 것 → 칸 채우기(`hc:winBrush`)로 옮김, 바탕이 옮겨지지 않는 흰 글자는 바탕색/진회색으로. ⑤ main의 `sw.js`·`WORKLOG.md`에 남아 있던 병합 충돌 표시(`<<<<<<<`) 제거 — `sw.js`가 문법 오류라 서비스 워커가 갱신되지 않던 상태였음.
 - 바뀐 파일: `lib/hwpx.js`(v4), `lazy/hwpx-export.js`(v3), `index.html`(hwpx-export v3), `sw.js`(충돌 정리 + v230), 새 `tests/hwpx-worksheet-layout.cjs`(+`tests/run.cjs`), `WORKLOG.md`.
 - 확인: 사용자가 보낸 HWPX와 수정 전후 파일을 오픈소스 HWPX 렌더러(@rhwp/core, 이 환경에서만 사용 · 저장소에 넣지 않음)로 그려 비교 — 수정 전 머리말 · 번호 낱줄, 표 머리 빈칸, 쪽 밀림 재현 → 수정 후 머리말 한 줄, 2단 흐름, 표 머리 색, 해설 새 쪽 확인(기본 양식 · 평가원 양식). 새 검사는 수정 전 코드에서 실패 · 수정 후 통과(태블릿 UA · 터치로 내려받기). `hwpx-editable` · `hwpx-app` 통과, 정적 파싱 17개 통과. 전체 `npm test` 통과(EXIT 0, 후속 학생 목록 수정과 함께 재실행).
 - 남은 일 · 주의: 이 환경에 한컴이 없어 실제 한글 프로그램에서는 열어 보지 못함 — 특히 구역 중간 다단 바꾸기(colPr), 머리말 · 쪽 번호 컨트롤, 오른쪽 자동 탭은 한컴에서 확인 필요. 렌더러의 수식 표시는 렌더러 한계(한컴 수식 개체는 그대로). 교재(`.bp`) · 개념 인쇄는 쪽마다 구역 방식 그대로(가로 줄 · 표 색 개선만 적용). 실제 기기 미확인. PR #151로 병합 · 배포됨.
-## 2026-11-22 · Claude Code · claude/sharp-maxwell-twnvbb (main 충돌 복구)
+## 2026-11-22 · AI · sharp-maxwell-twnvbb (main 충돌 복구)
 - 한 일: main의 `sw.js`에 병합 충돌 표시(`<<<<<<< HEAD`)가 그대로 남아 서비스 워커가 문법 오류로 설치되지 않아, 브라우저가 옛 앱을 계속 보여 주던 문제 해결(새 기능이 사이트에 안 보이던 원인). origin/main을 병합해 `sw.js`를 VER v231·screens.css v17로 정리. `scripts/verify-static.cjs`가 배포 파일의 병합 충돌 표시를 찾아 실패하도록 추가.
 - 바뀐 파일: `sw.js`, `scripts/verify-static.cjs`, `WORKLOG.md`(충돌 정리).
 - 확인: sw.js 파싱, 정적 검사, preset·선지 번호·학생 답·개념 HTML·학습지 해설 검사, app-ui 통과.
 - 남은 일 · 주의: 병합·배포 후 첫 방문에서 새 서비스 워커가 설치되면 새로고침 한 번 필요할 수 있음. sql_28 적용 필요.
 
-## 2026-11-21 · Claude Code · claude/sharp-maxwell-twnvbb (후속 2)
+## 2026-11-21 · AI · sharp-maxwell-twnvbb (후속 2)
 - 한 일: 정답 글에 수식·아래첨자 HTML이 들어 있는 문항(물질과 에너지 해원고 서답형 12개)이 「정답 H<sub>2</sub>…」처럼 태그 글자로 보이던 문제 수정(`questionAnswer`가 허용한 MathML·sub·sup·span 등만 남겨 그대로 표시, 그 밖 태그·속성 제거; 채점 상세·오답 노트·진단 줄도 같은 함수로). 학생 범위(예: 한 학생 선택)를 골라도 기본 학습지가 목록에 보이게. 기본 학습지 자동 등록이 동시에 두 번 돌면 두 번 등록 요청하던 경쟁 상태 방지.
 - 바뀐 파일: `index.html`, `sw.js`(v230), `tests/exp-choice-label.cjs`, `tests/preset-worksheet.cjs`.
 - 확인: 실제 G-hwea3-0155 정답이 수식으로 표시(태그 글자 없음), 위험한 태그 제거 검사, preset 검사 8회 연속 통과, app-ui·wrong-answer-ui 통과.
 - 남은 일 · 주의: 이 브랜치는 아직 main에 병합·배포되지 않아 운영 사이트(solvi.win)에는 기본 학습지·선지 번호·학생 답 입력이 아직 없음. 병합·배포 후 해당 선생님 계정으로 로그인해야 2264-3735가 등록됨. sql_28 적용 필요.
 
-## 2026-11-21 · Claude Code · claude/funny-hawking-c1nyl1
+## 2026-11-21 · AI · funny-hawking-c1nyl1
 - 한 일: 물질과 에너지 개념 정리(`bank/concept.json`)에 그림·표·강조 HTML이 이스케이프된 채 보이던 문제 수정. 원인: `tools/me/concept.py`의 `EX`/`T`가 이미 만든 `<div class="fg">`·표·`<span class="hl">`(안의 MathML 포함)를 다시 `fmt()`에 넣어 `chem()`이 허용 목록 밖 태그를 `&lt;`로 바꿈, 상자 제목은 `esc()`라 `->`·`\\frac`가 날 문자열로 남음. `mk.raw()`/`unraw()` 자리표시로 만든 HTML은 다시 변환하지 않게 하고, 제목도 `fmt()`(→, MathML 분수), 그림·표 줄은 `<p>`로 감싸지 않음. 수식 안 `\\mathrm{N_2O_5}`의 밑줄이 글자로 보이던 것도 `mk.rm()`으로 아래 첨자 처리. 12개 절이 바뀜(나머지 13절·요약·풀 동일).
 - 바뀐 파일: `tools/me/mk.py`, `tools/me/concept.py`, `bank/concept.json`, `bank/hwd3.json`·`hwed2.json`·`hwf1.json`·`hwf4.json`(`\\mathrm` 아래 첨자 17곳만 데이터 직접 치환), 새 `tests/me-concept-html.cjs`(+`tests/run.cjs`), `sw.js`(v228).
 - 확인: `concept.json`에서 `&lt;div`·`&lt;table`·`-&gt;`·`\\frac`·`&lt;math` 0건(grep). 새 검사는 수정 전 데이터에서 실패·수정 후 통과. `python3 tools/me/verify.py` 13,943문항 오류 0건. 앱 개념학습 Ⅳ-A 1(반응 속도 측정)·3(반응 속도식 연습 1~3)·4(N2O5 농도 변화, 1차 반응 두 조건 비교)을 1440/820/390 px 스크린샷으로 확인 — 태그 글자 없음, 표·그림·수식 정상, 가로 넘침 0, 페이지 오류 0. 전체 `npm test` 통과(EXIT 0, 새 검사 포함) — 이 환경에는 pglite·playwright 기본 경로가 없어 `PGLITE`·`PW`·`NODE_PATH`를 지정해 실행.
 - 남은 일 · 주의: `tools/me/build.py`는 다시 돌릴 때마다 결과가 달라짐(같은 코드로도 hwb2·hwb5·hwd3 수백 문항 변경) → 문제은행은 재빌드하지 않고 해당 17곳만 치환함. 비결정성(해시 순서 등) 원인은 미조사. 실제 기기 미확인. 병합 미실시.
-## 2026-11-21 · Claude Code · claude/sharp-maxwell-twnvbb (후속 요청 3건)
+## 2026-11-21 · AI · sharp-maxwell-twnvbb (후속 요청 3건)
 - 한 일: ① 해설 선지 번호: 풀이 줄이 선지 글로 시작하거나 「선지」를 인용하면 ①~⑤를 자동으로 붙이고, 사이에 다른 글 없이 이어진 줄은 선지 순서로 정렬(`expLabel`, 문항을 불러올 때 한 번 적용·섞인 문항은 기존 번호 바꾸기로 따라감). 바뀐 문항: 화법과 언어 6,321 · 역학과 에너지 71(이미 번호가 있거나 선지별 풀이가 없는 계산 문항은 그대로). ② 유형 별초록(완전 정복) 기준을 3문항 → 10문항 이상 + 정답률 90% 이상으로(OX 문항으로 금방 별초록 되던 문제, 사용자 선택). ③ 선생님 O/X 채점에서 오답으로 한 문항에 「학생이 쓴 답」(선택)을 고를 수 있게(객관식은 정답을 뺀 번호 칩, 나머지는 글 입력, 정답은 넣을 수 없음). 기록에 `a`로 남고 `r`은 항상 0. 제출 뒤에도 선생님은 결과에서 오답 문항을 누르면 학생 답만 고칠 수 있음(서버 함수 `attempt_wrong_answer`가 r=0 문항의 a만 바꿈, 오답 → 정답은 제출 초기화로만).
 - 바뀐 파일: `index.html`, `styles/screens.css`(v17), `sw.js`(v229), 새 `supabase/sql_28_wrong_answer.sql`, 테스트 `tests/exp-choice-label.cjs`·`tests/wrong-answer-ui.cjs`·`tests/wrong-answer-db.cjs`, `tests/app-ui.cjs`(CSS 버전), `tests/run.cjs`.
 - 확인: 전체 `npm test` 통과(worksheet-answer-header의 기대값을 선지 순서 정렬로 갱신한 뒤 재실행). 새 검사 3개 통과(실제 G-hl052-0027이 ①~⑤ 순서로 표시, 정답 칩 제외·정답 입력 거부·제출 기록 a/r·제출 뒤 수정·정답으로 바꾸기 거부, PGlite에서 남의 기록·정답 문항·비로그인 거부). app-ui 통과. 1440/390 채점 화면 캡처.
 - 남은 일 · 주의: 운영 Supabase에 `supabase/sql_28_wrong_answer.sql`을 한 번 실행해야 제출 뒤 수정이 서버에 저장됨(안 하면 「SQL 28 적용 필요」 안내). 서버 함수는 기록 주인(선생님 본인) 것만 고침 — 다른 선생님(학원 공동 계정) 기록은 미지원. 실제 기기 미확인. 병합 미실시.
 
-## 2026-11-21 · Claude Code · claude/sharp-maxwell-twnvbb
+## 2026-11-21 · AI · sharp-maxwell-twnvbb
 - 한 일: 해원고 부교재 Ⅲ·Ⅳ단원 원본 148문항(153~300번, 문제은행 `hw:'o'`)을 「2026학년도 2학기 해원고 물질과 에너지 기말고사 빌드업 문항 모음」 XeLaTeX PDF로 생성(미적분 I 서바이벌 양식: 표지·문제·뒷면·빠른 정답·정답 및 해설, 본문 8.5pt, 1~148번 새 번호, 번호 옆 소단원 대신 문항 코드, 소단원 상자로 이어서 배치, 필적 확인 문구, QR 1쪽 위·2쪽부터 아래+학습지 번호). 수식은 HYHWPEQ가 가진 기호 119자 전부 HYHWPEQ, 숫자·영문자 등은 Latin Modern Math(HYHWPEQ 유니코드 표에 숫자·영문자 없음). 화학식·숫자·단위도 수식으로. 앱: 선생님 계정 로그인 이메일의 SHA-256이 맞으면 고정 번호 2264-3735 학습지를 자동 등록(`presets/me-haewon-buildup.json`, `presetSeed`), `locked`면 삭제·선택 삭제·이름 변경·문항 편집 막음, 목록에 「기본」 표시, 「다시 출력」은 빌드업 PDF / 앱 인쇄 양식 선택, 「재출제」는 소단원을 골라 원본별 1:1 교체(같은 원본의 변형·유사 → 같은 유형 다른 문항 → 원본). 기존 버그: 목록 「복제」가 같은 이름의 양면 인쇄 토글 `wsDup()`에 가려 동작하지 않던 것을 `wsClone`으로 분리. 256번 해설의 그림이 이스케이프된 HTML 글자로 보이던 데이터 수정.
 - 바뀐 파일: `index.html`, `styles/screens.css`(v16), `sw.js`(v228), `presets/me-haewon-buildup.json`·`.pdf`, `bank/hwee1.json`, 생성기 `tools/me/buildup/`(build.py·conv.py·pre.tex), `tests/preset-worksheet.cjs`, `tests/run.cjs`.
 - 확인: 148문항 변환 오류 0, XeLaTeX 오류 0·누락 글자 없음(글꼴 준비 단계 공백 경고만), 단 높이 초과 문항 없음. PDF 1·2쪽 QR을 300dpi로 해독해 `https://solvi.win/#ws=22643735` 확인. zip의 tex만으로 단독 컴파일 확인. `tests/preset-worksheet.cjs`(다른 계정 미등록·중복 등록 없음·잠금·복제·소단원 재출제·출력 선택) 통과. 1440/820/390 목록·다이얼로그 스크린샷, 가로 넘침 0. 앱 인쇄 양식으로 148문항·표지 출력 확인. 전체 `npm test` 결과는 아래 남은 일 참조.
 - 남은 일 · 주의: 자동 등록은 배포 후 해당 선생님 계정으로 로그인해야 일어남(서버 `worksheets.wid`가 전체에서 하나라 이 번호는 그 계정 하나에만). 학생에게는 기존 「학생 배정」으로 배포. 생성용 글꼴(ShinMyeongjo·KoPub·HYHWPEQ)은 저장소에 넣지 않음(사용자 제공 zip의 글꼴). `bank/concept.json`에도 이스케이프된 그림·표 HTML이 남아 있음(별도 작업 제안). 실제 종이 인쇄·휴대폰 카메라 QR 인식 미확인. 병합 미실시.
 
-## 2026-11-21 · Claude Code · claude/beautiful-wright-4upm3d / PR #147
+## 2026-11-21 · AI · beautiful-wright-4upm3d / PR #147
 - 한 일: 물질과 에너지를 해원고 부교재(Ⅲ·Ⅳ단원 개념 학습지 + 수준별 평가 6종) 기준으로 재구성. 원본 148문항 전사(자세한 풀이), 변형 7,962 · 동유형 유사 5,833문항 생성(난이도 하·중·상·최상), 새 유형 28개로 재분류, 범위 밖 4개 유형·문항 삭제. 개념 정리를 학습지 빈칸 답을 채운 25절로 새로 작성(원본 그림 400 dpi). 교재 만들기에 「해원고 부교재 우선」 옵션(원본 → 원본마다 변형 n · 유사 n, 서답형 원본은 서술형 구성, 다른 문항 제외). 모든 수식을 Latin Modern Math로 고정(앱·인쇄 창·학습지·교재·개념 인쇄·LaTeX 양식, 사용자 글꼴 선택보다 우선). 채점 기록·통계·학습지 목록·학교 기출·홈 등 모든 화면이 지금 고른 과목 것만 보이도록 `HS()`/`WS()`로 분리(모든 과목 공통). HWPX 내보내기: 화학 반응식 한 줄(→·⇄)을 편집 가능한 수식 개체 하나로(원소 기호 정자 `rm`, 상태·변수 기울임, 단위 정자), 낱개 화학식도 정자로, 「<보기>」의 <·>와 학습지 번호(1234-5678)가 수식으로 잘못 바뀌던 문제 수정.
 - 바뀐 파일: `bank/`(hw* 49개 새 파일, 기존 유형 재분류, eqm·fuel·znkhalf01·zntemp01 삭제, `index.json`, `concept.json`, `data.js`), `fig/hw/`, `fonts/LatinModernMath.woff2`(+GUST 라이선스), `lib/latex/latinmodern-math.otf`·`template.tex`·`book-document.js`·`local.js`·`book-layout.js`, `index.html`, `books.js`(v93), `lazy/omr-report.js`, `lazy/acad.js`, `lib/hwpx.js`(v3), `lazy/hwpx-export.js`, `sw.js`(v227), `tests/app-ui.cjs`(새 유형 이름), `tests/hwpx-editable.cjs`(화학식 정자 기대값), 생성기 `tools/me/`, `docs/verification/2026-11-21-me-haewon-curriculum.md`.
 - 확인: `python3 tools/me/verify.py` 13,943문항 오류 0건(정답 재계산·보기 조합·선지 중복·HTML/MathML·원본 해설 일치). 정적 파싱 17개 통과. 1440/820/390 px에서 문항·개념 25절·교재 옵션 카드 확인, 휴대폰 가로 넘침 0. 해원고 교재 계획 282문항 전부 부교재 문항. 과목 섞임: 화법 기록·학습지를 넣어도 물질과 에너지에서 보이지 않음. 전체 `npm test` 통과(EXIT 0).
@@ -287,78 +293,78 @@
 - 확인: 정적 검사, 정보 과목 회귀와 소개 페이지 회귀 통과. 앱 UI 회귀는 동시 실행에서 로그인 검사 세 건이 실패했고 단독 재실행에서 통과. 1440·820·390px 정보 탭과 그림 문항 캡처 확인, 개념학습·정답 제출 검증. 인공지능 수학 교재 높이 225개 측정, 다른 과목 기존 높이 값 대조.
 - 남은 일 · 주의: 난이도는 초판 출제 기준이며 실제 풀이 데이터 보정은 남음. 실제 기기의 카메라 QR 인식과 운영 배포는 이번 작업 범위에서 확인하지 않음.
 
-## 2026-11-11 · Claude Code · claude/fix-build-start
+## 2026-11-11 · AI · fix-build-start
 - 한 일: 학습지 만들기 시작 화면이 겹쳐 깨지던 것 수정. 원인: #130에서 만든 숫자 스테퍼의 CSS 클래스 `.stp`가 이 화면 바깥 틀 `<div class="stp app-shell">`과 이름이 겹쳐, 화면 전체가 스테퍼 모양(가로 배치 · 넘침 숨김)이 됨. 스테퍼 클래스를 `.numstp`로 바꿈(`numStepper` · `stpSet` · `stpGo` · `screens.css`).
 - 바뀐 파일: `index.html`, `styles/screens.css`(v15), `sw.js`(v203), `tests/app-ui.cjs`(버전 줄), `tests/delight.cjs`(선택자 이름).
 - 확인: **테스트는 돌리지 않음**(사용자 요청 — 크레딧 절약). 학습지 만들기 시작 화면(1440)을 캡처해 정상임을 확인.
 - 주의: 같은 클래스 이름 충돌이 다시 없도록, 새 CSS 클래스는 `grep -n 'class="이름'`로 기존 사용을 먼저 확인할 것.
 
-## 2026-11-11 · Claude Code · claude/combined-1111 (PR #126~#131 통합)
+## 2026-11-11 · AI · combined-1111 (PR #126~#131 통합)
 - 한 일: 따로 올라가 있던 PR 6개(#126 학생 회원가입 긴급 수정, #131 로그인 간격, #127 학습지 번호 크기, #128 문제 간격 = 쪽당 문항 수, #129 최근 기록 · 왼쪽 메뉴 · 지문 [A] 괄호 · 필기용 지문 상자, #130 스켈레톤 · 진행바 · 당겨서 새로고침 · 스테퍼 · 완료 연출 · 인트로 요금제 위로)를 `main`에서 한 브랜치로 합침. 합치는 순서는 #126 → #131 → #127 → #128 → #129 → #130. 충돌은 `sw.js` · `WORKLOG.md` · `tests/run.cjs` · `styles/screens.css`(양쪽 CSS를 모두 남김) · `index.html`/`tests/app-ui.cjs`(`screens.css?v=` 한 줄)뿐이었고 모두 양쪽 내용을 살려 풂. 버전은 `sw.js` VER v202, `screens.css` v14, `books.js` v79, `heights.json` v7, `intro.css` v23, `intro.js` v19로 통일(`sw.js` SHELL의 인트로 버전이 예전 값이던 것도 바로잡음). 개별 변경 내용은 아래 각 기록 참고.
 - 확인: **테스트는 돌리지 않음**(사용자 요청). 충돌 표시 없음 · 버전 번호 일치 · 최상위 중복 선언 없음(`wsDup`은 `main`에 원래 있던 것)만 글자로 확인. 각 PR은 합치기 전에 개별로 테스트를 통과했지만, 합친 결과 전체는 CI에서 처음 돌아감.
 - 남은 일 · 주의: 합친 뒤 CI 결과를 확인할 것. 특히 같은 파일(`index.html` · `styles/screens.css` · `books.js`)을 여러 PR이 고쳤으므로 CI가 실패하면 먼저 거기를 볼 것.
 
-## 2026-11-11 · Claude Code · claude/fix-login-spacing-2 (#126 위에 쌓음)
+## 2026-11-11 · AI · fix-login-spacing-2 (#126 위에 쌓음)
 - 한 일: 학생·학부모 로그인과 회원가입 폼의 간격 수정. 원인: 새 로그인 화면 본문 `#stbody`가 자식마다 18px 간격(grid gap)을 주는데, 선생님 로그인과 달리 학생·학부모 로그인(`stLoginBody`)과 가입 폼 제목은 「제목+설명」 · 「라벨+입력칸」을 묶지 않아 라벨↔입력칸까지 18px+마진씩 벌어졌음(제목↔설명 30px, 라벨↔입력칸 33px). `.entry-heading` · `.entry-field` 묶음으로 바꾸고 체크박스 · 회원가입 줄의 따로 준 여백, `.fld` 자체 여백을 정리 → 라벨↔입력칸 7px, 묶음 사이 18px(선생님 로그인과 같은 리듬).
 - 바뀐 파일: `index.html`, `styles/screens.css`(v13), `sw.js`(v201), `tests/student-signup.cjs`(간격 검사 추가), `tests/app-ui.cjs`.
 - 확인: `student-signup`(수정 전 실패 · 후 통과, 1440·390), `app-ui` 42개, 정적 검사, 390 · 1440 캡처.
-- 주의: `claude/fix-student-signup`(#126) 위에 쌓은 브랜치라 #126을 먼저 병합해야 diff가 이 변경만 남음. `sw.js` VER · `screens.css` 버전 줄이 다른 PR과 겹쳐 충돌.
+- 주의: `fix-student-signup`(#126) 위에 쌓은 브랜치라 #126을 먼저 병합해야 diff가 이 변경만 남음. `sw.js` VER · `screens.css` 버전 줄이 다른 PR과 겹쳐 충돌.
 
-## 2026-11-10 · Claude Code · claude/fix-student-signup (긴급)
+## 2026-11-10 · AI · fix-student-signup (긴급)
 - 한 일: 학생 「회원가입」을 눌러도 아무 화면이 안 뜨던 오류 수정. 원인: 로그인 화면 개편(#122) 뒤 로그인 본문을 그리는 `stLoginBody()`가 가입 모드(`SGU.mode==='signup'`)와 승인 대기(`sgPend()`)를 보지 않아, 버튼이 모드만 바꾸고 화면은 그대로였음(예전 `stLoginCard()`만 확인). 가입 폼·승인 대기 화면을 카드 없는 본문(`sgFormBody`·`sgPendBody`)으로 나눠 새 로그인 화면 안에 그림.
 - 바뀐 파일: `index.html`, `sw.js`(v196), `tests/student-signup.cjs`(새), `tests/run.cjs`.
 - 확인: 새 `student-signup`(회원가입 → 폼 → 신청 → 승인 대기 → 로그인, 1440·390, 서버 호출은 가짜로 막음)이 수정 전 실패 · 수정 후 통과, `app-ui` 42개·정적 검사 통과. 가입 서버 함수(`st_signup`)는 정상 응답(잘못된 코드에 `bad_code`).
 - 남은 일 · 주의: 실제 가입 → 선생님 승인 전체 흐름을 실제 서버로 끝까지 해 보지는 않음(테스트 계정이 생기므로).
 
-## 2026-11-10 · Claude Code · claude/ws-number-box
+## 2026-11-10 · AI · ws-number-box
 - 한 일: 학습지 문항 번호를 더 크게(「번호.」 형식 11.5pt→15pt, 굵은 번호 12.5→16pt, 번호와 배점 사이 간격). 「본문에 네모박스가 안 쳐진다」는 제보는 재현하지 못함 — 화법과 언어 문항 데이터 11,950개 전수 검사(상자 없는 지문 · 화자 대화 · 긴 글 · 해설) 0건, 학습지 · 교재 · 풀이 화면 · 전범위 모의고사를 실제 렌더링해 확인, 실제 사이트(solvi.win)에서도 같은 검사 통과. 제보 화면(어느 문항 · 어느 화면)을 받아야 함.
 - 바뀐 파일: `index.html`, `sw.js`(v197), `WORKLOG.md`.
 - 확인: `ws-approved-styles`·`print-regression` 통과, 두 디자인 캡처로 번호 크기 확인.
-- 남은 일 · 주의: 상자 누락 제보 화면 확인. `claude/fix-student-signup`(#126, `sw.js` v196)과 `sw.js` VER 줄이 겹쳐 충돌할 수 있음.
+- 남은 일 · 주의: 상자 누락 제보 화면 확인. `fix-student-signup`(#126, `sw.js` v196)과 `sw.js` VER 줄이 겹쳐 충돌할 수 있음.
 
-## 2026-11-10 · Claude Code · claude/ws-spacing
+## 2026-11-10 · AI · ws-spacing
 - 한 일: 학습지 「문제 간격」이 쪽당 문항 수를 정하게 함. 「한 쪽 최대 문항」이 자동이면 기본 6 · 조금 넓게 5 · 넓게 4 · 아주 넓게 3문항(1단은 4·3·3·2). 원인: 새 학습지 기본 `per`가 4(또는 사용자가 고른 2)라 단마다 문항 높이를 `h/cap−5.5mm`로 늘리고, 거기에 간격(`gapmm`)을 inline margin으로 따로 덮어써서 「넓게」를 고르면 오히려 단당 1문항만 남았음. 이제 간격은 디자인 기본 간격에 더하는 값이고 높이 계산(`minHeight`)에 포함됨. 새 학습지 기본 `per`는 자동. 팝업 「문제 간격」 선택지에 쪽당 문항 수를 표시하고, 바꾸면 쪽당 문항 수도 자동으로 되돌림(숫자로 고른 값이 간격 조절을 막지 않게).
 - 바뀐 파일: `index.html`, `sw.js`(v198), `tests/ws-spacing.cjs`(새), `tests/run.cjs`.
 - 확인: `ws-spacing`(짧은 국어 문항 24개: 기본 3+3, 조금 넓게 3+2, 넓게 2+2, 아주 넓게 2+1, 숫자 2 → 1+1, 1단 4), `ws-approved-styles`·`print-regression`·`book-mock-passage`·`app-ui` 42개·정적 검사 통과. 기본 · 넓게 캡처 확인.
 - 남은 일 · 주의: 지문이 긴 문항은 단에 3개가 안 들어가 자연히 적게 들어감. 이미 저장된 학습지의 「한 쪽 최대 문항」이 숫자면 그 숫자가 우선(팝업에서 문제 간격을 바꾸면 자동으로 풀림). `sw.js` VER 줄이 #126(v196)·#127(v197)과 충돌할 수 있음.
 
-## 2026-11-10 · Claude Code · claude/fix-recent-sidebar-bracket
+## 2026-11-10 · AI · fix-recent-sidebar-bracket
 - 한 일: (1) 최근 기록에 교재 ID(`hl-xfq_xh0_…`)가 그대로 뜨던 것: `bookLbl()`이 `_`가 든 자유 구성 교재 ID를 못 읽어서였음 → 만든 이름 + 쪽(없으면 「맞춤 교재」). (2) 왼쪽 메뉴: UI 개편(f36bf32)에서 빠진 부팅 복원을 되살림(`<head>` 스크립트로 `omr_sb`의 상태·너비·`mtab`을 첫 그리기 전에 적용 — 지금까지 새로고침하면 상태가 사라졌고, `data-sb`가 비어 「접기」 첫 클릭이 먹지 않았음), `sbToggle` 기본값 open, 상태가 바뀌면 resize를 알려 폭에 맞춰 그리는 요소가 다시 맞춤, 본문 왼쪽 여백은 `--sbw` 변수에만 기대지 않고 상태별로 직접 지정(`screens.css`). 태블릿 세로(820·744)에서는 「바 닫으면 빈칸」을 재현하지 못했고(모든 탭 측정), 위 결함들을 고침 — 같은 증상이 남으면 화면·기기를 받아야 함. (3) 국어 지문 범위: 색칠 · `A` 상자 대신 오른쪽 긴 괄호 + `[A]` 이름표(`rngBracket()` — `ovApply`에서 문항 데이터가 들어올 때 변환: 줄마다 `bk-s/m/e/o` 클래스, 이름표는 가운데 줄). 데이터는 줄마다 같은 이름의 `rng`가 따로 있고 시작(`rk`)은 첫 줄, 끝(`re`)은 마지막 줄에만 있어 이어지는 줄을 하나로 묶음. (4) **PR #125의 지문 상자 규칙이 `QCSS`가 아니라 개념 인쇄용 `CBCSS`에 들어가 있던 실수 수정** — 필기용 지문(`psg sp`)이 앱·학습지에서 상자가 없던 이유. QCSS로 옮김.
 - 바뀐 파일: `index.html`, `books.js`(v79 · 색칠 규칙 → 괄호), `books/heights.json`(v7, 화법과 언어 56개 변경 · 다른 과목 그대로), `styles/screens.css`, `sw.js`(v199), `tests/sidebar-state.cjs`·`tests/passage-bracket.cjs`·`tests/book-label.test.cjs`(새), `tests/run.cjs`.
 - 확인: 새 테스트 3개 통과(`passage-bracket`·`sidebar-state`는 수정 전 실패 확인), `book-mock-passage`·`ws-approved-styles`·`print-regression`·`book-pdf`·`hl-concept-regression`·`app-ui` 42개·정적 검사 통과, 학습지·교재 캡처로 괄호 확인.
 - 남은 일 · 주의: `sw.js` VER 줄이 #126(v196)·#127(v197)·#128(v198)과 겹쳐 병합 때 충돌. 교재 안 괄호 때문에 화법 지문 줄 바꿈이 조금 달라질 수 있음. 괄호 이름표는 쪽이 나뉘면 가운데 줄이 있는 쪽에만 보임.
 
-## 2026-11-10 · Claude Code · claude/delight-pack
+## 2026-11-10 · AI · delight-pack
 - 한 일: 사이트 만족감용 가벼운 다듬기(예산 10달러 이내). (1) 로딩을 막대 대신 스켈레톤으로(`ldg()`). 전역 작업 로딩 오버레이(`busyRun`)는 그대로. (2) 맨 위 스크롤 진행바(앱 `#sprog`, 인트로 같은 이름). (3) 당겨서 새로고침(터치 기기, 맨 위에서만, 채점 중 · 열린 창 · 안쪽 스크롤 영역에서는 안 씀 → `hardRefresh()`). (4) 문항 수 입력을 스테퍼로(`numStepper` — 유형별 문항 수 · 총 문항 수; 기존 `stepper`는 단계 표시라 이름을 달리 함). (5) 채점 완료 연출(`celebrate`): 체크 표시 · 점수 올라가기 · 90% 이상 46개/60% 이상 30개 색종이, 움직임 줄이기 설정이면 색종이 생략. (6) 인트로: 요금제를 「핵심 흐름」 앞(네 번째 구역)으로 올리고 목차 맨 앞에 둠, 요금제 위에 틀 잡기 문장 + 실제 수치(4과목 · 문항 40,000개 이상 — 데이터에서 센 고유 문항 코드 41,159개) + 카드마다 「1명당 월 약 …원」(화면의 가격과 최대 학생 수에서 JS가 계산, 서버 값으로 카드가 다시 그려져도 `MutationObserver`가 다시 채움).
 - 바뀐 파일: `index.html`, `styles/screens.css`(v12), `intro.html`·`intro.css`(v23)·`intro.js`(v19), `sw.js`(v200), `AGENTS.md`(완료 축하 예외 · 스켈레톤 · 수치 규칙), `tests/delight.cjs`(새), `tests/app-ui.cjs`, `tests/run.cjs`.
 - 확인: `delight`(스켈레톤 · 진행바 · 스테퍼 · 당겨서 새로고침 4가지 조건 · 완료 연출 · 움직임 줄이기), `app-ui` 42개, `intro-regression`, `print-regression`, `ws-approved-styles`, 정적 검사 통과. 스테퍼 · 스켈레톤 · 완료 · 인트로 요금제 1440 · 390 캡처 확인.
 - 남은 일 · 주의: **사회적 증거(후기 · 고객 수)는 규칙상 만들지 않음** — 실제 후기나 도입 학원 수를 받으면 넣을 수 있음. 요청 중 푸시 알림 · 모달/바텀시트 · 카드 확장 · 탭↔세그먼트 전환 확대는 이번에 하지 않음(다음 묶음). 당겨서 새로고침은 실제 기기(iOS Safari · 안드로이드)에서 확인하지 못함. `sw.js` VER 줄이 #126~#129와 겹쳐 병합 때 충돌.
 
-## 2026-11-09 · Claude Code · claude/worksheet-v2 / PR #125 (후속)
+## 2026-11-09 · AI · worksheet-v2 / PR #125 (후속)
 - 한 일: 전범위 모의고사(`bkPlanFull`)에서 지문 딸린 국어 문항을 한 덩어리로 넣어 열보다 길면 최대 43cm까지 잘리던 문제 수정 — 지문을 `bkPsgUnits` 조각으로 나눠 열·쪽을 넘기고, 지시문 번호를 모의고사 번호로 바꿈(`bkFixPsgNo`가 [06-A] 같은 원본 번호도 처리), 긴 보기(lp)는 전폭. 모의고사 지문 조각은 높이표(맥에서 잰 값) 대신 보는 브라우저에서 직접 잼(키 `m:`) — CI(리눅스)에서 높이표 값으로는 12mm 넘침이 났음. 지문·보기 상자 누락 수정: 앱 풀이 화면·학습지의 `.q .psg`에 상자, 교재 문항 안 지문(`.u.q .psg`) 상자, 화법 필기용 지문(`psg sp`)도 상자(`nobox:false`). 화법과 언어 교재 높이 재측정(바뀐 값 2개, 다른 과목 그대로), `heights.json?v=6`.
 - 바뀐 파일: `books.js`(v78), `index.html`, `sw.js`(v195), `books/heights.json`, `tests/book-mock-passage.cjs`(새), `tests/run.cjs`.
 - 확인: 수정 전 국어 1~3회에서 잘림 10건 재현 → 0건. 새 `book-mock-passage`(국어·과학 1~3회 잘림 없음, 학습지·화면 지문·보기 상자), `book-pdf`·`print-regression`·`ws-approved-styles`·`book-range`·`book-navigation`·`hl-concept-regression`·`app-ui`·정적 검사 통과. 이어지는 지문 쪽을 캡처로 확인.
 - 남은 일 · 주의: 화법 필기용 지문 상자 때문에 화법편 주교재 일부 쪽 나눔이 달라질 수 있음(높이 2개 변경). 실제 인쇄물 미확인.
 
-## 2026-11-09 · Claude Code · claude/worksheet-v2
+## 2026-11-09 · AI · worksheet-v2
 - 한 일: 학습지 디자인을 전부 교체. 기존 37종(예전 17종 + 1차 승인 19종)을 지우고, 2차 시안에서 사용자가 고른 13종(수능형 · 학교 지필 표/간결 · 모의고사 회차 · 단원평가 칸 · 교재 정통/모던 · 문제집 · 명조 교과서 · 에디토리얼 · 노트형 · 학원 프린트 · 회색 정보줄)과 장식 없는 「기본」(`w-simple`, 새 기본값)만 `DZ_LIST`에 둠. 모두 2단·문항 번호는 숫자만·<보기>는 검은 실선 상자. 예전 키는 `STYLE_LEGACY`로 가장 비슷한 새 디자인에 연결(이미 만든 학습지도 열림). 수능형은 디자인 패널에서 「영역」「교시」를 직접 입력(`rec.karea`·`rec.kper`, 저장·복사 경로에 전달). 국어 학습지 수능형 기본 영역을 「국어 영역」·1교시로, 문단형 보기의 내어쓰기 제거(`.bogi p.pr`), 세로 선지 ① 뒤 간격.
 - 바뀐 파일: `index.html`, `sw.js`(v194), `tests/ws-approved-styles.cjs`(14종용으로 다시 씀), `tests/run.cjs`, `tools/worksheet_previews.cjs`(디자인 첫 쪽 캡처 도구). 1차 시안 갤러리 `design/worksheet-templates/`와 그 테스트는 삭제.
 - 확인: `ws-approved-styles`(14종 × 실제 문항: 2단, 머리글 쪽 안, 긴 제목·QR 번호 한 줄, 정보 줄·QR 겹침 없음, 번호 장식 없음, 수능형 영역·교시 반영, 예전 키 연결), 14종 국어·과학 첫 쪽 캡처 직접 확인, `print-regression`·`book-range`·`app-ui` 42개·정적 검사 통과.
 - 남은 일 · 주의: 실제 프린터 출력·태블릿/휴대폰 PDF 저장 미확인. 예전 디자인 보조 코드(DZH·DZQ 등 일부)는 새 디자인이 재사용하므로 남겨 둠.
 
-## 2026-11-08 · Claude Code · claude/ui-redesign / PR #124 (승인 디자인 탑재)
+## 2026-11-08 · AI · ui-redesign / PR #124 (승인 디자인 탑재)
 - 한 일: 사용자가 승인한 학습지 디자인 19종(W02·W03·W07·S01·S02·S05·K01·K05·K06·K07·M01·M03·M04·M06·P01·P02·P03·X04·X08)을 실제 학습지 엔진 `DZ_LIST`에 `sv-*` 키로 추가(기존 18종은 그대로). 모두 2단. 새 머리글 종류 `pub`(왼쪽 위 큰 숫자)은 `rec.bno`를 쓰고, 디자인 패널에 「머리 숫자」 입력칸(해당 디자인일 때만) 추가 — 저장·복사 경로(`saveW`, `wsOpts`, `wsMeta`, 재출제 등)에 `bno` 전달. S01은 반·번호·이름을 머리글 표 안에 넣음. 한 줄 제목은 넘치면 글자 크기를 줄여 맞춤(두 줄 금지). P03 난이도 점은 문항 번호의 `data-lv`(하·중·상).
 - 바뀐 파일: `index.html`, `sw.js`(v193), `design/worksheet-templates/templates.js`(미리보기도 전부 2단), `tests/ws-approved-styles.cjs`(새), `tests/run.cjs`.
 - 확인: 새 `ws-approved-styles`(19종 × 실제 문항: 2단, 머리글 쪽 안, 아주 긴 제목도 한 줄, 정보 줄·QR 겹침 없음, 머리 숫자 반영), 19종 첫 쪽 캡처 직접 확인, `worksheet-templates`·`print-regression`·`book-range`·`book-navigation`(단독 실행)·`app-ui` 42개·정적 검사 통과.
 - 남은 일 · 주의: 명조 디자인(K01·K05·K06·K07)은 기존 `myeong` 글꼴 설정을 따른다. 실제 프린터 출력·태블릿/휴대폰 PDF 저장은 확인하지 못함. 답안지·해설 쪽은 기존 공통 스타일을 그대로 쓴다.
 
-## 2026-11-08 · Claude Code · claude/ui-redesign / PR #124 (후속)
+## 2026-11-08 · AI · ui-redesign / PR #124 (후속)
 - 한 일: 교재 목차 경로 표시가 `<nav>`라서 휴대폰에서 전역 `nav` 규칙 때문에 화면 아래에 고정되고, 책 이름이 두 줄로 넘치던 문제 수정(`div role=navigation`으로 바꿈). 데스크톱은 글자 링크 한 줄, 휴대폰은 「‹ 상위 단계」 하나만 표시. 목록 제목·설명은 한 줄 말줄임과 전체 이름 툴팁. 학습지 시안: 선지는 5칸 → 3칸 → 세로 순으로 한 줄에 들어가는 배치를 고르고, 배점은 앞 어절과 붙이고, 「(단, …)」 조건은 별도 줄로, 머리말·라벨은 한 줄로.
 - 바뀐 파일: `books.js`(v77), `styles/screens.css`(v11), `index.html`, `sw.js`(v192), `design/worksheet-templates/*`, `tests/worksheet-templates.cjs`(새), `tests/app-ui.cjs`, `tests/run.cjs`.
 - 확인: 새 `worksheet-templates` 회귀(시안 43개 × 1440·390, 두 줄 넘침·문장 끝 외톨이 글자·단 넘침 0건), 교재 화면 390·820·1440 줄넘김 검사 0건, `book-navigation`·`book-range`·`app-ui` 42개·정적 검사 통과.
 - 남은 일 · 주의: 시안은 여전히 승인 대기(제품 미연결). 실제 기기 미확인.
 
-## 2026-11-08 · Claude Code · claude/ui-redesign
+## 2026-11-08 · AI · ui-redesign
 - 한 일: (1) 커밋되지 않았던 Codex의 교재 목록·목차 탐색·쪽 범위 채점·인쇄 빈 쪽 수정 작업을 이어받아 함께 올림. (2) 채점 범위를 여러 단원·여러 쪽 선택, 「이 단원 전체」, 쪽 번호 입력(`12-15, 18`), 한 쪽의 문항 번호 지정(`1-3, 5`, 연습 기록으로 채점)으로 확장하고 없는 쪽·문항 번호를 검증. 여러 쪽은 차례로 채점하며 결과 화면에서 남은 쪽을 이어 준다(`BKQ`). 채점 기록 형식은 그대로. (3) 「제출하기」 중복 실행 수정: `finish()`가 처리 중 같은 작업을 돌려주고 버튼을 잠그며, 저장 중 로딩 표시·저장 실패 시 다시 제출 안내. (4) 오답 해설: 「옳지 않은 것」 문항에서 내 판단이 반대로 표시되던 논리 오류(`diagnose`의 `believed`) 수정, 전역 `.fl` 스타일이 배지에 섞여 커지던 문제를 없애고 「내 판단 → 실제」 한 줄로 정리, 판단이 어긋난 선지만 강조. (5) 학습지·시험지 디자인 시안 43개를 `design/worksheet-templates/`에 미리보기 전용 갤러리로 추가(설정값 + 공통 렌더러, 자동 쪽 나누기, 흑백 보기, A4 인쇄). 참고 HWP 3개(평가원 국어 · 과탐 표지 · 지필평가)의 구조를 반영.
 - 바뀐 파일: `books.js`(v76), `index.html`, `styles/screens.css`(v10), `sw.js`(v191), `tests/book-range.cjs`(새), `tests/book-navigation.cjs`, `tests/app-ui.cjs`, `tests/run.cjs`, `design/worksheet-templates/*`.
 - 확인: `verify-static`, `book-entry` 단위, `book-navigation`(1440·820·390 가로 넘침 없음), 새 `book-range`(없는 쪽·문항 검증, 두 번 제출해도 기록 1개·결과 화면 1번), `app-ui` 42개, `print-regression` 7개 통과. 갤러리는 1440·390 캡처와 상세 보기 쪽 나누기(3~5쪽) 확인, 오답 해설은 1440·390 캡처로 확인.
@@ -496,7 +502,7 @@
 - 확인: 새 교재 접근·출처 제한 단위 회귀, 정적 스크립트 파싱, 인트로 회귀(1440 · 820 · 390 캡처 직접 확인), 휠·키보드·터치 스크롤 회귀 통과. 과목 섹션의 옛 테스트 선택자를 갱신한 뒤 최종 `npm test` 전체 통과(`PASS all isolated verification commands`).
 - 남은 일 · 주의: 실제 iPhone·iPad·Mac 인쇄 대화상자에서는 확인하지 못함. 작업 폴더의 사용자 설치 스킬과 `skills-lock.json` 변경은 이 작업과 무관해 커밋하지 않음.
 
-## 2026-10-31 · Claude Code · claude/intro-3d-day (PR 아직 없음)
+## 2026-10-31 · AI · intro-3d-day (PR 아직 없음)
 - 시작: 작업 폴더에 이전 세션의 미커밋 변경(히어로 로고 · 3D 학원의 하루 초안)이 있어 그 위에서 이어 감.
 - 요청: 학원의 하루 위치가 제각각 · 더 역동적으로(뒤집히고 날아가게) · 제일 위 솔비 로고 · 사진 더 크게 · 맨 위로 버튼 안 먹음 · 요금제는 개발자 페이지에서 다 조절 · 라이트 카드 줄 간격 · 비교표 「포함」 → O.
 - 한 일
@@ -509,7 +515,7 @@
 - 테스트: `tests/intro-regression.cjs` 화면 밖 검사는 투명도 0.9 초과(자리 잡은 컷)만 — 3D 로 날아드는 중간 컷은 제외.
 - 남은 일 · 주의: 개발자 페이지 저장 → 소개 페이지 반영은 서버(Supabase)가 필요해 로컬에서 끝까지 못 봄(저장 코드는 기존 `devCfgSave` 그대로). 실제 기기에서 못 만져 봄.
 
-## 2026-10-30 · Claude Code · claude/intro-detail-pricing · PR #105 (https://github.com/minchan012309-spec/omr/pull/105)
+## 2026-10-30 · AI · intro-detail-pricing · PR #105 (https://github.com/minchan012309-spec/omr/pull/105)
 - 시작: `origin/main` ed550c8(PR #104 병합). 열린 PR 없음.
 - 요청: 「솔비 한글 로고는 빼고, 좀 더 구체적으로 · 내용 많게. QR 스캔 강조, 카테고리 더 세밀히, 학원 운영 더 길게, 가격별 비교」(`/apple-design`).
 - 한 일
@@ -526,7 +532,7 @@
 - 확인: 1440 라이트 · 390 다크 · 라이트 캡처를 직접 봄. `intro-regression` · `intro-scroll` 통과, `npm test` 전체 통과(exit 0, 「PASS all isolated verification commands」).
 - 남은 일 · 주의: 비교표는 요금제 카드 기본값 기준이라, 개발자 탭에서 요금제 항목을 바꾸면 표 내용(포함 여부)은 따로 고쳐야 함(이름 · 가격만 자동). 실제 기기에서 만져 보지 못함. 무대 속 학생 · 점수는 예시.
 
-## 2026-10-30 · Claude Code · claude/intro-dynamic-flow · PR #104 (https://github.com/minchan012309-spec/omr/pull/104)
+## 2026-10-30 · AI · intro-dynamic-flow · PR #104 (https://github.com/minchan012309-spec/omr/pull/104)
 - 시작: `origin/main` f1f6bf7(PR #102 · #103 병합). 열린 PR 없음. 직전 인트로는 PR #103(다른 세션)의 「고객 문제 → 5단계 캡처」 버전.
 - 요청: 「인트로가 별로, 인터랙션 스크롤이라더니 별거 없다. 더 역동적으로. 유형분석 해골 · 빨강 · 노랑을 넣고, 모든 것이 유동적으로 연결된다는 것도. 메인 사진은 핵심 기능으로. 학습지 번호로 바로 채점하기 삭제. 맨 아래 심볼만 말고 글자 로고 · 한글 로고도. 더 자세하고 구체적이게, 보자마자 결제하고 싶게」(`/apple-design` · `/improve-animations` 와 함께).
 - 기기 목업 금지(사용자 이전 요청)는 지킴: 새 장면은 모두 앱과 같은 표현으로 만든 화면 조각(앱 `ICON` 의 상태 아이콘 6개 그대로 · 문제은행의 실제 유형 이름과 문항 코드) + 실제 캡처.
@@ -543,8 +549,8 @@
 - 확인: 1440 다크 · 라이트, 390 다크 · 라이트 장면별 캡처를 직접 봄. `intro-regression` · `intro-scroll` 통과, `npm test` 전체 통과(exit 0, 「PASS all isolated verification commands」).
 - 남은 일 · 주의: 실제 iPhone · Mac 트랙패드에서 만져 보지 못함. 무대의 학생 · 정답률 · 점수는 예시(화면에 표기). `lib/gsap/` 와 안 쓰는 캡처 일부는 그대로.
 
-## 2026-10-30 · Claude Code · claude/intro-scroll-story · PR #103 (https://github.com/minchan012309-spec/omr/pull/103)
-- 시작: `claude/motion-mobile-native`(PR #102, 아직 열림 · 인트로 파일을 고침) 151e5f5 위에서 새 브랜치. main 에는 「캡처만 인트로」가 아직 없어서 PR #102 위에 쌓음 → **PR #102 를 먼저 병합해야 함.**
+## 2026-10-30 · AI · intro-scroll-story · PR #103 (https://github.com/minchan012309-spec/omr/pull/103)
+- 시작: `motion-mobile-native`(PR #102, 아직 열림 · 인트로 파일을 고침) 151e5f5 위에서 새 브랜치. main 에는 「캡처만 인트로」가 아직 없어서 PR #102 위에 쌓음 → **PR #102 를 먼저 병합해야 함.**
 - 요청: `/emil-design-eng` 으로 인트로 전면 개편. 애플 · 토스식 스크롤 인터랙션, 근거는 Codex 가 만든 `intro-audience-search-intent.json`(이상적 고객 · 고객 문제 · 검색 의도). 기기 목업 · 3D 금지(메모리)는 지킴.
 - 이야기 순서(JSON `recommended_story_sequence`): 히어로 「점수 말고, 유형이 남는 수업.」(취약 유형 지도 캡처) → 문제 제기 문장(`#why`) → 핵심 흐름 5단계 `#bank` 고르기 · `#book` 만들기 · `#omr` 채점 · `#wrong` 분석 · `#next` 다시 학습(새 장면) → `#device` 선생님 · 학생 · 학부모 같은 기록 → `#academy` 학원 운영 → `#eco` 지원 과목 4개 → `#start` 무료 체험 신청 + 로그인. 요금제 · 질문 · 바닥글은 그대로, 질문 2개 추가(ERP와 차이 · 학생별 학습지).
 - 연출(`intro.js`, 라이브러리 없음): 스크롤 위치에서 바로 계산(지연 · 관성 · 스냅 · 스크롤 가로채기 없음), transform · opacity 만. 히어로 캡처 0.9→1 확대, 문제 제기 문장이 낱말 단위로 밝아짐(가운데 고정, 읽기 프로그램은 aria-label 로 문장), 캡처 묶음 아래에서 올라오며 층마다 다른 속도(`data-lag`), 교재 다섯 쪽이 한 묶음에서 부채꼴로 펼쳐짐, 5단계 진행 막대(`.rail`, 머리글 아래 고정, `aria-current=step`), 학원 운영 화면 4장이 세로 스크롤만큼 옆으로 지나감(`.strip`, 바깥은 잘라서 가로 넘침 없음), 예시 채점 숫자 0부터 세기. 히어로 제목만 처음 한 번 300ms 올라옴. 문구(.cp)는 움직이지 않음(스크롤과 1:1).
@@ -554,8 +560,8 @@
 - 확인: 1440(다크 · 라이트) · 820 · 390(다크 · 라이트) 장면별 캡처를 직접 봄, 스크립트 없음 전체 캡처. `tests/intro-scroll.cjs`(휠 · 키 · 터치 1:1) 그대로 통과, `npm test` 전체 통과(exit 0).
 - 남은 일 · 주의: 실제 Mac 트랙패드 · iPhone · iPad 에서 만져 보지 못함. 숫자 세기는 700ms(장식). 안 쓰는 캡처 일부와 `lib/gsap/` 는 그대로. PR #102 를 먼저 병합해야 #103 차이가 인트로만 남음.
 
-## 2026-10-30 · Claude Code · claude/motion-mobile-native · PR #102 (https://github.com/minchan012309-spec/omr/pull/102)
-- 시작: `origin/main` c90ea8c(PR #101 병합). 열린 PR 없음. 작업 폴더가 Codex 의 `codex/frontend-system-audit`(main 과 같은 커밋, 새 커밋 없음)에 있어서 거기는 건드리지 않고 새 브랜치. 사용자가 설치한 스킬(`.agents/skills/` · `.claude/skills/` · `skills-lock.json`)은 커밋하지 않음(`skills-lock.json` 변경은 git stash 「skills-lock」에 보관).
+## 2026-10-30 · AI · motion-mobile-native · PR #102 (https://github.com/minchan012309-spec/omr/pull/102)
+- 시작: `origin/main` c90ea8c(PR #101 병합). 열린 PR 없음. 작업 폴더가 Codex 의 `codex/frontend-system-audit`(main 과 같은 커밋, 새 커밋 없음)에 있어서 거기는 건드리지 않고 새 브랜치. 사용자가 설치한 스킬(`.agents/skills/` · `.skills/` · `skills-lock.json`)은 커밋하지 않음(`skills-lock.json` 변경은 git stash 「skills-lock」에 보관).
 - 요청: `/review-animations` 결과(Block)와 `/mobile-native` 를 「다 고치고 pr」. main 에 빠진 「캡처만 인트로」 커밋도 함께(cherry-pick, 바로 아래 기록).
 - 모션(review-animations 지적 그대로)
   - 삭제: 탭을 바꿀 때마다 재생되던 화면 전환(`#main.pgin` · `pageUp`), 보는 범위 · 오답 허브 전환 때 본문이 360ms 옆으로 미끄러지던 `segSlide` · `scopeSlide`(+ `scopeIdx` · `WRSL`), 로그인 역할 탭 전환 `#stbody.in`(`stIn`).
@@ -573,14 +579,14 @@
 - 확인: `node scripts/verify-static.cjs`, `tests/app-ui.cjs` 통과, 1440 · 390 화면 캡처로 진행 막대 · 화면 확인. `npm test` 전체 통과(exit 0, 「PASS all isolated verification commands」).
 - 못 한 것: 실제 iPhone · Android 에서 탭 반응 · 노치 · 홈 표시줄 · 키보드(`interactive-widget`) · 고무줄 스크롤을 만져 보지 못함(Playwright 에뮬레이션에서는 safe-area 값이 0이고 hover 고착 · 탭 지연이 재현되지 않음).
 
-## 2026-10-30 · Codex · claude/motion-mobile-native · PR 없음
+## 2026-10-30 · Codex · motion-mobile-native · PR 없음
 - 한 일: `npx skills@latest add emilkowalski/skills`를 실행해 Emil Kowalski 저장소의 스킬 16개를 프로젝트 로컬 `.agents/skills/`에 설치·갱신함.
-- 바뀐 파일: `.agents/skills/` 아래 16개 스킬, `.claude/skills/` 연결 항목, `skills-lock.json`, `WORKLOG.md`.
+- 바뀐 파일: `.agents/skills/` 아래 16개 스킬, `.skills/` 연결 항목, `skills-lock.json`, `WORKLOG.md`.
 - 확인: 설치 명령 exit 0, 16개 모두 설치 완료. 설치 도구의 보안 검사 결과 Gen Safe · Socket 0 alerts · Snyk Low Risk.
 - 남은 일 · 주의: 기존 작업 트리에 있던 앱 코드와 스타일 변경은 건드리지 않았고, 커밋·푸시는 하지 않음. 새 스킬은 다음 Codex 턴부터 사용 가능.
 
-## 2026-10-30 · Claude Code · claude/motion-mobile-native에 다시 올림(원래 claude/intro-mockups-system-audit 0dc31dd)
-- 요청: 「목업 그냥 다 빼고 그냥 캡쳐본만 넣어」. 바로 아래 기록(PR #101)의 3D 기기 무대 수정 위에서 무대 자체를 없앰. **PR #101 이 이 커밋보다 먼저 병합돼 main 에 빠져 있었음** → 다음 PR(claude/motion-mobile-native)에 cherry-pick 해서 올림.
+## 2026-10-30 · AI · motion-mobile-native에 다시 올림(원래 intro-mockups-system-audit 0dc31dd)
+- 요청: 「목업 그냥 다 빼고 그냥 캡쳐본만 넣어」. 바로 아래 기록(PR #101)의 3D 기기 무대 수정 위에서 무대 자체를 없앰. **PR #101 이 이 커밋보다 먼저 병합돼 main 에 빠져 있었음** → 다음 PR(motion-mobile-native)에 cherry-pick 해서 올림.
 - 한 일
   - `intro.html`: 3D 무대(`#stage` · `.film-bg`) · GSAP 스크립트 · 스크롤 안내 삭제. 장면마다 문구 + 실제 앱 캡처(`img.shot`)만. 2장면(「아침에 볼 것은…」)은 히어로와 같은 대시보드를 또 보여 주게 돼 빼고, 히어로가 대시보드 캡처를 보여 줌. 학원 운영 장면 캡처는 반 시간표 + 출결 단말. OMR 점수 아래 「화면 속 점수는 예시 채점 기록」 표기. 바닥글의 「기기 모습은 그림」 문장 삭제.
   - `intro.css`: 3D 기기 · 책 · 문제 카드 · 분석 카드 CSS 전부 삭제(423 → 약 190줄). 넓은 화면은 문구 | 캡처 두 열(장면마다 좌우 번갈아), 860px 이하 한 열. 캡처는 얇은 테두리 + 옅은 그림자만(기기 테두리 흉내 없음), 휴대폰 캡처는 모서리만 둥글게.
@@ -590,7 +596,7 @@
 - 확인: 1440 라이트 · 다크, 390 전체 페이지 캡처를 직접 봄. `intro-regression` · `intro-scroll` 통과, `npm test` 전체 통과(exit 0, 「PASS all isolated verification commands」).
 - 남은 일 · 주의: `lib/gsap/`와 이제 안 쓰는 `intro/` 이미지(book-basic · book-ox · book-problem · book-toc · cover-* · mock-cover · pad-stat · phone-weak · xdr-cns · xdr-stu · xdr-weak · mac-stu)는 지우지 않고 남겨 둠. 휴대폰 폭에서는 앱 전체 캡처가 작아 글자가 읽히지 않음(캡처 자체 한계).
 
-## 2026-10-30 · Claude Code · claude/intro-mockups-system-audit · PR #101 (https://github.com/minchan012309-spec/omr/pull/101)
+## 2026-10-30 · AI · intro-mockups-system-audit · PR #101 (https://github.com/minchan012309-spec/omr/pull/101)
 - 시작: `origin/main` b72f028(PR #100 병합)과 같은 위치. 열린 PR 없음.
 - 요청: 인트로에서 깨진 장면(책 목업 · 노트북 키보드가 화면보다 크게 · 학원 운영 장면 기기 겹침 · 대시보드 위 문구 겹침) 고치기, 2장면(「복잡했던 학원 운영이…」 디스플레이 확대 + 강조 상자) 폐지 후 새로 만들기, 앱 전반 디자인 점검 후 고치기.
 - 인트로 깨짐의 실제 원인
@@ -619,7 +625,7 @@
 - 주의: Playwright `fullPage` 캡처는 고정 사이드바 때문에 앱 화면 왼쪽이 잘린 것처럼 찍힌다(앱 문제 아님, 화면 크기 캡처로 확인).
 - 남은 일: 실제 Mac 트랙패드 · iPad · iPhone에서 인트로를 만져 보지 못함. 휴대폰 폭 인트로는 문구가 위, 기기가 아래라 다음 장면 문구가 올라올 때 잠깐 기기 위를 지나감(구조상). 업데이트 알림 토스트가 휴대폰에서 아래쪽 카드를 잠깐 가림(한 번만 뜸).
 
-## 2026-10-30 · Claude Code · claude/intro-scroll-ui-fixes · PR #100 (https://github.com/minchan012309-spec/omr/pull/100)
+## 2026-10-30 · AI · intro-scroll-ui-fixes · PR #100 (https://github.com/minchan012309-spec/omr/pull/100)
 - 시작: `origin/main` 3836e04(PR #99 병합) 위에서 새 브랜치. 직전 작업은 PR #99(인트로 라이트/다크 · 스크롤 거리 1.5배), PR #98(시네마틱 인트로), PR #97(UI 재구축, Codex). 열린 PR 없음. 직전 세션은 사용자가 「아직도 스크롤이 너무 빨라」라고 한 뒤 한도로 끊겨 손대지 못한 상태였음.
 - 목적: 인트로에서 휠 · 트랙패드를 조금만 움직여도 장면이 통째로 넘어가는 문제 해결, 그리고 남은 앱 문제(CSS 순서, 테스트 진입점, 로그인 탭 접근성, entry-mode, 학생 목록 모바일, 장식, YetHangul, 서비스 워커 캐시).
 - 인트로 스크롤 원인: wheel · touch 핸들러나 scroll-snap은 원래 없었다(측정: 휠 80px → scrollY 80px 그대로). 원인은 구조였다. `#film`(100vh, overflow:hidden)을 GSAP ScrollTrigger `pin`으로 약 35화면 동안 고정하고 `scrub:1.2`로 타임라인 하나에 10장면을 묶어서, ① 글이 스크롤을 따라 움직이지 않고 ② 문구가 18~24단위(≈250~320px) 안에 통째로 페이드 교체되며 ③ 손을 뗀 뒤에도 1.2초 동안 장면이 계속 진행됐다. 그래서 짧은 트랙패드 관성 한 번이 「한 장」 전환으로 보였다.
@@ -658,14 +664,14 @@
   - 로그인 화면 「번호로 바로 채점」은 여전히 브라우저 `prompt` 창을 쓰고, 로그인 전에는 채점할 수 없다는 안내로 끝남(기존 동작).
 - 커밋: 45d1b88(구현 · 테스트), 이 기록 줄은 뒤이은 docs 커밋
 
-## 2026-10-30 · Claude Code · claude/print-students-ebook-intro · PR #99
+## 2026-10-30 · AI · print-students-ebook-intro · PR #99
 - 한 일
   - 인쇄: 개념학습 인쇄(개념 학습지 · 요약 노트 · 취약 유형 개념)를 A4 쪽(`.cpg`)으로 나눠 미리보기와 인쇄가 같게. 태블릿 · 휴대폰은 인쇄 창 「인쇄」가 쪽마다 A4 PDF 저장(`popPdf`). 개념 데이터 로드 실패를 저장하지 않아 O/X만 인쇄되는 화면에 갇히지 않게. 취약 유형 개념 인쇄에 본교재 개념 포함.
   - 메뉴: 「검색 · 이동」 → 홈 바로 아래 「통합검색」.
   - 학생 탭(`stuView`) 새로 만듦: 요약 숫자, 탭(목록 · 등록 · 반 일괄 등록 · 시험 일정), 표 한 줄에 한 학생 + 「⋯」 메뉴, 일괄 작업 막대, 모바일 카드형.
   - 로그인 화면: 솔비 로고 + 이 기기에 저장된 학원 로고(없으면 솔비 로고만).
   - eBook(`bkEbook`) 화면 전면 개편: 밝은 종이 바탕 · 과목 색, 위 막대 하나, 필기 도구는 필기 켤 때만, WebGL은 넘김 효과 켤 때만, 썸네일 공유 스타일시트.
-  - `AGENTS.md` · `CLAUDE.md` · `WORKLOG.md` 추가, 오래된 `HANDOFF_PROMPT.md`(PR #87 지시서) 삭제.
+  - `AGENTS.md` · `WORKLOG.md` 추가, 오래된 `HANDOFF_PROMPT.md`(PR #87 지시서) 삭제.
   - 무료 체험 신청 `trial.html` · 자체 문의 `contact.html`(+`lead.js` · `lead.css`) → 서버 표 `site_leads` → 개발자 탭 「체험 신청 · 문의」(`dev.js?v=8`). **Supabase에서 `supabase/sql_26_site_leads.sql`을 실행해야 저장된다.**
   - 인트로: 라이트(물질과 에너지 파랑) · 다크 테마와 전환 버튼, 스크롤 거리 1.5배 · 스크럽 부드럽게, 맨 아래 S 심볼, 요금제 아래 「무료 체험하기」, 문의는 메일 대신 자체 문의, 넓은 화면에서 기기 배치가 퍼지지 않게(LW), QR 스캔을 카메라 화면처럼, 장면별 세부 기능 줄, 휴대폰 목업 다듬기. `sw.js` VER `solvi-v158`, `intro.*?v=7`.
   - 목업: 사용자가 Apple 공식 목업을 원했으나 Apple Design Resources 라이선스가 「Apple OS 전용 소프트웨어의 목업」으로 한정하고 웹사이트 콘텐츠 사용을 금지해서 쓰지 않음(받은 파일 삭제). 공개 저장소 목업은 옛 기종 · CC BY-SA라 부적합 → 자체 CSS 3D 기기를 다듬음.
@@ -673,7 +679,7 @@
 - 확인: Playwright로 데스크톱 · iPad 흉내(UA · 터치)에서 개념 · 학습지 PDF, 학생 탭 1440/390, eBook 1440/390, 로그인 화면 로고 유무
 - 남은 일 · 주의: 실제 iPad Safari · Android에서 인쇄(PDF) 확인 못 함. 과목 문항이 안 보인다는 제보는 사용자가 경로를 잘못 본 것이었음(코드 문제 아님).
 
-## 2026-10-30 · Claude Code · PR #98 (병합됨)
+## 2026-10-30 · AI · PR #98 (병합됨)
 - 한 일: 인트로를 Pro Display XDR 중심 시네마틱 스크롤(GSAP ScrollTrigger pin + scrub 10장면)로 재제작, `policy.html` 초안, `tools/capture_cine.js` 추가, 쓰지 않는 인트로 이미지 삭제, 인트로 회귀 테스트 교체.
 - 주의: `sw.js` VER `solvi-v157`. 기기 목업은 CSS 3D 자체 제작이었고, 사용자가 이후 실제 목업 이미지 사용 · 라이트/다크 분리 · 스크롤 속도 조절 · 무료 체험 신청 · 자체 문의 폼을 요청함.
 
